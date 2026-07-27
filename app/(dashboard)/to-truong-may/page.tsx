@@ -1,279 +1,408 @@
-'use client';
-
-// ============================================================================
-// MODULE 6 — TỔ TRƯỞNG MAY (Mobile-first)
-// Counter [+1 ĐẠT]/[+1 LỖI] theo giờ · Takt time & Hiệu suất chuyền · Bottleneck
-// ============================================================================
-
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Shirt, Plus, Minus, Send, Gauge, Timer, Activity, AlertTriangle,
-  CheckCircle2, PackageOpen,
-} from 'lucide-react';
-import {
-  Card, PageHeader, StatCard, Badge, EmptyState, AccessDenied, MockBadge,
-  inputCls, btnPrimary, thCls, tdCls, useToast, ToastView, Field,
-} from '@/components/ui';
-import { useSession } from '@/lib/hooks';
-import { canAccess } from '@/lib/auth';
-import { fetchTables, insertRow, genId, subscribeTables } from '@/lib/supabase';
-import {
-  taktTimeMinutes, lineEfficiencyPercent, defectRatePercent,
-  fmtNum, fmtNum1, fmtPct,
-} from '@/lib/garment-math';
-import type { Order, SewingLine, ProdLog, Bundle } from '@/types/erp';
+  getSewingDashboardData,
+  createHourlyProductionLog,
+  createNeedleBreakLog,
+} from './actions'
 
-const MODULE_PATH = '/to-truong-may';
-const STAGES = ['May thân', 'Tra tay', 'Vào lưng/khóa', 'Hoàn thiện'];
-const HOURS = ['08h', '09h', '10h', '11h', '13h', '14h', '15h', '16h', '17h'];
+export const dynamic = 'force-dynamic'
 
-export default function SewingPage() {
-  const { session, ready } = useSession();
-  const { toast, showToast } = useToast();
+export default async function SewingDashboardPage() {
+  const { lines, orders, hourlyLogs, needleLogs } = await getSewingDashboardData()
 
-  const [isMock, setIsMock] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [lines, setLines] = useState<SewingLine[]>([]);
-  const [prodLogs, setProdLogs] = useState<ProdLog[]>([]);
-  const [bundles, setBundles] = useState<Bundle[]>([]);
-
-  const [lineId, setLineId] = useState('');
-  const [orderId, setOrderId] = useState('');
-  const [stage, setStage] = useState(STAGES[0]);
-  const [okCount, setOkCount] = useState(0);
-  const [defCount, setDefCount] = useState(0);
-  const [targetDay, setTargetDay] = useState('400');
-  const [sam, setSam] = useState('12');
-  const [workers, setWorkers] = useState('28');
-  const [workHours, setWorkHours] = useState('8');
-
-  const load = useCallback(async () => {
-    const { data, isMock } = await fetchTables(['orders', 'sewing_lines', 'prod_logs', 'bundles']);
-    setOrders(data.orders as Order[]);
-    setLines(data.sewing_lines as SewingLine[]);
-    setProdLogs(data.prod_logs as ProdLog[]);
-    setBundles(data.bundles as Bundle[]);
-    setIsMock(isMock);
-  }, []);
-  useEffect(() => { void load(); }, [load]);
-  useEffect(() => subscribeTables(['prod_logs', 'bundles'], () => { void load(); }), [load]);
-
-  // Mặc định chọn chuyền/PO đầu tiên phù hợp
-  useEffect(() => {
-    if (!lineId && lines.length > 0) {
-      setLineId(lines[0].id);
-      setSam(String(lines[0].sam_default));
-      setWorkers(String(lines[0].worker_count));
-    }
-  }, [lines, lineId]);
-  useEffect(() => {
-    if (!orderId) {
-      const o = orders.find((x) => x.line_id === lineId) ?? orders.find((x) => x.status === 'Đang may');
-      if (o) setOrderId(o.id);
-    }
-  }, [orders, lineId, orderId]);
-
-  const order = orders.find((o) => o.id === orderId) ?? null;
-  const today = new Date().toDateString();
-  const todayLogs = useMemo(
-    () => prodLogs.filter((l) => l.line_id === lineId && new Date(l.created_at).toDateString() === today),
-    [prodLogs, lineId, today],
-  );
-
-  const todayOk = todayLogs.reduce((s, l) => s + l.qty_ok, 0);
-  const todayDef = todayLogs.reduce((s, l) => s + l.qty_defect, 0);
-  const defRate = defectRatePercent(todayDef, todayOk + todayDef);
-
-  // BTP khả dụng = bó đã giao chuyền − đã may (đồng bộ tự động từ Tổ Cắt)
-  const availableBtp = useMemo(() => {
-    if (!order) return 0;
-    const delivered = bundles.filter((b) => b.order_id === order.id && b.status === 'Đã giao chuyền')
-      .reduce((s, b) => s + b.qty, 0);
-    const sewn = prodLogs.filter((l) => l.order_id === order.id)
-      .reduce((s, l) => s + l.qty_ok + l.qty_defect, 0);
-    return Math.max(0, delivered - sewn);
-  }, [order, bundles, prodLogs]);
-
-  // Takt & hiệu suất
-  const takt = taktTimeMinutes((Number(workHours) || 0) * 60, Number(targetDay) || 0);
-  const eff = lineEfficiencyPercent(todayOk, Number(sam) || 0, Number(workers) || 0, Number(workHours) || 0);
-
-  // Bảng sản lượng theo giờ
-  const hourly = useMemo(() => HOURS.map((h) => {
-    const ls = todayLogs.filter((l) => l.hour_slot === h);
-    return { hour: h, ok: ls.reduce((s, l) => s + l.qty_ok, 0), def: ls.reduce((s, l) => s + l.qty_defect, 0) };
-  }), [todayLogs]);
-
-  // Bottleneck: công đoạn có sản lượng hôm nay thấp nhất (ứ BTP phía trước)
-  const stageOutput = useMemo(() => STAGES.map((st) => ({
-    stage: st,
-    ok: todayLogs.filter((l) => l.stage === st).reduce((s, l) => s + l.qty_ok, 0),
-  })), [todayLogs]);
-  const bottleneck = useMemo(() => {
-    const active = stageOutput.filter((s) => s.ok > 0);
-    if (active.length < 2) return null;
-    return active.reduce((min, s) => (s.ok < min.ok ? s : min), active[0]);
-  }, [stageOutput]);
-
-  const currentHourSlot = (): string => {
-    const h = new Date().getHours();
-    return `${String(Math.min(Math.max(h, 8), 17)).padStart(2, '0')}h`;
-  };
-
-  const submitReport = async () => {
-    if (!order || (okCount === 0 && defCount === 0)) return;
-    const row: ProdLog = {
-      id: genId('P'), order_id: order.id, subcon_id: null, line_id: lineId,
-      stage, qty_ok: okCount, qty_defect: defCount,
-      hour_slot: currentHourSlot(), photo_url: null, created_at: new Date().toISOString(),
-    };
-    setProdLogs((prev) => [row, ...prev]);
-    setOkCount(0);
-    setDefCount(0);
-    const { id: _omit, ...payload } = row;
-    const ok = await insertRow('prod_logs', payload);
-    showToast(ok ? `✓ Đã gửi: ${okCount} đạt / ${defCount} lỗi (${stage})` : 'Đã ghi báo cáo (offline)');
-  };
-
-  if (!ready) return null;
-  if (!session || !canAccess(session.user.role, MODULE_PATH)) return <AccessDenied />;
+  // Tính toán chỉ số Tổng quan
+  const totalActual = hourlyLogs.reduce((sum, l) => sum + l.actual_qty, 0)
+  const totalTarget = hourlyLogs.reduce((sum, l) => sum + l.target_qty, 0)
+  const totalRework = hourlyLogs.reduce((sum, l) => sum + l.rework_qty, 0)
+  const efficiency = totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : '0.0'
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <PageHeader title="Tổ trưởng May" desc="Bấm đếm sản lượng theo giờ — tối ưu cho điện thoại/tablet đặt tại chuyền"
-        action={<MockBadge show={isMock} />} />
-
-      {/* Chọn chuyền / PO / công đoạn */}
-      <Card>
-        <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3">
-          <Field label="Chuyền">
-            <select className={inputCls} value={lineId} onChange={(e) => {
-              setLineId(e.target.value);
-              const l = lines.find((x) => x.id === e.target.value);
-              if (l) { setSam(String(l.sam_default)); setWorkers(String(l.worker_count)); }
-            }}>
-              {lines.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-          </Field>
-          <Field label="PO đang may">
-            <select className={inputCls} value={orderId} onChange={(e) => setOrderId(e.target.value)}>
-              {orders.filter((o) => o.status !== 'Đã xuất').map((o) => <option key={o.id} value={o.id}>{o.po_code} · {o.product_name}</option>)}
-            </select>
-          </Field>
-          <Field label="Công đoạn">
-            <select className={inputCls} value={stage} onChange={(e) => setStage(e.target.value)}>
-              {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </Field>
-        </div>
-        <div className="flex items-center gap-2 border-t border-slate-50 px-4 py-2.5 text-xs text-slate-500">
-          <PackageOpen className="h-4 w-4 text-indigo-500" />
-          BTP khả dụng từ Tổ Cắt: <b className="tabular-nums text-slate-800">{fmtNum(availableBtp)}</b>
-          <span className="text-slate-300">·</span> tự trừ khi chuyền báo sản lượng
-        </div>
-      </Card>
-
-      {/* Counter */}
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <button onClick={() => setOkCount((v) => v + 1)}
-          className="group flex min-h-[128px] flex-col items-center justify-center gap-1 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 transition active:scale-95">
-          <span className="flex items-center gap-1 text-lg font-bold"><Plus className="h-6 w-6" /> 1 ĐẠT</span>
-          <span className="text-4xl font-black tabular-nums">{okCount}</span>
-          <span className="text-xs text-emerald-100">chạm để cộng</span>
-        </button>
-        <button onClick={() => setDefCount((v) => v + 1)}
-          className="group flex min-h-[128px] flex-col items-center justify-center gap-1 rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-600/20 transition active:scale-95">
-          <span className="flex items-center gap-1 text-lg font-bold"><Plus className="h-6 w-6" /> 1 LỖI</span>
-          <span className="text-4xl font-black tabular-nums">{defCount}</span>
-          <span className="text-xs text-rose-100">chuyển QA kiểm lại</span>
-        </button>
-      </div>
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        <button onClick={() => setOkCount((v) => Math.max(0, v - 1))}
-          className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-500 transition active:scale-95">
-          <Minus className="h-4 w-4" /> Đạt
-        </button>
-        <button onClick={() => setDefCount((v) => Math.max(0, v - 1))}
-          className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-500 transition active:scale-95">
-          <Minus className="h-4 w-4" /> Lỗi
-        </button>
-        <button onClick={() => void submitReport()} disabled={okCount === 0 && defCount === 0}
-          className={`${btnPrimary} py-2.5`}>
-          <Send className="h-4 w-4" /> Gửi báo cáo
-        </button>
-      </div>
-
-      {/* KPI hôm nay */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon={Shirt} tone="emerald" label="Đạt hôm nay" value={fmtNum(todayOk)} />
-        <StatCard icon={AlertTriangle} tone={defRate > 3 ? 'rose' : 'slate'} alert={defRate > 3}
-          label="Lỗi hôm nay" value={fmtNum(todayDef)} sub={`tỷ lệ ${fmtPct(defRate)}`} />
-        <StatCard icon={Timer} tone="indigo" label="Takt time" value={`${fmtNum1(takt)} ph/SP`} sub={`mục tiêu ${fmtNum(Number(targetDay) || 0)} SP/ngày`} />
-        <StatCard icon={Gauge} tone={eff >= 60 ? 'emerald' : 'amber'} label="Hiệu suất chuyền" value={fmtPct(eff, 0)} sub={`SAM ${sam}′ · ${workers} CN`} />
-      </div>
-
-      {/* Tham số chuyền */}
-      <Card className="mt-4" title="Tham số Nhịp chuyền" icon={Timer}>
-        <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
-          <Field label="Mục tiêu SP/ngày"><input type="number" className={inputCls} value={targetDay} onChange={(e) => setTargetDay(e.target.value)} /></Field>
-          <Field label="SAM (phút/SP)"><input type="number" step="0.1" className={inputCls} value={sam} onChange={(e) => setSam(e.target.value)} /></Field>
-          <Field label="Số công nhân"><input type="number" className={inputCls} value={workers} onChange={(e) => setWorkers(e.target.value)} /></Field>
-          <Field label="Giờ làm việc"><input type="number" className={inputCls} value={workHours} onChange={(e) => setWorkHours(e.target.value)} /></Field>
-        </div>
-        <p className="border-t border-slate-50 px-4 py-2.5 text-[11px] text-slate-400">
-          Hiệu suất % = (Sản lượng × SAM) / (Số CN × Giờ làm × 60) × 100 · Takt = Giờ khả dụng / Mục tiêu.
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Quản Lý Tổ May & Năng Suất Chuyền (Sewing Line Tracker)
+        </h1>
+        <p className="text-sm text-slate-500">
+          Ghi nhận sản lượng may theo giờ, theo dõi hiệu suất Target và kiểm soát quy trình an toàn kim gãy.
         </p>
-      </Card>
+      </div>
 
-      {/* Bảng sản lượng theo giờ */}
-      <Card className="mt-4" title="Sản lượng theo giờ (hôm nay)" icon={Activity}>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-left">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className={thCls}>Khung giờ</th>
-                {hourly.map((h) => <th key={h.hour} className={`${thCls} text-center`}>{h.hour}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-slate-50">
-                <td className={`${tdCls} font-semibold text-emerald-700`}>Đạt</td>
-                {hourly.map((h) => <td key={h.hour} className={`${tdCls} text-center tabular-nums`}>{h.ok || '·'}</td>)}
-              </tr>
-              <tr>
-                <td className={`${tdCls} font-semibold text-rose-600`}>Lỗi</td>
-                {hourly.map((h) => <td key={h.hour} className={`${tdCls} text-center tabular-nums ${h.def > 0 ? 'text-rose-600 font-semibold' : 'text-slate-300'}`}>{h.def || '·'}</td>)}
-              </tr>
-            </tbody>
-          </table>
+      {/* METRIC CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-slate-500">Tổng Sản Lượng May Đạt</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2">
+            {totalActual.toLocaleString()} <span className="text-sm font-normal text-slate-500">pcs</span>
+          </p>
         </div>
-        {todayLogs.length === 0 && <EmptyState title="Chuyền chưa có báo cáo hôm nay" sub="Dùng bộ đếm phía trên để bắt đầu" />}
-      </Card>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-slate-500">Hiệu Suất Đạt Target</p>
+          <p className={`text-2xl font-extrabold mt-2 ${Number(efficiency) >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
+            {efficiency}%
+          </p>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-slate-500">Áo Phải Sửa (Rework)</p>
+          <p className="text-2xl font-extrabold text-rose-600 mt-2">
+            {totalRework.toLocaleString()} <span className="text-sm font-normal text-slate-500">pcs</span>
+          </p>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-slate-500">Sự Cố Gãy Kim (An Toàn)</p>
+          <p className="text-2xl font-extrabold text-slate-800 mt-2">
+            {needleLogs.length} <span className="text-sm font-normal text-slate-500">lần</span>
+          </p>
+        </div>
+      </div>
 
-      {/* Bottleneck */}
-      <Card className="mt-4" title="Cân bằng chuyền & Điểm nghẽn (Bottleneck)" icon={Gauge}>
-        <ul className="divide-y divide-slate-50">
-          {stageOutput.map((s) => {
-            const isBn = bottleneck?.stage === s.stage;
-            return (
-              <li key={s.stage} className="flex items-center justify-between px-5 py-3">
-                <span className={`text-sm font-medium ${isBn ? 'text-rose-700' : 'text-slate-700'}`}>{s.stage}</span>
-                <span className="flex items-center gap-2">
-                  <span className="text-sm font-semibold tabular-nums text-slate-800">{fmtNum(s.ok)} SP</span>
-                  {isBn
-                    ? <Badge tone="rose" icon={AlertTriangle}>Nghẽn chuyền</Badge>
-                    : s.ok > 0 ? <Badge tone="emerald" icon={CheckCircle2}>Ổn định</Badge> : <Badge tone="slate">Chưa chạy</Badge>}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="border-t border-slate-50 px-5 py-2.5 text-[11px] text-slate-400">
-          Công đoạn có sản lượng thấp nhất trong ngày được đánh dấu nghẽn — cân nhắc điều CN hỗ trợ hoặc tách bó nhỏ.
-        </p>
-      </Card>
+      {/* GRID CONTENT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* BẢNG NHẬT KÝ SẢN LƯỢNG HEATED (2 COLS) */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+              <h2 className="text-base font-semibold text-slate-800">Báo Cáo Sản Lượng May Theo Giờ</h2>
+              <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full">Realtime</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th className="px-4 py-3">Khung Giờ / Chuyền</th>
+                    <th className="px-4 py-3">PO / Mã Hàng</th>
+                    <th className="px-4 py-3 text-center">Công Nhân</th>
+                    <th className="px-4 py-3 text-right">Target / Đạt</th>
+                    <th className="px-4 py-3 text-center">Tỷ Lệ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {hourlyLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                        Chưa có báo cáo sản lượng nào trong ca làm việc.
+                      </td>
+                    </tr>
+                  ) : (
+                    hourlyLogs.map((l) => {
+                      const logEff = l.target_qty > 0 ? ((l.actual_qty / l.target_qty) * 100).toFixed(0) : '0'
+                      const isPassed = Number(logEff) >= 90
+                      return (
+                        <tr key={l.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-slate-900">{l.time_slot}</div>
+                            <div className="text-xs text-slate-500">{l.line_name}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="font-semibold text-slate-800">{l.po_number}</div>
+                            <div className="text-xs text-slate-500">{l.style_code}</div>
+                          </td>
+                          <td className="px-4 py-3 text-center font-medium text-slate-700">
+                            {l.operator_count} người
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="font-bold text-slate-900">{l.actual_qty} / {l.target_qty} pcs</div>
+                            {l.rework_qty > 0 && (
+                              <div className="text-xs text-rose-500 font-medium">Sửa: {l.rework_qty} pcs</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-2.5 py-1 text-xs font-extrabold rounded-full ${
+                              isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {logEff}%
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      <ToastView message={toast} />
+          {/* NHẬT KÝ KIỂM SOÁT KIM GÃY */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h2 className="text-base font-semibold text-slate-800">Nhật Ký An Toàn Kim Gãy (Needle Safety Protocol)</h2>
+            </div>
+            <div className="p-4 space-y-3">
+              {needleLogs.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-4">Không có sự cố gãy kim nào được ghi nhận.</p>
+              ) : (
+                needleLogs.map((n) => (
+                  <div key={n.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-xs text-slate-900">
+                        {n.line_name} - Máy: {n.machine_code} ({n.needle_type})
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Công nhân: <span className="font-medium text-slate-700">{n.operator_name}</span> | Lý do: {n.reason}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-2 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-800 rounded">
+                        Đã Tìm Đủ Mảnh
+                      </span>
+                      <div className="mt-1">
+                        <a href={n.evidence_image_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">
+                          Xem ảnh dán kim
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* CỘT NHẬP BÁO CÁO (1 COL) */}
+        <div className="space-y-6">
+          
+          {/* FORM 1: NHẬP SẢN LƯỢNG GIỜ */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
+              Ghi Nhận Sản Lượng Giờ
+            </h2>
+            <form action={createHourlyProductionLog} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Chọn Chuyền May <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="line_id"
+                  required
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="">-- Chọn chuyền --</option>
+                  {lines.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.line_name} (Mục tiêu: {l.target_pcs_per_hour}sp/h)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Chọn Đơn Hàng PO <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="order_id"
+                  required
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="">-- Chọn PO --</option>
+                  {orders.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.po_number} ({o.style_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Khung Giờ <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="time_slot"
+                    required
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="08:00 - 09:00">08:00 - 09:00</option>
+                    <option value="09:00 - 10:00">09:00 - 10:00</option>
+                    <option value="10:00 - 11:00">10:00 - 11:00</option>
+                    <option value="11:00 - 12:00">11:00 - 12:00</option>
+                    <option value="13:00 - 14:00">13:00 - 14:00</option>
+                    <option value="14:00 - 15:00">14:00 - 15:00</option>
+                    <option value="15:00 - 16:00">15:00 - 16:00</option>
+                    <option value="16:00 - 17:00">16:00 - 17:00</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Số Công Nhân
+                  </label>
+                  <input
+                    type="number"
+                    name="operator_count"
+                    defaultValue={25}
+                    required
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Target Giờ <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="target_qty"
+                    defaultValue={60}
+                    required
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Số May Đạt <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="actual_qty"
+                    defaultValue={58}
+                    required
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Số Lượng Phải Sửa (Rework)
+                </label>
+                <input
+                  type="number"
+                  name="rework_qty"
+                  defaultValue={2}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-sm"
+              >
+                Cập Nhật Sản Lượng Giờ
+              </button>
+            </form>
+          </div>
+
+          {/* FORM 2: BÁO CÁO GÃY KIM AN TOÀN */}
+          <div className="bg-white rounded-xl border border-rose-200 shadow-sm p-6 bg-rose-50/20">
+            <h2 className="text-base font-semibold text-rose-900 mb-4 pb-3 border-b border-rose-100 flex items-center gap-2">
+              <span>⚠️</span> Báo Cáo Sự Cố Gãy Kim
+            </h2>
+            <form action={createNeedleBreakLog} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Chuyền May Xảy Ra Sự Cố <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="line_id"
+                  required
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                >
+                  <option value="">-- Chọn chuyền --</option>
+                  {lines.map((l) => (
+                    <option key={l.id} value={l.id}>{l.line_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Công Nhân <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="operator_name"
+                    placeholder="VD: Nguyễn Văn A"
+                    required
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Mã Máy May <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="machine_code"
+                    placeholder="VD: MAY-1-05"
+                    required
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Loại Kim
+                  </label>
+                  <input
+                    type="text"
+                    name="needle_type"
+                    defaultValue="DBx1 Size 11"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Lý Do Gãy
+                  </label>
+                  <input
+                    type="text"
+                    name="reason"
+                    placeholder="VD: Đâm trúng nút metal"
+                    defaultValue="Vải dầy quá quy định"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Link Ảnh Bằng Chứng Dán Mảnh Kim <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="evidence_image_url"
+                  placeholder="https://..."
+                  defaultValue="https://images.unsplash.com/photo-1584992236310-6edddc08acff"
+                  required
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="fragments_found"
+                  name="fragments_found"
+                  defaultChecked
+                  required
+                  className="w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500"
+                />
+                <label htmlFor="fragments_found" className="text-xs font-bold text-rose-900">
+                  Xác nhận đã ghép đủ 100% các mảnh kim gãy
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-sm"
+              >
+                Gửi Báo Cáo & Yêu Cầu Đổi Kim
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
     </div>
-  );
+  )
 }
