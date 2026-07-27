@@ -117,7 +117,7 @@ export async function getExecutiveDashboardData(range: TimeRange = 'month'): Pro
 
   // Drill-down C: Danh sách gãy kim chưa tìm thấy mảnh (Rủi ro cực độ)
   const activeNeedleAlerts = needleLogs?.filter(n => !n.fragments_found).map(n => ({
-    line_name: n.sewing_lines?.line_name || 'N/A',
+    line_name: (Array.isArray(n.sewing_lines) ? n.sewing_lines[0]?.line_name : (n.sewing_lines as unknown as { line_name: string })?.line_name) || 'N/A',
     operator: n.operator_name,
     machine: n.machine_code,
     date: new Date(n.created_at).toLocaleString('vi-VN')

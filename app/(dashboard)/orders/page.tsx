@@ -114,7 +114,7 @@ export default async function OrdersPage() {
           <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
             Tạo Đơn Hàng Mới (PO)
           </h2>
-          <form action={createOrder} className="space-y-4">
+          <form action={async (formData) => { await createOrder(formData) }} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Mã PO <span className="text-red-500">*</span>

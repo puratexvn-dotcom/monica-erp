@@ -128,7 +128,7 @@ export default async function CuttingDashboardPage() {
           <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
             Lập Phiếu Bàn Cắt
           </h2>
-          <form action={createCutTicket} className="space-y-4">
+          <form action={async (formData) => { await createCutTicket(formData) }} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Đơn Hàng PO <span className="text-red-500">*</span>

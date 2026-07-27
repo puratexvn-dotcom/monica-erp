@@ -146,3 +146,4 @@ CREATE TRIGGER trg_validate_carton_packing
 BEFORE INSERT OR UPDATE ON public.cartons
 FOR EACH ROW
 EXECUTE FUNCTION public.fn_validate_carton_packing_stage();
+

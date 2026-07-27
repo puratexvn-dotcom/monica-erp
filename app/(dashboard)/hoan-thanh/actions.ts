@@ -47,7 +47,7 @@ export async function getFinishingAndPackingData() {
   // Tính tổng số đã đóng thùng theo PO để Cảnh báo Ratio
   const packedQtyByPO: Record<string, number> = {}
   cartons?.forEach(c => {
-    const po = c.orders?.po_number || 'UNKNOWN'
+    const po = (Array.isArray(c.orders) ? c.orders[0]?.po_number : (c.orders as unknown as { po_number: string })?.po_number) || 'UNKNOWN'
     packedQtyByPO[po] = (packedQtyByPO[po] || 0) + c.quantity_per_carton
   })
 

@@ -3,11 +3,42 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
+interface BundleItem {
+  id: string
+  bundle_code: string
+  color_code: string
+  size_code: string
+  quantity: number
+  current_stage: string
+  po_number: string
+  po_total_qty: number
+  trimming_qty: number
+  ironing_qty: number
+  final_qc_passed_qty: number
+  final_qc_defect_qty: number
+}
+
+interface CartonItem {
+  id: string
+  carton_code: string
+  quantity_per_carton: number
+  orders?: { po_number: string } | { po_number: string }[]
+}
+
 export default async function FinishingDepartmentPage({ searchParams }: { searchParams: { tab?: string } }) {
   const activeTab = searchParams.tab || 'finishing'
   const { bundles, cartons, packedQtyByPO } = await getFinishingAndPackingData()
 
-  const eligibleBundles = bundles.filter(b => b.current_stage === 'FINISHING')
+  const typedBundles = (bundles || []) as BundleItem[]
+  const typedCartons = (cartons || []) as CartonItem[]
+
+  // Thống kê Metrics
+  const totalTrimming = typedBundles.reduce((sum: number, b: BundleItem) => sum + b.trimming_qty, 0)
+  const totalIroning = typedBundles.reduce((sum: number, b: BundleItem) => sum + b.ironing_qty, 0)
+  const totalQCPassed = typedBundles.reduce((sum: number, b: BundleItem) => sum + b.final_qc_passed_qty, 0)
+  const totalQCDefect = typedBundles.reduce((sum: number, b: BundleItem) => sum + b.final_qc_defect_qty, 0)
+
+  const eligibleBundles = typedBundles.filter((b: BundleItem) => b.current_stage === 'FINISHING')
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -22,15 +53,34 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
         </div>
       </div>
 
+      {/* METRIC CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold text-slate-500 uppercase">Đã Cắt Chỉ</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{totalTrimming.toLocaleString()} pcs</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold text-slate-500 uppercase">Đã Ủi Form</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1">{totalIroning.toLocaleString()} pcs</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold text-slate-500 uppercase">Final QC Đạt</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">{totalQCPassed.toLocaleString()} pcs</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-semibold text-slate-500 uppercase">Final QC Lỗi</p>
+          <p className="text-2xl font-bold text-rose-600 mt-1">{totalQCDefect.toLocaleString()} pcs</p>
+        </div>
+      </div>
+
       {activeTab === 'finishing' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* BẢNG TIẾN ĐỘ */}
           <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50"><h2 className="text-base font-semibold text-slate-800">Tiến Độ Bán Thành Phẩm (WIP)</h2></div>
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Bundle / PO</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3 text-right">QC Đạt / Tổng</th></tr></thead>
               <tbody>
-                {bundles.map(b => (
+                {typedBundles.map((b: BundleItem) => (
                   <tr key={b.id} className="border-t border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-3"><div className="font-bold text-slate-900">{b.bundle_code}</div><div className="text-xs text-slate-500">{b.po_number}</div></td>
                     <td className="px-4 py-3">
@@ -42,13 +92,12 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
               </tbody>
             </table>
           </div>
-          {/* FORM NHẬP QC */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
             <h2 className="font-semibold text-slate-900 mb-4 border-b pb-2">Cập Nhật QC & Kích Hoạt</h2>
-            <form action={createFinishingLog} className="space-y-4">
+            <form action={async (formData) => { await createFinishingLog(formData) }} className="space-y-4">
               <select name="bundle_id" required className="w-full px-3 py-2 border rounded-lg text-sm bg-white font-mono">
                 <option value="">-- Chọn Bundle Đang Xử Lý --</option>
-                {bundles.filter(b => b.current_stage === 'SEWING' || b.current_stage === 'CUT').map(b => (
+                {typedBundles.filter((b: BundleItem) => b.current_stage === 'SEWING' || b.current_stage === 'CUT').map((b: BundleItem) => (
                   <option key={b.id} value={b.id}>{b.bundle_code} (SL: {b.quantity})</option>
                 ))}
               </select>
@@ -66,10 +115,10 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-6 h-fit bg-blue-50/30">
             <h2 className="font-semibold text-blue-900 mb-4 border-b border-blue-100 pb-2">In Mã Vạch & Đóng Thùng</h2>
-            <form action={createCarton} className="space-y-4">
+            <form action={async (formData) => { await createCarton(formData) }} className="space-y-4">
               <select name="bundle_id" required className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm bg-white font-mono">
                 <option value="">-- Chọn Bundle đã qua Final QC --</option>
-                {eligibleBundles.map(b => {
+                {eligibleBundles.map((b: BundleItem) => {
                   const packedSoFar = packedQtyByPO[b.po_number] || 0
                   const isOverpacked = packedSoFar >= b.po_total_qty
                   return (
@@ -88,9 +137,17 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Vạch Thùng</th><th className="px-4 py-3">PO</th><th className="px-4 py-3 text-center">SL</th><th className="px-4 py-3">Trạng thái</th></tr></thead>
               <tbody>
-                {cartons.map(c => (
-                  <tr key={c.id} className="border-t border-slate-100"><td className="px-4 py-3 font-mono font-bold">{c.carton_code}</td><td className="px-4 py-3">{c.orders?.po_number}</td><td className="px-4 py-3 text-center font-bold">{c.quantity_per_carton}</td><td className="px-4 py-3"><span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">PACKED</span></td></tr>
-                ))}
+                {typedCartons.map((c: CartonItem) => {
+                  const poNum = Array.isArray(c.orders) ? c.orders[0]?.po_number : c.orders?.po_number
+                  return (
+                    <tr key={c.id} className="border-t border-slate-100">
+                      <td className="px-4 py-3 font-mono font-bold">{c.carton_code}</td>
+                      <td className="px-4 py-3">{poNum || 'N/A'}</td>
+                      <td className="px-4 py-3 text-center font-bold">{c.quantity_per_carton}</td>
+                      <td className="px-4 py-3"><span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">PACKED</span></td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
