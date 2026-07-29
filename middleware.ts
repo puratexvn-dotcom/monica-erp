@@ -30,10 +30,50 @@ function readRole(appMeta: Record<string, unknown> | undefined) {
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+
+  // Các route thao tác phiên (/auth/signout...) phải LUÔN đi lọt.
+  // Nếu để bước ép đổi mật khẩu bên dưới chặn chúng thì nút "Đăng xuất" trên
+  // chính trang /update-password sẽ bị đá ngược về /update-password, và người
+  // dùng kẹt cứng trong đó không có đường ra.
+  if (path.startsWith('/auth/')) return response;
+
+  const protectedPath = isProtectedPath(path);
+  const isPasswordReset = path === '/update-password';
+  const requiresAuth = protectedPath || isPasswordReset;
+
+  // ── 0. THIẾU CẤU HÌNH ─────────────────────────────────────────────────────
+  // createServerClient NÉM LỖI nếu url/key rỗng. Middleware ném lỗi thì Vercel
+  // trả 500 MIDDLEWARE_INVOCATION_FAILED cho MỌI request — cả trang công khai
+  // lẫn trang tĩnh, tức là sập toàn bộ site chỉ vì một biến môi trường.
+  //
+  // Lưu ý: biến NEXT_PUBLIC_* được Next.js NỘI TUYẾN vào bundle lúc build, nên
+  // thêm biến trên Vercel mà không redeploy thì bản đang chạy vẫn giữ giá trị
+  // undefined của lần build trước.
+  //
+  // Xử lý: không ném lỗi, nhưng cũng KHÔNG cho vào khu vực nội bộ — không xác
+  // thực được thì phải coi như chưa đăng nhập, tuyệt đối không "mở cửa cho qua".
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error(
+      '[middleware] Thiếu NEXT_PUBLIC_SUPABASE_URL hoặc NEXT_PUBLIC_SUPABASE_ANON_KEY. ' +
+        'Kiểm tra biến môi trường rồi REDEPLOY (đổi biến không tự kích hoạt build lại).',
+    );
+    if (requiresAuth) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '';
+      url.searchParams.set('error', 'config');
+      return NextResponse.redirect(url);
+    }
+    return response;
+  }
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -52,25 +92,25 @@ export async function middleware(request: NextRequest) {
 
   // getUser() xác thực token với máy chủ Supabase, KHÔNG dùng getSession()
   // (getSession chỉ đọc cookie, nội dung cookie có thể bị giả mạo).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
-
-  // Các route thao tác phiên (/auth/signout...) phải LUÔN đi lọt.
-  // Nếu để bước ép đổi mật khẩu bên dưới chặn chúng thì nút "Đăng xuất" trên
-  // chính trang /update-password sẽ bị đá ngược về /update-password, và người
-  // dùng kẹt cứng trong đó không có đường ra.
-  if (path.startsWith('/auth/')) return response;
-
-  const protectedPath = isProtectedPath(path);
-
-  // /update-password đòi đăng nhập, nhưng KHÔNG thuộc phân hệ nào nên phải
-  // đứng ngoài bước kiểm tra vai trò ở dưới — nếu không, người dùng đang bị
-  // ép đổi mật khẩu sẽ bị chính bước RBAC đá sang /unauthorized và kẹt cứng.
-  const isPasswordReset = path === '/update-password';
-  const requiresAuth = protectedPath || isPasswordReset;
+  //
+  // Bọc try/catch: đây là lời gọi mạng, Supabase quá tải hay hết thời gian chờ
+  // là chuyện bình thường. Không bắt lỗi thì mỗi lần đó cả site trả 500.
+  // Lỗi mạng được coi như CHƯA ĐĂNG NHẬP — hướng an toàn.
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (e) {
+    console.error('[middleware] Không xác thực được phiên:', e);
+    if (requiresAuth) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '';
+      url.searchParams.set('error', 'unreachable');
+      return NextResponse.redirect(url);
+    }
+    return response;
+  }
 
   // ── 1. Chưa đăng nhập ─────────────────────────────────────────────────────
   if (!user) {

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ShieldCheck, Lock, Factory } from 'lucide-react';
+import { ShieldCheck, Lock, Factory, AlertTriangle } from 'lucide-react';
 
 import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
 import LoginForm from './form';
@@ -15,9 +15,18 @@ const HIGHLIGHTS = [
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
+
+  // Middleware chuyển hướng về đây kèm ?error= khi KHÔNG THỂ xác thực, để lỗi
+  // hạ tầng hiện thành câu tiếng Việt rõ ràng thay vì trang 500 trống trơn.
+  const configError =
+    error === 'config'
+      ? 'Hệ thống chưa được cấu hình kết nối máy chủ dữ liệu. Quản trị viên cần kiểm tra biến môi trường trên Vercel rồi Redeploy — đổi biến không tự kích hoạt build lại.'
+      : error === 'unreachable'
+        ? 'Không liên lạc được máy chủ xác thực. Vui lòng thử lại sau ít phút.'
+        : null;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-100">
@@ -93,6 +102,16 @@ export default async function LoginPage({
                   Vui lòng dùng tài khoản do Quản trị hệ thống cấp.
                 </p>
               </div>
+
+              {configError && (
+                <p
+                  role="alert"
+                  className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900"
+                >
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                  {configError}
+                </p>
+              )}
 
               <LoginForm next={next} />
 
