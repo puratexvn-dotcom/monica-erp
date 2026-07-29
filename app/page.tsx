@@ -16,10 +16,13 @@ import {
   TrendingUp,
   Target,
   Container,
+  Lock,
+  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
 
 import TopNavbar, { type NavModule } from './top-navbar';
+import { getHomeMetrics, DASH, type HomeMetrics } from './home-metrics';
 
 // ============================================================================
 // TRANG CHỦ — ULTRA PREMIUM ENTERPRISE DASHBOARD
@@ -34,12 +37,15 @@ import TopNavbar, { type NavModule } from './top-navbar';
 // `bg-${color}-700` — dev server có thể vẫn hiện màu nhờ cache, nhưng bản
 // production build sẽ mất sạch màu.
 //
-// ─── LƯU Ý 2: DỮ LIỆU GIẢ LẬP ────────────────────────────────────────────
-// `badge` trên thẻ và các số trong KPI_METRICS hiện là SỐ TĨNH DỰNG SẴN,
-// chưa nối Supabase. Chúng được gom riêng để sau này thay bằng dữ liệu thật
-// (đọc trong Server Component rồi truyền xuống). Không dùng Math.random():
-// giá trị ngẫu nhiên lúc render gây hydration mismatch và nhảy số mỗi lần
-// tải lại trang.
+// ─── LƯU Ý 2: SỐ LIỆU LẤY TỪ SUPABASE ────────────────────────────────────
+// KPI và nhãn góc thẻ đọc thật từ DB qua ./home-metrics.ts. Mảng MODULES và
+// KPI_CARDS dưới đây chỉ còn giữ phần TRÌNH BÀY (tên, icon, màu); phần SỐ
+// tra theo href trong metrics.badges.
+// Vì phải đọc cookie phiên đăng nhập nên trang chuyển sang render động
+// (force-dynamic), không còn prerender tĩnh như trước.
+// Khi không lấy được số (chưa đăng nhập / lỗi truy vấn) thì hiện dấu "—",
+// TUYỆT ĐỐI không hiện 0: trong ERP, "0 PO đang chạy" và "không đọc được số"
+// là hai chuyện khác hẳn nhau.
 //
 // ─── LƯU Ý 3: ĐỘ TƯƠNG PHẢN (đã đo, không phải ước lượng) ────────────────
 // Nền thẻ mức -700 được chọn vì các mức nhạt hơn KHÔNG đạt chuẩn với chữ
@@ -57,8 +63,6 @@ interface ModuleItem {
   desc: string;
   href: string;
   icon: LucideIcon;
-  /** Nhãn trạng thái góc thẻ — dữ liệu giả lập, xem LƯU Ý 2 */
-  badge: string;
   /**
    * Kiểu nhãn: nền TRẮNG ĐẶC + chữ mức -800 cùng dải màu.
    * Không dùng nền trong suốt (bg-white/20): khi phủ lên nền thẻ -700 thì
@@ -78,88 +82,79 @@ interface ModuleItem {
 const MODULES: ModuleItem[] = [
   {
     name: 'Ban Giám Đốc', desc: 'Báo cáo tổng quan & Phê duyệt', href: '/giam-doc', icon: BarChart3,
-    badge: '5 chờ duyệt', bg: 'bg-slate-700', badgeCls: 'bg-white text-slate-800', sub: 'text-slate-200', glow: 'hover:shadow-slate-500/40', dot: 'bg-slate-700',
+    bg: 'bg-slate-700', badgeCls: 'bg-white text-slate-800', sub: 'text-slate-200', glow: 'hover:shadow-slate-500/40', dot: 'bg-slate-700',
   },
   {
     name: 'Merchandiser & Thu Mua', desc: 'Đơn hàng, tiến độ & mua NPL', href: '/md', icon: Briefcase,
-    badge: '12 đơn mở', bg: 'bg-red-700', badgeCls: 'bg-white text-red-800', sub: 'text-red-100', glow: 'hover:shadow-red-500/40', dot: 'bg-red-700',
+    bg: 'bg-red-700', badgeCls: 'bg-white text-red-800', sub: 'text-red-100', glow: 'hover:shadow-red-500/40', dot: 'bg-red-700',
   },
   {
     name: 'Khách Hàng', desc: 'Hồ sơ đối tác & Đơn đặt hàng', href: '/buyer', icon: Building2,
-    badge: 'Online', bg: 'bg-orange-700', badgeCls: 'bg-white text-orange-800', sub: 'text-orange-100', glow: 'hover:shadow-orange-500/40', dot: 'bg-orange-700',
+    bg: 'bg-orange-700', badgeCls: 'bg-white text-orange-800', sub: 'text-orange-100', glow: 'hover:shadow-orange-500/40', dot: 'bg-orange-700',
   },
   {
     name: 'Kế Toán', desc: 'Công nợ & Thanh toán', href: '/ke-toan', icon: Calculator,
-    badge: '3 yêu cầu', bg: 'bg-amber-700', badgeCls: 'bg-white text-amber-800', sub: 'text-amber-100', glow: 'hover:shadow-amber-500/40', dot: 'bg-amber-700',
+    bg: 'bg-amber-700', badgeCls: 'bg-white text-amber-800', sub: 'text-amber-100', glow: 'hover:shadow-amber-500/40', dot: 'bg-amber-700',
   },
   {
     name: 'Kho Vật Tư', desc: 'Xuất/Nhập & Tồn kho NPL', href: '/kho', icon: Package,
-    badge: 'Cảnh báo tồn', bg: 'bg-green-700', badgeCls: 'bg-white text-green-800', sub: 'text-green-100', glow: 'hover:shadow-green-500/40', dot: 'bg-green-700',
+    bg: 'bg-green-700', badgeCls: 'bg-white text-green-800', sub: 'text-green-100', glow: 'hover:shadow-green-500/40', dot: 'bg-green-700',
   },
   {
     name: 'Kho Thành Phẩm', desc: 'Nhập kho FG & Đóng container', href: '/xuat-hang', icon: Archive,
-    badge: '8 container', bg: 'bg-emerald-700', badgeCls: 'bg-white text-emerald-800', sub: 'text-emerald-100', glow: 'hover:shadow-emerald-500/40', dot: 'bg-emerald-700',
+    bg: 'bg-emerald-700', badgeCls: 'bg-white text-emerald-800', sub: 'text-emerald-100', glow: 'hover:shadow-emerald-500/40', dot: 'bg-emerald-700',
   },
   {
     name: 'QA / QC', desc: 'Kiểm soát chất lượng & AQL', href: '/qa', icon: ShieldCheck,
-    badge: 'AQL 98.5%', bg: 'bg-teal-700', badgeCls: 'bg-white text-teal-800', sub: 'text-teal-100', glow: 'hover:shadow-teal-500/40', dot: 'bg-teal-700',
+    bg: 'bg-teal-700', badgeCls: 'bg-white text-teal-800', sub: 'text-teal-100', glow: 'hover:shadow-teal-500/40', dot: 'bg-teal-700',
   },
   {
     name: 'Tổ Trưởng Cắt', desc: 'Sản lượng cắt & Bán thành phẩm', href: '/to-truong-cat', icon: Scissors,
-    badge: 'Đang chạy', bg: 'bg-cyan-700', badgeCls: 'bg-white text-cyan-800', sub: 'text-cyan-100', glow: 'hover:shadow-cyan-500/40', dot: 'bg-cyan-700',
+    bg: 'bg-cyan-700', badgeCls: 'bg-white text-cyan-800', sub: 'text-cyan-100', glow: 'hover:shadow-cyan-500/40', dot: 'bg-cyan-700',
   },
   {
     name: 'Tổ Trưởng May', desc: 'Sản lượng chuyền may', href: '/to-truong-may', icon: Shirt,
-    badge: 'Đang chạy', bg: 'bg-blue-700', badgeCls: 'bg-white text-blue-800', sub: 'text-blue-100', glow: 'hover:shadow-blue-500/40', dot: 'bg-blue-700',
+    bg: 'bg-blue-700', badgeCls: 'bg-white text-blue-800', sub: 'text-blue-100', glow: 'hover:shadow-blue-500/40', dot: 'bg-blue-700',
   },
   {
     name: 'Tổ Hoàn Thành', desc: 'Ủi, Đóng gói & Xuất hàng', href: '/hoan-thanh', icon: Box,
-    badge: 'Ca 2', bg: 'bg-indigo-700', badgeCls: 'bg-white text-indigo-800', sub: 'text-indigo-100', glow: 'hover:shadow-indigo-500/40', dot: 'bg-indigo-700',
+    bg: 'bg-indigo-700', badgeCls: 'bg-white text-indigo-800', sub: 'text-indigo-100', glow: 'hover:shadow-indigo-500/40', dot: 'bg-indigo-700',
   },
   {
     name: 'Trạm Subcon', desc: 'Cổng báo cáo Xưởng gia công', href: '/subcon', icon: Users,
-    badge: '4 xưởng', bg: 'bg-violet-700', badgeCls: 'bg-white text-violet-800', sub: 'text-violet-100', glow: 'hover:shadow-violet-500/40', dot: 'bg-violet-700',
+    bg: 'bg-violet-700', badgeCls: 'bg-white text-violet-800', sub: 'text-violet-100', glow: 'hover:shadow-violet-500/40', dot: 'bg-violet-700',
   },
   {
     name: 'Quản Trị Hệ Thống', desc: 'Cài đặt & Phân quyền', href: '/admin', icon: Settings,
-    badge: 'Online', bg: 'bg-fuchsia-700', badgeCls: 'bg-white text-fuchsia-800', sub: 'text-fuchsia-100', glow: 'hover:shadow-fuchsia-500/40', dot: 'bg-fuchsia-700',
+    bg: 'bg-fuchsia-700', badgeCls: 'bg-white text-fuchsia-800', sub: 'text-fuchsia-100', glow: 'hover:shadow-fuchsia-500/40', dot: 'bg-fuchsia-700',
   },
 ];
 
-interface Metric {
+/** Chỉ cấu hình trình bày — số thực lấy từ metrics.kpi[key] */
+interface KpiCard {
+  key: keyof HomeMetrics['kpi'];
   label: string;
-  value: string;
-  unit?: string;
-  delta: string;
   icon: LucideIcon;
   chip: string;
-  deltaCls: string;
 }
 
-/** Số liệu giả lập — xem LƯU Ý 2 ở đầu file */
-const KPI_METRICS: Metric[] = [
-  {
-    label: 'Đơn hàng đang chạy', value: '48', unit: 'PO', delta: '+6 tuần này',
-    icon: Activity, chip: 'bg-indigo-50 text-indigo-600', deltaCls: 'text-emerald-600',
-  },
-  {
-    label: 'Sản lượng hôm nay', value: '12.480', unit: 'pcs', delta: '92% kế hoạch',
-    icon: TrendingUp, chip: 'bg-emerald-50 text-emerald-600', deltaCls: 'text-emerald-600',
-  },
-  {
-    label: 'Tỷ lệ đạt AQL', value: '98,5', unit: '%', delta: '+0,4% so với tuần trước',
-    icon: Target, chip: 'bg-teal-50 text-teal-600', deltaCls: 'text-emerald-600',
-  },
-  {
-    label: 'Container chờ xuất', value: '8', unit: 'cont', delta: '2 lô gấp',
-    icon: Container, chip: 'bg-amber-50 text-amber-600', deltaCls: 'text-amber-600',
-  },
+const KPI_CARDS: KpiCard[] = [
+  { key: 'activeOrders', label: 'Đơn hàng đang chạy', icon: Activity, chip: 'bg-indigo-50 text-indigo-600' },
+  { key: 'outputToday', label: 'Sản lượng may hôm nay', icon: TrendingUp, chip: 'bg-emerald-50 text-emerald-600' },
+  { key: 'aqlRate', label: 'Tỷ lệ đạt AQL (30 ngày)', icon: Target, chip: 'bg-teal-50 text-teal-600' },
+  { key: 'pendingShipments', label: 'Lô hàng chờ xuất', icon: Container, chip: 'bg-amber-50 text-amber-600' },
 ];
 
 // Chỉ truyền trường serialize được sang client — không truyền icon component
 const NAV_MODULES: NavModule[] = MODULES.map(({ name, desc, href, dot }) => ({ name, desc, href, dot }));
 
-export default function HomePage() {
+// Đọc cookie phiên đăng nhập => không thể prerender tĩnh
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const metrics = await getHomeMetrics();
+  const live = metrics.status === 'ok';
+
   return (
     <div className="min-h-screen bg-slate-100/70">
       <TopNavbar modules={NAV_MODULES} />
@@ -181,32 +176,67 @@ export default function HomePage() {
         </section>
 
         {/* ================= DẢI KPI ================= */}
-        <section aria-label="Chỉ số vận hành thời gian thực" className="mb-12">
+        <section aria-label="Chỉ số vận hành" className="mb-12">
+          {/* Nói rõ vì sao đang thiếu số, thay vì để người dùng tưởng nhà máy đứng im */}
+          {metrics.status === 'unauthenticated' && (
+            <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base font-semibold text-amber-900">
+              <Lock className="h-5 w-5 shrink-0" aria-hidden="true" />
+              Số liệu vận hành chỉ hiển thị sau khi đăng nhập.
+              <Link href="/login" className="font-bold text-amber-900 underline underline-offset-4 hover:text-amber-700">
+                Đăng nhập ngay
+              </Link>
+            </p>
+          )}
+          {metrics.status === 'error' && (
+            <p className="mb-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-base font-semibold text-rose-900">
+              <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden="true" />
+              Không kết nối được máy chủ dữ liệu. Các chỉ số bên dưới tạm thời chưa khả dụng.
+            </p>
+          )}
+          {metrics.status === 'ok' && metrics.partial && (
+            <p className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base font-semibold text-amber-900">
+              <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden="true" />
+              Một số bảng dữ liệu không đọc được — các ô hiện dấu “{DASH}” là số còn thiếu.
+            </p>
+          )}
+
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-            {KPI_METRICS.map((m) => {
-              const Icon = m.icon;
+            {KPI_CARDS.map((card) => {
+              const Icon = card.icon;
+              const m = metrics.kpi[card.key];
+              const hasValue = m.value !== DASH;
               return (
                 <div
-                  key={m.label}
+                  key={card.key}
                   className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6"
                 >
                   <div className="mb-4 flex items-start justify-between gap-3">
-                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${m.chip}`}>
+                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${card.chip}`}>
                       <Icon className="h-6 w-6" aria-hidden="true" />
                     </span>
-                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                      LIVE
-                    </span>
+                    {live && hasValue ? (
+                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                        LIVE
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
+                        CHƯA CÓ SỐ
+                      </span>
+                    )}
                   </div>
-                  <p className="text-base font-semibold text-slate-500">{m.label}</p>
+                  <p className="text-base font-semibold text-slate-500">{card.label}</p>
                   <p className="mt-1.5 flex items-baseline gap-1.5">
-                    <span className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                    <span
+                      className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${hasValue ? 'text-slate-900' : 'text-slate-300'}`}
+                    >
                       {m.value}
                     </span>
-                    {m.unit && <span className="text-base font-bold text-slate-400">{m.unit}</span>}
+                    {hasValue && m.unit && <span className="text-base font-bold text-slate-400">{m.unit}</span>}
                   </p>
-                  <p className={`mt-2 text-sm font-semibold ${m.deltaCls}`}>{m.delta}</p>
+                  <p className={`mt-2 text-sm font-semibold ${hasValue ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {m.delta}
+                  </p>
                 </div>
               );
             })}
@@ -243,7 +273,7 @@ export default function HomePage() {
                       <span
                         className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ring-1 ring-black/5 ${mod.badgeCls}`}
                       >
-                        {mod.badge}
+                        {metrics.badges[mod.href] ?? DASH}
                       </span>
                     </div>
 
