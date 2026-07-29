@@ -16,6 +16,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Search, Bell, ChevronDown, CornerDownLeft } from 'lucide-react';
 
+import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
+
 export interface NavModule {
   name: string;
   desc: string;
@@ -140,14 +142,14 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
     <>
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex h-20 max-w-[1600px] items-center gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-24 max-w-[1600px] items-center gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8">
           {/* Logo */}
-          <div className="relative h-11 w-36 shrink-0 sm:w-44">
+          <div className="relative h-16 w-48 shrink-0 sm:h-[4.5rem] sm:w-64">
             <Image
-              src="/monica-logo.jpg"
-              alt="Monica Garment"
+              src={LOGO_SRC}
+              alt={LOGO_ALT}
               fill
-              sizes="176px"
+              sizes="256px"
               className="object-contain object-left"
               priority
             />

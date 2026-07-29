@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { ShieldCheck, Lock, Factory } from 'lucide-react';
 
+import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
 import LoginForm from './form';
 
 export const dynamic = 'force-dynamic';
@@ -38,12 +39,12 @@ export default async function LoginPage({
         <div className="grid w-full items-center gap-12 lg:grid-cols-2">
           {/* ── Cột giới thiệu (ẩn trên mobile để form lên trên) ────── */}
           <section className="hidden lg:block">
-            <div className="relative mb-8 h-16 w-52">
+            <div className="relative mb-9 h-28 w-[22rem]">
               <Image
-                src="/monica-logo.jpg"
-                alt="Monica Garment"
+                src={LOGO_SRC}
+                alt={LOGO_ALT}
                 fill
-                sizes="208px"
+                sizes="352px"
                 className="object-contain object-left"
                 priority
               />
@@ -75,12 +76,12 @@ export default async function LoginPage({
           <section className="mx-auto w-full max-w-md">
             <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
               {/* Logo cho mobile — bản desktop đã có ở cột trái */}
-              <div className="relative mx-auto mb-7 h-14 w-44 lg:hidden">
+              <div className="relative mx-auto mb-8 h-24 w-72 lg:hidden">
                 <Image
-                  src="/monica-logo.jpg"
-                  alt="Monica Garment"
+                  src={LOGO_SRC}
+                  alt={LOGO_ALT}
                   fill
-                  sizes="176px"
+                  sizes="288px"
                   className="object-contain"
                   priority
                 />

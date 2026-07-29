@@ -4,6 +4,7 @@ import { KeyRound, LogOut } from 'lucide-react';
 
 import { createClient } from '@/utils/supabase/server';
 import { isRole, ROLE_LABEL } from '@/lib/rbac';
+import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
 import UpdatePasswordForm from './form';
 
 export const dynamic = 'force-dynamic';
@@ -35,8 +36,8 @@ export default async function UpdatePasswordPage() {
 
       <div className="relative w-full max-w-lg rounded-3xl border border-white/60 bg-white/80 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
         <div className="mb-8 text-center">
-          <div className="relative mx-auto mb-6 h-14 w-44">
-            <Image src="/monica-logo.jpg" alt="Monica Garment" fill sizes="176px" className="object-contain" priority />
+          <div className="relative mx-auto mb-7 h-24 w-72">
+            <Image src={LOGO_SRC} alt={LOGO_ALT} fill sizes="288px" className="object-contain" priority />
           </div>
 
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">

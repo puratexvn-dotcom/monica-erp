@@ -16,7 +16,6 @@ import {
   TrendingUp,
   Target,
   Container,
-  Lock,
   AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
@@ -166,8 +165,8 @@ export default async function HomePage() {
           <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-indigo-600">
             Monica Garment · Hệ thống quản trị sản xuất
           </p>
-          <h1 className="max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-            Kính chào Quý Anh/Chị đến với <span className="text-indigo-600">MONICA&nbsp;ERP</span>
+          <h1 className="max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+            Welcome to <span className="text-indigo-600">Monica</span>
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
             Nền tảng quản trị dữ liệu hợp nhất từ Đơn hàng đến Xuất container. Vui lòng chọn phân hệ
@@ -178,15 +177,6 @@ export default async function HomePage() {
         {/* ================= DẢI KPI ================= */}
         <section aria-label="Chỉ số vận hành" className="mb-12">
           {/* Nói rõ vì sao đang thiếu số, thay vì để người dùng tưởng nhà máy đứng im */}
-          {metrics.status === 'unauthenticated' && (
-            <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base font-semibold text-amber-900">
-              <Lock className="h-5 w-5 shrink-0" aria-hidden="true" />
-              Số liệu vận hành chỉ hiển thị sau khi đăng nhập.
-              <Link href="/login" className="font-bold text-amber-900 underline underline-offset-4 hover:text-amber-700">
-                Đăng nhập ngay
-              </Link>
-            </p>
-          )}
           {metrics.status === 'error' && (
             <p className="mb-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-base font-semibold text-rose-900">
               <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden="true" />
