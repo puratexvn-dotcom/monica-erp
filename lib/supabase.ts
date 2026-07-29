@@ -1,29 +1,42 @@
 // ============================================================================
-// MONICA GARMENT ERP — Supabase Client + Data Layer (fallback mock tự động)
+// MONICA GARMENT ERP — Data Layer cho Client Component (fallback mock tự động)
 //
-// ⚠️ CÁCH CẤU HÌNH ĐÚNG (khắc phục lỗi 401 Unauthorized):
-//   1. Supabase Dashboard → Project Settings → API Keys
-//      → bấm COPY key "Publishable key" (sb_publishable_jFhxcGYaLy_5LAN0PFeWhA_IMOBOUgX) — TUYỆT ĐỐI không gõ tay
-//        (key có ký tự dễ nhầm giữa chữ O và số 0). Key "anon public" (eyJ…) cũng dùng được.
-//   2. Tạo file `.env.local` ở gốc dự án:
-//        NEXT_PUBLIC_SUPABASE_URL=https://xbqnbnziwsjqxrrmxvic.supabase.co
-//        NEXT_PUBLIC_SUPABASE_KEY=sb_publishable_jFhxcGYaLy_5LAN0PFeWhA_IMOBOUgX
-//   3. TẮT và chạy lại `npm run dev` (Next.js chỉ đọc .env.local lúc khởi động).
-//   4. Kiểm tra kết nối:  node scripts/check-supabase.mjs
+// ─── HAI LỖI ĐÃ SỬA Ở ĐÂY ─────────────────────────────────────────────────
+//
+// 1. SAI KHOÁ, SAI CẢ DỰ ÁN.
+//    Bản cũ đọc biến NEXT_PUBLIC_SUPABASE_KEY — biến này KHÔNG hề có trong
+//    .env.local, nên rơi vào hằng số dự phòng viết cứng trong code. Khoá cứng
+//    đó lại thuộc một project Supabase khác hẳn (xbqnb…) so với URL thật đang
+//    dùng (mnxat…). Kết quả: mọi truy vấn trả 401 và toàn bộ màn hình âm thầm
+//    chạy dữ liệu demo. Không ai nhận ra vì có sẵn cơ chế fallback mock.
+//
+// 2. KHÔNG MANG THEO PHIÊN ĐĂNG NHẬP.
+//    Bản cũ tạo client bằng createClient() trần của supabase-js, không đọc
+//    cookie phiên. Sau khi siết RLS về authenticated-only thì client này mãi
+//    mãi là 'anon' và bị chặn sạch.
+//    Nay dùng createBrowserClient của @supabase/ssr — cùng bộ cookie với
+//    middleware và Server Component, nên RLS nhìn thấy đúng người đăng nhập.
+//
+// Client khởi tạo LƯỜI (lazy): file này bị kéo vào lúc pre-render phía máy chủ
+// của client component, mà lúc đó chưa có document.cookie.
 // ============================================================================
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+import { createClient as createBrowserSupabase } from '@/utils/supabase/client';
 import { MOCK } from '@/lib/mock-data';
 
-// Ưu tiên biến môi trường; fallback về hằng số (chỉ dùng cho demo nhanh)
-export const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xbqnbnziwsjqxrrmxvic.supabase.co';
-export const SUPABASE_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_KEY ?? 'sb_publishable_jFhxcGYaLy_5LAN0PFeWhA_IMOBOUgX';
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+let _client: SupabaseClient | null = null;
+
+/** Client dùng chung, mang theo cookie phiên đăng nhập. */
+export function getSupabase(): SupabaseClient {
+  if (!_client) _client = createBrowserSupabase();
+  return _client;
+}
 
 export type TableName =
-  | 'users' | 'subcons' | 'sewing_lines' | 'orders' | 'bom' | 'inventory'
+  | 'subcons' | 'sewing_lines' | 'orders' | 'bom' | 'inventory'
   | 'cutting_logs' | 'bundles' | 'prod_logs' | 'qa_logs' | 'samples'
   | 'financial_records' | 'approvals' | 'shipments' | 'notifications'
   | 'feedbacks' | 'system_logs' | 'settings';
@@ -43,11 +56,14 @@ function noteError(table: string, message: string): void {
   if (!_warned && typeof console !== 'undefined') {
     _warned = true;
     if (/api key|jwt|401|unauthor/i.test(message)) {
+      // Sau khi siết RLS về authenticated-only, 401 gần như luôn có nghĩa là
+      // PHIÊN ĐĂNG NHẬP đã hết hạn — không còn là chuyện dán sai khoá API nữa.
       console.warn(
-        `%c[MONICA ERP] Supabase trả về lỗi API KEY: "${message}".\n` +
-        '→ Copy lại Publishable key trong Project Settings → API Keys (chú ý chữ O / số 0),\n' +
-        '→ dán vào .env.local (NEXT_PUBLIC_SUPABASE_KEY) rồi restart `npm run dev`.\n' +
-        '→ Chẩn đoán nhanh: node scripts/check-supabase.mjs',
+        `%c[MONICA ERP] Supabase từ chối truy cập: "${message}".\n` +
+        '→ Mọi bảng nay chỉ cho người đã đăng nhập đọc (RLS authenticated-only).\n' +
+        '→ Nhiều khả năng phiên đã hết hạn: đăng nhập lại tại /login.\n' +
+        '→ Nếu vừa đăng nhập mà vẫn lỗi, kiểm tra NEXT_PUBLIC_SUPABASE_URL và\n' +
+        '  NEXT_PUBLIC_SUPABASE_ANON_KEY trong .env.local có đúng project không.',
         'color:#e11d48;font-weight:bold',
       );
     } else {
@@ -56,15 +72,20 @@ function noteError(table: string, message: string): void {
   }
 }
 
-/** Đọc bảng — lỗi hoặc bảng trống thì tự fallback mock, KHÔNG bao giờ văng trắng. */
+/**
+ * Đọc bảng — chỉ rơi về dữ liệu demo khi LỖI, không bao giờ văng trắng.
+ *
+ * Bản cũ coi "bảng rỗng" cũng là lý do đổ mock. Điều đó khiến một bảng hợp lệ
+ * nhưng chưa có dòng nào (vd: chưa lập lô hàng nào) lại hiện ra vài lô ảo —
+ * người vận hành đọc xong tưởng đã có hàng chờ xuất. Trong ERP, "chưa có dữ
+ * liệu" và "đang chạy dữ liệu demo" là hai chuyện phải phân biệt rạch ròi.
+ * Nay bảng rỗng trả về mảng rỗng, để màn hình hiện đúng trạng thái trống.
+ */
 export async function fetchTable<T>(table: TableName): Promise<TableResult<T>> {
   try {
-    const { data, error } = await supabase.from(table).select('*').limit(2000);
+    const { data, error } = await getSupabase().from(table).select('*').limit(2000);
     if (error) throw new Error(error.message);
-    if (!data || data.length === 0) {
-      return { rows: (MOCK[table] as T[]) ?? [], isMock: true };
-    }
-    return { rows: data as T[], isMock: false };
+    return { rows: (data ?? []) as T[], isMock: false };
   } catch (e) {
     noteError(table, e instanceof Error ? e.message : 'Không kết nối được');
     return { rows: (MOCK[table] as T[]) ?? [], isMock: true };
@@ -88,7 +109,7 @@ export async function fetchTables(
 /** Ghi 1 dòng — trả về true nếu ghi lên Supabase thành công (id để DB tự sinh nếu có). */
 export async function insertRow(table: TableName, row: Record<string, unknown>): Promise<boolean> {
   try {
-    const { error } = await supabase.from(table).insert(row);
+    const { error } = await getSupabase().from(table).insert(row);
     if (error) noteError(table, error.message);
     return !error;
   } catch {
@@ -99,7 +120,7 @@ export async function insertRow(table: TableName, row: Record<string, unknown>):
 /** Cập nhật theo id. */
 export async function updateRow(table: TableName, id: string, patch: Record<string, unknown>): Promise<boolean> {
   try {
-    const { error } = await supabase.from(table).update(patch).eq('id', id);
+    const { error } = await getSupabase().from(table).update(patch).eq('id', id);
     if (error) noteError(table, error.message);
     return !error;
   } catch {
@@ -110,7 +131,7 @@ export async function updateRow(table: TableName, id: string, patch: Record<stri
 /** Xóa theo id. */
 export async function deleteRow(table: TableName, id: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from(table).delete().eq('id', id);
+    const { error } = await getSupabase().from(table).delete().eq('id', id);
     return !error;
   } catch {
     return false;
@@ -119,7 +140,7 @@ export async function deleteRow(table: TableName, id: string): Promise<boolean> 
 
 /** Realtime: gọi cb khi bất kỳ bảng nào thay đổi. Trả về hàm hủy đăng ký. */
 export function subscribeTables(tables: TableName[], cb: () => void): () => void {
-  let channel = supabase.channel(`monica-rt-${tables.join('-')}`);
+  let channel = getSupabase().channel(`monica-rt-${tables.join('-')}`);
   for (const t of tables) {
     channel = channel.on(
       'postgres_changes',
@@ -128,7 +149,7 @@ export function subscribeTables(tables: TableName[], cb: () => void): () => void
     );
   }
   channel.subscribe();
-  return () => { supabase.removeChannel(channel); };
+  return () => { getSupabase().removeChannel(channel); };
 }
 
 /** Sinh id cục bộ cho optimistic update (DB thật nên dùng uuid default). */

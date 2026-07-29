@@ -6,7 +6,7 @@
 // ============================================================================
 
 import type {
-  User, Order, BomItem, InventoryItem, CuttingLog, Bundle, ProdLog, QALog,
+  Order, BomItem, InventoryItem, CuttingLog, Bundle, ProdLog, QALog,
   SampleRecord, FinancialRecord, Approval, Shipment, AppNotification,
   Feedback, SystemLog, Subcon, SewingLine, Setting,
 } from '@/types/erp';
@@ -30,19 +30,10 @@ const seeded = (seed: number) => {
   };
 };
 
-// ── USERS (10 tài khoản demo — production PHẢI dùng Supabase Auth + bcrypt) ──
-export const MOCK_USERS: User[] = [
-  { id: 'U01', username: 'superadmin',  password: 'monicasa',    role: 'superadmin',  name: 'Trần Quản Trị',  avatar: 'QT', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U02', username: 'giamdoc',     password: 'monicagd',    role: 'giamdoc',     name: 'Nguyễn Giám Đốc', avatar: 'GĐ', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U03', username: 'md',          password: 'monicamd',    role: 'md',          name: 'Lê Thu Hà (MD)',  avatar: 'HA', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U04', username: 'qa',          password: 'monicaqa',    role: 'qa',          name: 'Phạm Kiểm Hàng',  avatar: 'QA', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U05', username: 'totruongmay', password: 'monicattm',   role: 'totruongmay', name: 'Vũ Tổ May',       avatar: 'TM', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U06', username: 'totruongcat', password: 'monicattc',   role: 'totruongcat', name: 'Đỗ Tổ Cắt',       avatar: 'TC', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U07', username: 'kho',         password: 'monicakho',   role: 'kho',         name: 'Bùi Thủ Kho',     avatar: 'KH', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U08', username: 'ketoan',      password: 'monicakt',    role: 'ketoan',      name: 'Hoàng Kế Toán',   avatar: 'KT', subcon_id: null, buyer_brand: null, active: true },
-  { id: 'U09', username: 'subcon',      password: 'monicasub',   role: 'subcon',      name: 'Xưởng Minh Phát', avatar: 'MP', subcon_id: 'SC1', buyer_brand: null, active: true },
-  { id: 'U10', username: 'buyer',       password: 'monicabuyer', role: 'buyer',       name: 'NORDIC EU Buyer', avatar: 'ND', subcon_id: null, buyer_brand: 'NORDIC EU', active: true },
-];
+// ── (ĐÃ BỎB) USERS — bảng users cùng mật khẩu dạng chữ thường đã bị xoá ở
+//    migration 010. Nhân sự nay đọc từ profiles + user_roles (xem lib/staff.ts),
+//    đăng nhập do Supabase Auth quản lý. Không dựng lại mock cho bảng này:
+//    danh sách tài khoản mà hiện dữ liệu giả là mời quản trị viên thao tác nhầm.
 
 // ── DANH MỤC XƯỞNG & CHUYỀN ─────────────────────────────────────────────────
 export const MOCK_SUBCONS: Subcon[] = [
@@ -286,7 +277,6 @@ export const MOCK_SETTINGS: Setting[] = [
 
 // ── GOM TẤT CẢ THEO TÊN BẢNG (fetchTable dùng làm fallback) ─────────────────
 export const MOCK: Record<string, unknown[]> = {
-  users: MOCK_USERS,
   subcons: MOCK_SUBCONS,
   sewing_lines: MOCK_LINES,
   orders: MOCK_ORDERS,
