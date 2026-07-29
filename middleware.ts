@@ -57,6 +57,13 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+
+  // Các route thao tác phiên (/auth/signout...) phải LUÔN đi lọt.
+  // Nếu để bước ép đổi mật khẩu bên dưới chặn chúng thì nút "Đăng xuất" trên
+  // chính trang /update-password sẽ bị đá ngược về /update-password, và người
+  // dùng kẹt cứng trong đó không có đường ra.
+  if (path.startsWith('/auth/')) return response;
+
   const protectedPath = isProtectedPath(path);
 
   // /update-password đòi đăng nhập, nhưng KHÔNG thuộc phân hệ nào nên phải
