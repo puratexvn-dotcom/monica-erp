@@ -14,9 +14,24 @@
 # production
 /build
 
+# typescript
+*.tsbuildinfo
+
 # misc
 .DS_Store
 *.pem
+Thumbs.db
+
+# editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# generated tooling output
+repomix-output.*
+
+# claude code (local machine settings)
+.claude/settings.local.json
 
 # debug
 npm-debug.log*
