@@ -1,94 +1,117 @@
-// app/login/page.tsx
-'use client'
+import Image from 'next/image';
+import { ShieldCheck, Lock, Factory } from 'lucide-react';
 
-import { useState, useTransition } from 'react'
-import { loginAction } from './actions'
+import LoginForm from './form';
 
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
+export const dynamic = 'force-dynamic';
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
-    
-    const formData = new FormData(event.currentTarget)
-    
-    startTransition(async () => {
-      const result = await loginAction(formData)
-      if (result?.error) {
-        setError(result.error)
-      }
-    })
-  }
+const HIGHLIGHTS = [
+  { icon: Factory, text: 'Toàn tuyến sản xuất trên một nền tảng dữ liệu' },
+  { icon: ShieldCheck, text: 'Phân quyền chặt theo từng bộ phận' },
+  { icon: Lock, text: 'Bắt buộc đổi mật khẩu ở lần đăng nhập đầu' },
+];
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          MONICA ERP
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Hệ thống Quản trị Nhà máy May mặc
-        </p>
-      </div>
+    <main className="relative min-h-screen overflow-hidden bg-slate-100">
+      {/* ── Nền kính mờ ─────────────────────────────────────────────── */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-indigo-300/40 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-48 -right-32 h-[36rem] w-[36rem] rounded-full bg-violet-300/40 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-200/30 blur-3xl"
+      />
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-100">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            
-            {/* Hiển thị lỗi (Error State) */}
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
-                {error}
-              </div>
-            )}
+      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-4 py-12 sm:px-6">
+        <div className="grid w-full items-center gap-12 lg:grid-cols-2">
+          {/* ── Cột giới thiệu (ẩn trên mobile để form lên trên) ────── */}
+          <section className="hidden lg:block">
+            <div className="relative mb-8 h-16 w-52">
+              <Image
+                src="/monica-logo.jpg"
+                alt="Monica Garment"
+                fill
+                sizes="208px"
+                className="object-contain object-left"
+                priority
+              />
+            </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email nhân viên
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  disabled={isPending}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100"
-                  placeholder="admin@monica-erp.com"
+            <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-indigo-600">
+              Hệ thống quản trị sản xuất
+            </p>
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-5xl">
+              Chào mừng trở lại với <span className="text-indigo-600">MONICA&nbsp;ERP</span>
+            </h1>
+            <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
+              Đăng nhập bằng tài khoản công ty để vào phân hệ làm việc của bộ phận bạn.
+            </p>
+
+            <ul className="mt-9 space-y-4">
+              {HIGHLIGHTS.map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-center gap-3.5">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/70 text-indigo-600 shadow-sm backdrop-blur">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="text-base font-semibold text-slate-700">{text}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* ── Thẻ đăng nhập ──────────────────────────────────────── */}
+          <section className="mx-auto w-full max-w-md">
+            <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
+              {/* Logo cho mobile — bản desktop đã có ở cột trái */}
+              <div className="relative mx-auto mb-7 h-14 w-44 lg:hidden">
+                <Image
+                  src="/monica-logo.jpg"
+                  alt="Monica Garment"
+                  fill
+                  sizes="176px"
+                  className="object-contain"
+                  priority
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Mật khẩu
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  disabled={isPending}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100"
-                />
+              <div className="mb-8">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Đăng nhập</h2>
+                <p className="mt-2 text-base text-slate-500">
+                  Vui lòng dùng tài khoản do Quản trị hệ thống cấp.
+                </p>
               </div>
+
+              <LoginForm next={next} />
+
+              <p className="mt-7 border-t border-slate-200 pt-5 text-center text-sm leading-relaxed text-slate-500">
+                Quên mật khẩu hoặc chưa có tài khoản? Liên hệ Quản trị hệ thống —{' '}
+                <a
+                  href="tel:0908779585"
+                  className="font-bold text-indigo-600 underline-offset-4 transition hover:underline"
+                >
+                  0908779585
+                </a>
+              </p>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 transition-colors"
-              >
-                {isPending ? 'Đang xác thực...' : 'Đăng nhập vào xưởng'}
-              </button>
-            </div>
-          </form>
+            <p className="mt-6 text-center text-sm font-medium text-slate-500">
+              Bản quyền © Joseph · Monica Garment ERP
+            </p>
+          </section>
         </div>
       </div>
-    </div>
-  )
+    </main>
+  );
 }

@@ -6,15 +6,48 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getSession, type Session } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/client';
 
 // ── Session ─────────────────────────────────────────────────────────────────
+/**
+ * Đọc phiên đăng nhập thật từ Supabase.
+ *
+ * Khác bản cũ ở hai điểm:
+ *  • getSession() nay là bất đồng bộ (gọi máy chủ để xác thực token), nên phải
+ *    chống cập nhật state sau khi component đã unmount.
+ *  • Có lắng nghe onAuthStateChange: nếu người dùng đăng xuất ở tab khác hoặc
+ *    token hết hạn, mọi tab đang mở đều cập nhật theo, không còn hiển thị dữ
+ *    liệu của phiên đã chết.
+ */
 export function useSession(): { session: Session | null; ready: boolean } {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+
   useEffect(() => {
-    setSession(getSession());
-    setReady(true);
+    let alive = true;
+
+    const load = async () => {
+      const s = await getSession();
+      if (!alive) return;
+      setSession(s);
+      setReady(true);
+    };
+
+    void load();
+
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void load();
+    });
+
+    return () => {
+      alive = false;
+      subscription.unsubscribe();
+    };
   }, []);
+
   return { session, ready };
 }
 
