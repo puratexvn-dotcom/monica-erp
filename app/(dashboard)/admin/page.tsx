@@ -8,21 +8,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Settings, UserPlus, Users, ScrollText, SlidersHorizontal, Eye,
-  ShieldCheck, ShieldOff, Trash2, Save, KeyRound, AlertTriangle,
+  UserPlus, Users, ScrollText, SlidersHorizontal, Eye, Save,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
-  Card, PageHeader, Badge, EmptyState, AccessDenied, MockBadge,
-  Modal, Field, inputCls, btnPrimary, btnGhost, thCls, tdCls, useToast, ToastView,
+  Card, PageHeader, Badge, EmptyState, AccessDenied, Field,
+  inputCls, btnGhost, btnPrimary, thCls, tdCls,
 } from '@/components/ui';
+import { TableSkeleton, ErrorState } from '@/components/data-state';
+import StaffTable from './staff-table';
+import StaffFormDialog from './staff-form-dialog';
 import { useSession } from '@/lib/hooks';
 import { canAccess, ROLE_LABEL, ROLE_HOME } from '@/lib/auth';
 import { NAV_ITEMS } from '@/components/sidebar';
 import { fetchTables, insertRow, updateRow, genId, subscribeTables } from '@/lib/supabase';
 import { fetchStaff, type Staff } from '@/lib/staff';
-import {
-  createStaffAccount, setStaffActive, deleteStaffAccount, resetStaffPassword, fetchStaffEmails,
-} from './actions';
+import { fetchStaffEmails } from './actions';
 import { fmtDateTime } from '@/lib/garment-math';
 import type { SystemLog, Setting, Role } from '@/types/erp';
 
@@ -38,97 +39,63 @@ const SETTING_LABEL: Record<string, string> = {
 
 export default function AdminPage() {
   const { session, ready } = useSession();
-  const { toast, showToast } = useToast();
-
-  const [isMock, setIsMock] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [logsError, setLogsError] = useState<string | null>(null);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [staffError, setStaffError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
   const [logs, setLogs] = useState<SystemLog[]>([]);
   const [settings, setSettings] = useState<Setting[]>([]);
 
   const [showAdd, setShowAdd] = useState(false);
-  const [fu, setFu] = useState({ email: '', password: '', name: '', employeeCode: '', role: 'md' as Role });
   const [editedSettings, setEditedSettings] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    // Nhân sự đọc riêng khỏi fetchTables: fetchTables tự rơi về dữ liệu demo
-    // khi lỗi, mà danh sách tài khoản hiện dữ liệu giả thì quản trị viên có thể
-    // khoá nhầm hoặc xoá nhầm người không tồn tại.
-    const [{ data, isMock }, staffRes] = await Promise.all([
-      fetchTables(['system_logs', 'settings']),
-      fetchStaff(),
-    ]);
-    setLogs((data.system_logs as SystemLog[]).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-    setSettings(data.settings as Setting[]);
-    setIsMock(isMock);
-    setStaff(staffRes.rows);
-    setStaffError(staffRes.error);
-
-    // Email nằm ở schema auth, trình duyệt không với tới -> lấy qua Server Action
+    setLoading(true);
+    // Nhân sự đọc riêng khỏi fetchTables vì fetchTables còn cơ chế fallback mock
+    // cho các bảng nghiệp vụ khác. Danh sách tài khoản mà hiện dữ liệu giả thì
+    // quản trị viên có thể khoá nhầm hoặc xoá nhầm người không tồn tại.
     try {
-      setEmails(await fetchStaffEmails());
-    } catch {
-      setEmails({});
+      const [{ data }, staffRes, mails] = await Promise.all([
+        fetchTables(['system_logs', 'settings']),
+        fetchStaff(),
+        fetchStaffEmails().catch(() => ({}) as Record<string, string>),
+      ]);
+
+      setLogs(
+        (data.system_logs as SystemLog[]).sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        ),
+      );
+      setSettings(data.settings as Setting[]);
+      setStaff(staffRes.rows);
+      setStaffError(staffRes.error);
+      setEmails(mails);
+      setLogsError(null);
+    } catch (e) {
+      setLogsError(e instanceof Error ? e.message : 'Không tải được dữ liệu quản trị.');
+    } finally {
+      setLoading(false);
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => subscribeTables(['system_logs'], () => { void load(); }), [load]);
 
-  const writeLog = (action: string, detail: string) => {
-    const row: SystemLog = { id: genId('SL'), user: session?.user.username ?? 'superadmin', action, detail, created_at: new Date().toISOString() };
-    setLogs((prev) => [row, ...prev]);
-    const { id: _omit, ...payload } = row;
-    void insertRow('system_logs', payload);
-  };
-
-  const addUser = async () => {
-    setBusy('create');
-    const res = await createStaffAccount({
-      email: fu.email, fullName: fu.name, role: fu.role,
-      employeeCode: fu.employeeCode, password: fu.password,
-    });
-    setBusy(null);
-    showToast(res.ok ? `✓ ${res.message}` : `⚠ ${res.message}`);
-    if (res.ok) {
-      setShowAdd(false);
-      setFu({ email: '', password: '', name: '', employeeCode: '', role: 'md' });
-      writeLog('TẠO USER', `${fu.email} (${ROLE_LABEL[fu.role]})`);
-      await load();
-    }
-  };
-
-  const toggleActive = async (u: Staff) => {
-    setBusy(u.id);
-    const res = await setStaffActive(u.id, !u.isActive);
-    setBusy(null);
-    showToast(res.ok ? `✓ ${res.message}` : `⚠ ${res.message}`);
-    if (res.ok) {
-      writeLog(u.isActive ? 'KHÓA USER' : 'MỞ KHÓA USER', u.fullName);
-      await load();
-    }
-  };
-
-  const removeUser = async (u: Staff) => {
-    if (u.role === 'superadmin') { showToast('Không thể xóa tài khoản Super Admin'); return; }
-    if (!window.confirm(`Xóa vĩnh viễn tài khoản "${u.fullName}"? Thao tác này không hoàn tác được.`)) return;
-    setBusy(u.id);
-    const res = await deleteStaffAccount(u.id);
-    setBusy(null);
-    showToast(res.ok ? `✓ ${res.message}` : `⚠ ${res.message}`);
-    if (res.ok) { writeLog('XÓA USER', u.fullName); await load(); }
-  };
-
-  const resetPassword = async (u: Staff) => {
-    const pw = window.prompt(`Mật khẩu mới cho "${u.fullName}" (tối thiểu 10 ký tự):`, 'Monica@2026');
-    if (!pw) return;
-    setBusy(u.id);
-    const res = await resetStaffPassword(u.id, pw);
-    setBusy(null);
-    showToast(res.ok ? `✓ ${res.message}` : `⚠ ${res.message}`);
-    if (res.ok) writeLog('ĐẶT LẠI MẬT KHẨU', u.fullName);
-  };
+  const writeLog = useCallback(
+    (action: string, detail: string) => {
+      const row: SystemLog = {
+        id: genId('SL'),
+        user: session?.user.username ?? 'superadmin',
+        action,
+        detail,
+        created_at: new Date().toISOString(),
+      };
+      setLogs((prev) => [row, ...prev]);
+      const { id: _omit, ...payload } = row;
+      void insertRow('system_logs', payload);
+    },
+    [session],
+  );
 
   const saveSettings = async () => {
     for (const s of settings) {
@@ -140,7 +107,7 @@ export default function AdminPage() {
       }
     }
     setEditedSettings({});
-    showToast('✓ Đã lưu cấu hình hệ thống');
+    toast.success('Đã lưu cấu hình hệ thống');
   };
 
   if (!ready) return null;
@@ -150,10 +117,9 @@ export default function AdminPage() {
     <div>
       <PageHeader title="Super Admin" desc="Quản lý người dùng, phân quyền, log hệ thống và tham số vận hành"
         action={
-          <div className="flex items-center gap-2">
-            <MockBadge show={isMock} />
-            <button className={btnPrimary} onClick={() => setShowAdd(true)}><UserPlus className="h-4 w-4" /> Tạo User</button>
-          </div>
+          <button className={btnPrimary} onClick={() => setShowAdd(true)}>
+            <UserPlus className="h-4 w-4" /> Tạo User
+          </button>
         } />
 
       {/* Chuyển nhanh góc nhìn */}
@@ -171,76 +137,13 @@ export default function AdminPage() {
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
         {/* Users */}
         <Card className="xl:col-span-2" title={`Nhân sự hệ thống (${staff.length})`} icon={Users}>
-          {staffError && (
-            <p role="alert" className="m-5 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              {staffError}
-            </p>
-          )}
-
-          {!staffError && staff.length === 0 && (
-            <EmptyState title="Chưa có nhân sự nào" sub="Chạy scripts/seed-users.mjs để tạo tài khoản cho các phòng ban." />
-          )}
-
-          {staff.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className={thCls}>Mã NV</th>
-                    <th className={thCls}>Họ tên</th>
-                    <th className={thCls}>Vai trò</th>
-                    <th className={thCls}>Phòng ban</th>
-                    <th className={thCls}>Trạng thái</th>
-                    <th className={thCls}></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {staff.map((u) => (
-                    <tr key={u.id} className="transition hover:bg-slate-50/70">
-                      <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{u.employeeCode ?? '—'}</td>
-                      <td className={tdCls}>
-                        <span className="flex items-center gap-2">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[10px] font-bold text-white">{u.avatar}</span>
-                          <span className="min-w-0">
-                            <span className="block truncate font-medium text-slate-800">{u.fullName}</span>
-                            <span className="block truncate text-xs text-slate-400">{emails[u.id] ?? ''}</span>
-                          </span>
-                        </span>
-                      </td>
-                      <td className={tdCls}>
-                        {u.role
-                          ? <Badge tone={u.role === 'superadmin' ? 'rose' : 'indigo'}>{ROLE_LABEL[u.role]}</Badge>
-                          : <Badge tone="amber" icon={AlertTriangle}>Chưa phân quyền</Badge>}
-                      </td>
-                      <td className={`${tdCls} text-xs text-slate-500`}>{u.departmentName ?? '—'}</td>
-                      <td className={tdCls}>
-                        {u.isActive
-                          ? <Badge tone="emerald" icon={ShieldCheck}>Hoạt động</Badge>
-                          : <Badge tone="slate" icon={ShieldOff}>Đã khóa</Badge>}
-                      </td>
-                      <td className={tdCls}>
-                        <span className="flex gap-1.5">
-                          <button title="Đặt lại mật khẩu" disabled={busy === u.id} onClick={() => void resetPassword(u)}
-                            className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:text-indigo-600 disabled:opacity-40">
-                            <KeyRound className="h-4 w-4" />
-                          </button>
-                          <button title={u.isActive ? 'Khóa' : 'Mở khóa'} disabled={busy === u.id} onClick={() => void toggleActive(u)}
-                            className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:text-amber-600 disabled:opacity-40">
-                            {u.isActive ? <ShieldOff className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
-                          </button>
-                          <button title="Xóa" disabled={busy === u.id || u.role === 'superadmin'} onClick={() => void removeUser(u)}
-                            className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:text-rose-600 disabled:opacity-40">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <StaffTable
+            staff={staff}
+            emails={emails}
+            loading={loading}
+            error={staffError}
+            onRefresh={load}
+          />
         </Card>
 
         {/* Settings */}
@@ -274,7 +177,19 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {logs.length === 0 && <tr><td colSpan={4}><EmptyState title="Chưa có log" /></td></tr>}
+              {logs.length === 0 && (
+                <tr>
+                  <td colSpan={4}>
+                    {loading ? (
+                      <TableSkeleton columns={4} rows={4} />
+                    ) : logsError ? (
+                      <ErrorState message={logsError} onRetry={() => void load()} />
+                    ) : (
+                      <EmptyState title="Chưa có log" />
+                    )}
+                  </td>
+                </tr>
+              )}
               {logs.map((l) => (
                 <tr key={l.id} className="transition hover:bg-slate-50/70">
                   <td className={`${tdCls} text-slate-400`}>{fmtDateTime(l.created_at)}</td>
@@ -289,43 +204,15 @@ export default function AdminPage() {
       </Card>
 
       {/* Modal tạo user */}
-      <Modal open={showAdd} title="Tạo tài khoản mới" onClose={() => setShowAdd(false)}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Email công ty" hint="dùng để đăng nhập">
-            <input className={inputCls} type="email" value={fu.email}
-              onChange={(e) => setFu({ ...fu, email: e.target.value })} placeholder="ten.ban@monicagarment.vn" />
-          </Field>
-          <Field label="Mã nhân viên">
-            <input className={inputCls} value={fu.employeeCode}
-              onChange={(e) => setFu({ ...fu, employeeCode: e.target.value })} placeholder="WH-003" />
-          </Field>
-          <Field label="Họ tên hiển thị">
-            <input className={inputCls} value={fu.name} onChange={(e) => setFu({ ...fu, name: e.target.value })} />
-          </Field>
-          <Field label="Vai trò">
-            <select className={inputCls} value={fu.role} onChange={(e) => setFu({ ...fu, role: e.target.value as Role })}>
-              {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-            </select>
-          </Field>
-          <Field label="Mật khẩu khởi tạo" hint="tối thiểu 10 ký tự">
-            <input className={inputCls} value={fu.password}
-              onChange={(e) => setFu({ ...fu, password: e.target.value })} placeholder="Monica@2026" />
-          </Field>
-        </div>
-        <p className="mt-3 rounded-lg bg-indigo-50 px-3 py-2 text-[11px] leading-relaxed text-indigo-800">
-          Tài khoản được tạo qua Supabase Auth, mật khẩu lưu dưới dạng băm. Hệ thống tự bật cờ
-          buộc đổi mật khẩu ở lần đăng nhập đầu tiên, nên mật khẩu khởi tạo chỉ sống đúng một phiên.
-          Hãy gửi riêng cho từng người, đừng dán chung vào nhóm chat.
-        </p>
-        <div className="mt-4 flex justify-end gap-2">
-          <button className={btnGhost} onClick={() => setShowAdd(false)}>Hủy</button>
-          <button className={btnPrimary} disabled={busy === 'create'} onClick={() => void addUser()}>
-            <UserPlus className="h-4 w-4" /> {busy === 'create' ? 'Đang tạo...' : 'Tạo tài khoản'}
-          </button>
-        </div>
-      </Modal>
+      <StaffFormDialog
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        onCreated={async () => {
+          writeLog('TẠO USER', 'Tạo tài khoản mới qua màn hình Quản trị');
+          await load();
+        }}
+      />
 
-      <ToastView message={toast} />
     </div>
   );
 }
