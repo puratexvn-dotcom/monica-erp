@@ -143,23 +143,24 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
     <>
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex h-24 max-w-[1600px] items-center gap-3 px-3 sm:h-32 sm:gap-4 sm:px-6 lg:px-8">
-          {/* Logo — LỚN GẤP ĐÔI bản trước (h-16/w-48 -> h-20/w-64, desktop
-              h-[4.5rem]/w-64 -> h-28/w-[26rem]). Bấm vào về trang chủ: logo dẫn
-              về "/" là quy ước chung của mọi ứng dụng web, và đây cũng là đường
-              duy nhất quay lại trang chủ từ khu vực nội bộ.
-              Chiều rộng trên mobile giữ ở 16rem (256px) để còn chỗ cho nhóm nút
-              bên phải trên màn 360px — đặt w-96 sẽ tràn khỏi màn hình. */}
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-3 sm:h-20 sm:gap-4 sm:px-6 lg:px-8">
+          {/* Logo — h-10/w-32 (mobile), h-14/w-52 (từ sm): đúng một nửa cỡ ở
+              bản trước. Chiều cao thanh hạ theo (h-24/sm:h-32 -> h-16/sm:h-20),
+              nếu giữ nguyên thanh cao thì logo nhỏ sẽ trôi giữa một dải trống
+              rất rộng.
+              Bấm vào về trang chủ: logo dẫn về "/" là quy ước chung của mọi ứng
+              dụng web, và đây cũng là đường duy nhất quay lại trang chủ từ khu
+              vực nội bộ. */}
           <Link
             href="/"
             aria-label="Về trang chủ Monica ERP"
-            className="relative h-20 w-64 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-28 sm:w-[26rem]"
+            className="relative h-10 w-32 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-14 sm:w-52"
           >
             <Image
               src={LOGO_SRC}
               alt={LOGO_ALT}
               fill
-              sizes="(max-width: 640px) 256px, 416px"
+              sizes="(max-width: 640px) 128px, 208px"
               className="object-contain object-left"
               priority
             />
