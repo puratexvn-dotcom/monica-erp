@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback, useMemo, useState, useTransition } from 'react';
-import { Boxes, PackagePlus, RefreshCw, TriangleAlert, ArrowDownToLine, Layers } from 'lucide-react';
+import {
+  Boxes, PackagePlus, PackageMinus, RefreshCw, TriangleAlert, ArrowDownToLine,
+  ArrowUpFromLine, Layers,
+} from 'lucide-react';
 
 import { Card, StatCard, Badge, ProgressBar, btnPrimary, btnGhost, thCls, tdCls } from '@/components/ui';
 import { NoData } from '@/components/data-state';
@@ -9,6 +12,7 @@ import { listMaterials, listTransactions } from './wh-actions';
 import { CATEGORY_LABEL, type MaterialCategory, type MaterialRow, type PoOption, type TxRow } from './wh-schema';
 import TxTable from './tx-table';
 import InboundFormDialog from './inbound-form-dialog';
+import OutboundFormDialog from './outbound-form-dialog';
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
 
@@ -27,6 +31,7 @@ export default function KhoClient({
   const [tx, setTx] = useState(initialTx);
   const [error, setError] = useState(initialError);
   const [showInbound, setShowInbound] = useState(false);
+  const [showOutbound, setShowOutbound] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const refresh = useCallback(async () => {
@@ -44,12 +49,17 @@ export default function KhoClient({
         t.transaction_type.toUpperCase() === 'IN' &&
         new Date(new Date(t.created_at).getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10) === vnToday,
     );
-    return { codes: materials.length, lowStock, inToday: inToday.length };
+    const outToday = tx.filter(
+      (t) =>
+        t.transaction_type.toUpperCase() === 'OUT' &&
+        new Date(new Date(t.created_at).getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10) === vnToday,
+    );
+    return { codes: materials.length, lowStock, inToday: inToday.length, outToday: outToday.length };
   }, [materials, tx]);
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={Boxes} label="Danh mục vật tư" value={nf.format(stats.codes)} sub="mã NPL đang quản lý" />
         <StatCard
           icon={TriangleAlert}
@@ -65,6 +75,13 @@ export default function KhoClient({
           value={nf.format(stats.inToday)}
           sub="lô mới nhập trong ngày"
           tone="indigo"
+        />
+        <StatCard
+          icon={ArrowUpFromLine}
+          label="Phiếu xuất hôm nay"
+          value={nf.format(stats.outToday)}
+          sub="lượt cấp phát trong ngày"
+          tone="amber"
         />
       </div>
 
@@ -162,6 +179,9 @@ export default function KhoClient({
             >
               <RefreshCw className={`h-4 w-4 ${pending ? 'animate-spin' : ''}`} /> Làm mới
             </button>
+            <button type="button" className={btnGhost} onClick={() => setShowOutbound(true)}>
+              <PackageMinus className="h-4 w-4" /> Xuất kho
+            </button>
             <button type="button" className={btnPrimary} onClick={() => setShowInbound(true)}>
               <PackagePlus className="h-4 w-4" /> Nhập kho
             </button>
@@ -175,6 +195,14 @@ export default function KhoClient({
         open={showInbound}
         onClose={() => setShowInbound(false)}
         onCreated={refresh}
+        poOptions={poOptions}
+      />
+
+      <OutboundFormDialog
+        open={showOutbound}
+        onClose={() => setShowOutbound(false)}
+        onCreated={refresh}
+        materials={materials.filter((m) => Number(m.stock_qty) > 0)}
         poOptions={poOptions}
       />
     </>

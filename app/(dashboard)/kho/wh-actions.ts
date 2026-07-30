@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/server';
 import { canAccess, isRole } from '@/lib/rbac';
 import {
   inboundFormSchema,
+  outboundFormSchema,
   type MaterialRow,
   type PoOption,
   type TxRow,
@@ -129,6 +130,116 @@ export async function listPoOptions(): Promise<{ rows: PoOption[]; error: string
   return { rows: (data ?? []) as PoOption[], error: null };
 }
 
+// ── Lõi ghi sổ kho ──────────────────────────────────────────────────────────
+type Supa = NonNullable<Awaited<ReturnType<typeof guard>>['supabase']>;
+
+interface MovementInput {
+  materialId: string;
+  type: 'IN' | 'OUT';
+  quantity: number;
+  orderId?: string | null;
+  referenceNo?: string | null;
+  notes?: string | null;
+  occurredAt: string;
+}
+
+/** Mã lỗi Postgres/PostgREST cho "hàm không tồn tại" */
+function isMissingFunction(code: string | undefined, message: string): boolean {
+  return code === '42883' || code === 'PGRST202' || /apply_stock_movement/i.test(message);
+}
+
+/** Dịch lỗi từ hàm SQL sang câu tiếng Việt có số liệu cụ thể */
+function translateRpcError(message: string): string {
+  const insufficient = message.match(/INSUFFICIENT_STOCK\|([\d.]+)\|([\d.]+)/);
+  if (insufficient) {
+    return `Không đủ tồn kho: hiện còn ${insufficient[1]}, không thể xuất ${insufficient[2]}.`;
+  }
+  if (message.includes('MATERIAL_NOT_FOUND')) return 'Không tìm thấy mã vật tư.';
+  if (message.includes('INVALID_QUANTITY')) return 'Số lượng phải lớn hơn 0.';
+  if (message.includes('INVALID_TYPE')) return 'Loại giao dịch không hợp lệ.';
+  if (message.includes('materials_stock_qty_non_negative')) {
+    return 'Thao tác này sẽ làm tồn kho xuống dưới 0 nên đã bị chặn.';
+  }
+  return message;
+}
+
+/**
+ * Ghi một giao dịch kho.
+ *
+ * Ưu tiên gọi hàm apply_stock_movement (migration 011): hàm đó khoá dòng vật tư
+ * rồi kiểm tra tồn, ghi phiếu và cộng/trừ tồn trong CÙNG một giao dịch, nên hai
+ * người thao tác đồng thời trên một mã không ghi đè nhau và không xuất âm được.
+ *
+ * Nếu chưa chạy migration 011, hàm chưa tồn tại -> quay về đường cũ đọc-rồi-ghi
+ * và GẮN CẢNH BÁO vào thông báo trả về. Cố ý không im lặng: đường cũ vẫn có khe
+ * hở lost update, người vận hành phải biết để giục chạy migration.
+ */
+async function applyMovement(
+  supabase: Supa,
+  m: MovementInput,
+): Promise<{ ok: boolean; message: string; degraded?: boolean }> {
+  const rpc = await supabase.rpc('apply_stock_movement', {
+    p_material_id: m.materialId,
+    p_type: m.type,
+    p_quantity: m.quantity,
+    p_order_id: m.orderId ?? null,
+    p_reference_no: m.referenceNo ?? null,
+    p_notes: m.notes ?? null,
+    p_occurred_at: m.occurredAt,
+  });
+
+  if (!rpc.error) return { ok: true, message: '' };
+
+  if (!isMissingFunction(rpc.error.code, rpc.error.message)) {
+    return { ok: false, message: translateRpcError(rpc.error.message) };
+  }
+
+  // ── Đường dự phòng: chưa chạy migration 011 ──────────────────────────────
+  const { data: cur, error: readErr } = await supabase
+    .from('materials')
+    .select('stock_qty')
+    .eq('id', m.materialId)
+    .single();
+
+  if (readErr) return { ok: false, message: `Không đọc được tồn kho: ${readErr.message}` };
+
+  const stock = Number(cur.stock_qty ?? 0);
+  if (m.type === 'OUT' && stock < m.quantity) {
+    return { ok: false, message: `Không đủ tồn kho: hiện còn ${stock}, không thể xuất ${m.quantity}.` };
+  }
+
+  const { error: txErr } = await supabase.from('warehouse_transactions').insert({
+    material_id: m.materialId,
+    transaction_type: m.type,
+    quantity: m.quantity,
+    order_id: m.orderId ?? null,
+    reference_no: m.referenceNo ?? null,
+    notes: m.notes ?? null,
+    created_at: m.occurredAt,
+  });
+  if (txErr) return { ok: false, message: `Không lưu được phiếu kho: ${txErr.message}` };
+
+  const { error: updErr } = await supabase
+    .from('materials')
+    .update({
+      stock_qty: m.type === 'IN' ? stock + m.quantity : stock - m.quantity,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', m.materialId);
+
+  if (updErr) {
+    return {
+      ok: false,
+      message: `Đã lưu phiếu kho nhưng KHÔNG cập nhật được tồn: ${updErr.message}. Vui lòng kiểm tra lại tồn của mã này.`,
+    };
+  }
+
+  return { ok: true, message: '', degraded: true };
+}
+
+const DEGRADED_WARNING =
+  ' ⚠ Chưa chạy migration 011 nên tồn kho đang cập nhật theo cách cũ, có thể sai nếu hai người thao tác cùng lúc.';
+
 // ── Nhập kho ────────────────────────────────────────────────────────────────
 export async function createInbound(input: unknown): Promise<ActionResult> {
   const { supabase, error } = await guard();
@@ -185,57 +296,83 @@ export async function createInbound(input: unknown): Promise<ActionResult> {
 
   if (!materialId) return { ok: false, message: 'Không xác định được mã NPL.' };
 
-  // 2. Ghi phiếu nhập
-  const { error: txErr } = await supabase.from('warehouse_transactions').insert({
-    material_id: materialId,
-    transaction_type: 'IN',
+  // 2. Ghi phiếu + cộng tồn trong một giao dịch nguyên khối
+  const mv = await applyMovement(supabase, {
+    materialId,
+    type: 'IN',
     quantity: v.quantity,
-    order_id: v.order_id || null,
-    reference_no: v.reference_no || null,
+    orderId: v.order_id || null,
+    referenceNo: v.reference_no || null,
     notes: v.notes || null,
-    created_at: new Date(`${v.received_date}T00:00:00+07:00`).toISOString(),
+    occurredAt: new Date(`${v.received_date}T00:00:00+07:00`).toISOString(),
   });
 
-  if (txErr) return { ok: false, message: `Không lưu được phiếu nhập: ${txErr.message}` };
+  if (!mv.ok) return { ok: false, message: mv.message };
 
-  // 3. Cộng tồn.
-  //    ⚠️ HẠN CHẾ ĐÃ BIẾT: đọc-rồi-ghi qua hai lượt gọi nên hai người nhập cùng
-  //    lúc cùng một mã có thể ghi đè nhau (lost update). Cách đúng là dồn vào
-  //    một hàm RPC trong Postgres:
-  //        UPDATE materials SET stock_qty = stock_qty + p_qty WHERE id = p_id;
-  //    Chưa làm ở bước này vì cần thêm migration; đã ghi lại để xử lý khi dựng
-  //    tiếp phần xuất kho.
-  const { data: cur, error: readErr } = await supabase
+  revalidatePath(MODULE_PATH);
+  return {
+    ok: true,
+    message:
+      `Đã nhập ${v.quantity} ${v.unit} vào mã ${v.material_code}${existing ? '' : ' (mã mới)'}.` +
+      (mv.degraded ? DEGRADED_WARNING : ''),
+  };
+}
+
+// ── Xuất kho (cấp phát cho sản xuất) ────────────────────────────────────────
+export async function createOutbound(input: unknown): Promise<ActionResult> {
+  const { supabase, error } = await guard();
+  if (!supabase) return { ok: false, message: error ?? 'Không có quyền' };
+
+  const parsed = outboundFormSchema.safeParse(input);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0];
+      if (typeof key === 'string' && !fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { ok: false, message: 'Dữ liệu chưa hợp lệ.', fieldErrors };
+  }
+
+  const v = parsed.data;
+
+  // Đọc mã vật tư chỉ để dựng thông báo cho người dùng. Việc CHẶN xuất quá tồn
+  // do hàm SQL đảm nhiệm — kiểm tra ở đây rồi mới gọi là kiểm tra hai lần mà
+  // vẫn hở, vì tồn có thể đổi giữa hai lượt gọi.
+  const { data: mat, error: matErr } = await supabase
     .from('materials')
-    .select('stock_qty')
-    .eq('id', materialId)
-    .single();
+    .select('material_code, unit')
+    .eq('id', v.material_id)
+    .maybeSingle();
 
-  if (readErr) {
+  if (matErr) return { ok: false, message: `Không tra được mã vật tư: ${matErr.message}` };
+  if (!mat) {
     return {
       ok: false,
-      message: `Đã lưu phiếu nhập nhưng KHÔNG cập nhật được tồn kho: ${readErr.message}. Vui lòng kiểm tra lại tồn của mã ${v.material_code}.`,
+      message: 'Mã vật tư không tồn tại.',
+      fieldErrors: { material_id: 'Vui lòng chọn lại mã vật tư' },
     };
   }
 
-  const { error: updErr } = await supabase
-    .from('materials')
-    .update({
-      stock_qty: Number(cur.stock_qty ?? 0) + v.quantity,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', materialId);
+  const mv = await applyMovement(supabase, {
+    materialId: v.material_id,
+    type: 'OUT',
+    quantity: v.quantity,
+    orderId: v.order_id,
+    referenceNo: v.reference_no || null,
+    notes: v.notes || null,
+    occurredAt: new Date(`${v.issued_date}T00:00:00+07:00`).toISOString(),
+  });
 
-  if (updErr) {
-    return {
-      ok: false,
-      message: `Đã lưu phiếu nhập nhưng KHÔNG cập nhật được tồn kho: ${updErr.message}. Vui lòng kiểm tra lại tồn của mã ${v.material_code}.`,
-    };
+  if (!mv.ok) {
+    return { ok: false, message: mv.message, fieldErrors: { quantity: 'Kiểm tra lại số lượng xuất' } };
   }
 
   revalidatePath(MODULE_PATH);
   return {
     ok: true,
-    message: `Đã nhập ${v.quantity} ${v.unit} vào mã ${v.material_code}${existing ? '' : ' (mã mới)'}.`,
+    message:
+      `Đã xuất ${v.quantity} ${mat.unit} từ mã ${mat.material_code}.` +
+      (mv.degraded ? DEGRADED_WARNING : ''),
   };
 }
+

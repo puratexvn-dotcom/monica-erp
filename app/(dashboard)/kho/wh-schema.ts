@@ -124,6 +124,41 @@ export const inboundFormSchema = z.object({
 
 export type InboundFormValues = z.infer<typeof inboundFormSchema>;
 
+// ── Form xuất kho (cấp phát cho sản xuất) ───────────────────────────────────
+// Khác form nhập ở ba chỗ:
+//   • CHỌN mã NPL từ danh mục, không cho gõ tay: xuất một mã không tồn tại là
+//     vô nghĩa, và gõ tay sẽ sinh mã rác.
+//   • Không có tên/loại/đơn vị — những thứ đó đã cố định theo mã đã chọn.
+//   • PO tham chiếu là BẮT BUỘC: cấp phát NPL luôn phải quy về một đơn hàng,
+//     nếu không thì không tính được định mức tiêu hao cho đơn nào.
+export const outboundFormSchema = z.object({
+  material_id: z.string().uuid('Vui lòng chọn mã vật tư cần xuất'),
+
+  quantity: z
+    .number({ error: 'Số lượng phải là số' })
+    .positive('Số lượng phải lớn hơn 0')
+    .max(9_999_999, 'Số lượng vượt ngưỡng cho phép')
+    .refine((v) => Number.isFinite(v), { message: 'Số lượng không hợp lệ' })
+    .refine((v) => Math.round(v * 100) === v * 100, {
+      message: 'Số lượng chỉ được có tối đa 2 chữ số thập phân',
+    }),
+
+  issued_date: z
+    .string()
+    .min(1, 'Vui lòng chọn ngày xuất')
+    .refine((v) => /^\d{4}-\d{2}-\d{2}$/.test(v), { message: 'Ngày xuất không hợp lệ' })
+    .refine(isRealDate, { message: 'Ngày xuất không tồn tại' })
+    .refine((v) => v <= vnToday(), { message: 'Ngày xuất không được ở tương lai' }),
+
+  order_id: z.string().uuid('Vui lòng chọn đơn hàng được cấp phát'),
+
+  reference_no: z.string().trim().max(100, 'Số phiếu quá dài').optional().or(z.literal('')),
+
+  notes: z.string().trim().max(1000, 'Ghi chú quá dài').optional().or(z.literal('')),
+});
+
+export type OutboundFormValues = z.infer<typeof outboundFormSchema>;
+
 // ── Kiểu dữ liệu đọc về ─────────────────────────────────────────────────────
 export interface MaterialRow {
   id: string;
