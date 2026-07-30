@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    // Không đặt target thì TypeScript mặc định ES5: duyệt Set/Map bằng for...of
+    // hay spread đều bị từ chối, và cờ regex "u" cũng không dùng được.
+    // Next.js biên dịch bằng SWC nên giá trị này CHỈ ảnh hưởng khâu kiểm kiểu,
+    // không đổi mã sinh ra. lib đã là esnext từ trước nên đây thuần là nới lỏng.
+    "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
