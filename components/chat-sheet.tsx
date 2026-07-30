@@ -128,7 +128,9 @@ export default function ChatSheet({
       title="Trao đổi liên bộ phận"
       subtitle={role ? `Gửi với vai trò ${ROLE_LABEL[role]}` : 'Cần đăng nhập để gửi'}
       footer={
-        <div>
+        // min-w-0 + overflow-hidden: ô nhập và bảng gợi ý không được đẩy rộng
+        // khung ra ngoài viền panel trên màn 360px.
+        <div className="min-w-0 overflow-hidden">
           {/* Bảng gợi ý @ — nằm ngay trên ô nhập, tầm mắt tự nhiên */}
           {suggestions.length > 0 && (
             <div className="mb-2 max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
@@ -160,7 +162,7 @@ export default function ChatSheet({
             Gắn cờ đỏ (việc cần xử lý ngay)
           </label>
 
-          <div className="flex gap-2">
+          <div className="flex min-w-0 gap-2">
             <input
               ref={inputRef}
               value={text}
@@ -173,14 +175,16 @@ export default function ChatSheet({
               }}
               disabled={!role}
               placeholder={role ? 'Gõ @ để gọi bộ phận, Enter để gửi...' : 'Cần đăng nhập'}
-              className={`${inputCls} flex-1`}
+              // min-w-0 BẮT BUỘC: mặc định flex item có min-width là auto nên ô
+              // nhập không co nhỏ hơn nội dung nó chứa, gõ dài là tràn cả khung.
+              className={`${inputCls} min-w-0 flex-1 text-base sm:text-sm`}
             />
             <button
               type="button"
               onClick={send}
               disabled={!role || !text.trim()}
               aria-label="Gửi tin nhắn"
-              className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 disabled:opacity-40"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>
@@ -200,7 +204,7 @@ export default function ChatSheet({
         </p>
       )}
 
-      <div className="space-y-3 bg-slate-50/60 p-4">
+      <div className="min-w-0 space-y-3 overflow-x-hidden bg-slate-50/60 p-3 sm:p-4">
         {visible.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-400">
             <MessageSquare className="h-8 w-8" aria-hidden="true" />
@@ -213,7 +217,7 @@ export default function ChatSheet({
           visible.map((m) => (
             <div
               key={m.id}
-              className={`rounded-xl border bg-white p-3 shadow-sm ${
+              className={`min-w-0 overflow-hidden rounded-xl border bg-white p-3 shadow-sm ${
                 m.redFlag ? 'border-rose-300 ring-1 ring-rose-100' : 'border-slate-200'
               }`}
             >
@@ -238,7 +242,7 @@ export default function ChatSheet({
                   {m.mentions.map((r) => (
                     <span
                       key={r}
-                      className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700"
+                      className="max-w-full break-words rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700"
                     >
                       @{ROLE_LABEL[r]}
                     </span>

@@ -77,20 +77,22 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50"><h2 className="text-base font-semibold text-slate-800">Tiến Độ Bán Thành Phẩm (WIP)</h2></div>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Bundle / PO</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3 text-right">QC Đạt / Tổng</th></tr></thead>
-              <tbody>
-                {typedBundles.map((b: BundleItem) => (
-                  <tr key={b.id} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3"><div className="font-bold text-slate-900">{b.bundle_code}</div><div className="text-xs text-slate-500">{b.po_number}</div></td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${b.current_stage === 'FINISHING' ? 'bg-emerald-100 text-emerald-800' : b.current_stage === 'PACKED' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>{b.current_stage}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold">{b.final_qc_passed_qty} / {b.quantity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Bundle / PO</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3 text-right">QC Đạt / Tổng</th></tr></thead>
+                <tbody>
+                  {typedBundles.map((b: BundleItem) => (
+                    <tr key={b.id} className="border-t border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-3"><div className="font-bold text-slate-900">{b.bundle_code}</div><div className="text-xs text-slate-500">{b.po_number}</div></td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${b.current_stage === 'FINISHING' ? 'bg-emerald-100 text-emerald-800' : b.current_stage === 'PACKED' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>{b.current_stage}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold">{b.final_qc_passed_qty} / {b.quantity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
             <h2 className="font-semibold text-slate-900 mb-4 border-b pb-2">Cập Nhật QC & Kích Hoạt</h2>
@@ -134,22 +136,24 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
           </div>
           <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b bg-slate-50"><h2 className="font-semibold text-slate-800">Danh Sách Thùng Tại Xưởng (Chờ Nhập Kho FG)</h2></div>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Vạch Thùng</th><th className="px-4 py-3">PO</th><th className="px-4 py-3 text-center">SL</th><th className="px-4 py-3">Trạng thái</th></tr></thead>
-              <tbody>
-                {typedCartons.map((c: CartonItem) => {
-                  const poNum = Array.isArray(c.orders) ? c.orders[0]?.po_number : c.orders?.po_number
-                  return (
-                    <tr key={c.id} className="border-t border-slate-100">
-                      <td className="px-4 py-3 font-mono font-bold">{c.carton_code}</td>
-                      <td className="px-4 py-3">{poNum || 'N/A'}</td>
-                      <td className="px-4 py-3 text-center font-bold">{c.quantity_per_carton}</td>
-                      <td className="px-4 py-3"><span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">PACKED</span></td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Vạch Thùng</th><th className="px-4 py-3">PO</th><th className="px-4 py-3 text-center">SL</th><th className="px-4 py-3">Trạng thái</th></tr></thead>
+                <tbody>
+                  {typedCartons.map((c: CartonItem) => {
+                    const poNum = Array.isArray(c.orders) ? c.orders[0]?.po_number : c.orders?.po_number
+                    return (
+                      <tr key={c.id} className="border-t border-slate-100">
+                        <td className="px-4 py-3 font-mono font-bold">{c.carton_code}</td>
+                        <td className="px-4 py-3">{poNum || 'N/A'}</td>
+                        <td className="px-4 py-3 text-center font-bold">{c.quantity_per_carton}</td>
+                        <td className="px-4 py-3"><span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">PACKED</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

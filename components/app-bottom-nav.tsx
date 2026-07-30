@@ -52,6 +52,11 @@ export default function AppBottomNav({
   // kịp đọc chữ. Bản cũ để chữ 20px nên "Bàn làm việc" phải cắt thành "Bàn
   // việc" mới vừa ô 90px trên màn 360px, mà cắt chữ thì lại mất luôn nghĩa.
   // Ở cỡ 10px thì cả bốn nhãn đầy đủ đều vừa, không phải cắt bớt chữ nào.
+  // z-[100] cao hơn lớp phủ của Sheet (z-[60]) và của PO 360 (z-[70]) — thanh
+  // này phải NẰM TRÊN mọi lớp trượt. Trước đây nav ở z-50 nên vừa mở Chat là
+  // lớp phủ đè lên, người dùng tưởng thanh điều hướng biến mất.
+  // Đối ứng: các Sheet dừng lại phía trên dải nav (xem components/sheet.tsx)
+  // để nav không che mất nội dung panel.
   const btn =
     'flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-[10px] font-bold leading-none tracking-tight transition';
   const icon = 'h-7 w-7 shrink-0';
@@ -60,7 +65,7 @@ export default function AppBottomNav({
     <>
       <nav
         aria-label="Điều hướng chính"
-        className="fixed bottom-0 left-0 z-50 w-full border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-lg"
+        className="fixed bottom-0 left-0 z-[100] w-full border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-lg"
       >
         <ul className="mx-auto flex h-16 max-w-2xl items-stretch">
           <li className="flex-1">

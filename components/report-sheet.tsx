@@ -1,13 +1,26 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
-import { Download, Loader2, BarChart3 } from 'lucide-react';
+import { Download, Loader2, BarChart3, LayoutDashboard, ListOrdered } from 'lucide-react';
 import { toast } from 'sonner';
 
 import Sheet from '@/components/sheet';
 import { ProgressBar, Badge } from '@/components/ui';
 import { ROLE_LABEL, type Role } from '@/lib/rbac';
+
+// Recharts nặng gần 100 kB — chỉ tải khi người dùng thật sự mở tab Giám đốc,
+// không nhét vào gói chung của mọi trang chỉ vì thanh điều hướng có nút Báo cáo.
+const CeoReportPanel = dynamic(() => import('@/components/report/ceo-report'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center gap-2 py-16 text-slate-400">
+      <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+      <span className="text-sm font-medium">Đang tải bảng báo cáo...</span>
+    </div>
+  ),
+});
 
 // ============================================================================
 // BẢNG BÁO CÁO THEO BỘ PHẬN + XUẤT RA ẢNH
@@ -49,6 +62,11 @@ export default function ReportSheet({
 }) {
   const captureRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+
+  // Hai chế độ xem. Giám đốc mở là muốn thấy toàn nhà máy; tổ trưởng mở là
+  // muốn thấy đúng số của tổ mình. Giữ CẢ HAI thay vì thay thế bản cũ —
+  // bảng theo bộ phận vẫn là thứ duy nhất chạy được cho các tổ sản xuất.
+  const [view, setView] = useState<'ceo' | 'dept'>('ceo');
 
   const vnNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
   const dateLabel = vnNow.toLocaleDateString('vi-VN', {
@@ -93,10 +111,11 @@ export default function ReportSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      title="Báo cáo bộ phận"
+      title="Báo cáo"
       subtitle={role ? ROLE_LABEL[role] : 'Chưa xác định bộ phận'}
       side="bottom"
       footer={
+        view === 'ceo' ? null : (
         <button
           type="button"
           onClick={() => void exportImage()}
@@ -113,9 +132,41 @@ export default function ReportSheet({
             </>
           )}
         </button>
+        )
       }
     >
-      {/* Vùng được chụp — mọi thứ trong đây sẽ vào ảnh */}
+      {/* Chuyển chế độ xem — để NGOÀI vùng chụp, ảnh báo cáo không nên có tab */}
+      <div role="tablist" aria-label="Chế độ xem báo cáo" className="flex gap-1.5 border-b border-slate-100 bg-slate-50/70 p-2">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'ceo'}
+          onClick={() => setView('ceo')}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition ${
+            view === 'ceo' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:text-indigo-600'
+          }`}
+        >
+          <LayoutDashboard className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Báo cáo Giám đốc
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'dept'}
+          onClick={() => setView('dept')}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition ${
+            view === 'dept' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:text-indigo-600'
+          }`}
+        >
+          <ListOrdered className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Số liệu bộ phận
+        </button>
+      </div>
+
+      {view === 'ceo' && <CeoReportPanel />}
+
+      {view === 'dept' && (
+      /* Vùng được chụp — mọi thứ trong đây sẽ vào ảnh */
       <div ref={captureRef} className="bg-white p-5">
         <div className="mb-5 border-b border-slate-200 pb-4">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
@@ -164,6 +215,7 @@ export default function ReportSheet({
           </span>
         </div>
       </div>
+      )}
     </Sheet>
   );
 }

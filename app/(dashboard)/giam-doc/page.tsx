@@ -102,36 +102,38 @@ export default async function ExecutiveDashboardPage({
             <h2 className="text-sm font-bold text-slate-800">🔥 Top 5 PO Nghẽn WIP Cao Nhất</h2>
           </div>
           <div className="p-0">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-100">
-                <tr>
-                  <th className="px-5 py-3">Mã PO</th>
-                  <th className="px-5 py-3 text-right">Tồn WIP (pcs)</th>
-                  <th className="px-5 py-3 w-1/3">Tiến trình (May / Cắt)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {metrics.wipBottleneckPOs.length === 0 ? (
-                  <tr><td colSpan={3} className="px-5 py-6 text-center text-slate-400">Dòng chuyền trơn tru, không tồn đọng WIP.</td></tr>
-                ) : (
-                  metrics.wipBottleneckPOs.map((po, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="px-5 py-3 font-semibold text-slate-900">{po.po_number}</td>
-                      <td className="px-5 py-3 text-right font-bold text-amber-600">{po.wip.toLocaleString()}</td>
-                      <td className="px-5 py-3">
-                        <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
-                          <div 
-                            className="bg-amber-500 h-1.5 rounded-full" 
-                            style={{ width: `${Math.min(100, (po.sewn / (po.cut || 1)) * 100)}%` }}
-                          ></div>
-                        </div>
-                        <div className="text-[10px] text-slate-500 mt-1">{po.sewn} / {po.cut}</div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th className="px-5 py-3">Mã PO</th>
+                    <th className="px-5 py-3 text-right">Tồn WIP (pcs)</th>
+                    <th className="px-5 py-3 w-1/3">Tiến trình (May / Cắt)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {metrics.wipBottleneckPOs.length === 0 ? (
+                    <tr><td colSpan={3} className="px-5 py-6 text-center text-slate-400">Dòng chuyền trơn tru, không tồn đọng WIP.</td></tr>
+                  ) : (
+                    metrics.wipBottleneckPOs.map((po, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50">
+                        <td className="px-5 py-3 font-semibold text-slate-900">{po.po_number}</td>
+                        <td className="px-5 py-3 text-right font-bold text-amber-600">{po.wip.toLocaleString()}</td>
+                        <td className="px-5 py-3">
+                          <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+                            <div 
+                              className="bg-amber-500 h-1.5 rounded-full" 
+                              style={{ width: `${Math.min(100, (po.sewn / (po.cut || 1)) * 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-1">{po.sewn} / {po.cut}</div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -150,21 +152,23 @@ export default async function ExecutiveDashboardPage({
               </h2>
             </div>
             <div className="p-0">
-              <table className="w-full text-left text-sm text-slate-600">
-                <tbody className="divide-y divide-slate-100">
-                  {metrics.qaAlertLines.length === 0 ? (
-                    <tr><td className="px-5 py-4 text-center text-sm text-emerald-600 font-medium">Tất cả các chuyền đạt chuẩn chất lượng.</td></tr>
-                  ) : (
-                    metrics.qaAlertLines.map((line, idx) => (
-                      <tr key={idx}>
-                        <td className="px-5 py-3 font-semibold text-slate-900">{line.line_name}</td>
-                        <td className="px-5 py-3 text-slate-500 text-xs">Lỗi: {line.defects}/{line.inspected}</td>
-                        <td className="px-5 py-3 text-right font-bold text-rose-600">{line.rate}%</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <tbody className="divide-y divide-slate-100">
+                    {metrics.qaAlertLines.length === 0 ? (
+                      <tr><td className="px-5 py-4 text-center text-sm text-emerald-600 font-medium">Tất cả các chuyền đạt chuẩn chất lượng.</td></tr>
+                    ) : (
+                      metrics.qaAlertLines.map((line, idx) => (
+                        <tr key={idx}>
+                          <td className="px-5 py-3 font-semibold text-slate-900">{line.line_name}</td>
+                          <td className="px-5 py-3 text-slate-500 text-xs">Lỗi: {line.defects}/{line.inspected}</td>
+                          <td className="px-5 py-3 text-right font-bold text-rose-600">{line.rate}%</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

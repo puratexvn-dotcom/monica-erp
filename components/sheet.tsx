@@ -57,16 +57,28 @@ export default function Sheet({
 
   if (!open) return null;
 
+  // ─── VÌ SAO LỚP PHỦ DỪNG Ở bottom-16, KHÔNG PHẢI inset-0 ─────────────────
+  // Thanh điều hướng 4 nút cao 4rem và đứng ở z-[100], tức là NẰM TRÊN lớp phủ
+  // này. Nếu lớp phủ trải hết xuống đáy thì phần dưới cùng của panel chui
+  // xuống dưới thanh đó — ô nhập tin nhắn bị che đúng nửa dưới.
+  // Cho lớp phủ kết thúc ngay trên dải nav: nav luôn thấy và luôn bấm được,
+  // còn panel thì vừa khít phần màn hình còn lại.
+  //
+  // ─── VÌ SAO 100dvh CHỨ KHÔNG 100vh ───────────────────────────────────────
+  // Trên trình duyệt di động, 100vh tính theo màn hình khi thanh địa chỉ ĐÃ
+  // thu lại, nên lúc thanh còn hiện thì panel cao hơn vùng nhìn thấy và ô nhập
+  // bị đẩy khỏi màn hình. dvh bám theo chiều cao thực tế tại từng thời điểm.
   const panelCls =
     side === 'right'
       ? 'h-full w-full max-w-md animate-in slide-in-from-right sm:max-w-lg'
-      : 'max-h-[90vh] w-full animate-in slide-in-from-bottom sm:max-w-3xl sm:rounded-t-3xl';
+      : 'max-h-full w-full animate-in slide-in-from-bottom sm:max-w-3xl sm:rounded-t-3xl';
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex bg-slate-900/50 backdrop-blur-sm ${
+      className={`fixed inset-x-0 top-0 bottom-16 z-[60] flex overflow-hidden bg-slate-900/50 backdrop-blur-sm ${
         side === 'right' ? 'justify-end' : 'items-end justify-center'
       }`}
+      style={{ maxHeight: 'calc(100dvh - 4rem)' }}
       onClick={onClose}
       role="presentation"
     >
@@ -75,12 +87,12 @@ export default function Sheet({
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className={`flex flex-col bg-white shadow-2xl duration-200 ${panelCls}`}
+        className={`flex min-w-0 flex-col overflow-hidden bg-white shadow-2xl duration-200 ${panelCls}`}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
           <div className="min-w-0">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-800">{title}</h2>
-            {subtitle && <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p>}
+            <h2 className="truncate text-sm font-bold uppercase tracking-wide text-slate-800">{title}</h2>
+            {subtitle && <p className="mt-0.5 truncate text-xs text-slate-400">{subtitle}</p>}
           </div>
           <button
             type="button"
@@ -92,9 +104,15 @@ export default function Sheet({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {/* overflow-x-hidden: nội dung panel không được đẩy rộng ra ngoài viền.
+            Bảng nào cần cuộn ngang thì tự bọc div overflow-x-auto của nó. */}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+          {children}
+        </div>
 
-        {footer && <div className="border-t border-slate-100 bg-white p-4">{footer}</div>}
+        {footer && (
+          <div className="shrink-0 border-t border-slate-100 bg-white p-3 sm:p-4">{footer}</div>
+        )}
       </div>
     </div>
   );

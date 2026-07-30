@@ -47,24 +47,26 @@ export default async function LogisticsWarehousePage() {
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b bg-slate-50"><h2 className="font-semibold text-slate-800">Tồn Kho Sẵn Sàng Xuất (Available Inventory)</h2></div>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Thùng</th><th className="px-4 py-3">PO</th><th className="px-4 py-3">Số lượng</th><th className="px-4 py-3 text-right">Trạng thái</th></tr></thead>
-              <tbody>
-                {typedFGCartons.length === 0 ? <tr><td colSpan={4} className="p-4 text-center text-slate-400">Kho trống. Hãy quét nhập hàng từ xưởng.</td></tr> : 
-                  typedFGCartons.map((c: FGCartonItem) => {
-                    const poNum = Array.isArray(c.orders) ? c.orders[0]?.po_number : c.orders?.po_number
-                    return (
-                      <tr key={c.id} className="border-t border-slate-100">
-                        <td className="px-4 py-3 font-mono font-bold text-slate-900">{c.carton_code}</td>
-                        <td className="px-4 py-3 text-slate-600">{poNum || 'N/A'}</td>
-                        <td className="px-4 py-3 font-bold">{c.quantity_per_carton}</td>
-                        <td className="px-4 py-3 text-right"><span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">IN_FG_WAREHOUSE</span></td>
-                      </tr>
-                    )
-                  })
-                }
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase"><tr><th className="px-4 py-3">Mã Thùng</th><th className="px-4 py-3">PO</th><th className="px-4 py-3">Số lượng</th><th className="px-4 py-3 text-right">Trạng thái</th></tr></thead>
+                <tbody>
+                  {typedFGCartons.length === 0 ? <tr><td colSpan={4} className="p-4 text-center text-slate-400">Kho trống. Hãy quét nhập hàng từ xưởng.</td></tr> : 
+                    typedFGCartons.map((c: FGCartonItem) => {
+                      const poNum = Array.isArray(c.orders) ? c.orders[0]?.po_number : c.orders?.po_number
+                      return (
+                        <tr key={c.id} className="border-t border-slate-100">
+                          <td className="px-4 py-3 font-mono font-bold text-slate-900">{c.carton_code}</td>
+                          <td className="px-4 py-3 text-slate-600">{poNum || 'N/A'}</td>
+                          <td className="px-4 py-3 font-bold">{c.quantity_per_carton}</td>
+                          <td className="px-4 py-3 text-right"><span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">IN_FG_WAREHOUSE</span></td>
+                        </tr>
+                      )
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

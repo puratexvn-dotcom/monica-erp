@@ -8,6 +8,26 @@
   --background-end-rgb: 255, 255, 255;
 }
 
+/* ============================================================================
+   CHẶN CUỘN NGANG TOÀN CỤC
+
+   Đặt trên CẢ html lẫn body. Chỉ đặt ở body thì trên iOS Safari thanh cuộn
+   ngang vẫn xuất hiện ở tầng html — đây là lỗi kinh điển khi làm mobile.
+
+   max-width: 100vw chặn nốt trường hợp một phần tử con đặt width lớn hơn màn
+   hình: overflow-x: hidden chỉ giấu phần tràn chứ không ngăn nó đẩy rộng ra.
+
+   ⚠️ Cái giá phải trả: position: sticky bên trong body sẽ ngừng hoạt động nếu
+   đặt overflow trên tổ tiên. Vì vậy overflow-x đặt ở html/body (tầng cuộn gốc)
+   chứ TUYỆT ĐỐI không đặt trên các div bọc trung gian — thanh đầu trang đang
+   dùng sticky top-0.
+   ============================================================================ */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -16,4 +36,20 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+/* Chuỗi dài không có dấu cách (mã PO, đường dẫn tệp, email khách) là thủ phạm
+   thường gặp nhất gây tràn ngang trên điện thoại. Cho phép ngắt giữa từ ở mọi
+   khối chữ; bảng và ô cuộn ngang có quy tắc riêng nên không bị ảnh hưởng. */
+p,
+h1,
+h2,
+h3,
+h4,
+li,
+dd,
+dt,
+span,
+label {
+  overflow-wrap: anywhere;
 }

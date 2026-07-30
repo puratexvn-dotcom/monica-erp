@@ -166,7 +166,7 @@ export default function AdminPage() {
 
       {/* System logs */}
       <Card className="mt-5" title="Nhật ký hệ thống (System Logs)" icon={ScrollText}>
-        <div className="max-h-[360px] overflow-y-auto">
+        <div className="max-h-[360px] overflow-x-auto overflow-y-auto">
           <table className="w-full min-w-[640px] text-left">
             <thead>
               <tr className="border-b border-slate-100">
