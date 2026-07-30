@@ -124,7 +124,11 @@ export function Modal({ open, title, onClose, children, wide = false }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}>
-      <div className={`max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'}`}
+      {/* w-full max-w-full + min-w-0: hộp thoại KHÔNG bao giờ rộng hơn màn
+          hình. Trên điện thoại nó dán đáy như tấm trượt của ứng dụng gốc; từ
+          sm trở lên mới nổi giữa màn hình. 92dvh thay cho 92vh để lúc bàn phím
+          ảo bật lên, hộp thoại co theo vùng nhìn thấy thật. */}
+      <div className={`max-h-[92dvh] w-full min-w-0 max-w-full overflow-y-auto overflow-x-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'}`}
         onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-3.5">
           <h3 className="text-sm font-bold text-slate-800">{title}</h3>

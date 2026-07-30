@@ -116,13 +116,18 @@ export default async function RootLayout({
       <body className={inter.className}>
         {/* 2. Bọc toàn bộ ứng dụng (children) bên trong LanguageProvider */}
         <LanguageProvider>
-          {/* Chừa chỗ cho thanh điều hướng cố định (cao h-16 = 64px).
-              pb-24 = 96px, dư 32px làm khoảng thở: chừa đúng bằng chiều cao
-              thanh thì dòng nội dung cuối cùng dính sát mép trên của thanh,
-              đọc rất khó chịu. Phần chừa nằm ở ĐÂY chứ không nằm trong từng
-              trang — mọi trang dùng chung một thanh thì cũng chỉ chừa một lần,
-              chừa hai lần sẽ ra một khoảng trắng gấp đôi ở cuối trang. */}
-          <div className="pb-24">{children}</div>
+          {/* Chừa chỗ cho thanh điều hướng cố định (nay cao h-14 = 56px).
+              pb-20 = 80px, dư 24px làm khoảng thở: chừa đúng bằng chiều cao
+              thanh thì dòng nội dung cuối cùng dính sát mép trên của thanh.
+
+              Cố ý chừa CỐ ĐỊNH chứ không bám --nav-h: thanh tự ẩn khi cuộn
+              xuống, nếu phần chừa cũng co theo thì mỗi lần ẩn/hiện trang lại
+              co giãn và nhảy vị trí đọc.
+
+              Phần chừa nằm ở ĐÂY chứ không trong từng trang — mọi trang dùng
+              chung một thanh thì cũng chỉ chừa một lần; chừa hai lần sẽ ra một
+              khoảng trắng gấp đôi ở cuối trang. */}
+          <div className="pb-20">{children}</div>
 
           <AppBottomNav role={role} reportMetrics={reportMetrics} />
 

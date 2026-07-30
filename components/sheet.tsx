@@ -57,12 +57,15 @@ export default function Sheet({
 
   if (!open) return null;
 
-  // ─── VÌ SAO LỚP PHỦ DỪNG Ở bottom-16, KHÔNG PHẢI inset-0 ─────────────────
-  // Thanh điều hướng 4 nút cao 4rem và đứng ở z-[100], tức là NẰM TRÊN lớp phủ
-  // này. Nếu lớp phủ trải hết xuống đáy thì phần dưới cùng của panel chui
-  // xuống dưới thanh đó — ô nhập tin nhắn bị che đúng nửa dưới.
-  // Cho lớp phủ kết thúc ngay trên dải nav: nav luôn thấy và luôn bấm được,
-  // còn panel thì vừa khít phần màn hình còn lại.
+  // ─── VÌ SAO LỚP PHỦ BÁM BIẾN --nav-h ────────────────────────────────────
+  // Thanh điều hướng đứng ở z-[100], tức NẰM TRÊN lớp phủ này. Nếu lớp phủ
+  // trải hết xuống đáy thì phần dưới cùng của panel chui xuống dưới thanh đó —
+  // ô nhập tin nhắn bị che đúng nửa dưới.
+  //
+  // Nhưng thanh có thể TỰ ẨN (cuộn xuống, hoặc bàn phím ảo bật lên). Chừa cứng
+  // 4rem thì lúc thanh đã trượt đi vẫn còn một dải trống vô nghĩa ở đáy. Biến
+  // --nav-h do lib/use-nav-visibility.ts ghi ra luôn bằng phần chỗ thanh ĐANG
+  // THẬT SỰ chiếm, nên panel co giãn khớp từng thời điểm.
   //
   // ─── VÌ SAO 100dvh CHỨ KHÔNG 100vh ───────────────────────────────────────
   // Trên trình duyệt di động, 100vh tính theo màn hình khi thanh địa chỉ ĐÃ
@@ -75,16 +78,14 @@ export default function Sheet({
 
   return (
     <div
-      className={`fixed inset-x-0 top-0 bottom-16 z-[60] flex overflow-hidden bg-slate-900/50 backdrop-blur-sm ${
+      className={`fixed inset-x-0 top-0 z-[60] flex overflow-hidden bg-slate-900/50 backdrop-blur-sm transition-[bottom,height] duration-200 ${
         side === 'right' ? 'justify-end' : 'items-end justify-center'
       }`}
-      // ─── VÌ SAO ĐẶT CẢ height LẪN maxHeight ────────────────────────────────
-      // Bàn phím ảo bật lên làm vùng nhìn thấy co lại. dvh cập nhật theo vùng
-      // đó, nên panel tự co theo và ô nhập luôn nằm ngay trên bàn phím thay vì
-      // bị đẩy xuống dưới màn hình.
-      // Chỉ đặt maxHeight thì khi nội dung ngắn, panel co lại theo nội dung và
-      // ô nhập trôi lên giữa màn hình — phải ép luôn height.
-      style={{ height: 'calc(100dvh - 4rem)', maxHeight: 'calc(100dvh - 4rem)' }}
+      style={{
+        bottom: 'var(--nav-h, 3.5rem)',
+        height: 'calc(100dvh - var(--nav-h, 3.5rem))',
+        maxHeight: 'calc(100dvh - var(--nav-h, 3.5rem))',
+      }}
       onClick={onClose}
       role="presentation"
     >

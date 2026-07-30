@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, MessageSquare, BarChart3, Sparkles } from 'lucide-react';
 
 import { ROLE_HOME, type Role } from '@/lib/rbac';
+import { useNavVisibility } from '@/lib/use-nav-visibility';
 import ChatSheet from '@/components/chat-sheet';
 import ReportSheet, { type ReportMetric } from '@/components/report-sheet';
 import AiSheet from '@/components/ai-sheet';
@@ -44,6 +45,14 @@ export default function AppBottomNav({
   const workbenchHref = role ? ROLE_HOME[role] : '/login';
   const onWorkbench = role ? pathname === ROLE_HOME[role] : false;
   const hidden = HIDE_ON.some((p) => pathname === p || pathname.startsWith(p + '/'));
+
+  // Ẩn khi bàn phím ảo bật lên hoặc khi cuộn xuống; hiện lại khi cuộn lên.
+  // Hook cũng ghi biến CSS --nav-h để các lớp trượt lấy lại đúng phần chỗ mà
+  // thanh vừa nhường ra (xem components/sheet.tsx).
+  //
+  // ⚠️ Panel đang mở thì KHÔNG ẩn: người dùng cần thanh này để đóng panel và
+  // nhảy sang chỗ khác. Ẩn lúc đó là bẫy họ trong panel.
+  const navVisible = useNavVisibility({ rendered: !hidden, autoHide: openSheet === null });
 
   // TỶ LỆ ICON/CHỮ ĐẢO NGƯỢC so với bản trước: icon to (28px) làm phần nhận
   // diện chính, chữ thu về 10px chỉ còn vai trò chú thích.
@@ -98,8 +107,11 @@ export default function AppBottomNav({
   // di động không phải chờ 300ms xem người dùng có chạm lần hai hay không.
   // select-none: chạm giữ trên nút không bôi đen chữ.
   const btn =
-    'flex h-full w-full touch-manipulation select-none flex-col items-center justify-center gap-1 px-1 text-[10px] font-bold leading-none tracking-tight transition active:scale-95';
-  const icon = 'h-7 w-7 shrink-0';
+    'flex h-full w-full touch-manipulation select-none flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-bold leading-none tracking-tight transition active:scale-95';
+  // Thu từ 28px xuống 24px: thanh gọn hơn một phần tám chiều cao mà vẫn
+  // vượt xa ngưỡng nhận diện; vùng chạm vẫn là cả ô nút chứ không phải
+  // riêng cái icon, nên độ chính xác khi bấm không đổi.
+  const icon = 'h-6 w-6 shrink-0';
 
   // Lối thoát sớm đặt SAU toàn bộ hook: để trước thì lượt render ở /login gọi
   // ít hook hơn lượt render ở /md, React so lệch thứ tự hook và văng lỗi.
@@ -109,9 +121,14 @@ export default function AppBottomNav({
     <>
       <nav
         aria-label="Điều hướng chính"
-        className="fixed bottom-0 left-0 z-[100] w-full border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-lg"
+        // translate-y-full thay vì display:none — trượt xuống mượt và không
+        // làm trang nhảy layout. will-change báo trước cho trình duyệt để nó
+        // dựng sẵn lớp tăng tốc phần cứng, chuyển động không bị khựng.
+        className={`fixed bottom-0 left-0 z-[100] w-full border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-lg transition-transform duration-200 will-change-transform ${
+          navVisible ? 'translate-y-0' : 'translate-y-full'
+        }`}
       >
-        <ul className="mx-auto flex h-16 max-w-2xl items-stretch">
+        <ul className="mx-auto flex h-14 max-w-2xl items-stretch">
           <li className="flex-1">
             <Link
               href={workbenchHref}
@@ -123,7 +140,7 @@ export default function AppBottomNav({
                 <LayoutDashboard className={icon} aria-hidden="true" />
                 {onWorkbench && (
                   <span
-                    className="absolute -top-2.5 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-blue-600"
+                    className="absolute -top-2 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-blue-600"
                     aria-hidden="true"
                   />
                 )}
