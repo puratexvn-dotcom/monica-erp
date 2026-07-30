@@ -18,6 +18,7 @@ import {
 import TopNavbar, { type NavModule } from './top-navbar';
 import { getHomeMetrics } from './home-metrics';
 import DailyVerses from '@/components/daily-verses';
+import { LOGO_TEXT_GRADIENT } from '@/lib/brand';
 
 // ============================================================================
 // TRANG CHỦ — ULTRA PREMIUM ENTERPRISE DASHBOARD
@@ -158,18 +159,23 @@ export default async function HomePage() {
 
         <section className="mb-12 text-center">
 
-          {/* Chữ thương hiệu: cỡ lớn nhất trang, gradient tím trên chữ Monica */}
-          <h1 className="text-5xl font-black leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl">
-            Welcome to{' '}
-            <span className="bg-gradient-to-br from-violet-600 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+          {/* Chữ thương hiệu.
+              "Welcome to" cố tình NHỎ hơn hẳn "Monica" — nó chỉ là lời dẫn,
+              còn tên thương hiệu mới là thứ cần nổi bật nhất.
+              "Monica" tô bằng dải chuyển sắc lấy từ chính file logo (xem
+              lib/brand.ts), nên chữ và logo cùng một hệ màu.
+              Đã bỏ gạch chân gradient dưới chân chữ theo yêu cầu. */}
+          <h1 className="tracking-tight">
+            <span className="block text-xl font-bold text-slate-500 sm:text-2xl lg:text-3xl">
+              Welcome to
+            </span>
+            <span
+              className="mt-1 block bg-clip-text text-5xl font-black leading-[1.05] tracking-tighter text-transparent sm:text-6xl lg:text-7xl"
+              style={{ backgroundImage: LOGO_TEXT_GRADIENT }}
+            >
               Monica
             </span>
           </h1>
-
-          <span
-            aria-hidden="true"
-            className="mx-auto mt-6 block h-1 w-24 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
-          />
         </section>
 
         {/* ═══ TẦNG 3: LƯỚI PHÂN HỆ THEO QUYỀN ══════════════════════════ */}
