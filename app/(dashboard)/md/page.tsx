@@ -1,7 +1,8 @@
 import { PageHeader } from '@/components/ui';
 
-import { listOrders } from '../orders/actions';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
+import { listPoRows } from './_services/po.service';
+import { listStyles } from './_services/style.service';
 import MdClient from './md-client';
 import type { PoOption } from './md-types';
 
@@ -27,7 +28,11 @@ export const dynamic = 'force-dynamic';
 export default async function MerchandiserPage() {
   // allSettled: một truy vấn lỗi không được kéo cả trang sang error boundary.
   // Mỗi nhóm dữ liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
-  const [snapRes, poRes] = await Promise.allSettled([loadMdSnapshot(), listOrders()]);
+  const [snapRes, poRes, styleRes] = await Promise.allSettled([
+    loadMdSnapshot(),
+    listPoRows(),
+    listStyles(),
+  ]);
 
   let snapshot: MdSnapshot;
   if (snapRes.status === 'fulfilled') {
@@ -45,20 +50,31 @@ export default async function MerchandiserPage() {
     };
   }
 
-  let po: { rows: Awaited<ReturnType<typeof listOrders>>['rows']; error: string | null };
+  let po: Awaited<ReturnType<typeof listPoRows>>;
   if (poRes.status === 'fulfilled') {
     po = poRes.value;
   } else {
-    console.error('[md:page] listOrders ném lỗi:', poRes.reason);
+    console.error('[md:page] listPoRows ném lỗi:', poRes.reason);
     const detail = poRes.reason instanceof Error ? poRes.reason.message : String(poRes.reason);
     po = { rows: [], error: `Không đọc được danh sách PO: ${detail}` };
   }
 
-  // Danh sách PO cho các ô chọn trong form NPL / sản xuất / giao hàng
+  let styles: Awaited<ReturnType<typeof listStyles>>;
+  if (styleRes.status === 'fulfilled') {
+    styles = styleRes.value;
+  } else {
+    console.error('[md:page] listStyles ném lỗi:', styleRes.reason);
+    const detail = styleRes.reason instanceof Error ? styleRes.reason.message : String(styleRes.reason);
+    styles = { rows: [], error: `Không đọc được danh sách mã hàng: ${detail}` };
+  }
+
+  // Danh sách PO cho các ô chọn trong form NPL / sản xuất / giao hàng.
+  // style_code lấy từ style_no của Mã hàng; PO chưa gắn mã hàng thì để trống
+  // chứ không bịa ra chuỗi giả.
   const poOptions: PoOption[] = po.rows.map((r) => ({
     id: r.id,
     po_number: r.po_number,
-    style_code: r.style_code,
+    style_code: r.style_no ?? '',
     customer_name: r.customer_name,
   }));
 
@@ -73,6 +89,8 @@ export default async function MerchandiserPage() {
         initialSnapshot={snapshot}
         initialPoRows={po.rows}
         initialPoError={po.error}
+        initialStyles={styles.rows}
+        initialStyleError={styles.error}
         poOptions={poOptions}
       />
     </div>

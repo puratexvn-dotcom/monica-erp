@@ -2,18 +2,21 @@
 
 import { useCallback, useState, useTransition } from 'react';
 import {
-  Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle,
+  Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   type LucideIcon,
 } from 'lucide-react';
 
 import { Card, Badge, thCls, tdCls, btnPrimary, btnGhost } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
-import PoTable from '../orders/po-table';
 import PoFormDialog from '../orders/po-form-dialog';
-import type { PoRow } from '../orders/po-schema';
+import PoList from '@/components/md/po/po-list';
+import StyleList from '@/components/md/style/style-list';
+import StyleFormDialog from '@/components/md/style/style-form-dialog';
+import type { PoRow } from '@/schemas/md';
+import type { StyleRow } from '@/schemas/md';
 import type { PoOption } from './md-types';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
-import { listOrders } from '../orders/actions';
+import { listPoRowsClient, listStylesClient } from './_actions/md360.client';
 import {
   CustomerFormDialog, MaterialRequestDialog, ProductionOrderDialog, ShipmentFormDialog,
 } from './md-forms';
@@ -39,10 +42,11 @@ import {
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
 
-type TabKey = 'customers' | 'po' | 'materials' | 'production' | 'shipments';
+type TabKey = 'customers' | 'styles' | 'po' | 'materials' | 'production' | 'shipments';
 
 const TABS: Array<{ key: TabKey; label: string; short: string; icon: LucideIcon }> = [
   { key: 'customers', label: 'Khách hàng', short: 'Khách', icon: Building2 },
+  { key: 'styles', label: 'Mã hàng', short: 'Mã hàng', icon: Shirt },
   { key: 'po', label: 'Đơn hàng (PO)', short: 'PO', icon: PackageSearch },
   { key: 'materials', label: 'Vật tư', short: 'Vật tư', icon: Boxes },
   { key: 'production', label: 'Sản xuất', short: 'Sản xuất', icon: Factory },
@@ -59,25 +63,33 @@ export default function MdClient({
   initialSnapshot,
   initialPoRows,
   initialPoError,
+  initialStyles,
+  initialStyleError,
   poOptions,
 }: {
   initialSnapshot: MdSnapshot;
   initialPoRows: PoRow[];
   initialPoError: string | null;
+  initialStyles: StyleRow[];
+  initialStyleError: string | null;
   poOptions: PoOption[];
 }) {
   const [tab, setTab] = useState<TabKey>('po');
   const [snap, setSnap] = useState(initialSnapshot);
   const [poRows, setPoRows] = useState(initialPoRows);
   const [poError, setPoError] = useState(initialPoError);
+  const [styles, setStyles] = useState(initialStyles);
+  const [styleError, setStyleError] = useState(initialStyleError);
   const [dialog, setDialog] = useState<TabKey | null>(null);
   const [pending, startTransition] = useTransition();
 
   const refresh = useCallback(async () => {
-    const [s, o] = await Promise.all([loadMdSnapshot(), listOrders()]);
+    const [s, o, st] = await Promise.all([loadMdSnapshot(), listPoRowsClient(), listStylesClient()]);
     setSnap(s);
     setPoRows(o.rows);
     setPoError(o.error);
+    setStyles(st.rows);
+    setStyleError(st.error);
   }, []);
 
   const doRefresh = () => startTransition(() => { void refresh(); });
@@ -85,6 +97,7 @@ export default function MdClient({
   // Đếm để hiện trên tab — người dùng biết ngay nhóm nào có việc
   const counts: Record<TabKey, number> = {
     customers: snap.customers.length,
+    styles: styles.length,
     po: poRows.length,
     materials: snap.materialRequests.length,
     production: snap.productionOrders.length,
@@ -93,6 +106,7 @@ export default function MdClient({
 
   const errorOf: Record<TabKey, string | null> = {
     customers: snap.errors.customers,
+    styles: styleError,
     po: poError,
     materials: snap.errors.materialRequests,
     production: snap.errors.productionOrders,
@@ -101,6 +115,7 @@ export default function MdClient({
 
   const createLabel: Record<TabKey, string> = {
     customers: 'Tạo khách hàng',
+    styles: 'Tạo mã hàng',
     po: 'Tạo PO',
     materials: 'Tạo đề nghị mua NPL',
     production: 'Tạo lệnh sản xuất',
@@ -208,8 +223,19 @@ export default function MdClient({
                 </div>
               ))}
 
-            {/* ── PO: tái sử dụng bảng có sẵn ────────────────────────── */}
-            {tab === 'po' && <PoTable rows={poRows} loading={pending} error={null} onRefresh={refresh} />}
+            {/* ── Mã hàng: TRUNG TÂM DỮ LIỆU ────────────────────────── */}
+            {tab === 'styles' && (
+              <div className="p-4">
+                <StyleList rows={styles} error={null} onRefresh={refresh} />
+              </div>
+            )}
+
+            {/* ── PO: bảng danh sách + cửa vào PO 360° ───────────────── */}
+            {tab === 'po' && (
+              <div className="p-4">
+                <PoList rows={poRows} error={null} onRefresh={refresh} />
+              </div>
+            )}
 
             {/* ── Đề nghị mua NPL ───────────────────────────────────── */}
             {tab === 'materials' &&
@@ -339,6 +365,7 @@ export default function MdClient({
       {/* ── Các hộp thoại tạo mới ──────────────────────────────────────── */}
       <CustomerFormDialog open={dialog === 'customers'} onClose={() => setDialog(null)} onDone={refresh} />
       <PoFormDialog open={dialog === 'po'} onClose={() => setDialog(null)} onCreated={refresh} />
+      <StyleFormDialog open={dialog === 'styles'} onClose={() => setDialog(null)} onCreated={refresh} />
       <MaterialRequestDialog open={dialog === 'materials'} onClose={() => setDialog(null)} onDone={refresh} pos={poOptions} />
       <ProductionOrderDialog open={dialog === 'production'} onClose={() => setDialog(null)} onDone={refresh} pos={poOptions} />
       <ShipmentFormDialog open={dialog === 'shipments'} onClose={() => setDialog(null)} onDone={refresh} pos={poOptions} />
