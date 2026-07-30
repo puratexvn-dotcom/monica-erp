@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import {
   Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
-  Sparkles, Loader2, ChevronDown,
+  Sparkles, Loader2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -194,9 +194,6 @@ export default function MdClient({
     setPo360({ id: orderId, no: poNumber });
   }, []);
 
-  // Khu làm việc cũ (13 tab + biểu đồ) mặc định gấp lại: chúng vẫn ở đó,
-  // nhưng không tranh chỗ với ba khu điều hành.
-  const [workAreaOpen, setWorkAreaOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   // Ctrl+K / Cmd+K mở tìm nhanh. Chặn hành vi mặc định của trình duyệt
@@ -228,7 +225,6 @@ export default function MdClient({
   // nhưng bảng lệnh tìm nhanh còn nhảy tới tab Mã hàng và Khách hàng. KpiTarget
   // là tập con của TabKey nên KpiGrid vẫn truyền vào được, không phải ép kiểu.
   const goTab = useCallback((target: TabKey) => {
-    setWorkAreaOpen(true);
     setTab(target);
     tabBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
@@ -423,34 +419,13 @@ export default function MdClient({
         </div>
       )}
 
-      {/* ═══ KHU LÀM VIỆC CHI TIẾT — GẤP LẠI ═════════════════════════════
-          Mười ba tab nghiệp vụ vẫn còn NGUYÊN VẸN, chỉ là gấp lại để không
-          tranh sự chú ý với ba khu điều hành. Mở ra một lần là nhớ trạng
-          thái trong suốt phiên làm việc. */}
-      <button
-        type="button"
-        onClick={() => setWorkAreaOpen((v) => !v)}
-        aria-expanded={workAreaOpen}
-        className="mb-3 flex w-full touch-manipulation items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm transition hover:border-blue-300"
-      >
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${workAreaOpen ? 'rotate-180' : ''}`}
-          aria-hidden="true"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold text-slate-800">Khu làm việc chi tiết</span>
-          <span className="block truncate text-[11px] text-slate-500">
-            13 phân hệ nghiệp vụ · khách hàng, báo giá, chiết tính, mã hàng, PO, vật tư, sản xuất,
-            giao hàng, tài liệu, thảo luận, thay đổi, rủi ro, nhật ký
-          </span>
-        </span>
-        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
-          {workAreaOpen ? 'Thu gọn' : 'Mở ra'}
-        </span>
-      </button>
-
-      {workAreaOpen && (
-      <>
+      {/* ═══ KHU LÀM VIỆC — 13 TAB NGHIỆP VỤ ════════════════════════════
+          Hiện thẳng, KHÔNG bọc trong khối gấp. Trước đây khối này gấp lại để
+          nhường chỗ cho ba khu điều hành, nhưng cái giá là mỗi lần muốn mở
+          một tab phải bấm thêm một nhát — với người dùng vào đây hàng chục
+          lần mỗi ngày thì đó là hàng chục cú bấm thừa.
+          Ba khu điều hành ở trên vẫn giữ đúng thứ tự ưu tiên nhờ vị trí, không
+          cần phải giấu phần còn lại đi mới nổi bật được. */}
       <div ref={tabBarRef} className="-mx-1 mb-5 space-y-2 px-1 pt-1">
         {GROUPS.map((g) => (
           <div key={g} className="flex items-center gap-2">
@@ -766,8 +741,6 @@ export default function MdClient({
         />
         <MdCharts data={dashboard.data} />
       </div>
-      </>
-      )}
 
       {/* ── Các hộp thoại tạo mới ──────────────────────────────────────── */}
       <CustomerFormDialog
