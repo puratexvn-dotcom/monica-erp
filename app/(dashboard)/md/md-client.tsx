@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import {
   Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
-  Sparkles, Loader2, Search, ChevronDown,
+  Sparkles, Loader2, ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -208,8 +208,15 @@ export default function MdClient({
         setPaletteOpen(true);
       }
     };
+    // Nút tìm kiếm trên thanh đầu trang nằm ở cây component khác (layout), nên
+    // nó gọi qua một sự kiện trên window thay vì truyền prop.
+    const onAsk = () => setPaletteOpen(true);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('monica:open-palette', onAsk);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('monica:open-palette', onAsk);
+    };
   }, []);
 
 
@@ -394,28 +401,6 @@ export default function MdClient({
 
   return (
     <>
-      {/* ═══ THANH HÀNH ĐỘNG TOÀN CỤC ═══════════════════════════════════
-          Ô tìm nhanh là thứ duy nhất ở đây. Nhồi thêm nút vào hàng này sẽ
-          cạnh tranh trực tiếp với ba khu điều hành ngay bên dưới. */}
-      <button
-        type="button"
-        onClick={() => setPaletteOpen(true)}
-        className="mb-4 flex w-full touch-manipulation items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm transition hover:border-blue-300 hover:shadow"
-      >
-        <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-        <span className="min-w-0 flex-1 truncate text-sm text-slate-400">
-          Tìm nhanh mã PO, mã hàng, khách hàng...
-        </span>
-        <span className="hidden shrink-0 items-center gap-0.5 sm:flex">
-          <kbd className="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-bold text-slate-500">
-            Ctrl
-          </kbd>
-          <kbd className="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-bold text-slate-500">
-            K
-          </kbd>
-        </span>
-      </button>
-
       {/* ═══ BA KHU ĐIỀU HÀNH ════════════════════════════════════════════
           Máy bàn chia hai cột: cột trái rộng gấp rưỡi cho hai khu cần đọc
           kỹ, cột phải cho cảnh báo luôn nằm trong tầm mắt. Điện thoại xếp

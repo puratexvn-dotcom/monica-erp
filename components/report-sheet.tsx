@@ -1,11 +1,13 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Loader2, BarChart3, LayoutDashboard, ListOrdered } from 'lucide-react';
 import { toast } from 'sonner';
 
 import Sheet from '@/components/sheet';
+import DeptReport from '@/components/report/dept-report';
+import { getCeoReport, type DeptMetrics } from '@/app/actions/ceo-report';
 import { ProgressBar, Badge } from '@/components/ui';
 import { ROLE_LABEL, type Role } from '@/lib/rbac';
 import { exportNodeAsPng } from '@/lib/export-image';
@@ -67,6 +69,16 @@ export default function ReportSheet({
   // muốn thấy đúng số của tổ mình. Giữ CẢ HAI thay vì thay thế bản cũ —
   // bảng theo bộ phận vẫn là thứ duy nhất chạy được cho các tổ sản xuất.
   const [view, setView] = useState<'ceo' | 'dept'>('ceo');
+
+  // Số liệu doanh thu / AOV / sản lượng nạp KHI MỞ tab, không nạp sẵn: nút Báo
+  // cáo có mặt ở mọi trang, nạp sẵn là tính lại toàn bộ đơn hàng cho mỗi lần
+  // mở bất kỳ trang nào.
+  const [dept, setDept] = useState<DeptMetrics | null>(null);
+  useEffect(() => {
+    if (open && view === 'dept' && dept === null) {
+      void getCeoReport().then((r) => setDept(r.dept));
+    }
+  }, [open, view, dept]);
 
   const vnNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
   const dateLabel = vnNow.toLocaleDateString('vi-VN', {
@@ -164,52 +176,29 @@ export default function ReportSheet({
          (không còn mảng trắng thừa bên phải). */
       <div className="flex justify-center overflow-x-auto px-2 py-2">
       <div ref={captureRef} className="w-[390px] min-w-[390px] shrink-0 overflow-hidden bg-white p-4">
-        <div className="mb-5 border-b border-slate-200 pb-4">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
-            Monica Garment ERP
-          </p>
-          <h3 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900">
-            Báo cáo {role ? ROLE_LABEL[role] : 'tổng hợp'}
-          </h3>
-          <p className="mt-1 text-sm capitalize text-slate-500">{dateLabel}</p>
-        </div>
-
-        {metrics.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-400">
-            <BarChart3 className="h-8 w-8" aria-hidden="true" />
-            <p className="text-sm font-semibold text-slate-600">Chưa có số liệu cho bộ phận này</p>
-            <p className="max-w-xs text-xs">
-              Số liệu xuất hiện khi bộ phận bắt đầu ghi nhận sản lượng trong ngày.
+        <div className="mb-3 flex items-start justify-between gap-3 border-b-2 border-blue-600 pb-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600">
+              Monica Garment ERP
             </p>
+            <h3 className="mt-0.5 text-lg font-extrabold leading-tight tracking-tight text-slate-900">
+              Số liệu bộ phận
+            </h3>
+            <p className="mt-0.5 text-xs capitalize text-slate-500">{dateLabel}</p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {metrics.map((m) => (
-              <div key={m.label} className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-sm font-semibold text-slate-600">{m.label}</p>
-                  <p className="shrink-0 text-2xl font-extrabold tabular-nums tracking-tight text-slate-900">
-                    {m.value}
-                    {m.unit && <span className="ml-1 text-sm font-bold text-slate-400">{m.unit}</span>}
-                  </p>
-                </div>
-
-                {m.pct !== undefined && (
-                  <div className="mt-3">
-                    <ProgressBar pct={m.pct} tone={m.tone ?? 'indigo'} />
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="shrink-0 rounded-lg bg-blue-600 px-2.5 py-1.5 text-right">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-blue-200">Bộ phận</p>
+            <p className="text-xs font-bold text-white">{role ? ROLE_LABEL[role] : 'Không rõ'}</p>
           </div>
-        )}
-
-        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-4">
-          <Badge tone="slate">Nguồn: Monica ERP</Badge>
-          <span className="text-[11px] text-slate-400">
-            Ảnh xuất tự động, dùng để báo cáo nhanh qua Zalo/nhóm nội bộ.
-          </span>
         </div>
+
+        {dept === null ? (
+          <p className="flex items-center justify-center gap-2 py-14 text-sm text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Đang tính số liệu...
+          </p>
+        ) : (
+          <DeptReport dept={dept} metrics={metrics} />
+        )}
       </div>
       </div>
       )}

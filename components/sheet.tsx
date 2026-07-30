@@ -21,6 +21,7 @@ export default function Sheet({
   title,
   subtitle,
   side = 'right',
+  size = 'panel',
   children,
   footer,
 }: {
@@ -30,6 +31,14 @@ export default function Sheet({
   subtitle?: string;
   /** 'right' cho chat/AI (giống app nhắn tin), 'bottom' cho báo cáo trên mobile */
   side?: 'right' | 'bottom';
+  /**
+   * 'panel' — tấm trượt hẹp bên phải, hợp với thứ liếc nhanh rồi đóng.
+   * 'full'  — TỪ md TRỞ LÊN chiếm trọn bề ngang. Dành cho Chat và Trợ lý A.I:
+   *   trên màn 1920px mà nhét hội thoại vào một cột 512px thì mỗi dòng chỉ vừa
+   *   dăm chữ, phải cuộn liên tục dù màn hình còn trống hai phần ba.
+   *   Điện thoại KHÔNG đổi gì: ở đó tấm trượt vốn đã chiếm trọn màn hình.
+   */
+  size?: 'panel' | 'full';
   children: ReactNode;
   footer?: ReactNode;
 }) {
@@ -72,15 +81,21 @@ export default function Sheet({
   // thu lại, nên lúc thanh còn hiện thì panel cao hơn vùng nhìn thấy và ô nhập
   // bị đẩy khỏi màn hình. dvh bám theo chiều cao thực tế tại từng thời điểm.
   const panelCls =
-    side === 'right'
-      ? 'h-full w-full max-w-md animate-in slide-in-from-right sm:max-w-lg'
-      : 'max-h-full w-full animate-in slide-in-from-bottom sm:max-w-3xl sm:rounded-t-3xl';
+    size === 'full'
+      ? 'h-full w-full animate-in slide-in-from-right md:max-w-none'
+      : side === 'right'
+        ? 'h-full w-full max-w-md animate-in slide-in-from-right sm:max-w-lg'
+        : 'max-h-full w-full animate-in slide-in-from-bottom sm:max-w-3xl sm:rounded-t-3xl';
 
   return (
     <div
-      className={`fixed inset-x-0 top-0 z-[60] flex overflow-hidden bg-slate-900/50 backdrop-blur-sm transition-[bottom,height] duration-200 ${
-        side === 'right' ? 'justify-end' : 'items-end justify-center'
-      }`}
+      className={`fixed inset-x-0 top-0 z-[60] flex overflow-hidden transition-[bottom,height] duration-200 ${
+        // Toàn màn thì panel che kín, lớp phủ không còn chỗ nào lộ ra — vẽ nền
+        // mờ chỉ tốn một lớp tô thừa. Đổi lại, ở chế độ này KHÔNG bấm ra ngoài
+        // để đóng được nữa, nên nút X ở đầu panel là lối thoát duy nhất và
+        // phím Esc vẫn hoạt động.
+        size === 'full' ? 'bg-transparent' : 'bg-slate-900/50 backdrop-blur-sm'
+      } ${side === 'right' ? 'justify-end' : 'items-end justify-center'}`}
       style={{
         bottom: 'var(--nav-h, 3.5rem)',
         height: 'calc(100dvh - var(--nav-h, 3.5rem))',

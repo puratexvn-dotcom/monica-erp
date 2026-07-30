@@ -175,10 +175,11 @@ export default function ChatSheet({
       onClose={onClose}
       title="Trao đổi liên bộ phận"
       subtitle={role ? `Gửi với vai trò ${ROLE_LABEL[role]}` : 'Cần đăng nhập để gửi'}
+      size="full"
       footer={
         // min-w-0 + overflow-hidden: ô nhập và bảng gợi ý không được đẩy rộng
         // khung ra ngoài viền panel trên màn 360px.
-        <div className="min-w-0 overflow-hidden">
+        <div className="mx-auto w-full min-w-0 max-w-3xl overflow-hidden">
           {/* Bảng gợi ý @ — nằm ngay trên ô nhập, tầm mắt tự nhiên */}
           {suggestions.length > 0 && (
             <div className="mb-2 max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
@@ -297,7 +298,7 @@ export default function ChatSheet({
         </p>
       )}
 
-      <div className="min-w-0 space-y-3 overflow-x-hidden bg-slate-50/60 p-3 sm:p-4">
+      <div className="mx-auto min-w-0 max-w-3xl space-y-3 overflow-x-hidden p-3 sm:p-4">
         {visible.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-400">
             <MessageSquare className="h-8 w-8" aria-hidden="true" />

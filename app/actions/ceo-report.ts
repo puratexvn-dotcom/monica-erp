@@ -46,6 +46,29 @@ export interface RiskAlert {
   level: 'OK' | 'WARN' | 'CRITICAL';
 }
 
+/** Số liệu cho tab "Số liệu bộ phận" — tính từ đơn giá × số lượng của PO */
+export interface DeptMetrics {
+  /** Doanh thu dự kiến của các đơn ĐANG CHẠY. null = chưa đơn nào có đơn giá. */
+  revenue: number | null;
+  /** Giá trị đơn trung bình. null khi không có đơn nào tính được. */
+  aov: number | null;
+  /** Tổng sản lượng đang chạy */
+  quantity: number | null;
+  currency: string;
+  /** Số đơn đã dùng để tính doanh thu (đơn có đơn giá) */
+  pricedOrders: number;
+  /** Số đơn đang chạy nhưng thiếu đơn giá — cho biết con số trên hụt bao nhiêu */
+  unpricedOrders: number;
+  /**
+   * Biến động doanh thu THÁNG NÀY so với THÁNG TRƯỚC, theo phần trăm.
+   * null khi tháng trước không có doanh thu — chia cho 0 thì không ra tỷ lệ nào
+   * có nghĩa, và bịa ra một con số "+100%" là nói dối.
+   */
+  revenueTrendPct: number | null;
+  revenueThisMonth: number;
+  revenueLastMonth: number;
+}
+
 export interface CeoReport {
   role: Role | null;
   /** Mốc thời gian chốt số liệu, giờ Việt Nam, dạng ISO */
@@ -60,6 +83,7 @@ export interface CeoReport {
     currency: string;
   };
   revenue: RevenueBar[];
+  dept: DeptMetrics;
   delivery: DeliverySlice[];
   /** Tổng số đơn đã tới hạn dùng để tính tỷ lệ đúng hạn */
   deliveryBase: number;
@@ -100,6 +124,11 @@ const EMPTY: Omit<CeoReport, 'role' | 'generatedAt'> = {
     ordersWithoutPrice: null, currency: 'USD',
   },
   revenue: [],
+  dept: {
+    revenue: null, aov: null, quantity: null, currency: 'USD',
+    pricedOrders: 0, unpricedOrders: 0,
+    revenueTrendPct: null, revenueThisMonth: 0, revenueLastMonth: 0,
+  },
   delivery: [],
   deliveryBase: 0,
   risks: [],
@@ -190,6 +219,39 @@ export async function getCeoReport(): Promise<CeoReport> {
   for (const o of priced) curCount.set(o.currency ?? 'USD', (curCount.get(o.currency ?? 'USD') ?? 0) + 1);
   const currency = [...curCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'USD';
 
+  // ─── 1b. Số liệu bộ phận: doanh thu, giá trị đơn trung bình, sản lượng ────
+  const runningQty = running.reduce((s, o) => s + (Number(o.total_quantity) || 0), 0);
+  const runningRevenue = priced.reduce(
+    (s, o) => s + Number(o.unit_price) * (Number(o.total_quantity) || 0),
+    0,
+  );
+
+  // Trend so THÁNG NÀY với THÁNG TRƯỚC, lấy từ chính bucket đã gom ở trên nên
+  // không phải quét lại lần nữa. Đây là con số THẬT, không phải minh hoạ.
+  const thisKey = monthKey(today);
+  const prevDate = new Date(`${today.slice(0, 8)}01T00:00:00Z`);
+  prevDate.setUTCMonth(prevDate.getUTCMonth() - 1);
+  const prevKey = monthKey(prevDate.toISOString().slice(0, 10));
+  const revThis = bucket.get(thisKey)?.value ?? 0;
+  const revPrev = bucket.get(prevKey)?.value ?? 0;
+
+  const dept: DeptMetrics = {
+    revenue: orders.error || priced.length === 0 ? null : Number(runningRevenue.toFixed(2)),
+    aov:
+      orders.error || priced.length === 0
+        ? null
+        : Number((runningRevenue / priced.length).toFixed(2)),
+    quantity: orders.error ? null : runningQty,
+    currency,
+    pricedOrders: priced.length,
+    unpricedOrders: running.length - priced.length,
+    // Tháng trước bằng 0 thì KHÔNG có tỷ lệ nào đúng — trả null để giao diện
+    // hiện "chưa có nền so sánh" thay vì một mũi tên tăng vô nghĩa.
+    revenueTrendPct: revPrev > 0 ? Number((((revThis - revPrev) / revPrev) * 100).toFixed(1)) : null,
+    revenueThisMonth: Number(revThis.toFixed(2)),
+    revenueLastMonth: Number(revPrev.toFixed(2)),
+  };
+
   // ─── 2. Đúng hạn hay trễ ──────────────────────────────────────────────────
   // Chỉ xét đơn ĐÃ TỚI HẠN: đơn có ngày giao tháng sau mà tính vào "chưa đúng
   // hạn" thì tỷ lệ đúng hạn luôn thấp giả tạo.
@@ -264,6 +326,7 @@ export async function getCeoReport(): Promise<CeoReport> {
       ordersWithoutPrice: orders.error ? null : running.length - priced.length,
       currency,
     },
+    dept,
     revenue: months.map((m) => {
       const b = bucket.get(m) as { value: number; quantity: number };
       return { month: m, value: Number(b.value.toFixed(2)), quantity: b.quantity };

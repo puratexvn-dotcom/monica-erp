@@ -94,9 +94,10 @@ export default function AiSheet({
       open={open}
       onClose={onClose}
       title="Trợ lý A.I"
+      size="full"
       subtitle={role ? `Bối cảnh: ${ROLE_LABEL[role]}` : 'Chưa đăng nhập'}
       footer={
-        <div className="flex min-w-0 gap-2">
+        <div className="mx-auto flex w-full min-w-0 max-w-3xl gap-2">
           <input
             ref={inputRef}
             value={text}
@@ -128,7 +129,7 @@ export default function AiSheet({
         Chưa kết nối mô hình A.I — cần thêm khoá API phía máy chủ. Giao diện đã sẵn sàng.
       </p>
 
-      <div className="space-y-3 p-4">
+      <div className="mx-auto max-w-3xl space-y-3 p-4">
         {turns.length === 0 ? (
           <div className="py-6">
             <div className="mb-5 flex flex-col items-center gap-2 text-center">

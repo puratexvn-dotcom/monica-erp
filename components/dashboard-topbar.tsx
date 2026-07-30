@@ -3,7 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home } from 'lucide-react';
+import { Home, Search } from 'lucide-react';
+
+import NotificationBell from '@/components/notification-bell';
 
 import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
 
@@ -63,9 +65,21 @@ function identityOf(pathname: string): PageIdentity | null {
   return null;
 }
 
+/** Đường dẫn nào có bảng lệnh tìm nhanh. Hiện chỉ /md dựng nó; hiện nút ở
+ *  trang chưa có mà bấm vào không xảy ra gì thì tệ hơn là không có nút. */
+const HAS_PALETTE = ['/md'];
+
 export default function DashboardTopbar() {
   const pathname = usePathname();
   const id = identityOf(pathname);
+  const canSearch = HAS_PALETTE.some((p) => pathname === p || pathname.startsWith(p + '/'));
+
+  // ─── VÌ SAO DÙNG SỰ KIỆN TOÀN CỤC THAY VÌ TRUYỀN PROP ────────────────────
+  // Thanh này dựng ở layout, còn trạng thái bảng lệnh nằm trong md-client —
+  // hai cây component khác nhau, không có đường truyền prop giữa chúng. Dựng
+  // một context provider bọc cả ứng dụng chỉ để bật một hộp thoại là quá tay.
+  // Một sự kiện trên window là đủ, và md-client vốn đã nghe Ctrl+K sẵn.
+  const openPalette = () => window.dispatchEvent(new CustomEvent('monica:open-palette'));
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-lg">
@@ -93,13 +107,41 @@ export default function DashboardTopbar() {
           </div>
         )}
 
-        <Link
-          href="/"
-          className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:px-3"
-        >
-          <Home className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">Trang chủ</span>
-        </Link>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {canSearch && (
+            <button
+              type="button"
+              onClick={openPalette}
+              aria-label="Tìm nhanh (Ctrl + K)"
+              // Màn hẹp chỉ còn cái kính lúp; từ md trở lên mới nở ra thành ô
+              // tìm kiếm đầy đủ. Nhét cả ô rộng vào 360px sẽ đè bẹp tiêu đề.
+              className="flex h-9 touch-manipulation items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 text-slate-500 shadow-sm transition hover:border-blue-300 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:w-64 md:px-3"
+            >
+              <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="hidden min-w-0 flex-1 truncate text-left text-xs text-slate-400 md:block">
+                Tìm PO, mã hàng, khách hàng...
+              </span>
+              <span className="hidden shrink-0 items-center gap-0.5 md:flex">
+                <kbd className="rounded border border-slate-300 bg-slate-50 px-1 font-sans text-[10px] font-bold text-slate-500">
+                  Ctrl
+                </kbd>
+                <kbd className="rounded border border-slate-300 bg-slate-50 px-1 font-sans text-[10px] font-bold text-slate-500">
+                  K
+                </kbd>
+              </span>
+            </button>
+          )}
+
+          <NotificationBell />
+
+          <Link
+            href="/"
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:px-3"
+          >
+            <Home className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">Trang chủ</span>
+          </Link>
+        </div>
       </div>
     </header>
   );
