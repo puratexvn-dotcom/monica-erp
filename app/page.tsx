@@ -13,17 +13,12 @@ import {
   Box,
   Users,
   Settings,
-  Activity,
-  TrendingUp,
-  Target,
-  Container,
-  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
 
 import TopNavbar, { type NavModule } from './top-navbar';
-import { getHomeMetrics, DASH, type HomeMetrics } from './home-metrics';
-import DailyVerses from '@/components/daily-verses';
+import { getHomeMetrics } from './home-metrics';
+import HomeHeader from '@/components/home-header';
 
 // ============================================================================
 // TRANG CHỦ — ULTRA PREMIUM ENTERPRISE DASHBOARD
@@ -135,21 +130,6 @@ const MODULES: ModuleItem[] = [
   },
 ];
 
-/** Chỉ cấu hình trình bày — số thực lấy từ metrics.kpi[key] */
-interface KpiCard {
-  key: keyof HomeMetrics['kpi'];
-  label: string;
-  icon: LucideIcon;
-  chip: string;
-}
-
-const KPI_CARDS: KpiCard[] = [
-  { key: 'activeOrders', label: 'Đơn hàng đang chạy', icon: Activity, chip: 'bg-indigo-50 text-indigo-600' },
-  { key: 'outputToday', label: 'Sản lượng may hôm nay', icon: TrendingUp, chip: 'bg-emerald-50 text-emerald-600' },
-  { key: 'aqlRate', label: 'Tỷ lệ đạt AQL (30 ngày)', icon: Target, chip: 'bg-teal-50 text-teal-600' },
-  { key: 'pendingShipments', label: 'Lô hàng chờ xuất', icon: Container, chip: 'bg-amber-50 text-amber-600' },
-];
-
 // Chỉ truyền trường serialize được sang client — không truyền icon component
 const NAV_MODULES: NavModule[] = MODULES.map(({ name, desc, href, dot }) => ({ name, desc, href, dot }));
 
@@ -158,11 +138,16 @@ export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const metrics = await getHomeMetrics();
-  const live = metrics.status === 'ok';
 
-  // Ban Giám đốc và Merchandiser thấy Lời Chúa THAY CHO dải KPI; các bộ phận
-  // khác vẫn giữ dải KPI. Đây là hai khối loại trừ nhau ở cùng một vị trí.
+  // Chỉ Ban Giám đốc và Merchandiser thấy Lời Chúa
   const showVerses = metrics.role === 'giamdoc' || metrics.role === 'md';
+
+  // ⚠️ KHÔNG LỌC THEO VAI TRÒ Ở ĐÂY.
+  // Trang chủ là launchpad, phải luôn hiện ĐỦ toàn bộ phân hệ cho mọi người —
+  // đây là yêu cầu bất di bất dịch của dự án. Ai bấm vào phân hệ không thuộc
+  // quyền mình thì middleware chặn ở /unauthorized; ẩn thẻ đi chỉ làm người
+  // dùng tưởng hệ thống bị mất chức năng.
+  // Việc lọc theo quyền chỉ áp dụng cho MENU điều hướng, không áp cho grid này.
 
   return (
     <div className="min-h-screen bg-slate-100/70">
@@ -170,89 +155,38 @@ export default async function HomePage() {
 
       {/* pb-28: chừa chỗ cho system footer cố định ở đáy màn hình */}
       <main className="mx-auto max-w-[1600px] px-4 pb-28 pt-10 sm:px-6 lg:px-8">
-        {/* ================= LỜI CHÀO ================= */}
-        <section className="mb-10">
-          <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-indigo-600">
+        {/* ═══ DÒNG 1: LOGO · LỜI CHÚA · CHUÔNG ═════════════════════════ */}
+        <HomeHeader showVerses={showVerses} />
+
+        {/* ═══ TẦNG 2: LỜI CHÀO ═════════════════════════════════════════ */}
+        <section className="mb-14 text-center">
+          <p className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-violet-500 sm:text-sm">
             Monica Garment · Hệ thống quản trị sản xuất
           </p>
-          <h1 className="max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Welcome to <span className="text-indigo-600">Monica</span>
+          {/* Chữ thương hiệu: cỡ lớn nhất trang, gradient tím trên chữ Monica */}
+          <h1 className="text-5xl font-black leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl">
+            Welcome to{' '}
+            <span className="bg-gradient-to-br from-violet-600 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+              Monica
+            </span>
           </h1>
-          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
+          <span
+            aria-hidden="true"
+            className="mx-auto mt-6 block h-1 w-24 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+          />
+          <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
             Nền tảng quản trị dữ liệu hợp nhất từ Đơn hàng đến Xuất container. Vui lòng chọn phân hệ
             làm việc của bạn.
           </p>
         </section>
 
-        {/* ================= LỜI CHÚA (giamdoc / md) ================= */}
-        {showVerses && <DailyVerses className="mb-12" />}
-
-        {/* ================= DẢI KPI (các bộ phận còn lại) ================= */}
-        {!showVerses && (
-        <section aria-label="Chỉ số vận hành" className="mb-12">
-          {/* Nói rõ vì sao đang thiếu số, thay vì để người dùng tưởng nhà máy đứng im */}
-          {metrics.status === 'error' && (
-            <p className="mb-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-base font-semibold text-rose-900">
-              <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden="true" />
-              Không kết nối được máy chủ dữ liệu. Các chỉ số bên dưới tạm thời chưa khả dụng.
-            </p>
-          )}
-          {metrics.status === 'ok' && metrics.partial && (
-            <p className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base font-semibold text-amber-900">
-              <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden="true" />
-              Một số bảng dữ liệu không đọc được — các ô hiện dấu “{DASH}” là số còn thiếu.
-            </p>
-          )}
-
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-            {KPI_CARDS.map((card) => {
-              const Icon = card.icon;
-              const m = metrics.kpi[card.key];
-              const hasValue = m.value !== DASH;
-              return (
-                <div
-                  key={card.key}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6"
-                >
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${card.chip}`}>
-                      <Icon className="h-6 w-6" aria-hidden="true" />
-                    </span>
-                    {live && hasValue ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                        LIVE
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
-                        CHƯA CÓ SỐ
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-base font-semibold text-slate-500">{card.label}</p>
-                  <p className="mt-1.5 flex items-baseline gap-1.5">
-                    <span
-                      className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${hasValue ? 'text-slate-900' : 'text-slate-300'}`}
-                    >
-                      {m.value}
-                    </span>
-                    {hasValue && m.unit && <span className="text-base font-bold text-slate-400">{m.unit}</span>}
-                  </p>
-                  <p className={`mt-2 text-sm font-semibold ${hasValue ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {m.delta}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-        )}
-
-        {/* ================= LƯỚI PHÂN HỆ ================= */}
-        <section aria-label="Danh sách phân hệ">
+        {/* ═══ TẦNG 3: LƯỚI PHÂN HỆ THEO QUYỀN ══════════════════════════ */}
+        <section aria-label="Phân hệ làm việc">
           <div className="mb-6 flex items-baseline justify-between gap-4">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">Phân hệ làm việc</h2>
-            <p className="text-base font-semibold text-slate-500">{MODULES.length} phân hệ</p>
+            <p className="text-base font-semibold text-slate-500">
+              {MODULES.length} phân hệ
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
@@ -264,7 +198,7 @@ export default async function HomePage() {
                   href={mod.href}
                   className={`group relative flex min-h-[15rem] flex-col justify-between overflow-hidden rounded-3xl p-6 shadow-lg ring-1 ring-inset ring-white/10 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-900 focus-visible:ring-offset-2 ${mod.bg} ${mod.glow}`}
                 >
-                  {/* Vệt sáng trang trí góc trên — nằm dưới nội dung, không cản click */}
+                  {/* Vệt sáng trang trí — nằm dưới nội dung, không cản click */}
                   <span
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-white/10 blur-2xl transition-transform duration-500 group-hover:scale-150"
@@ -275,11 +209,13 @@ export default async function HomePage() {
                       <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-white/25">
                         <Icon className="h-8 w-8 text-white" strokeWidth={1.75} aria-hidden="true" />
                       </span>
-                      <span
-                        className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ring-1 ring-black/5 ${mod.badgeCls}`}
-                      >
-                        {metrics.badges[mod.href] ?? DASH}
-                      </span>
+                      {metrics.badges[mod.href] && (
+                        <span
+                          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ring-1 ring-black/5 ${mod.badgeCls}`}
+                        >
+                          {metrics.badges[mod.href]}
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="text-xl font-bold leading-snug tracking-tight text-white">

@@ -54,7 +54,9 @@ export const ROLE_LABEL: Record<Role, string> = {
 // cần xem chi tiết, chỉ việc thêm route vào đúng dòng 'giamdoc' bên dưới.
 export const MODULE_ACCESS: Record<Role, readonly string[]> = {
   superadmin: ['*'],
-  giamdoc: ['/giam-doc'],
+  // Giám đốc xem được cả danh sách PO: /giam-doc là bảng tổng hợp, còn
+  // /orders là chi tiết từng đơn — hai thứ bổ sung cho nhau.
+  giamdoc: ['/giam-doc', '/orders'],
   md: ['/md', '/orders'],
   qa: ['/qa'],
   totruongcat: ['/to-truong-cat'],

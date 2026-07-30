@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Camera, ImageUp, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Camera, ImageUp, Trash2, AlertTriangle, CheckCircle2, Loader2, Link2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { uploadEvidence } from '@/app/actions/upload-action';
 
 import { inputCls } from '@/components/ui';
 
@@ -31,6 +34,10 @@ import { inputCls } from '@/components/ui';
 export interface EvidenceValue {
   quantity: number | null;
   file: File | null;
+  /** Đường dẫn công khai sau khi upload xong; null khi chưa upload */
+  url: string | null;
+  /** Đường dẫn trong bucket — đây là thứ nên lưu vào DB, không lưu URL đầy đủ */
+  path: string | null;
 }
 
 const MAX_MB = 8;
@@ -41,6 +48,8 @@ export default function QuantityInputWithEvidence({
   max,
   hint,
   requireEvidence = true,
+  /** Thư mục con trong bucket, vd 'cutting' | 'sewing'. Chỉ chữ/số/gạch ngang. */
+  folder = 'misc',
   onChange,
   error,
 }: {
@@ -50,6 +59,7 @@ export default function QuantityInputWithEvidence({
   max?: number;
   hint?: string;
   requireEvidence?: boolean;
+  folder?: string;
   onChange?: (v: EvidenceValue) => void;
   /** Lỗi từ tầng ngoài (Zod / máy chủ) */
   error?: string;
@@ -59,6 +69,9 @@ export default function QuantityInputWithEvidence({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [url, setUrl] = useState<string | null>(null);
+  const [path, setPath] = useState<string | null>(null);
   const previewRef = useRef<string | null>(null);
 
   // Thu hồi URL cũ trước khi tạo URL mới, và khi component biến mất
@@ -76,9 +89,14 @@ export default function QuantityInputWithEvidence({
   );
 
   const emit = useCallback(
-    (nextQty: string, nextFile: File | null) => {
+    (nextQty: string, nextFile: File | null, nextUrl: string | null, nextPath: string | null) => {
       const n = nextQty === '' ? null : Number(nextQty);
-      onChange?.({ quantity: Number.isFinite(n) ? n : null, file: nextFile });
+      onChange?.({
+        quantity: Number.isFinite(n) ? n : null,
+        file: nextFile,
+        url: nextUrl,
+        path: nextPath,
+      });
     },
     [onChange],
   );
@@ -92,7 +110,7 @@ export default function QuantityInputWithEvidence({
     } else if (max !== undefined && Number.isFinite(n) && n > max) {
       setLocalError(`Không được vượt ${new Intl.NumberFormat('vi-VN').format(max)} ${unit}`);
     }
-    emit(v, file);
+    emit(v, file, url, path);
   }
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -115,17 +133,61 @@ export default function QuantityInputWithEvidence({
     setLocalError(null);
     setFile(f);
     setPreviewSafely(URL.createObjectURL(f));
-    emit(qty, f);
+    // Xoá kết quả upload cũ ngay: ảnh đã đổi, giữ URL cũ là gán sai bằng chứng
+    setUrl(null);
+    setPath(null);
+    emit(qty, f, null, null);
+
+    // Upload ngay khi chọn ảnh, không đợi tới lúc submit. Xưởng dùng mạng yếu,
+    // upload sớm để lỗi lộ ra khi người dùng còn đang đứng đó chụp lại được.
+    void doUpload(f);
+  }
+
+  async function doUpload(f: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', f);
+      fd.append('folder', folder);
+
+      const res = await uploadEvidence(fd);
+
+      if (!res.ok) {
+        setLocalError(res.message);
+        toast.error('Không tải được ảnh lên', { description: res.message });
+        return;
+      }
+
+      setUrl(res.url ?? null);
+      setPath(res.path ?? null);
+      emit(qty, f, res.url ?? null, res.path ?? null);
+
+      // In URL ra console để đối chiếu khi nghiệm thu
+      console.log('[evidence] upload thành công:', { url: res.url, path: res.path });
+      toast.success('Đã tải ảnh bằng chứng lên', { description: res.path });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Lỗi không xác định khi tải ảnh';
+      setLocalError(msg);
+      toast.error('Không tải được ảnh lên', { description: msg });
+    } finally {
+      setUploading(false);
+    }
   }
 
   function clearPhoto() {
     setFile(null);
     setPreviewSafely(null);
-    emit(qty, null);
+    setUrl(null);
+    setPath(null);
+    setLocalError(null);
+    emit(qty, null, null, null);
   }
 
   const shown = error ?? localError;
-  const missingEvidence = requireEvidence && qty !== '' && !file;
+  // Chỉ tính là ĐỦ bằng chứng khi ảnh đã lên máy chủ. Có File ở client mà
+  // upload lỗi thì coi như chưa có — nếu không, người dùng bấm gửi và tưởng
+  // ảnh đã được lưu.
+  const missingEvidence = requireEvidence && qty !== '' && !url;
 
   return (
     <div>
@@ -190,17 +252,44 @@ export default function QuantityInputWithEvidence({
 
       {/* Ảnh xem trước — dùng <img> vì đây là blob cục bộ, next/image không xử lý */}
       {preview && file && (
-        <div className="mt-3 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5">
+        <div
+          className={`mt-3 flex items-center gap-3 rounded-xl border p-2.5 ${
+            url ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-200 bg-slate-50'
+          }`}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Ảnh bằng chứng đã chụp" className="h-16 w-16 rounded-lg object-cover" />
           <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-              Đã có ảnh bằng chứng
-            </p>
+            {uploading ? (
+              <p className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
+                Đang tải ảnh lên máy chủ...
+              </p>
+            ) : url ? (
+              <p className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Đã lưu trên máy chủ
+              </p>
+            ) : (
+              <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+                <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Chưa lên được máy chủ
+              </p>
+            )}
             <p className="mt-0.5 truncate text-xs text-slate-500">
               {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB
             </p>
+            {url && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-0.5 flex items-center gap-1 truncate text-[11px] font-semibold text-indigo-600 hover:underline"
+              >
+                <Link2 className="h-3 w-3 shrink-0" aria-hidden="true" />
+                <span className="truncate">{url}</span>
+              </a>
+            )}
           </div>
           <button
             type="button"
