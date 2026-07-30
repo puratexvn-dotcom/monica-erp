@@ -31,6 +31,21 @@ export interface ActionResult {
 
 const MODULE_PATH = '/kho';
 
+/**
+ * Ghi log lỗi Supabase ra console máy chủ (xem được ở Vercel > Logs).
+ * In đủ code / details / hint chứ không chỉ message: PostgREST đặt nguyên nhân
+ * thật ở `details` và `hint`, còn `message` thường chỉ là một câu chung chung.
+ */
+function logDbError(where: string, e: unknown): void {
+  const err = e as { message?: string; code?: string; details?: string; hint?: string } | null;
+  console.error(`[kho:${where}]`, {
+    code: err?.code,
+    message: err?.message,
+    details: err?.details,
+    hint: err?.hint,
+  });
+}
+
 async function guard() {
   const supabase = await createClient();
   const {
@@ -59,7 +74,10 @@ export async function listMaterials(): Promise<{ rows: MaterialRow[]; error: str
     .select('id, material_code, name, category, unit, stock_qty, min_stock_qty')
     .order('material_code', { ascending: true });
 
-  if (dbError) return { rows: [], error: `Không đọc được danh mục vật tư: ${dbError.message}` };
+  if (dbError) {
+    logDbError('listMaterials', dbError);
+    return { rows: [], error: `Không đọc được danh mục vật tư: ${dbError.message}` };
+  }
   return { rows: (data ?? []) as MaterialRow[], error: null };
 }
 
@@ -88,13 +106,20 @@ export async function listTransactions(): Promise<{ rows: TxRow[]; error: string
     .order('created_at', { ascending: false })
     .limit(1000);
 
-  if (dbError) return { rows: [], error: `Không đọc được lịch sử kho: ${dbError.message}` };
+  if (dbError) {
+    logDbError('listTransactions', dbError);
+    return { rows: [], error: `Không đọc được lịch sử kho: ${dbError.message}` };
+  }
 
   // Supabase trả quan hệ lồng khi thì object khi thì mảng, tuỳ cách suy luận
   // khoá ngoại — chuẩn hoá về một dạng thay vì phân nhánh ở tầng giao diện.
   const one = <T,>(v: T | T[] | null): T | null =>
     Array.isArray(v) ? (v.length > 0 ? v[0] : null) : v;
 
+  // Bọc try/catch: nếu Supabase đổi hình dạng quan hệ lồng (object <-> mảng)
+  // thì phép biến đổi bên dưới có thể ném, và một lỗi ở đây sẽ làm sập cả trang
+  // thay vì chỉ hỏng một bảng.
+  try {
   const rows: TxRow[] = ((data ?? []) as unknown as RawTx[]).map((r) => {
     const mat = one(r.materials);
     const ord = one(r.orders);
@@ -113,6 +138,13 @@ export async function listTransactions(): Promise<{ rows: TxRow[]; error: string
   });
 
   return { rows, error: null };
+  } catch (e) {
+    logDbError('listTransactions:transform', e);
+    return {
+      rows: [],
+      error: `Không đọc được lịch sử kho: ${e instanceof Error ? e.message : 'dữ liệu trả về không đúng định dạng'}`,
+    };
+  }
 }
 
 // ── Danh sách PO cho ô tham chiếu ───────────────────────────────────────────
@@ -126,7 +158,10 @@ export async function listPoOptions(): Promise<{ rows: PoOption[]; error: string
     .order('created_at', { ascending: false })
     .limit(500);
 
-  if (dbError) return { rows: [], error: `Không đọc được danh sách PO: ${dbError.message}` };
+  if (dbError) {
+    logDbError('listPoOptions', dbError);
+    return { rows: [], error: `Không đọc được danh sách PO: ${dbError.message}` };
+  }
   return { rows: (data ?? []) as PoOption[], error: null };
 }
 
@@ -191,8 +226,10 @@ async function applyMovement(
   if (!rpc.error) return { ok: true, message: '' };
 
   if (!isMissingFunction(rpc.error.code, rpc.error.message)) {
+    logDbError('applyMovement:rpc', rpc.error);
     return { ok: false, message: translateRpcError(rpc.error.message) };
   }
+  console.warn('[kho] apply_stock_movement chưa tồn tại — dùng đường dự phòng. Hãy chạy migration 011.');
 
   // ── Đường dự phòng: chưa chạy migration 011 ──────────────────────────────
   const { data: cur, error: readErr } = await supabase

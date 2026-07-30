@@ -15,11 +15,28 @@ import KhoClient from './kho-client';
 export const dynamic = 'force-dynamic';
 
 export default async function WarehousePage() {
-  const [materials, tx, pos] = await Promise.all([
+  // Promise.allSettled thay vì Promise.all: một truy vấn ném lỗi không được
+  // phép làm sập cả trang và đẩy người dùng sang error boundary. Mỗi nhóm dữ
+  // liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
+  const [matRes, txRes, poRes] = await Promise.allSettled([
     listMaterials(),
     listTransactions(),
     listPoOptions(),
   ]);
+
+  const pick = <T,>(
+    r: PromiseSettledResult<{ rows: T[]; error: string | null }>,
+    label: string,
+  ): { rows: T[]; error: string | null } => {
+    if (r.status === 'fulfilled') return r.value;
+    const detail = r.reason instanceof Error ? r.reason.message : String(r.reason);
+    console.error(`[kho:page] ${label} ném lỗi:`, r.reason);
+    return { rows: [], error: `${label} lỗi: ${detail}` };
+  };
+
+  const materials = pick(matRes, 'Đọc tồn kho');
+  const tx = pick(txRes, 'Đọc lịch sử kho');
+  const pos = pick(poRes, 'Đọc danh sách PO');
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
@@ -32,7 +49,9 @@ export default async function WarehousePage() {
         initialMaterials={materials.rows}
         initialTx={tx.rows}
         poOptions={pos.rows}
-        initialError={materials.error ?? tx.error ?? pos.error}
+        initialMatError={materials.error}
+        initialTxError={tx.error}
+        initialPoError={pos.error}
       />
     </div>
   );

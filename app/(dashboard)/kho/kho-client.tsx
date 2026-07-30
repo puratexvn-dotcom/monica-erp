@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 import { Card, StatCard, Badge, ProgressBar, btnPrimary, btnGhost, thCls, tdCls } from '@/components/ui';
-import { NoData } from '@/components/data-state';
+import { NoData, ErrorState } from '@/components/data-state';
 import { listMaterials, listTransactions } from './wh-actions';
 import { CATEGORY_LABEL, type MaterialCategory, type MaterialRow, type PoOption, type TxRow } from './wh-schema';
 import TxTable from './tx-table';
@@ -20,16 +20,24 @@ export default function KhoClient({
   initialMaterials,
   initialTx,
   poOptions,
-  initialError,
+  initialMatError,
+  initialTxError,
+  initialPoError,
 }: {
   initialMaterials: MaterialRow[];
   initialTx: TxRow[];
   poOptions: PoOption[];
-  initialError: string | null;
+  initialMatError: string | null;
+  initialTxError: string | null;
+  initialPoError: string | null;
 }) {
   const [materials, setMaterials] = useState(initialMaterials);
   const [tx, setTx] = useState(initialTx);
-  const [error, setError] = useState(initialError);
+  // Tách lỗi theo từng nguồn: nếu gộp một biến thì bảng tồn kho hỏng lại hiện
+  // "chưa có vật tư nào" — người dùng tưởng kho trống trong khi thực tế là lỗi
+  // kết nối. Trong ERP hai chuyện đó dẫn tới hai quyết định khác hẳn nhau.
+  const [matError, setMatError] = useState(initialMatError);
+  const [txError, setTxError] = useState(initialTxError);
   const [showInbound, setShowInbound] = useState(false);
   const [showOutbound, setShowOutbound] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -38,7 +46,8 @@ export default function KhoClient({
     const [m, t] = await Promise.all([listMaterials(), listTransactions()]);
     setMaterials(m.rows);
     setTx(t.rows);
-    setError(m.error ?? t.error);
+    setMatError(m.error);
+    setTxError(t.error);
   }, []);
 
   const stats = useMemo(() => {
@@ -57,8 +66,41 @@ export default function KhoClient({
     return { codes: materials.length, lowStock, inToday: inToday.length, outToday: outToday.length };
   }, [materials, tx]);
 
+  // Gom mọi lỗi đang có để hiện một dải cảnh báo ở đầu trang — người vận hành
+  // thấy ngay có gì không đọc được, thay vì phải tự đoán qua các bảng trống.
+  const problems = [
+    matError ? `Tồn kho: ${matError}` : null,
+    txError ? `Lịch sử xuất/nhập: ${txError}` : null,
+    initialPoError ? `Danh sách PO: ${initialPoError}` : null,
+  ].filter((x): x is string => x !== null);
+
   return (
     <>
+      {problems.length > 0 && (
+        <div
+          role="alert"
+          className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4"
+        >
+          <p className="flex items-center gap-2 text-sm font-bold text-rose-900">
+            <TriangleAlert className="h-5 w-5 shrink-0" aria-hidden="true" />
+            Không đọc được {problems.length} nhóm dữ liệu
+          </p>
+          <ul className="mt-2 space-y-1 pl-7 text-sm text-rose-800">
+            {problems.map((p) => (
+              <li key={p} className="list-disc">{p}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => startTransition(() => { void refresh(); })}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${pending ? 'animate-spin' : ''}`} aria-hidden="true" />
+            Tải lại dữ liệu
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={Boxes} label="Danh mục vật tư" value={nf.format(stats.codes)} sub="mã NPL đang quản lý" />
         <StatCard
@@ -123,7 +165,9 @@ export default function KhoClient({
 
       {/* ── Tồn kho theo mã ─────────────────────────────────────────────── */}
       <Card className="mt-6" title={`Tồn kho hiện tại (${materials.length})`} icon={Layers}>
-        {materials.length === 0 ? (
+        {matError ? (
+          <ErrorState message={matError} onRetry={() => void refresh()} />
+        ) : materials.length === 0 ? (
           <NoData title="Chưa có mã vật tư nào" sub="Lập phiếu nhập kho để tạo mã NPL đầu tiên." />
         ) : (
           <div className="overflow-x-auto">
@@ -188,7 +232,7 @@ export default function KhoClient({
           </div>
         </div>
 
-        <TxTable rows={tx} error={error} onRefresh={refresh} />
+        <TxTable rows={tx} error={txError} onRefresh={refresh} />
       </Card>
 
       <InboundFormDialog
