@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import {
   Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
-  Sparkles, Loader2,
+  Sparkles, Loader2, Search, ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -31,6 +31,12 @@ import {
 } from '@/components/md/planning/auto-generate-dialogs';
 import KpiGrid, { type KpiTarget } from '@/components/md/dashboard/kpi-grid';
 import { useMdDashboard } from '@/components/md/dashboard/use-md-dashboard';
+import TaskInbox from '@/components/md/command-center/task-inbox';
+import ActionablePoList from '@/components/md/command-center/actionable-po';
+import CriticalAlerts from '@/components/md/command-center/critical-alerts';
+import CommandPalette from '@/components/md/command-palette';
+import Po360Sheet from '@/components/md/po/po-360-sheet';
+import type { CommandCenterData } from './_services/command-center.service';
 import type {
   PoRow, StyleRow, CustomerRow, InquiryRow, CostingRow, ActivityRow,
 } from '@/schemas/md';
@@ -44,6 +50,7 @@ import {
   listCustomersClient, listInquiriesClient, listCostingsClient,
   listDocumentsClient, listCommentsClient, listChangeRequestsClient,
   listActivityClient, listRisksClient, listCustomerOptionsClient,
+  getCommandCenterClient,
 } from './_actions/md4.client';
 import {
   CustomerFormDialog as LegacyCustomerFormDialog,
@@ -172,11 +179,49 @@ export default function MdClient({
   // Số liệu tổng quan nạp MỘT LẦN, dùng cho cả khối chỉ số lẫn khối biểu đồ
   const dashboard = useMdDashboard();
 
+  // ─── COMMAND CENTER ──────────────────────────────────────────────────────
+  const [cc, setCc] = useState<CommandCenterData | null>(null);
+  const loadCc = useCallback(() => {
+    void getCommandCenterClient().then(setCc);
+  }, []);
+  useEffect(loadCc, [loadCc]);
+
+  // PO 360° mở từ BẤT KỲ đâu: một việc trong hộp việc, một dòng PO, một cảnh
+  // báo, hay kết quả tìm nhanh. Giữ state ở đây để mọi chỗ dùng chung một panel
+  // thay vì mỗi khu tự dựng một cái.
+  const [po360, setPo360] = useState<{ id: string; no: string } | null>(null);
+  const openPo = useCallback((orderId: string, poNumber: string) => {
+    setPo360({ id: orderId, no: poNumber });
+  }, []);
+
+  // Khu làm việc cũ (13 tab + biểu đồ) mặc định gấp lại: chúng vẫn ở đó,
+  // nhưng không tranh chỗ với ba khu điều hành.
+  const [workAreaOpen, setWorkAreaOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Ctrl+K / Cmd+K mở tìm nhanh. Chặn hành vi mặc định của trình duyệt
+  // (Chrome dùng phím này cho thanh địa chỉ).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+
   // Thanh tab nằm trên cùng còn khối chỉ số nằm dưới cuối, nên bấm vào một thẻ
   // chỉ số phải cuộn ngược lên — không thì người dùng đổi tab mà màn hình không
   // đổi gì, tưởng nút hỏng.
   const tabBarRef = useRef<HTMLDivElement>(null);
-  const goTab = useCallback((target: KpiTarget) => {
+  // Nhận TabKey chứ không riêng KpiTarget: thẻ chỉ số chỉ nhảy tới 5 tab,
+  // nhưng bảng lệnh tìm nhanh còn nhảy tới tab Mã hàng và Khách hàng. KpiTarget
+  // là tập con của TabKey nên KpiGrid vẫn truyền vào được, không phải ép kiểu.
+  const goTab = useCallback((target: TabKey) => {
+    setWorkAreaOpen(true);
     setTab(target);
     tabBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
@@ -252,6 +297,13 @@ export default function MdClient({
     // sau mỗi lần setState của chính nó — thành vòng lặp nạp không dứt.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
+
+  // Bảng lệnh tìm cả khách hàng, nên cần danh sách đó dù người dùng chưa mở
+  // tab Khách hàng bao giờ. Đặt SAU phần khai báo `customers` — hook đọc biến
+  // nào thì biến đó phải được khai trước, không thì vướng vùng chết tạm thời.
+  useEffect(() => {
+    if (paletteOpen && customers === null) void listCustomersClient().then(setCustomers);
+  }, [paletteOpen, customers]);
 
   // Ô chọn khách hàng cần cho form ở tab Báo giá và Chiết tính
   useEffect(() => {
@@ -342,9 +394,78 @@ export default function MdClient({
 
   return (
     <>
-      {/* ── NGHIỆP VỤ TRƯỚC: thanh tab nằm ngay dưới thanh đầu trang ──
-          Mở màn hình là bấm vào làm việc được ngay, không phải cuộn qua
-          biểu đồ. Khối tổng quan và biểu đồ đẩy xuống cuối trang. ────── */}
+      {/* ═══ THANH HÀNH ĐỘNG TOÀN CỤC ═══════════════════════════════════
+          Ô tìm nhanh là thứ duy nhất ở đây. Nhồi thêm nút vào hàng này sẽ
+          cạnh tranh trực tiếp với ba khu điều hành ngay bên dưới. */}
+      <button
+        type="button"
+        onClick={() => setPaletteOpen(true)}
+        className="mb-4 flex w-full touch-manipulation items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm transition hover:border-blue-300 hover:shadow"
+      >
+        <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate text-sm text-slate-400">
+          Tìm nhanh mã PO, mã hàng, khách hàng...
+        </span>
+        <span className="hidden shrink-0 items-center gap-0.5 sm:flex">
+          <kbd className="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-bold text-slate-500">
+            Ctrl
+          </kbd>
+          <kbd className="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-bold text-slate-500">
+            K
+          </kbd>
+        </span>
+      </button>
+
+      {/* ═══ BA KHU ĐIỀU HÀNH ════════════════════════════════════════════
+          Máy bàn chia hai cột: cột trái rộng gấp rưỡi cho hai khu cần đọc
+          kỹ, cột phải cho cảnh báo luôn nằm trong tầm mắt. Điện thoại xếp
+          dọc theo đúng thứ tự khẩn: việc phải làm → đơn đang chạy → cảnh
+          báo đỏ. */}
+      {cc === null ? (
+        <div className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-14 text-slate-400">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          <span className="text-sm font-medium">Đang tổng hợp việc cần làm...</span>
+        </div>
+      ) : (
+        <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
+          <div className="space-y-4 lg:col-span-3">
+            <TaskInbox tasks={cc.tasks} error={cc.errors.all} onOpenPo={openPo} />
+            <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />
+          </div>
+          <div className="lg:col-span-2">
+            <CriticalAlerts alerts={cc.alerts} error={cc.errors.all} onOpenPo={openPo} />
+          </div>
+        </div>
+      )}
+
+      {/* ═══ KHU LÀM VIỆC CHI TIẾT — GẤP LẠI ═════════════════════════════
+          Mười ba tab nghiệp vụ vẫn còn NGUYÊN VẸN, chỉ là gấp lại để không
+          tranh sự chú ý với ba khu điều hành. Mở ra một lần là nhớ trạng
+          thái trong suốt phiên làm việc. */}
+      <button
+        type="button"
+        onClick={() => setWorkAreaOpen((v) => !v)}
+        aria-expanded={workAreaOpen}
+        className="mb-3 flex w-full touch-manipulation items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm transition hover:border-blue-300"
+      >
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${workAreaOpen ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold text-slate-800">Khu làm việc chi tiết</span>
+          <span className="block truncate text-[11px] text-slate-500">
+            13 phân hệ nghiệp vụ · khách hàng, báo giá, chiết tính, mã hàng, PO, vật tư, sản xuất,
+            giao hàng, tài liệu, thảo luận, thay đổi, rủi ro, nhật ký
+          </span>
+        </span>
+        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+          {workAreaOpen ? 'Thu gọn' : 'Mở ra'}
+        </span>
+      </button>
+
+      {workAreaOpen && (
+      <>
       <div ref={tabBarRef} className="-mx-1 mb-5 space-y-2 px-1 pt-1">
         {GROUPS.map((g) => (
           <div key={g} className="flex items-center gap-2">
@@ -650,7 +771,7 @@ export default function MdClient({
         )}
       </Card>
 
-      {/* ── TỔNG QUAN ĐIỀU HÀNH + BIỂU ĐỒ: đặt sau khu làm việc ──────── */}
+      {/* ── TỔNG QUAN ĐIỀU HÀNH + BIỂU ĐỒ: nằm trong khu gấp ─────────── */}
       <div className="mt-6 space-y-6 border-t border-slate-200 pt-6">
         <KpiGrid
           data={dashboard.data}
@@ -660,6 +781,8 @@ export default function MdClient({
         />
         <MdCharts data={dashboard.data} />
       </div>
+      </>
+      )}
 
       {/* ── Các hộp thoại tạo mới ──────────────────────────────────────── */}
       <CustomerFormDialog
@@ -711,6 +834,31 @@ export default function MdClient({
         giao hàng, điều khoản thanh toán, hạn mức công nợ).
       */}
       <LegacyCustomerFormDialog open={false} onClose={() => {}} onDone={refresh} />
+
+      {/* ═══ HIỂN THỊ LŨY TIẾN: xem nhanh PO mà KHÔNG rời màn hình ═══════
+          Panel trượt phủ 100% trên điện thoại, ~40% trên màn rộng. Đóng lại
+          là mắt đã ở sẵn chỗ cũ trong Command Center, không phải định vị lại
+          như khi chuyển trang. */}
+      <Po360Sheet
+        orderId={po360?.id ?? null}
+        poNumber={po360?.no ?? null}
+        onClose={() => {
+          setPo360(null);
+          // Xử lý xong một PO thì việc và cảnh báo liên quan có thể đã đổi
+          loadCc();
+        }}
+      />
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        pos={poRows}
+        styles={styles}
+        customers={customers?.rows ?? []}
+        onPickPo={openPo}
+        onPickStyle={() => goTab('styles')}
+        onPickCustomer={() => goTab('customers')}
+      />
     </>
   );
 }

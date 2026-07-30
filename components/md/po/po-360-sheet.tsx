@@ -101,8 +101,15 @@ export default function Po360Sheet({
   const risk = data?.risk ? riskLevelOf(Number(data.risk.total_score)) : null;
 
   return (
+    // Lớp phủ dừng TRÊN dải thanh điều hướng (biến --nav-h) để thanh vừa luôn
+    // thấy vừa bấm được trong lúc đang xem PO — người dùng thoát ra được mà
+    // không cần tìm nút đóng.
     <div
-      className="fixed inset-0 z-[70] flex justify-end bg-slate-900/50 backdrop-blur-sm"
+      className="fixed inset-x-0 top-0 z-[70] flex justify-end bg-slate-900/50 backdrop-blur-sm"
+      style={{
+        bottom: 'var(--nav-h, 3.5rem)',
+        height: 'calc(100dvh - var(--nav-h, 3.5rem))',
+      }}
       onClick={onClose}
       role="presentation"
     >
@@ -111,7 +118,14 @@ export default function Po360Sheet({
         aria-modal="true"
         aria-label={`Chi tiết đơn hàng ${poNumber ?? ''}`}
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full flex-col bg-slate-50 shadow-2xl duration-200 animate-in slide-in-from-right lg:max-w-6xl"
+        // ─── 100% TRÊN ĐIỆN THOẠI, ~40% TRÊN MÀN RỘNG ────────────────────
+        // Trên điện thoại panel chiếm trọn: nội dung PO 360° có bảng nhiều
+        // cột, để hở một dải nền phía sau chỉ tổ chật thêm.
+        // Từ lg trở lên lấy 40% bề ngang (min-w để không co quá hẹp trên màn
+        // 1280px, max-w để không kéo dài lê thê trên màn siêu rộng). Chừa lại
+        // 60% cho Command Center phía sau: xử lý xong đóng panel là mắt đã ở
+        // sẵn chỗ cũ, không phải định vị lại.
+        className="flex h-full w-full min-w-0 flex-col bg-slate-50 shadow-2xl duration-200 animate-in slide-in-from-right lg:w-[40vw] lg:min-w-[560px] lg:max-w-3xl"
       >
         {/* ── Đầu trang: dính trên cùng để luôn thấy mã PO đang xem ────── */}
         <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">

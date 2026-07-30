@@ -3,8 +3,10 @@
 import { listCustomers, listInquiries, listCostings, getCustomer360, getCostingDetail, listCustomerOptions } from '../_services/commercial.service';
 import { listDocuments, listComments, listChangeRequests, listActivity, listRisks } from '../_services/collaboration.service';
 import { getMdDashboard } from '../_services/dashboard.service';
+import { getCommandCenter } from '../_services/command-center.service';
 import type { Customer360Data, CostingDetail } from '../_services/commercial.service';
 import type { MdDashboardData } from '../_services/dashboard.service';
+import type { CommandCenterData } from '../_services/command-center.service';
 
 // ============================================================================
 // CẦU NỐI CHO CÁC MÀN HÌNH BƯỚC 4
@@ -53,4 +55,9 @@ export async function getCostingDetailClient(
 }
 export async function listCustomerOptionsClient() {
   return listCustomerOptions();
+}
+
+// ─── Command Center (Giai đoạn 3) ──────────────────────────────────────────
+export async function getCommandCenterClient(): Promise<CommandCenterData> {
+  return getCommandCenter();
 }
