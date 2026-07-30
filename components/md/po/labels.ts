@@ -31,6 +31,16 @@ export {
   CHANGE_STATUS_LABEL,
   DOC_TYPE_LABEL,
   TASK_STATUS_LABEL,
+  ENTITY_TYPE_LABEL,
+  AUDIT_ACTION_LABEL,
+  COST_CATEGORIES,
+  INQUIRY_STATUSES,
+  COSTING_STATUSES,
+  CHANGE_TYPES,
+  CHANGE_STATUSES,
+  DOC_TYPES,
+  TASK_STATUSES,
+  ENTITY_TYPES,
   ORDER_TYPES,
   INCOTERMS,
   CURRENCIES,
@@ -58,7 +68,13 @@ export {
   type MilestoneStatus,
 } from '@/schemas/md';
 
-import { ROLE_LABEL, isRole } from '@/lib/rbac';
+// Nhãn của hai bảng có từ trước Bước 4 (đề nghị mua NPL, lệnh sản xuất) nằm ở
+// md-schema.ts. Tái xuất qua đây để mọi màn hình chỉ phải nhớ một cửa nhập.
+export { MR_STATUS_LABEL, PROD_STATUS_LABEL } from '@/app/(dashboard)/md/md-schema';
+
+import { ROLE_LABEL, isRole, ALL_ROLES } from '@/lib/rbac';
+
+export { ALL_ROLES };
 
 /** Tên bộ phận bằng tiếng Việt. Mã lạ thì trả nguyên mã, không trả rỗng. */
 export function ROLE_LABEL_SAFE(code: string): string {

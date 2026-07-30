@@ -15,3 +15,4 @@ export * from './style.schema';
 export * from './order.schema';
 export * from './execution.schema';
 export * from './collaboration.schema';
+export * from './planning.schema';

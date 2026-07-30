@@ -30,7 +30,10 @@ interface RawOrder {
   ex_factory_date: string | null;
   factory_name: string | null;
   status: string;
-  styles: { style_no: string; style_name: string } | { style_no: string; style_name: string }[] | null;
+  styles:
+    | { style_no: string; style_name: string; sam_minutes: number | null }
+    | { style_no: string; style_name: string; sam_minutes: number | null }[]
+    | null;
 }
 
 /**
@@ -49,7 +52,7 @@ export async function listPoRows(): Promise<{ rows: PoRow[]; error: string | nul
       .select(
         'id, po_number, customer_name, total_quantity, order_type, currency, unit_price,' +
           ' order_date, delivery_date, ex_factory_date, factory_name, status,' +
-          ' styles ( style_no, style_name )',
+          ' styles ( style_no, style_name, sam_minutes )',
       )
       .order('delivery_date', { ascending: true })
       .limit(500),
@@ -94,6 +97,7 @@ export async function listPoRows(): Promise<{ rows: PoRow[]; error: string | nul
       po_number: r.po_number,
       style_no: st?.style_no ?? null,
       style_name: st?.style_name ?? null,
+      sam_minutes: st?.sam_minutes === null || st?.sam_minutes === undefined ? null : Number(st.sam_minutes),
       customer_name: r.customer_name,
       total_quantity: Number(r.total_quantity),
       order_type: r.order_type,

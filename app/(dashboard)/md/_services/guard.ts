@@ -71,6 +71,15 @@ export function friendlyDbError(where: string, e: { message: string; code?: stri
   if (e.code === '23503' || m.includes('foreign key')) {
     return 'Dữ liệu đang được tham chiếu ở nơi khác nên không thể thực hiện.';
   }
+  // Ràng buộc CHECK bị vi phạm. Nói rõ tên ràng buộc thay vì nuốt đi: chính
+  // tên đó cho biết cột nào sai và migration nào cần chạy.
+  if (e.code === '23514' || m.includes('check constraint')) {
+    const name = /"([^"]+)"/.exec(e.message)?.[1];
+    if (name?.includes('entity_type')) {
+      return 'Loại đối tượng này chưa được cơ sở dữ liệu chấp nhận. Hãy chạy migration 016_md_entity_type_align.sql rồi thử lại.';
+    }
+    return `Giá trị không hợp lệ theo ràng buộc ${name ?? 'của cơ sở dữ liệu'}.`;
+  }
   if (e.code === '42P01' || m.includes('schema cache') || m.includes('does not exist')) {
     return 'Chưa có bảng dữ liệu cho chức năng này. Hãy chạy migration 015 rồi thử lại.';
   }

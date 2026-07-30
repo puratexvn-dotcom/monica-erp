@@ -137,6 +137,9 @@ export interface PoRow {
   po_number: string;
   style_no: string | null;
   style_name: string | null;
+  /** Thời gian chuẩn của mã hàng. Mang theo ở đây để màn hình sinh lệnh sản
+   *  xuất xem trước được số ngày mà không phải gọi thêm truy vấn cho từng đơn. */
+  sam_minutes: number | null;
   customer_name: string;
   total_quantity: number;
   order_type: string | null;
