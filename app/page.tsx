@@ -2,7 +2,6 @@ import Link from 'next/link';
 import {
   BarChart3,
   Briefcase,
-  PackageSearch,
   Building2,
   Calculator,
   Package,
@@ -81,12 +80,8 @@ const MODULES: ModuleItem[] = [
     bg: 'bg-slate-700', badgeCls: 'bg-white text-slate-800', sub: 'text-slate-200', glow: 'hover:shadow-slate-500/40', dot: 'bg-slate-700',
   },
   {
-    name: 'Merchandiser & Thu Mua', desc: 'Đơn hàng, tiến độ & mua NPL', href: '/md', icon: Briefcase,
+    name: 'Merchandiser & Thu Mua', desc: 'Khách hàng, PO, NPL, sản xuất, giao hàng', href: '/md', icon: Briefcase,
     bg: 'bg-red-700', badgeCls: 'bg-white text-red-800', sub: 'text-red-100', glow: 'hover:shadow-red-500/40', dot: 'bg-red-700',
-  },
-  {
-    name: 'Đơn Hàng (PO)', desc: 'Danh sách PO, tiến độ & tạo đơn', href: '/orders', icon: PackageSearch,
-    bg: 'bg-rose-700', badgeCls: 'bg-white text-rose-800', sub: 'text-rose-100', glow: 'hover:shadow-rose-500/40', dot: 'bg-rose-700',
   },
   {
     name: 'Khách Hàng', desc: 'Hồ sơ đối tác & Đơn đặt hàng', href: '/buyer', icon: Building2,

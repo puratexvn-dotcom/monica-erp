@@ -11,7 +11,7 @@ import type { ElementType } from 'react';
 import {
   Factory, LayoutDashboard, ClipboardList, ShieldCheck, Shirt, Scissors,
   Warehouse, Calculator, Handshake, Globe, Settings, LogOut,
-  ChevronsLeft, ChevronsRight, X, PackageSearch } from 'lucide-react';
+  ChevronsLeft, ChevronsRight, X } from 'lucide-react';
 import { canAccess, clearSession, ROLE_LABEL, type Session } from '@/lib/auth';
 
 export interface NavItem {
@@ -23,7 +23,6 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { path: '/giam-doc',      label: 'Giám đốc (BOD)',   icon: LayoutDashboard },
   { path: '/md',            label: 'Merchandiser',      icon: ClipboardList },
-  { path: '/orders',        label: 'Đơn hàng (PO)',     icon: PackageSearch },
   { path: '/to-truong-cat', label: 'Tổ trưởng Cắt',     icon: Scissors },
   { path: '/to-truong-may', label: 'Tổ trưởng May',     icon: Shirt },
   { path: '/qa',            label: 'QA / QC',           icon: ShieldCheck },

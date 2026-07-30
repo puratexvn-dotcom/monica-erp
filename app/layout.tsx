@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import { createClient } from "@/utils/supabase/server";
 import { isRole, type Role } from "@/lib/rbac";
 import AppBottomNav from "@/components/app-bottom-nav";
+import type { ReportMetric } from "@/components/report-sheet";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,6 +32,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let role: Role | null = null;
+  let reportMetrics: ReportMetric[] = [];
 
   // Lỗi ở đây không được làm sập cả ứng dụng: thiếu vai trò thì thanh điều
   // hướng vẫn hiện, nút "Bàn làm việc" chỉ dẫn về /login.
@@ -41,6 +43,46 @@ export default async function RootLayout({
     } = await supabase.auth.getUser();
     const raw = user?.app_metadata?.role;
     if (isRole(raw)) role = raw;
+
+    // Số liệu cho nút Báo cáo. Hiện chỉ làm cho MD/Giám đốc theo yêu cầu; các
+    // bộ phận khác để rỗng và panel tự hiện trạng thái "chưa có số liệu" —
+    // KHÔNG dựng số giả cho có, vì báo cáo bịa số thì tệ hơn không có báo cáo.
+    if (role === 'md' || role === 'giamdoc') {
+      const CLOSED = ['COMPLETED', 'CLOSED', 'CANCELLED', 'SHIPPED'];
+      const [poRes, prodRes] = await Promise.allSettled([
+        supabase.from('orders').select('status'),
+        supabase.from('production_orders').select('status'),
+      ]);
+
+      const running =
+        poRes.status === 'fulfilled' && !poRes.value.error
+          ? (poRes.value.data ?? []).filter(
+              (o) => !CLOSED.includes(String(o.status ?? '').toUpperCase()),
+            ).length
+          : null;
+
+      const pendingProd =
+        prodRes.status === 'fulfilled' && !prodRes.value.error
+          ? (prodRes.value.data ?? []).filter(
+              (p) => String(p.status ?? '').toUpperCase() === 'PENDING',
+            ).length
+          : null;
+
+      const nf = new Intl.NumberFormat('vi-VN');
+      reportMetrics = [
+        {
+          label: 'Tổng số PO đang chạy',
+          value: running === null ? '—' : nf.format(running),
+          unit: running === null ? undefined : 'PO',
+        },
+        {
+          label: 'Lệnh sản xuất chờ xử lý',
+          value: pendingProd === null ? '—' : nf.format(pendingProd),
+          unit: pendingProd === null ? undefined : 'lệnh',
+          tone: pendingProd && pendingProd > 0 ? 'amber' : 'emerald',
+        },
+      ];
+    }
   } catch {
     role = null;
   }
@@ -54,7 +96,7 @@ export default async function RootLayout({
               cuối trang bị thanh đó che mất */}
           <div className="pb-16">{children}</div>
 
-          <AppBottomNav role={role} />
+          <AppBottomNav role={role} reportMetrics={reportMetrics} />
 
           {/*
             Toaster đặt ở layout gốc để mọi trang dùng chung một hàng đợi.
