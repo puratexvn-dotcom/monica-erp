@@ -1,5 +1,3 @@
-import { PageHeader } from '@/components/ui';
-
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRows } from './_services/po.service';
 import { listStyles } from './_services/style.service';
@@ -18,6 +16,12 @@ import type { PoOption } from './md-types';
 //
 // ⚠️ KHÔNG truyền tham chiếu component (icon={...}) xuống client: hàm không
 // serialize được qua ranh giới server/client. Icon nằm trong md-client.tsx.
+//
+// ─── VÌ SAO KHÔNG CÒN KHỐI TIÊU ĐỀ Ở ĐÂY ─────────────────────────────────
+// Tiêu đề và câu khẩu hiệu đã chuyển lên thanh đầu trang (components/
+// dashboard-topbar.tsx), nằm ngang hàng với logo. Khối tiêu đề cũ chiếm gần
+// 90px chiều cao mà không mang thông tin nào cần cuộn theo, trong khi thanh
+// tab nghiệp vụ phải nằm trong tầm nhìn đầu tiên.
 //
 // Màn hình MD cũ (BOM / tiến độ mẫu / costing) được giữ ở ./md-legacy-client.tsx,
 // hiện chưa gắn vào route nào.
@@ -79,12 +83,9 @@ export default async function MerchandiserPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <PageHeader
-        title="Bàn làm việc Merchandiser"
-        desc="Trung tâm điều phối: khách hàng, đơn hàng, nguyên phụ liệu, lệnh sản xuất và giao hàng."
-      />
-
+    // Phần chừa chỗ cho thanh điều hướng cố định đã làm ở app/layout.tsx
+    // (pb-24) — làm lại ở đây sẽ ra khoảng trắng gấp đôi ở cuối trang.
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
       <MdClient
         initialSnapshot={snapshot}
         initialPoRows={po.rows}

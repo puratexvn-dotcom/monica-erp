@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { BarChart3 } from 'lucide-react';
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -37,6 +38,16 @@ function fmtValue(v: unknown): string {
   return Number.isFinite(n) ? nf.format(n) : String(v);
 }
 
+/** Hoạ tiết lưới mờ dùng làm nền cho ô biểu đồ trống.
+ *  Vẽ bằng gradient của CSS thay vì ảnh: không thêm một lượt tải nào, và co
+ *  giãn theo mọi kích thước ô mà không vỡ nét. */
+const GRID_PATTERN: React.CSSProperties = {
+  backgroundImage:
+    'linear-gradient(to right, rgb(226 232 240 / 0.6) 1px, transparent 1px),' +
+    'linear-gradient(to bottom, rgb(226 232 240 / 0.6) 1px, transparent 1px)',
+  backgroundSize: '22px 22px',
+};
+
 export function ChartFrame({
   title,
   hint,
@@ -62,13 +73,29 @@ export function ChartFrame({
       </div>
 
       {error ? (
-        <p role="alert" className="flex items-center justify-center px-2 text-center text-sm font-semibold text-rose-700" style={{ height }}>
+        <p
+          role="alert"
+          className="flex min-h-[200px] items-center justify-center rounded-lg bg-rose-50/60 px-3 text-center text-sm font-semibold text-rose-700"
+          style={{ height }}
+        >
           {error}
         </p>
       ) : isEmpty ? (
-        <p className="flex items-center justify-center px-2 text-center text-sm text-slate-400" style={{ height }}>
-          {emptyText ?? 'Chưa có số liệu để vẽ biểu đồ'}
-        </p>
+        // Ô TRỐNG THẤP HƠN Ô CÓ SỐ LIỆU (200px thay vì 240px trở lên): biểu đồ
+        // rỗng giữ nguyên chiều cao đầy đủ sẽ để lại một mảng trắng chết chiếm
+        // gần nửa màn hình mà không nói lên điều gì.
+        //
+        // Nền kẻ ô mờ cộng biểu tượng lớn cho biết "đây LÀ chỗ của biểu đồ,
+        // chỉ là chưa có số liệu" — khác hẳn cảm giác trang bị lỗi render.
+        <div
+          className="relative flex min-h-[200px] flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-slate-200 bg-slate-50/50 px-3 text-center"
+          style={GRID_PATTERN}
+        >
+          <BarChart3 className="h-16 w-16 text-slate-200" strokeWidth={1.25} aria-hidden="true" />
+          <p className="max-w-xs text-xs font-medium text-slate-400">
+            {emptyText ?? 'Chưa có số liệu để vẽ biểu đồ'}
+          </p>
+        </div>
       ) : (
         <div style={{ height }}>
           <ResponsiveContainer width="100%" height="100%">

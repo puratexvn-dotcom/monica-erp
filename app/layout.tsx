@@ -92,10 +92,13 @@ export default async function RootLayout({
       <body className={inter.className}>
         {/* 2. Bọc toàn bộ ứng dụng (children) bên trong LanguageProvider */}
         <LanguageProvider>
-          {/* pb khớp CHÍNH XÁC chiều cao thanh điều hướng (h-[4.75rem]).
-              Thanh cao lên vì font 4 nút tăng gấp 3, nên phần chừa chỗ phải
-              tăng theo — để pb-16 cũ thì footer bị thanh đó che mất một phần. */}
-          <div className="pb-[4.75rem]">{children}</div>
+          {/* Chừa chỗ cho thanh điều hướng cố định (cao h-16 = 64px).
+              pb-24 = 96px, dư 32px làm khoảng thở: chừa đúng bằng chiều cao
+              thanh thì dòng nội dung cuối cùng dính sát mép trên của thanh,
+              đọc rất khó chịu. Phần chừa nằm ở ĐÂY chứ không nằm trong từng
+              trang — mọi trang dùng chung một thanh thì cũng chỉ chừa một lần,
+              chừa hai lần sẽ ra một khoảng trắng gấp đôi ở cuối trang. */}
+          <div className="pb-24">{children}</div>
 
           <AppBottomNav role={role} reportMetrics={reportMetrics} />
 

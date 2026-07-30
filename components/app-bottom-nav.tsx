@@ -45,21 +45,24 @@ export default function AppBottomNav({
   const workbenchHref = role ? ROLE_HOME[role] : '/login';
   const onWorkbench = role ? pathname === ROLE_HOME[role] : false;
 
-  // Font TĂNG GẤP 3 (text-[11px] -> text-xl, tức 11px -> 20px).
+  // TỶ LỆ ICON/CHỮ ĐẢO NGƯỢC so với bản trước: icon to (28px) làm phần nhận
+  // diện chính, chữ thu về 10px chỉ còn vai trò chú thích.
   //
-  // Trên màn 360px mỗi ô chỉ rộng 90px, mà "Bàn làm việc" ở cỡ text-xl chiếm
-  // ~120px nên sẽ ngắt dòng xấu. Vì vậy nhãn có hai bản: bản ngắn cho mobile,
-  // bản đầy đủ từ sm trở lên. Cỡ chữ vẫn là text-xl ở mọi màn như yêu cầu.
+  // Lý do: trên thanh điều hướng, người dùng nhận ra nút bằng HÌNH trước khi
+  // kịp đọc chữ. Bản cũ để chữ 20px nên "Bàn làm việc" phải cắt thành "Bàn
+  // việc" mới vừa ô 90px trên màn 360px, mà cắt chữ thì lại mất luôn nghĩa.
+  // Ở cỡ 10px thì cả bốn nhãn đầy đủ đều vừa, không phải cắt bớt chữ nào.
   const btn =
-    'flex h-full w-full flex-col items-center justify-center gap-0.5 px-1 text-xl font-bold leading-none transition';
+    'flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-[10px] font-bold leading-none tracking-tight transition';
+  const icon = 'h-7 w-7 shrink-0';
 
   return (
     <>
       <nav
         aria-label="Điều hướng chính"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg"
+        className="fixed bottom-0 left-0 z-50 w-full border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-lg"
       >
-        <ul className="mx-auto flex h-[4.75rem] max-w-2xl items-stretch">
+        <ul className="mx-auto flex h-16 max-w-2xl items-stretch">
           <li className="flex-1">
             <Link
               href={workbenchHref}
@@ -67,16 +70,15 @@ export default function AppBottomNav({
               className={`${btn} ${onWorkbench ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <span className="relative">
-                <LayoutDashboard className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <LayoutDashboard className={icon} aria-hidden="true" />
                 {onWorkbench && (
                   <span
-                    className="absolute -top-2 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-indigo-600"
+                    className="absolute -top-2.5 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-indigo-600"
                     aria-hidden="true"
                   />
                 )}
               </span>
-              <span className="sm:hidden">Bàn việc</span>
-              <span className="hidden sm:inline">Bàn làm việc</span>
+              <span>Bàn làm việc</span>
             </Link>
           </li>
 
@@ -86,7 +88,7 @@ export default function AppBottomNav({
               onClick={() => setOpenSheet('chat')}
               className={`${btn} ${openSheet === 'chat' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              <MessageSquare className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <MessageSquare className={icon} aria-hidden="true" />
               Chat
             </button>
           </li>
@@ -97,7 +99,7 @@ export default function AppBottomNav({
               onClick={() => setOpenSheet('report')}
               className={`${btn} ${openSheet === 'report' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              <BarChart3 className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <BarChart3 className={icon} aria-hidden="true" />
               Báo cáo
             </button>
           </li>
@@ -108,7 +110,7 @@ export default function AppBottomNav({
               onClick={() => setOpenSheet('ai')}
               className={`${btn} ${openSheet === 'ai' ? 'text-violet-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              <Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <Sparkles className={icon} aria-hidden="true" />
               A.I
             </button>
           </li>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import {
   Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
@@ -29,6 +29,8 @@ import RiskCenter from '@/components/md/collab/risk-center';
 import {
   MaterialGenDialog, ProductionGenDialog,
 } from '@/components/md/planning/auto-generate-dialogs';
+import KpiGrid, { type KpiTarget } from '@/components/md/dashboard/kpi-grid';
+import { useMdDashboard } from '@/components/md/dashboard/use-md-dashboard';
 import type {
   PoRow, StyleRow, CustomerRow, InquiryRow, CostingRow, ActivityRow,
 } from '@/schemas/md';
@@ -74,12 +76,13 @@ import {
 
 // Thư viện biểu đồ nặng gần 100 kB. Tách thành gói riêng, tải sau khi trang đã
 // dùng được: mạng ở xưởng chậm, không nên bắt chờ biểu đồ mới bấm được vào tab.
-const MdDashboard = dynamic(() => import('@/components/md/dashboard/md-dashboard'), {
+// Khối chỉ số KHÔNG nằm trong gói này — nó không đụng tới thư viện biểu đồ.
+const MdCharts = dynamic(() => import('@/components/md/dashboard/md-dashboard'), {
   ssr: false,
   loading: () => (
-    <div className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-12 text-slate-400">
+    <div className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-12 text-slate-400">
       <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-      <span className="text-sm font-medium">Đang tải bảng tổng quan...</span>
+      <span className="text-sm font-medium">Đang tải biểu đồ...</span>
     </div>
   ),
 });
@@ -165,6 +168,18 @@ export default function MdClient({
   const [dialog, setDialog] = useState<TabKey | null>(null);
   const [autoDialog, setAutoDialog] = useState<'material' | 'production' | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // Số liệu tổng quan nạp MỘT LẦN, dùng cho cả khối chỉ số lẫn khối biểu đồ
+  const dashboard = useMdDashboard();
+
+  // Thanh tab nằm trên cùng còn khối chỉ số nằm dưới cuối, nên bấm vào một thẻ
+  // chỉ số phải cuộn ngược lên — không thì người dùng đổi tab mà màn hình không
+  // đổi gì, tưởng nút hỏng.
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const goTab = useCallback((target: KpiTarget) => {
+    setTab(target);
+    tabBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   // ─── Dữ liệu nạp theo tab ─────────────────────────────────────────────────
   const [customers, setCustomers] = useState<{ rows: CustomerRow[]; error: string | null } | null>(null);
@@ -299,11 +314,10 @@ export default function MdClient({
 
   return (
     <>
-      {/* ── Bảng tổng quan điều hành ──────────────────────────────────── */}
-      <MdDashboard />
-
-      {/* ── Thanh tab theo ba nhóm, cuộn ngang trên điện thoại ────────── */}
-      <div className="-mx-1 mb-5 space-y-2 px-1">
+      {/* ── NGHIỆP VỤ TRƯỚC: thanh tab nằm ngay dưới thanh đầu trang ──
+          Mở màn hình là bấm vào làm việc được ngay, không phải cuộn qua
+          biểu đồ. Khối tổng quan và biểu đồ đẩy xuống cuối trang. ────── */}
+      <div ref={tabBarRef} className="-mx-1 mb-5 space-y-2 px-1 pt-1">
         {GROUPS.map((g) => (
           <div key={g} className="flex items-center gap-2">
             <span className="hidden w-24 shrink-0 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:block">
@@ -607,6 +621,17 @@ export default function MdClient({
           <p className="border-t border-slate-100 px-5 py-2 text-xs text-slate-400">Đang cập nhật...</p>
         )}
       </Card>
+
+      {/* ── TỔNG QUAN ĐIỀU HÀNH + BIỂU ĐỒ: đặt sau khu làm việc ──────── */}
+      <div className="mt-6 space-y-6 border-t border-slate-200 pt-6">
+        <KpiGrid
+          data={dashboard.data}
+          loading={dashboard.loading}
+          onReload={dashboard.reload}
+          onGo={goTab}
+        />
+        <MdCharts data={dashboard.data} />
+      </div>
 
       {/* ── Các hộp thoại tạo mới ──────────────────────────────────────── */}
       <CustomerFormDialog
