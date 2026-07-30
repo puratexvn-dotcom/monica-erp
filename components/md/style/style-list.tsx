@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Search, Palette, Ruler, Layers, PackageSearch, Maximize2 } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
@@ -20,7 +20,7 @@ import type { StyleRow } from '@/schemas/md';
 // dùng cho nhiều PO, khai định mức một lần là mọi PO đó đều lấy theo.
 // ============================================================================
 
-export default function StyleList({
+function StyleList({
   rows,
   error,
   onRefresh,
@@ -167,3 +167,8 @@ export default function StyleList({
 }
 
 export { PackageSearch };
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(StyleList);

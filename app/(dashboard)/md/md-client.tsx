@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import {
   Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
@@ -197,35 +197,46 @@ export default function MdClient({
     Array<{ id: string; customer_code: string; name: string }>
   >([]);
 
+  // ─── VÌ SAO SOI TRẠNG THÁI QUA REF ───────────────────────────────────────
+  // loadTab cần biết tab nào đã nạp rồi. Nếu đọc thẳng tám biến trạng thái thì
+  // chúng phải nằm trong danh sách phụ thuộc, khiến loadTab đổi danh tính sau
+  // MỖI lần nạp. loadTab đổi thì refresh đổi, refresh đổi thì mọi bảng con
+  // nhận prop mới và vẽ lại — đó chính là cảm giác giật khi chuyển tab.
+  // Ref giữ bản sao mới nhất mà không tham gia vào danh tính hàm.
+  const loadedRef = useRef<Record<string, boolean>>({});
+
   /** Nạp dữ liệu của MỘT tab. force = true để bỏ qua bộ nhớ tạm khi bấm Tải lại. */
   const loadTab = useCallback(async (key: TabKey, force = false) => {
-    const need = (cur: unknown) => force || cur === null;
+    const need = () => force || !loadedRef.current[key];
+    const done = () => {
+      loadedRef.current[key] = true;
+    };
     setLoadingTab(true);
     try {
       switch (key) {
         case 'customers':
-          if (need(customers)) setCustomers(await listCustomersClient());
+          if (need()) { setCustomers(await listCustomersClient()); done(); }
           break;
         case 'rfq':
-          if (need(inquiries)) setInquiries(await listInquiriesClient());
+          if (need()) { setInquiries(await listInquiriesClient()); done(); }
           break;
         case 'costing':
-          if (need(costings)) setCostings(await listCostingsClient());
+          if (need()) { setCostings(await listCostingsClient()); done(); }
           break;
         case 'documents':
-          if (need(documents)) setDocuments(await listDocumentsClient());
+          if (need()) { setDocuments(await listDocumentsClient()); done(); }
           break;
         case 'comments':
-          if (need(comments)) setComments(await listCommentsClient());
+          if (need()) { setComments(await listCommentsClient()); done(); }
           break;
         case 'changes':
-          if (need(changes)) setChanges(await listChangeRequestsClient());
+          if (need()) { setChanges(await listChangeRequestsClient()); done(); }
           break;
         case 'risks':
-          if (need(risks)) setRisks(await listRisksClient());
+          if (need()) { setRisks(await listRisksClient()); done(); }
           break;
         case 'audit':
-          if (need(activity)) setActivity(await listActivityClient());
+          if (need()) { setActivity(await listActivityClient()); done(); }
           break;
         default:
           break;
@@ -233,7 +244,7 @@ export default function MdClient({
     } finally {
       setLoadingTab(false);
     }
-  }, [customers, inquiries, costings, documents, comments, changes, risks, activity]);
+  }, []);
 
   useEffect(() => {
     void loadTab(tab);
@@ -261,6 +272,18 @@ export default function MdClient({
   }, [tab, loadTab]);
 
   const doRefresh = () => startTransition(() => { void refresh(); });
+
+  // Bọc memo chỉ có tác dụng khi PROP ổn định. Hàm mũi tên viết thẳng trong
+  // JSX sinh danh tính mới ở mỗi lượt vẽ, làm memo vô hiệu hoàn toàn. Dựng sẵn
+  // một hàm tải lại cho mỗi tab, chỉ tạo đúng một lần.
+  const reloaders = useMemo(() => {
+    const make = (k: TabKey) => () => loadTab(k, true);
+    return {
+      customers: make('customers'), rfq: make('rfq'), costing: make('costing'),
+      documents: make('documents'), comments: make('comments'),
+      changes: make('changes'), risks: make('risks'), audit: make('audit'),
+    };
+  }, [loadTab]);
 
   // Đếm để hiện trên tab — người dùng biết ngay nhóm nào có việc.
   // Tab chưa nạp thì trả null (ẩn số) chứ không trả 0: hiện 0 khi thật ra
@@ -302,8 +325,13 @@ export default function MdClient({
 
   // Bảng tra SAM theo đơn hàng, để hộp thoại sinh lệnh sản xuất xem trước được
   // số ngày ngay khi người dùng còn đang gõ.
-  const samByOrder: Record<string, number | null> = {};
-  for (const p of poRows) samByOrder[p.id] = p.sam_minutes;
+  // Dựng lại mỗi lần vẽ sẽ tạo một đối tượng mới, khiến hộp thoại sinh lệnh
+  // sản xuất nhận prop khác nhau ở mọi lượt và vẽ lại vô ích.
+  const samByOrder = useMemo(() => {
+    const m: Record<string, number | null> = {};
+    for (const p of poRows) m[p.id] = p.sam_minutes;
+    return m;
+  }, [poRows]);
 
   const Waiting = (
     <div className="flex items-center justify-center gap-2 py-16 text-slate-400">
@@ -338,7 +366,7 @@ export default function MdClient({
                     role="tab"
                     aria-selected={on}
                     onClick={() => setTab(t.key)}
-                    className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition ${
+                    className={`flex shrink-0 touch-manipulation select-none items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition active:scale-95 ${
                       on
                         ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/25'
                         : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-600'
@@ -406,7 +434,7 @@ export default function MdClient({
         {tab === 'customers' && (
           <div className="p-4">
             {customers === null ? Waiting : (
-              <CustomerList rows={customers.rows} error={customers.error} onRefresh={() => loadTab('customers', true)} />
+              <CustomerList rows={customers.rows} error={customers.error} onRefresh={reloaders.customers} />
             )}
           </div>
         )}
@@ -414,7 +442,7 @@ export default function MdClient({
         {tab === 'rfq' && (
           <div className="p-4">
             {inquiries === null ? Waiting : (
-              <InquiryList rows={inquiries.rows} error={inquiries.error} onRefresh={() => loadTab('rfq', true)} />
+              <InquiryList rows={inquiries.rows} error={inquiries.error} onRefresh={reloaders.rfq} />
             )}
           </div>
         )}
@@ -422,7 +450,7 @@ export default function MdClient({
         {tab === 'costing' && (
           <div className="p-4">
             {costings === null ? Waiting : (
-              <CostingList rows={costings.rows} error={costings.error} onRefresh={() => loadTab('costing', true)} />
+              <CostingList rows={costings.rows} error={costings.error} onRefresh={reloaders.costing} />
             )}
           </div>
         )}
@@ -575,7 +603,7 @@ export default function MdClient({
         {tab === 'documents' && (
           <div className="p-4">
             {documents === null ? Waiting : (
-              <DocumentCenter rows={documents.rows} error={documents.error} onRefresh={() => loadTab('documents', true)} />
+              <DocumentCenter rows={documents.rows} error={documents.error} onRefresh={reloaders.documents} />
             )}
           </div>
         )}
@@ -583,7 +611,7 @@ export default function MdClient({
         {tab === 'comments' && (
           <div className="p-4">
             {comments === null ? Waiting : (
-              <CommentCenter rows={comments.rows} error={comments.error} onRefresh={() => loadTab('comments', true)} />
+              <CommentCenter rows={comments.rows} error={comments.error} onRefresh={reloaders.comments} />
             )}
           </div>
         )}
@@ -595,7 +623,7 @@ export default function MdClient({
                 rows={changes.rows}
                 error={changes.error}
                 pos={poRows}
-                onRefresh={() => loadTab('changes', true)}
+                onRefresh={reloaders.changes}
               />
             )}
           </div>
@@ -604,7 +632,7 @@ export default function MdClient({
         {tab === 'risks' && (
           <div className="p-4">
             {risks === null ? Waiting : (
-              <RiskCenter rows={risks.rows} error={risks.error} onRefresh={() => loadTab('risks', true)} />
+              <RiskCenter rows={risks.rows} error={risks.error} onRefresh={reloaders.risks} />
             )}
           </div>
         )}
@@ -612,7 +640,7 @@ export default function MdClient({
         {tab === 'audit' && (
           <div className="p-4">
             {activity === null ? Waiting : (
-              <ActivityCenter rows={activity.rows} error={activity.error} onRefresh={() => loadTab('audit', true)} />
+              <ActivityCenter rows={activity.rows} error={activity.error} onRefresh={reloaders.audit} />
             )}
           </div>
         )}
@@ -646,14 +674,14 @@ export default function MdClient({
         open={dialog === 'rfq'}
         customers={customerOptions}
         onClose={() => setDialog(null)}
-        onCreated={() => loadTab('rfq', true)}
+        onCreated={reloaders.rfq}
       />
       <CostingFormDialog
         open={dialog === 'costing'}
         customers={customerOptions}
         styles={styles}
         onClose={() => setDialog(null)}
-        onCreated={() => loadTab('costing', true)}
+        onCreated={reloaders.costing}
       />
       <PoFormDialog open={dialog === 'po'} onClose={() => setDialog(null)} onCreated={refresh} />
       <StyleFormDialog open={dialog === 'styles'} onClose={() => setDialog(null)} onCreated={refresh} />

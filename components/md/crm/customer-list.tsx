@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Maximize2, Search } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
@@ -18,7 +18,7 @@ import type { CustomerRow } from '@/schemas/md';
 // dòng chỉ để hiện hai con số. Chưa từng tính thì hiện "—", không hiện 0.
 // ============================================================================
 
-export default function CustomerList({
+function CustomerList({
   rows,
   error,
   onRefresh,
@@ -136,3 +136,8 @@ export default function CustomerList({
     </>
   );
 }
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(CustomerList);

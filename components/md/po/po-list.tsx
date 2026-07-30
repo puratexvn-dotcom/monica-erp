@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Search, TriangleAlert, Maximize2, PackageSearch } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
@@ -21,7 +21,7 @@ import type { PoRow } from '@/schemas/md';
 
 type Filter = 'all' | 'late' | 'risk';
 
-export default function PoList({
+function PoList({
   rows,
   error,
   onRefresh,
@@ -192,3 +192,8 @@ export default function PoList({
 }
 
 export { PackageSearch };
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(PoList);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { memo, useMemo, useState, useTransition } from 'react';
 import { AtSign, CheckCircle2, ListTodo, MessageSquare, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -25,7 +25,7 @@ import type { CommentCenterRow } from '@/app/(dashboard)/md/_services/collaborat
 // giao cho một bộ phận thì mới có người chịu trách nhiệm đóng nó lại.
 // ============================================================================
 
-export default function CommentCenter({
+function CommentCenter({
   rows,
   error,
   onRefresh,
@@ -193,3 +193,8 @@ export default function CommentCenter({
     </>
   );
 }
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(CommentCenter);

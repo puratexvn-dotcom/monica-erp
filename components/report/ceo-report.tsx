@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
 import {
   AlertOctagon, BarChart3, CheckCircle2, Download, Loader2, RefreshCw, TriangleAlert,
 } from 'lucide-react';
@@ -12,6 +11,7 @@ import {
 } from 'recharts';
 
 import { getCeoReport, type CeoReport } from '@/app/actions/ceo-report';
+import { exportNodeAsPng } from '@/lib/export-image';
 import { ROLE_LABEL } from '@/lib/rbac';
 
 // ============================================================================
@@ -118,35 +118,31 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
 
   async function exportImage() {
     const node = captureRef.current;
-    if (!node) return;
+    if (!node) {
+      toast.error('Không tìm thấy vùng cần chụp');
+      return;
+    }
+    // Khối đang ẩn hoặc cao bằng 0 thì html-to-image trả về ảnh rỗng mà không
+    // báo lỗi. Chặn trước để thông báo nói đúng nguyên nhân.
+    if (node.offsetHeight === 0 || node.offsetWidth === 0) {
+      toast.error('Chưa chụp được', {
+        description: 'Bảng báo cáo chưa hiện xong. Hãy đợi số liệu tải rồi bấm lại.',
+      });
+      return;
+    }
 
     setExporting(true);
     onBusyChange?.(true);
     try {
-      // Đợi một khung hình để chắc chắn Recharts đã vẽ xong SVG. Chụp sớm hơn
-      // thì phần biểu đồ trong ảnh ra trắng.
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-      const dataUrl = await toPng(node, {
-        backgroundColor: '#ffffff', // BẮT BUỘC, thiếu là ảnh ra nền đen
-        pixelRatio: 2, // còn nét khi xem trên điện thoại màn hình dày đặc
-        cacheBust: true,
-        // Ép bề rộng cố định lúc chụp: trên điện thoại vùng chụp chỉ rộng
-        // ~340px, ảnh xuất ra sẽ chật và biểu đồ bị bóp. 900px cho ra tấm ảnh
-        // đọc thoải mái trên mọi máy nhận.
-        width: 900,
-        style: { width: '900px' },
-      });
-
-      const link = document.createElement('a');
-      link.download = `bao-cao-giam-doc-${data?.generatedAt.slice(0, 10) ?? 'hom-nay'}.png`;
-      link.href = dataUrl;
-      link.click();
-      toast.success('Đã lưu ảnh báo cáo', { description: link.download });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Lỗi không xác định';
-      console.error('[ceo-report] xuất ảnh lỗi:', e);
-      toast.error('Không xuất được ảnh', { description: msg });
+      const name = `bao-cao-giam-doc-${data?.generatedAt.slice(0, 10) ?? 'hom-nay'}.png`;
+      const res = await exportNodeAsPng(node, name);
+      if (res.ok) {
+        toast.success(res.openedInTab ? 'Ảnh đã mở ở tab mới' : 'Đã lưu ảnh báo cáo', {
+          description: res.message,
+        });
+      } else {
+        toast.error('Không xuất được ảnh', { description: res.message, duration: 9000 });
+      }
     } finally {
       setExporting(false);
       onBusyChange?.(false);

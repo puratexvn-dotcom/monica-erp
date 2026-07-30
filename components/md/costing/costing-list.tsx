@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Maximize2, Search } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
@@ -27,7 +27,7 @@ function toneOfStatus(s: string) {
   return 'amber' as const;
 }
 
-export default function CostingList({
+function CostingList({
   rows,
   error,
   onRefresh,
@@ -183,3 +183,8 @@ export default function CostingList({
     </>
   );
 }
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(CostingList);

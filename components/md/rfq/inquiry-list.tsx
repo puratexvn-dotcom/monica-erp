@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { memo, useMemo, useState, useTransition } from 'react';
 import { Search, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -30,7 +30,7 @@ function toneOf(status: string) {
   return 'amber' as const;
 }
 
-export default function InquiryList({
+function InquiryList({
   rows,
   error,
   onRefresh,
@@ -177,3 +177,8 @@ export default function InquiryList({
     </>
   );
 }
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(InquiryList);

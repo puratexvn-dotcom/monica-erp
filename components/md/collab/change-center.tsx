@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { memo, useMemo, useState, useTransition } from 'react';
 import { ArrowRight, Check, Plus, Search, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -32,7 +32,7 @@ function toneOf(s: string) {
   return 'amber' as const;
 }
 
-export default function ChangeCenter({
+function ChangeCenter({
   rows,
   error,
   pos,
@@ -206,3 +206,8 @@ export default function ChangeCenter({
     </>
   );
 }
+
+// Bảng dữ liệu nặng: chỉ vẽ lại khi mảng dòng hoặc lỗi thật sự đổi.
+// Trang cha giữ mười ba tab nên mỗi lần đổi tab là một lượt vẽ; không bọc
+// memo thì bảng đang ẩn cũng bị dựng lại theo.
+export default memo(ChangeCenter);

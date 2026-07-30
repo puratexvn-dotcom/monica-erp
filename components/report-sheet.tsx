@@ -2,13 +2,13 @@
 
 import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
 import { Download, Loader2, BarChart3, LayoutDashboard, ListOrdered } from 'lucide-react';
 import { toast } from 'sonner';
 
 import Sheet from '@/components/sheet';
 import { ProgressBar, Badge } from '@/components/ui';
 import { ROLE_LABEL, type Role } from '@/lib/rbac';
+import { exportNodeAsPng } from '@/lib/export-image';
 
 // Recharts nặng gần 100 kB — chỉ tải khi người dùng thật sự mở tab Giám đốc,
 // không nhét vào gói chung của mọi trang chỉ vì thanh điều hướng có nút Báo cáo.
@@ -79,29 +79,22 @@ export default function ReportSheet({
 
   async function exportImage() {
     const node = captureRef.current;
-    if (!node) return;
+    if (!node || node.offsetHeight === 0) {
+      toast.error('Chưa chụp được', { description: 'Bảng số liệu chưa hiện xong.' });
+      return;
+    }
 
     setExporting(true);
     try {
-      const dataUrl = await toPng(node, {
-        // Nền trắng BẮT BUỘC: foreignObject không kế thừa nền, thiếu là ra ảnh đen
-        backgroundColor: '#ffffff',
-        // pixelRatio 2 để ảnh còn nét khi xem trên điện thoại màn hình dày đặc
-        pixelRatio: 2,
-        cacheBust: true,
-      });
-
       const stamp = vnNow.toISOString().slice(0, 10);
-      const link = document.createElement('a');
-      link.download = `bao-cao-${role ?? 'chung'}-${stamp}.png`;
-      link.href = dataUrl;
-      link.click();
-
-      toast.success('Đã lưu ảnh báo cáo', { description: link.download });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Lỗi không xác định';
-      console.error('[report] xuất ảnh lỗi:', e);
-      toast.error('Không xuất được ảnh', { description: msg });
+      const res = await exportNodeAsPng(node, `bao-cao-${role ?? 'chung'}-${stamp}.png`, 760);
+      if (res.ok) {
+        toast.success(res.openedInTab ? 'Ảnh đã mở ở tab mới' : 'Đã lưu ảnh báo cáo', {
+          description: res.message,
+        });
+      } else {
+        toast.error('Không xuất được ảnh', { description: res.message, duration: 9000 });
+      }
     } finally {
       setExporting(false);
     }

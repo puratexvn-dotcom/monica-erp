@@ -78,7 +78,13 @@ export default function Sheet({
       className={`fixed inset-x-0 top-0 bottom-16 z-[60] flex overflow-hidden bg-slate-900/50 backdrop-blur-sm ${
         side === 'right' ? 'justify-end' : 'items-end justify-center'
       }`}
-      style={{ maxHeight: 'calc(100dvh - 4rem)' }}
+      // ─── VÌ SAO ĐẶT CẢ height LẪN maxHeight ────────────────────────────────
+      // Bàn phím ảo bật lên làm vùng nhìn thấy co lại. dvh cập nhật theo vùng
+      // đó, nên panel tự co theo và ô nhập luôn nằm ngay trên bàn phím thay vì
+      // bị đẩy xuống dưới màn hình.
+      // Chỉ đặt maxHeight thì khi nội dung ngắn, panel co lại theo nội dung và
+      // ô nhập trôi lên giữa màn hình — phải ép luôn height.
+      style={{ height: 'calc(100dvh - 4rem)', maxHeight: 'calc(100dvh - 4rem)' }}
       onClick={onClose}
       role="presentation"
     >
