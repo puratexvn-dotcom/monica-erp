@@ -7,11 +7,17 @@
 // đợi thông báo chồng nhau.
 //
 // Phần chừa chỗ cho thanh cố định (pb-16) cũng đã làm ở layout gốc.
+//
+// DashboardTopbar được thêm vào đây vì trước đó các trang phân hệ không có
+// header nào, dẫn tới không còn đường quay về trang chủ sau khi đăng nhập.
 // ============================================================================
+
+import DashboardTopbar from '@/components/dashboard-topbar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50">
+      <DashboardTopbar />
       <main className="w-full">{children}</main>
     </div>
   );

@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Search, Bell, ChevronDown, CornerDownLeft } from 'lucide-react';
 
@@ -143,8 +144,15 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl backdrop-saturate-150">
         <div className="mx-auto flex h-24 max-w-[1600px] items-center gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8">
-          {/* Logo */}
-          <div className="relative h-16 w-48 shrink-0 sm:h-[4.5rem] sm:w-64">
+          {/* Logo — BẤM VÀO VỀ TRANG CHỦ.
+              Trước đây đây là <div> trơn, nên khi đã vào phân hệ thì không còn
+              đường nào quay về / (bottom nav chỉ có 4 nút, nút "Bàn làm việc"
+              lại dẫn về dashboard bộ phận). Logo dẫn về trang chủ là quy ước
+              chung của mọi ứng dụng web. */}
+          <Link
+            href="/"
+            aria-label="Về trang chủ Monica ERP"
+            className="relative h-16 w-48 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-[4.5rem] sm:w-64">
             <Image
               src={LOGO_SRC}
               alt={LOGO_ALT}
@@ -153,7 +161,7 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
               className="object-contain object-left"
               priority
             />
-          </div>
+          </Link>
 
           {/* Ô tìm kiếm nhanh */}
           <button
