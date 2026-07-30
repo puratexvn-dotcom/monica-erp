@@ -1,22 +1,24 @@
-import { BookOpen } from 'lucide-react';
-
 // ============================================================================
-// LỜI CHÚA HÔM NAY
+// LỜI CHÚA HÔM NAY — Tin Mừng, đổi mỗi ngày lúc 04:00 giờ Việt Nam
 //
 // ─── VÌ SAO KHÔNG DÙNG Math.random() ─────────────────────────────────────
-// Bản gốc random trong useEffect nên F5 ba lần ra ba câu khác nhau, trong khi
-// chú thích lại ghi "mỗi ngày". Ở đây lấy chỉ số TỪ CHÍNH NGÀY: cùng một ngày
-// thì mọi người, mọi thiết bị, mọi lần tải trang đều thấy đúng một câu — đó
-// mới là "Lời Chúa hôm nay" theo nghĩa dùng được trong nhà máy.
+// Random thì F5 ba lần ra ba câu khác nhau. Ở đây chỉ số lấy TỪ CHÍNH NGÀY:
+// cùng một ngày thì mọi người, mọi thiết bị, mọi lần tải trang đều thấy đúng
+// một câu — đó mới là "Lời Chúa hôm nay" theo nghĩa dùng được.
+//
+// ─── MỐC ĐỔI CÂU LÀ 04:00, KHÔNG PHẢI NỬA ĐÊM ────────────────────────────
+// Ca sản xuất ở nhà máy thường bắt đầu từ 6 giờ sáng, còn tổ trực đêm làm qua
+// 0 giờ. Nếu đổi câu vào nửa đêm thì người đang trong ca đêm tự nhiên thấy câu
+// khác giữa buổi làm. Lấy mốc 04:00 để trọn một ca đêm vẫn giữ nguyên một câu.
+//
+// Cách tính: cộng bù 7 giờ (về giờ Việt Nam) rồi TRỪ 4 giờ, tức cộng 3 giờ so
+// với UTC, sau đó cắt lấy phần ngày. Nhờ vậy 03:59 giờ Việt Nam vẫn thuộc
+// "ngày hôm qua", đúng 04:00 mới sang câu mới.
 //
 // ─── VÌ SAO LÀ SERVER COMPONENT ──────────────────────────────────────────
 // Nhờ tính theo ngày nên không cần state, không cần useEffect, không cần
-// 'use client'. Giá trị server tính ra trùng khớp client => không hydration
+// 'use client'. Giá trị server tính ra trùng khớp client => KHÔNG hydration
 // mismatch, và không thêm một byte JavaScript nào vào bundle.
-//
-// Ngày lấy theo Asia/Ho_Chi_Minh (UTC+7), không theo giờ máy chủ: Vercel chạy
-// UTC nên nếu không quy đổi thì câu Lời Chúa sẽ đổi vào 7 giờ sáng giờ Việt Nam
-// chứ không phải lúc nửa đêm.
 // ============================================================================
 
 interface Verse {
@@ -24,6 +26,8 @@ interface Verse {
   ref: string;
 }
 
+/** Trích Tin Mừng theo bốn Phúc Âm. Thêm/bớt bao nhiêu câu cũng chạy đúng,
+ *  vì chỉ số lấy theo phép chia lấy dư trên độ dài mảng. */
 const VERSES: Verse[] = [
   { text: 'Phúc thay ai có tâm hồn nghèo khó, vì Nước Trời là của họ.', ref: 'Mt 5,3' },
   { text: 'Thầy để lại bình an cho anh em, Thầy ban cho anh em bình an của Thầy.', ref: 'Ga 14,27' },
@@ -33,62 +37,93 @@ const VERSES: Verse[] = [
   },
   { text: 'Anh em hãy yêu thương nhau như Thầy đã yêu thương anh em.', ref: 'Ga 15,12' },
   { text: 'Ai trung tín trong việc rất nhỏ, thì cũng trung tín trong việc lớn.', ref: 'Lc 16,10' },
-  { text: 'Tất cả những gì anh em làm, hãy làm hết lòng như làm cho Chúa.', ref: 'Cl 3,23' },
   { text: 'Anh em hãy mang lấy gánh nặng cho nhau, như vậy là anh em chu toàn luật Đức Ki-tô.', ref: 'Gl 6,2' },
+  { text: 'Hãy đến cùng Thầy, hỡi tất cả những ai đang vất vả mang gánh nặng nề, Thầy sẽ cho nghỉ ngơi bồi dưỡng.', ref: 'Mt 11,28' },
+  { text: 'Anh em là muối cho đời, là ánh sáng cho thế gian.', ref: 'Mt 5,13-14' },
+  { text: 'Ai muốn làm lớn giữa anh em thì phải làm người phục vụ anh em.', ref: 'Mt 20,26' },
+  { text: 'Đừng lo lắng về ngày mai, ngày mai cứ để ngày mai lo.', ref: 'Mt 6,34' },
+  { text: 'Sự thật sẽ giải phóng các ông.', ref: 'Ga 8,32' },
+  { text: 'Cứ xin thì sẽ được, cứ tìm thì sẽ thấy, cứ gõ cửa thì sẽ mở cho.', ref: 'Mt 7,7' },
+  { text: 'Không có tình thương nào cao cả hơn tình thương của người đã hy sinh tính mạng vì bạn hữu của mình.', ref: 'Ga 15,13' },
+  { text: 'Thầy là con đường, là sự thật và là sự sống.', ref: 'Ga 14,6' },
 ];
 
-/** Mốc ngày theo giờ Việt Nam, dạng YYYY-MM-DD */
-function vnDateKey(): { key: string; label: string } {
-  const vn = new Date(Date.now() + 7 * 60 * 60 * 1000);
-  const key = vn.toISOString().slice(0, 10);
-  const label = vn.toLocaleDateString('vi-VN', {
+/** Giờ Việt Nam (UTC+7), lùi thêm 4 giờ để mốc đổi câu là 04:00 thay vì 00:00 */
+const VERSE_DAY_OFFSET_MS = (7 - 4) * 60 * 60 * 1000;
+
+/**
+ * Số thứ tự ngày (tính từ mốc epoch), đã dịch để ngày mới bắt đầu lúc 04:00.
+ *
+ * ⚠️ KHÔNG dùng số YYYYMMDD rồi lấy modulo. Cách đó SAI ở ranh giới tháng:
+ * từ 20260731 sang 20260801 con số nhảy 70, mà 70 chia hết cho 14 (số câu hiện
+ * có) nên ngày 1 tháng 8 lại ra đúng câu của ngày 31 tháng 7. Đếm theo số ngày
+ * thì mỗi ngày tăng đúng 1, bảo đảm hai ngày liền nhau luôn khác câu bất kể
+ * mảng có bao nhiêu câu.
+ */
+function verseDayNumber(): number {
+  return Math.floor((Date.now() + VERSE_DAY_OFFSET_MS) / 86_400_000);
+}
+
+/** Ngày thật theo giờ Việt Nam, để hiển thị cho người đọc */
+function vnDateLabel(): string {
+  return new Date(Date.now() + 7 * 60 * 60 * 1000).toLocaleDateString('vi-VN', {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     timeZone: 'UTC', // đã cộng bù 7 giờ ở trên, không cộng thêm lần nữa
   });
-  return { key, label };
 }
 
-/** Chỉ số ổn định theo ngày: cùng ngày -> cùng câu, đổi ngày -> đổi câu */
-function verseOfDay(dateKey: string): Verse {
-  const n = Number(dateKey.replace(/-/g, ''));
-  return VERSES[n % VERSES.length];
+function verseOfDay(dayNumber: number): Verse {
+  // Phép % của JS giữ dấu, mà dayNumber luôn dương ở đây nên không cần chuẩn hoá
+  return VERSES[dayNumber % VERSES.length];
 }
 
 export default function DailyVerses({ className = '' }: { className?: string }) {
-  const { key, label } = vnDateKey();
-  const verse = verseOfDay(key);
+  const verse = verseOfDay(verseDayNumber());
+  const label = vnDateLabel();
 
   return (
-    <section
-      aria-label="Lời Chúa hôm nay"
-      className={`overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 shadow-sm ${className}`}
-    >
-      <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:gap-6 sm:p-8">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-200">
-          <BookOpen className="h-7 w-7" aria-hidden="true" />
+    <section aria-label="Lời Chúa hôm nay" className={`mx-auto max-w-3xl text-center ${className}`}>
+      {/* Nhãn nhỏ + hai gạch hai bên, thay cho khung viền: khối này nằm ngay
+          trên tiêu đề thương hiệu nên để khung sẽ chen chúc và tranh sự chú ý */}
+      <div className="mb-4 flex items-center justify-center gap-3">
+        <span aria-hidden="true" className="h-px w-10 bg-gradient-to-r from-transparent to-violet-300" />
+        <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-600 sm:text-xs">
+          Lời Chúa hôm nay
+        </span>
+        <span aria-hidden="true" className="h-px w-10 bg-gradient-to-l from-transparent to-violet-300" />
+      </div>
+
+      {/* blockquote + cite là thẻ đúng ngữ nghĩa cho câu dẫn có nguồn.
+          Dấu ngoặc kép để ngoài blockquote và aria-hidden, nếu không trình đọc
+          màn hình sẽ đọc thành "dấu ngoặc kép" giữa câu Kinh Thánh. */}
+      <blockquote className="relative px-6 sm:px-10">
+        <span
+          aria-hidden="true"
+          className="absolute -left-1 -top-4 select-none font-serif text-6xl leading-none text-violet-200 sm:-left-2 sm:text-7xl"
+        >
+          &ldquo;
         </span>
 
-        <div className="min-w-0 flex-1">
-          <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-700">
-              Lời Chúa hôm nay
-            </h2>
-            <span className="text-xs font-semibold capitalize text-slate-400">{label}</span>
-          </div>
+        <p className="font-serif text-xl font-medium italic leading-relaxed text-slate-800 sm:text-2xl sm:leading-relaxed lg:text-[1.75rem]">
+          {verse.text}
+        </p>
 
-          {/* blockquote + cite là thẻ đúng ngữ nghĩa cho câu dẫn có nguồn */}
-          <blockquote className="text-lg font-medium italic leading-relaxed text-slate-800 sm:text-xl">
-            “{verse.text}”
-          </blockquote>
+        <span
+          aria-hidden="true"
+          className="absolute -bottom-8 -right-1 select-none font-serif text-6xl leading-none text-violet-200 sm:-right-2 sm:text-7xl"
+        >
+          &rdquo;
+        </span>
+      </blockquote>
 
-          <cite className="mt-3 block text-sm font-bold not-italic text-indigo-600">
-            — {verse.ref}
-          </cite>
-        </div>
-      </div>
+      <cite className="mt-5 block text-sm font-bold not-italic tracking-wide text-violet-700 sm:text-base">
+        — {verse.ref} —
+      </cite>
+
+      <p className="mt-1.5 text-xs font-medium capitalize text-slate-400">{label}</p>
     </section>
   );
 }

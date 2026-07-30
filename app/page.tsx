@@ -17,7 +17,7 @@ import {
 
 import TopNavbar, { type NavModule } from './top-navbar';
 import { getHomeMetrics } from './home-metrics';
-import HomeHeader from '@/components/home-header';
+import DailyVerses from '@/components/daily-verses';
 
 // ============================================================================
 // TRANG CHỦ — ULTRA PREMIUM ENTERPRISE DASHBOARD
@@ -150,14 +150,13 @@ export default async function HomePage() {
 
       {/* pb-28: chừa chỗ cho system footer cố định ở đáy màn hình */}
       <main className="mx-auto max-w-[1600px] px-4 pb-28 pt-10 sm:px-6 lg:px-8">
-        {/* ═══ DÒNG 1: LOGO · LỜI CHÚA · CHUÔNG ═════════════════════════ */}
-        <HomeHeader showVerses={showVerses} />
-
-        {/* ═══ TẦNG 2: LỜI CHÀO ═════════════════════════════════════════ */}
+        {/* ═══ LỜI CHÚA + LỜI CHÀO ══════════════════════════════════════
+            Logo và chuông CHỈ nằm trên Top Navigation Bar. Trước đây khối
+            HomeHeader lặp lại đúng hai thứ đó ở thân trang, gây rườm rà nên
+            đã gỡ bỏ. ═══════════════════════════════════════════════════════ */}
         <section className="mb-14 text-center">
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-violet-500 sm:text-sm">
-            Monica Garment · Hệ thống quản trị sản xuất
-          </p>
+          {showVerses && <DailyVerses className="mb-9" />}
+
           {/* Chữ thương hiệu: cỡ lớn nhất trang, gradient tím trên chữ Monica */}
           <h1 className="text-5xl font-black leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl">
             Welcome to{' '}
@@ -165,14 +164,11 @@ export default async function HomePage() {
               Monica
             </span>
           </h1>
+
           <span
             aria-hidden="true"
             className="mx-auto mt-6 block h-1 w-24 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
           />
-          <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-            Nền tảng quản trị dữ liệu hợp nhất từ Đơn hàng đến Xuất container. Vui lòng chọn phân hệ
-            làm việc của bạn.
-          </p>
         </section>
 
         {/* ═══ TẦNG 3: LƯỚI PHÂN HỆ THEO QUYỀN ══════════════════════════ */}
