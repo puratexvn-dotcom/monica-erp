@@ -146,17 +146,17 @@ export default async function HomePage() {
       <TopNavbar modules={NAV_MODULES} />
 
       {/* pb-28: chừa chỗ cho system footer cố định ở đáy màn hình */}
-      <main className="mx-auto max-w-[1600px] px-4 pb-28 pt-10 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[1600px] px-3 pb-10 pt-8 sm:px-6 sm:pt-10 lg:px-8">
         {/* ═══ LỜI CHÚA + LỜI CHÀO ══════════════════════════════════════
             Logo và chuông CHỈ nằm trên Top Navigation Bar. Trước đây khối
             HomeHeader lặp lại đúng hai thứ đó ở thân trang, gây rườm rà nên
             đã gỡ bỏ. ═══════════════════════════════════════════════════════ */}
-        <section className="mb-14 text-center">
-          {/* Lời Chúa hiện cho MỌI người, kể cả khách chưa đăng nhập: đây là
-              thứ đầu tiên ai mở ứng dụng cũng thấy. Cố ý KHÔNG lọc theo vai
-              trò — nội dung này không phải dữ liệu nghiệp vụ, và cũng không
-              phụ thuộc phiên đăng nhập nên khách lạ vẫn xem được bình thường. */}
-          <DailyVerses className="mb-9" />
+        {/* Lời Chúa: khối ĐẦU TIÊN của thân trang, nằm ngay dưới navbar và
+            trên chữ Welcome. Hiện cho MỌI người kể cả khách chưa đăng nhập —
+            nội dung này không phải dữ liệu nghiệp vụ nên không lọc theo vai trò. */}
+        <DailyVerses className="mb-10" />
+
+        <section className="mb-12 text-center">
 
           {/* Chữ thương hiệu: cỡ lớn nhất trang, gradient tím trên chữ Monica */}
           <h1 className="text-5xl font-black leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl">
@@ -174,48 +174,41 @@ export default async function HomePage() {
 
         {/* ═══ TẦNG 3: LƯỚI PHÂN HỆ THEO QUYỀN ══════════════════════════ */}
         <section aria-label="Phân hệ làm việc">
-          <div className="mb-6 flex items-baseline justify-between gap-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Phân hệ làm việc</h2>
-            <p className="text-base font-semibold text-slate-500">
-              {MODULES.length} phân hệ
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {MODULES.map((mod) => {
               const Icon = mod.icon;
               return (
                 <Link
                   key={mod.href}
                   href={mod.href}
-                  className={`group relative flex min-h-[15rem] flex-col justify-between overflow-hidden rounded-3xl p-6 shadow-lg ring-1 ring-inset ring-white/10 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-900 focus-visible:ring-offset-2 ${mod.bg} ${mod.glow}`}
+                  className={`group relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden rounded-2xl p-3.5 shadow-md ring-1 ring-inset ring-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-900 focus-visible:ring-offset-2 sm:min-h-[11rem] sm:rounded-3xl sm:p-5 ${mod.bg} ${mod.glow}`}
                 >
                   {/* Vệt sáng trang trí — nằm dưới nội dung, không cản click */}
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-white/10 blur-2xl transition-transform duration-500 group-hover:scale-150"
+                    className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/10 blur-2xl transition-transform duration-500 group-hover:scale-150 sm:h-36 sm:w-36"
                   />
 
                   <div className="relative">
-                    <div className="mb-6 flex items-start justify-between gap-3">
-                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-white/25">
-                        <Icon className="h-8 w-8 text-white" strokeWidth={1.75} aria-hidden="true" />
+                    <div className="mb-3 flex items-start justify-between gap-2 sm:mb-4">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-white/25 sm:h-12 sm:w-12 sm:rounded-2xl">
+                        <Icon className="h-5 w-5 text-white sm:h-6 sm:w-6" strokeWidth={1.9} aria-hidden="true" />
                       </span>
                       {metrics.badges[mod.href] && (
                         <span
-                          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ring-1 ring-black/5 ${mod.badgeCls}`}
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold leading-tight shadow-sm ring-1 ring-black/5 sm:px-2.5 sm:py-1 sm:text-[11px] ${mod.badgeCls}`}
                         >
                           {metrics.badges[mod.href]}
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-xl font-bold leading-snug tracking-tight text-white">
+                    <h3 className="text-[13px] font-bold leading-snug tracking-tight text-white sm:text-base">
                       {mod.name}
                     </h3>
                   </div>
 
-                  <p className={`relative mt-3 text-base font-medium leading-relaxed ${mod.sub}`}>
+                  <p className={`relative mt-2 text-[11px] font-medium leading-snug sm:text-xs ${mod.sub}`}>
                     {mod.desc}
                   </p>
                 </Link>
@@ -224,6 +217,26 @@ export default async function HomePage() {
           </div>
         </section>
       </main>
+
+      {/* ── FOOTER TĨNH — nằm TRÊN thanh điều hướng đáy ─────────────────
+          Không dùng position:fixed: thanh 4 nút đã fixed ở dưới, thêm một lớp
+          fixed nữa là hai thứ chồng nhau. Footer để trong luồng tài liệu, cuộn
+          tới cuối trang mới thấy — đúng chỗ của một dòng bản quyền. */}
+      <footer className="border-t border-slate-200 bg-white/60 px-4 py-5 text-center">
+        <p className="text-xs leading-relaxed text-slate-500">
+          © 2026 Monica ERP. Thiết kế &amp; Phát triển bởi Joseph.
+          <span className="mx-1.5 hidden text-slate-300 sm:inline">|</span>
+          <span className="block sm:inline">
+            Hotline Hỗ trợ Kỹ thuật:{' '}
+            <a
+              href="tel:0908779585"
+              className="font-semibold text-slate-600 underline-offset-2 transition hover:text-indigo-600 hover:underline"
+            >
+              0908 779 585
+            </a>
+          </span>
+        </p>
+      </footer>
 
       {/* ================= SYSTEM FOOTER CỐ ĐỊNH ================= */}
       <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/70 bg-white/80 backdrop-blur-xl backdrop-saturate-150">

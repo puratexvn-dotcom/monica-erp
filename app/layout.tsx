@@ -92,9 +92,10 @@ export default async function RootLayout({
       <body className={inter.className}>
         {/* 2. Bọc toàn bộ ứng dụng (children) bên trong LanguageProvider */}
         <LanguageProvider>
-          {/* pb-16: chừa chỗ cho thanh điều hướng cố định, nếu không nội dung
-              cuối trang bị thanh đó che mất */}
-          <div className="pb-16">{children}</div>
+          {/* pb khớp CHÍNH XÁC chiều cao thanh điều hướng (h-[4.75rem]).
+              Thanh cao lên vì font 4 nút tăng gấp 3, nên phần chừa chỗ phải
+              tăng theo — để pb-16 cũ thì footer bị thanh đó che mất một phần. */}
+          <div className="pb-[4.75rem]">{children}</div>
 
           <AppBottomNav role={role} reportMetrics={reportMetrics} />
 

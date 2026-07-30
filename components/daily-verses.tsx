@@ -15,6 +15,13 @@
 // với UTC, sau đó cắt lấy phần ngày. Nhờ vậy 03:59 giờ Việt Nam vẫn thuộc
 // "ngày hôm qua", đúng 04:00 mới sang câu mới.
 //
+// ─── VÌ SAO KHÔNG DÙNG font-serif ────────────────────────────────────────
+// Bản trước dùng font-serif, tức ui-serif/Georgia/Times New Roman. Mấy font đó
+// thiếu nhiều tổ hợp dấu tiếng Việt (â + huyền, ô + ngã...), nên trình duyệt
+// phải ghép chữ từ font dự phòng — chữ như "tâm hồn" ra lệch chân, lệch dấu.
+// Nay dùng font-sans để thừa hưởng Inter đã nạp qua next/font ở layout gốc:
+// Inter phủ đầy đủ bộ chữ Việt, mọi dấu nằm đúng vị trí.
+//
 // ─── VÌ SAO LÀ SERVER COMPONENT ──────────────────────────────────────────
 // Nhờ tính theo ngày nên không cần state, không cần useEffect, không cần
 // 'use client'. Giá trị server tính ra trùng khớp client => KHÔNG hydration
@@ -86,34 +93,24 @@ export default function DailyVerses({ className = '' }: { className?: string }) 
 
   return (
     <section aria-label="Lời Chúa hôm nay" className={`mx-auto max-w-3xl text-center ${className}`}>
-      {/* Nhãn nhỏ + hai gạch hai bên, thay cho khung viền: khối này nằm ngay
-          trên tiêu đề thương hiệu nên để khung sẽ chen chúc và tranh sự chú ý */}
-      <div className="mb-4 flex items-center justify-center gap-3">
-        <span aria-hidden="true" className="h-px w-10 bg-gradient-to-r from-transparent to-violet-300" />
-        <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-600 sm:text-xs">
-          Lời Chúa hôm nay
-        </span>
-        <span aria-hidden="true" className="h-px w-10 bg-gradient-to-l from-transparent to-violet-300" />
-      </div>
-
       {/* blockquote + cite là thẻ đúng ngữ nghĩa cho câu dẫn có nguồn.
           Dấu ngoặc kép để ngoài blockquote và aria-hidden, nếu không trình đọc
           màn hình sẽ đọc thành "dấu ngoặc kép" giữa câu Kinh Thánh. */}
       <blockquote className="relative px-6 sm:px-10">
         <span
           aria-hidden="true"
-          className="absolute -left-1 -top-4 select-none font-serif text-6xl leading-none text-violet-200 sm:-left-2 sm:text-7xl"
+          className="absolute -left-1 -top-4 select-none font-sans text-6xl leading-none text-violet-200 sm:-left-2 sm:text-7xl"
         >
           &ldquo;
         </span>
 
-        <p className="font-serif text-xl font-medium italic leading-relaxed text-slate-800 sm:text-2xl sm:leading-relaxed lg:text-[1.75rem]">
+        <p className="font-sans text-xl font-medium italic leading-relaxed text-slate-800 sm:text-2xl sm:leading-relaxed lg:text-[1.75rem]">
           {verse.text}
         </p>
 
         <span
           aria-hidden="true"
-          className="absolute -bottom-8 -right-1 select-none font-serif text-6xl leading-none text-violet-200 sm:-right-2 sm:text-7xl"
+          className="absolute -bottom-8 -right-1 select-none font-sans text-6xl leading-none text-violet-200 sm:-right-2 sm:text-7xl"
         >
           &rdquo;
         </span>

@@ -143,48 +143,56 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
     <>
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex h-24 max-w-[1600px] items-center gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8">
-          {/* Logo — BẤM VÀO VỀ TRANG CHỦ.
-              Trước đây đây là <div> trơn, nên khi đã vào phân hệ thì không còn
-              đường nào quay về / (bottom nav chỉ có 4 nút, nút "Bàn làm việc"
-              lại dẫn về dashboard bộ phận). Logo dẫn về trang chủ là quy ước
-              chung của mọi ứng dụng web. */}
+        <div className="mx-auto flex h-24 max-w-[1600px] items-center gap-3 px-3 sm:h-32 sm:gap-4 sm:px-6 lg:px-8">
+          {/* Logo — LỚN GẤP ĐÔI bản trước (h-16/w-48 -> h-20/w-64, desktop
+              h-[4.5rem]/w-64 -> h-28/w-[26rem]). Bấm vào về trang chủ: logo dẫn
+              về "/" là quy ước chung của mọi ứng dụng web, và đây cũng là đường
+              duy nhất quay lại trang chủ từ khu vực nội bộ.
+              Chiều rộng trên mobile giữ ở 16rem (256px) để còn chỗ cho nhóm nút
+              bên phải trên màn 360px — đặt w-96 sẽ tràn khỏi màn hình. */}
           <Link
             href="/"
             aria-label="Về trang chủ Monica ERP"
-            className="relative h-16 w-48 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-[4.5rem] sm:w-64">
+            className="relative h-20 w-64 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-28 sm:w-[26rem]"
+          >
             <Image
               src={LOGO_SRC}
               alt={LOGO_ALT}
               fill
-              sizes="256px"
+              sizes="(max-width: 640px) 256px, 416px"
               className="object-contain object-left"
               priority
             />
           </Link>
 
-          {/* Ô tìm kiếm nhanh */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Mở tìm kiếm nhanh"
-            className="group flex h-11 flex-1 items-center gap-3 rounded-xl border border-slate-200 bg-white/80 px-4 text-left shadow-sm transition-all hover:border-indigo-300 hover:bg-white hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 md:max-w-md"
-          >
-            <Search className="h-5 w-5 shrink-0 text-slate-400 transition-colors group-hover:text-indigo-500" />
-            <span className="flex-1 truncate text-base text-slate-400">Tìm phân hệ, nghiệp vụ...</span>
-            <kbd className="hidden shrink-0 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-500 sm:inline-block">
-              Ctrl K
-            </kbd>
-          </button>
-
-          <div className="ml-auto flex items-center gap-3 sm:gap-5">
+          {/* Nhóm bên phải: đồng hồ · TÌM KIẾM · chuông · hồ sơ.
+              Ô tìm kiếm nay nằm sát cạnh nút chuông theo yêu cầu. */}
+          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
             <LiveClock />
+
+            {/* Tìm kiếm: trên màn hẹp thu về đúng một nút icon, từ md trở lên
+                mới mở thành ô nhập có chữ. Nếu để ô rộng ở mọi cỡ màn thì logo
+                lớn + 3 nút bên phải sẽ không còn chỗ trên điện thoại. */}
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label="Mở tìm kiếm nhanh"
+              className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-400 shadow-sm transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-500 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 md:w-64 md:justify-start md:gap-3 md:px-4 lg:w-72"
+            >
+              <Search className="h-5 w-5 shrink-0" />
+              <span className="hidden flex-1 truncate text-left text-sm text-slate-400 md:inline">
+                Tìm phân hệ, nghiệp vụ...
+              </span>
+              <kbd className="hidden shrink-0 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 lg:inline-block">
+                Ctrl K
+              </kbd>
+            </button>
 
             {/* Chuông thông báo */}
             <button
               type="button"
               aria-label="Thông báo (3 chưa đọc)"
-              className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition-all hover:border-indigo-300 hover:text-indigo-600 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition-all hover:border-indigo-300 hover:text-indigo-600 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
               <Bell className="h-5 w-5" />
               <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white ring-2 ring-white">
@@ -196,16 +204,16 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
             <button
               type="button"
               aria-label="Tài khoản"
-              className="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 bg-white/80 pl-1.5 pr-2.5 shadow-sm transition-all hover:border-indigo-300 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="flex h-11 shrink-0 items-center gap-2.5 rounded-xl border border-slate-200 bg-white/80 pl-1.5 pr-1.5 shadow-sm transition-all hover:border-indigo-300 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:pr-2.5"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
                 JS
               </span>
-              <span className="hidden text-left sm:block">
+              <span className="hidden text-left lg:block">
                 <span className="block text-sm font-bold leading-tight text-slate-900">Joseph</span>
                 <span className="block text-xs leading-tight text-slate-500">Quản trị viên</span>
               </span>
-              <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
+              <ChevronDown className="hidden h-4 w-4 text-slate-400 lg:block" />
             </button>
           </div>
         </div>
