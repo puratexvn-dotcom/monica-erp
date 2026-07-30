@@ -134,9 +134,6 @@ export const dynamic = 'force-dynamic';
 export default async function HomePage() {
   const metrics = await getHomeMetrics();
 
-  // Chỉ Ban Giám đốc và Merchandiser thấy Lời Chúa
-  const showVerses = metrics.role === 'giamdoc' || metrics.role === 'md';
-
   // ⚠️ KHÔNG LỌC THEO VAI TRÒ Ở ĐÂY.
   // Trang chủ là launchpad, phải luôn hiện ĐỦ toàn bộ phân hệ cho mọi người —
   // đây là yêu cầu bất di bất dịch của dự án. Ai bấm vào phân hệ không thuộc
@@ -155,7 +152,11 @@ export default async function HomePage() {
             HomeHeader lặp lại đúng hai thứ đó ở thân trang, gây rườm rà nên
             đã gỡ bỏ. ═══════════════════════════════════════════════════════ */}
         <section className="mb-14 text-center">
-          {showVerses && <DailyVerses className="mb-9" />}
+          {/* Lời Chúa hiện cho MỌI người, kể cả khách chưa đăng nhập: đây là
+              thứ đầu tiên ai mở ứng dụng cũng thấy. Cố ý KHÔNG lọc theo vai
+              trò — nội dung này không phải dữ liệu nghiệp vụ, và cũng không
+              phụ thuộc phiên đăng nhập nên khách lạ vẫn xem được bình thường. */}
+          <DailyVerses className="mb-9" />
 
           {/* Chữ thương hiệu: cỡ lớn nhất trang, gradient tím trên chữ Monica */}
           <h1 className="text-5xl font-black leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl">
