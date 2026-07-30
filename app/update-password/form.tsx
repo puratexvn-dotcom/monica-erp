@@ -22,7 +22,7 @@ function SubmitButton() {
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className="inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-indigo-600 text-base font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-blue-600 text-base font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? (
         <>

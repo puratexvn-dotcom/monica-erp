@@ -109,7 +109,7 @@ function ChangeCenter({
         <button
           type="button"
           onClick={() => setDialogOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Tạo yêu cầu thay đổi
         </button>
@@ -181,7 +181,7 @@ function ChangeCenter({
                       type="button"
                       disabled={pending}
                       onClick={() => decide(r.id, 'APPLIED')}
-                      className="rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50"
+                      className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50"
                     >
                       Đã áp vào PO
                     </button>

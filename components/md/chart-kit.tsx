@@ -24,7 +24,7 @@ import {
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
 
 /** Bảng màu lấy đúng dải màu đang dùng ở phần còn lại của hệ thống */
-export const CHART_COLORS = ['#4f46e5', '#059669', '#e11d48', '#d97706', '#0891b2', '#7c3aed', '#64748b'];
+export const CHART_COLORS = ['#2563eb', '#059669', '#e11d48', '#d97706', '#0891b2', '#0284c7', '#64748b'];
 
 const AXIS = { fontSize: 11, fill: '#64748b' } as const;
 

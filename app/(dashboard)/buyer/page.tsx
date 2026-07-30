@@ -132,7 +132,7 @@ export default function BuyerPage() {
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <div>
                   <p className="flex items-center gap-2 text-base font-bold text-slate-900">
-                    <Globe className="h-4 w-4 text-indigo-500" /> {o.po_code} — {o.product_name}
+                    <Globe className="h-4 w-4 text-blue-500" /> {o.po_code} — {o.product_name}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-400">
                     Số lượng / Qty: <b className="tabular-nums">{fmtNum(o.target_qty)}</b> pcs · Giao hàng / ETD: {fmtDate(o.etd_date)}
@@ -169,7 +169,7 @@ export default function BuyerPage() {
             {myQa.filter((q) => q.inspection_type === 'Endline').map((q) => (
               <li key={q.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3">
                 <span className="text-xs tabular-nums text-slate-400">{fmtDateTime(q.created_at)}</span>
-                <span className="text-sm font-semibold text-indigo-700">{poCode(q.order_id)}</span>
+                <span className="text-sm font-semibold text-blue-700">{poCode(q.order_id)}</span>
                 <span className="text-xs text-slate-500">Lot {fmtNum(q.lot_size)} pcs · sample n={q.sample_size}</span>
                 <span className="ml-auto">
                   {q.aql_status === 'Pass'
@@ -194,7 +194,7 @@ export default function BuyerPage() {
               {myShipments.length === 0 && <EmptyState title="Chưa có lô xuất hàng" sub="No shipments yet" />}
               {myShipments.map((s) => (
                 <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 text-sm">
-                  <span className="font-semibold text-indigo-700">{poCode(s.order_id)}</span>
+                  <span className="font-semibold text-blue-700">{poCode(s.order_id)}</span>
                   <span className="tabular-nums text-slate-600">{fmtNum(s.carton_count)} cartons · {fmtNum(s.qty)} pcs</span>
                   <span className="text-xs text-slate-400">GW {fmtNum(s.gw_kg)}kg · ETD {fmtDate(s.etd)}</span>
                   <span className="ml-auto">
@@ -211,7 +211,7 @@ export default function BuyerPage() {
               {feedbacks.filter((f) => myOrderIds.has(f.order_id)).map((f) => (
                 <li key={f.id} className="px-5 py-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-indigo-700">{poCode(f.order_id)}</span>
+                    <span className="text-sm font-semibold text-blue-700">{poCode(f.order_id)}</span>
                     <StarRating value={f.rating} />
                   </div>
                   <p className="mt-1 text-sm text-slate-600">{f.content}</p>

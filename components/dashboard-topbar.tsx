@@ -73,7 +73,7 @@ export default function DashboardTopbar() {
         <Link
           href="/"
           aria-label="Về trang chủ Monica ERP"
-          className="relative h-9 w-24 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-10 sm:w-28"
+          className="relative h-9 w-24 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-10 sm:w-28"
         >
           <Image src={LOGO_SRC} alt={LOGO_ALT} fill sizes="128px" className="object-contain object-left" />
         </Link>
@@ -86,7 +86,7 @@ export default function DashboardTopbar() {
             {id.slogan && (
               // Ẩn ở màn hẹp: nhét cả câu khẩu hiệu vào bề ngang 360px sẽ bóp
               // tiêu đề còn vài chữ, mà tiêu đề mới là thứ cần đọc trước.
-              <p className="hidden truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-600 md:block">
+              <p className="hidden truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 md:block">
                 {id.slogan}
               </p>
             )}
@@ -95,7 +95,7 @@ export default function DashboardTopbar() {
 
         <Link
           href="/"
-          className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:px-3"
+          className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:px-3"
         >
           <Home className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="hidden sm:inline">Trang chủ</span>

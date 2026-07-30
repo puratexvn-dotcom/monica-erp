@@ -99,7 +99,7 @@ export default function DailyVerses({ className = '' }: { className?: string }) 
       <blockquote className="relative px-6 sm:px-10">
         <span
           aria-hidden="true"
-          className="absolute -left-1 -top-4 select-none font-sans text-6xl leading-none text-violet-200 sm:-left-2 sm:text-7xl"
+          className="absolute -left-1 -top-4 select-none font-sans text-6xl leading-none text-blue-200 sm:-left-2 sm:text-7xl"
         >
           &ldquo;
         </span>
@@ -110,13 +110,13 @@ export default function DailyVerses({ className = '' }: { className?: string }) 
 
         <span
           aria-hidden="true"
-          className="absolute -bottom-8 -right-1 select-none font-sans text-6xl leading-none text-violet-200 sm:-right-2 sm:text-7xl"
+          className="absolute -bottom-8 -right-1 select-none font-sans text-6xl leading-none text-blue-200 sm:-right-2 sm:text-7xl"
         >
           &rdquo;
         </span>
       </blockquote>
 
-      <cite className="mt-5 block text-sm font-bold not-italic tracking-wide text-violet-700 sm:text-base">
+      <cite className="mt-5 block text-sm font-bold not-italic tracking-wide text-blue-700 sm:text-base">
         — {verse.ref} —
       </cite>
 

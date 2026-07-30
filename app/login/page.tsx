@@ -33,11 +33,11 @@ export default async function LoginPage({
       {/* ── Nền kính mờ ─────────────────────────────────────────────── */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-indigo-300/40 blur-3xl"
+        className="pointer-events-none absolute -left-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-blue-300/40 blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-48 -right-32 h-[36rem] w-[36rem] rounded-full bg-violet-300/40 blur-3xl"
+        className="pointer-events-none absolute -bottom-48 -right-32 h-[36rem] w-[36rem] rounded-full bg-blue-300/40 blur-3xl"
       />
       <div
         aria-hidden="true"
@@ -59,11 +59,11 @@ export default async function LoginPage({
               />
             </div>
 
-            <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-indigo-600">
+            <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
               Hệ thống quản trị sản xuất
             </p>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-5xl">
-              Chào mừng trở lại với <span className="text-indigo-600">MONICA&nbsp;ERP</span>
+              Chào mừng trở lại với <span className="text-blue-600">MONICA&nbsp;ERP</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
               Đăng nhập bằng tài khoản công ty để vào phân hệ làm việc của bộ phận bạn.
@@ -72,7 +72,7 @@ export default async function LoginPage({
             <ul className="mt-9 space-y-4">
               {HIGHLIGHTS.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-center gap-3.5">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/70 text-indigo-600 shadow-sm backdrop-blur">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/70 text-blue-600 shadow-sm backdrop-blur">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <span className="text-base font-semibold text-slate-700">{text}</span>
@@ -119,7 +119,7 @@ export default async function LoginPage({
                 Quên mật khẩu hoặc chưa có tài khoản? Liên hệ Quản trị hệ thống —{' '}
                 <a
                   href="tel:0908779585"
-                  className="font-bold text-indigo-600 underline-offset-4 transition hover:underline"
+                  className="font-bold text-blue-600 underline-offset-4 transition hover:underline"
                 >
                   0908779585
                 </a>

@@ -173,7 +173,7 @@ export default function PoTable({
                           >
                             {flexRender(h.column.columnDef.header, h.getContext())}
                             <ArrowUpDown
-                              className={`h-3.5 w-3.5 ${sorted ? 'text-indigo-500' : 'text-slate-300'}`}
+                              className={`h-3.5 w-3.5 ${sorted ? 'text-blue-500' : 'text-slate-300'}`}
                               aria-hidden="true"
                             />
                           </button>

@@ -146,7 +146,7 @@ function DocumentCenter({
                         target="_blank"
                         rel="noreferrer"
                         aria-label={`Mở tài liệu ${d.title}`}
-                        className="rounded-lg p-1.5 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"
+                        className="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
                       >
                         <Download className="h-4 w-4" />
                       </a>

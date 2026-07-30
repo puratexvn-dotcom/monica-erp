@@ -96,7 +96,7 @@ export default function AiSheet({
       title="Trợ lý A.I"
       subtitle={role ? `Bối cảnh: ${ROLE_LABEL[role]}` : 'Chưa đăng nhập'}
       footer={
-        <div className="flex gap-2">
+        <div className="flex min-w-0 gap-2">
           <input
             ref={inputRef}
             value={text}
@@ -108,14 +108,14 @@ export default function AiSheet({
               }
             }}
             placeholder="Hỏi trợ lý về sản lượng, tiến độ, tồn kho..."
-            className={`${inputCls} flex-1`}
+            className={`${inputCls} min-w-0 flex-1 text-base sm:text-sm`}
           />
           <button
             type="button"
             onClick={() => void ask(text)}
             disabled={!text.trim() || thinking}
             aria-label="Gửi câu hỏi"
-            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm transition hover:bg-violet-700 active:scale-95 disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 active:scale-95 disabled:opacity-40"
           >
             {thinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>
@@ -132,7 +132,7 @@ export default function AiSheet({
         {turns.length === 0 ? (
           <div className="py-6">
             <div className="mb-5 flex flex-col items-center gap-2 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                 <Sparkles className="h-7 w-7" aria-hidden="true" />
               </span>
               <p className="text-sm font-bold text-slate-800">Trợ lý sản xuất Monica</p>
@@ -147,7 +147,7 @@ export default function AiSheet({
                   key={s}
                   type="button"
                   onClick={() => void ask(s)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50/50"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/50"
                 >
                   {s}
                 </button>
@@ -160,7 +160,7 @@ export default function AiSheet({
               <div
                 className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   t.from === 'user'
-                    ? 'bg-violet-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'border border-slate-200 bg-white text-slate-700'
                 }`}
               >

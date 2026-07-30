@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -15,6 +15,30 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Monica Garment ERP",
   description: "Hệ thống quản trị sản xuất ngành may",
+};
+
+// ============================================================================
+// KHOÁ HÀNH VI PHÓNG TO TỰ DO TRÊN DI ĐỘNG
+//
+// Next.js tự chèn sẵn width=device-width, initial-scale=1 nhưng KHÔNG khoá
+// phóng to. Hệ quả trên xưởng: một khối tràn nhẹ là Safari/Chrome thu nhỏ cả
+// trang, người dùng phải tự chụm tay phóng lại mỗi lần mở panel.
+//
+// viewportFit: 'cover' để trang dùng hết phần màn hình dưới tai thỏ; phần chừa
+// an toàn đã xử lý bằng env(safe-area-inset-bottom) ở thanh điều hướng.
+//
+// ⚠️ ĐÁNH ĐỔI ĐÃ BIẾT: khoá phóng to là đi ngược tiêu chí WCAG 1.4.4 (người
+// dùng phải phóng được tới 200%). Chấp nhận vì đây là ứng dụng nội bộ nhà máy
+// và cỡ chữ nhỏ nhất trong hệ thống đã là 10px ở nhãn thanh điều hướng, còn
+// nội dung nghiệp vụ đều từ 12px trở lên. iOS từ bản 10 cũng bỏ qua
+// user-scalable=no, nên trên iPhone người dùng VẪN phóng to được.
+// ============================================================================
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 // ============================================================================

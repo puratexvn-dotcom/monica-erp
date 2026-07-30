@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { ElementType } from 'react';
 import {
-  AlertOctagon, BarChart3, CheckCircle2, Download, Loader2, RefreshCw, TriangleAlert,
+  AlertOctagon, BarChart3, Boxes, CalendarClock, CheckCircle2, Download, Loader2,
+  PieChart as PieIcon, RefreshCw, ShoppingCart, Timer, TrendingUp, TriangleAlert, Wallet,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -42,22 +44,58 @@ const dash = (n: number | null) => (n === null ? '—' : nf.format(n));
 const PIE_COLORS = ['#059669', '#e11d48'];
 
 const LEVEL_STYLE = {
-  OK: { card: 'border-emerald-200 bg-emerald-50', text: 'text-emerald-900', icon: CheckCircle2, iconCls: 'text-emerald-600' },
-  WARN: { card: 'border-amber-200 bg-amber-50', text: 'text-amber-900', icon: TriangleAlert, iconCls: 'text-amber-600' },
-  CRITICAL: { card: 'border-rose-200 bg-rose-50', text: 'text-rose-900', icon: AlertOctagon, iconCls: 'text-rose-600' },
+  OK: { card: 'border-emerald-200 bg-emerald-50', text: 'text-emerald-900', icon: CheckCircle2, chip: 'bg-emerald-100 text-emerald-700' },
+  WARN: { card: 'border-amber-200 bg-amber-50', text: 'text-amber-900', icon: TriangleAlert, chip: 'bg-amber-100 text-amber-800' },
+  CRITICAL: { card: 'border-red-200 bg-red-50', text: 'text-red-900', icon: AlertOctagon, chip: 'bg-red-100 text-red-700' },
 } as const;
 
-function Metric({ label, value, sub }: { label: string; value: string; sub: string }) {
+/** Biểu tượng riêng cho từng nhóm rủi ro — ba thẻ cùng một icon cảnh báo thì
+ *  người đọc phải dò nhãn mới biết thẻ nào nói về NPL, thẻ nào nói về QA. */
+const RISK_ICON: Record<string, ElementType> = {
+  MATERIAL: Boxes,
+  SCHEDULE: CalendarClock,
+  QA: CheckCircle2,
+};
+
+// Bốn dải màu cho bốn ý nghĩa. Icon đơn sắc trên nền trắng khiến bốn ô chỉ số
+// trông hệt nhau; đặt icon lên một huy hiệu bo góc có màu thì mắt phân biệt
+// được từng ô trước cả khi đọc nhãn.
+const CHIP = {
+  blue: 'bg-blue-100 text-blue-700',
+  emerald: 'bg-emerald-100 text-emerald-700',
+  amber: 'bg-amber-100 text-amber-800',
+  rose: 'bg-rose-100 text-rose-700',
+} as const;
+type ChipTone = keyof typeof CHIP;
+
+function Metric({
+  icon: Icon, tone, label, value, sub,
+}: {
+  icon: ElementType;
+  tone: ChipTone;
+  label: string;
+  value: string;
+  sub: string;
+}) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-0.5 text-xl font-extrabold tabular-nums tracking-tight text-slate-900">{value}</p>
-      <p className="mt-0.5 text-[10px] text-slate-500">{sub}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-3">
+      <div className="flex items-center gap-2">
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${CHIP[tone]}`}>
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <p className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-wide text-slate-500">
+          {label}
+        </p>
+      </div>
+      <p className="mt-1.5 text-xl font-extrabold tabular-nums tracking-tight text-slate-900">{value}</p>
+      <p className="mt-0.5 text-[10px] leading-snug text-slate-500">{sub}</p>
     </div>
   );
 }
 
 function Panel({
+  icon: Icon,
+  tone,
   title,
   hint,
   error,
@@ -65,6 +103,8 @@ function Panel({
   emptyText,
   children,
 }: {
+  icon: ElementType;
+  tone: ChipTone;
   title: string;
   hint?: string;
   error?: string | null;
@@ -74,7 +114,12 @@ function Panel({
 }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-3">
-      <h4 className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{title}</h4>
+      <div className="flex items-center gap-2">
+        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${CHIP[tone]}`}>
+          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+        <h4 className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{title}</h4>
+      </div>
       {hint && <p className="mb-1 mt-0.5 text-[10px] text-slate-400">{hint}</p>}
       {error ? (
         <p className="flex h-[180px] items-center justify-center rounded-lg bg-rose-50/60 px-3 text-center text-xs font-semibold text-rose-700">
@@ -173,7 +218,7 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
           type="button"
           onClick={load}
           disabled={loading}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-blue-300 hover:text-blue-600 disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
           Tính lại
@@ -181,13 +226,28 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
       </div>
 
       {/* ── VÙNG ĐƯỢC CHỤP ─────────────────────────────────────────────────
-          Mọi thứ trong khối này sẽ vào ảnh. Nút bấm và thanh công cụ để NGOÀI
-          — ảnh báo cáo có nút "Tính lại" nhìn rất nghiệp dư. */}
-      <div ref={captureRef} className="bg-white p-4">
+          Mọi thứ trong khối này vào ảnh. Nút bấm và thanh công cụ để NGOÀI —
+          ảnh báo cáo có nút "Tính lại" nhìn rất nghiệp dư.
+
+          KHOÁ Ở BỀ RỘNG ĐIỆN THOẠI (390px) và cho nội dung dàn dọc xuống:
+          - Ảnh ra dạng đứng, gần tỷ lệ 9:16, vừa khít khung xem trước của Zalo
+            nên người nhận đọc được ngay mà không phải mở toàn màn hình.
+          - Bề rộng cố định nghĩa là ảnh xuất ra GIỐNG HỆT nhau dù người lập
+            báo cáo đang dùng điện thoại hay máy bàn.
+          - Quan trọng nhất: hàm chụp lấy đúng kích thước thật của khối này,
+            nên không còn khoảng trắng thừa như khi ép cứng 900px.
+
+          overflow-hidden chặn con nào lỡ rộng hơn 390px đẩy khung ra, sinh lại
+          đúng mảng trắng mà chúng ta vừa dẹp. */}
+      <div className="flex justify-center overflow-x-auto px-2 pb-2">
+        <div
+          ref={captureRef}
+          className="w-[390px] min-w-[390px] shrink-0 overflow-hidden bg-white p-4"
+        >
         {/* Đầu báo cáo */}
-        <div className="mb-4 flex items-start justify-between gap-3 border-b-2 border-indigo-600 pb-3">
+        <div className="mb-4 flex items-start justify-between gap-3 border-b-2 border-blue-600 pb-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600">
               Monica Garment ERP
             </p>
             <h3 className="mt-0.5 text-lg font-extrabold leading-tight tracking-tight text-slate-900">
@@ -197,8 +257,8 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
               {dateLabel} · {timeLabel}
             </p>
           </div>
-          <div className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-right">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-indigo-200">Người lập</p>
+          <div className="shrink-0 rounded-lg bg-blue-600 px-2.5 py-1.5 text-right">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-blue-200">Người lập</p>
             <p className="text-xs font-bold text-white">
               {data.role ? ROLE_LABEL[data.role] : 'Không rõ'}
             </p>
@@ -206,13 +266,17 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
         </div>
 
         {/* Bốn chỉ số đầu */}
-        <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="mb-3 grid grid-cols-2 gap-2">
           <Metric
+            icon={ShoppingCart}
+            tone="blue"
             label="Đơn đang chạy"
             value={dash(k.runningOrders)}
             sub={k.runningQuantity === null ? 'chưa đọc được' : `${nf.format(k.runningQuantity)} sản phẩm`}
           />
           <Metric
+            icon={Wallet}
+            tone="emerald"
             label={`Giá trị đang chạy (${k.currency})`}
             value={k.runningValue === null ? '—' : nf.format(k.runningValue)}
             sub={
@@ -226,11 +290,15 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
             }
           />
           <Metric
+            icon={Timer}
+            tone="amber"
             label="Tỷ lệ giao đúng hạn"
             value={onTimeRate === null ? '—' : `${nf2.format(onTimeRate)}%`}
             sub={data.deliveryBase === 0 ? 'chưa đơn nào tới hạn' : `trên ${data.deliveryBase} đơn đã tới hạn`}
           />
           <Metric
+            icon={CalendarClock}
+            tone="rose"
             label="Mốc tiến độ trễ"
             value={dash(data.risks.find((r) => r.key === 'SCHEDULE')?.count ?? null)}
             sub={data.risks.find((r) => r.key === 'SCHEDULE')?.detail ?? ''}
@@ -238,8 +306,10 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
         </div>
 
         {/* Hai biểu đồ chính */}
-        <div className="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <div className="mb-3 grid grid-cols-1 gap-2">
           <Panel
+            icon={TrendingUp}
+            tone="blue"
             title="Giá trị đơn giao theo tháng"
             hint={`6 tháng gần nhất, đơn vị ${k.currency} — chỉ cộng đơn đã có đơn giá`}
             error={data.errors.orders}
@@ -256,12 +326,14 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
                   formatter={(v: unknown) => [`${nf.format(Number(v))} ${k.currency}`, 'Giá trị']}
                   contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }}
                 />
-                <Bar dataKey="value" name="Giá trị" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" name="Giá trị" fill="#2563eb" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Panel>
 
           <Panel
+            icon={PieIcon}
+            tone="emerald"
             title="Giao đúng hạn so với trễ"
             hint="chỉ tính các đơn ĐÃ tới ngày giao"
             error={data.errors.orders}
@@ -290,15 +362,21 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
           <h4 className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-600">
             Cảnh báo rủi ro nhà máy
           </h4>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2">
             {data.risks.map((r) => {
               const st = LEVEL_STYLE[r.level];
-              const Icon = st.icon;
+              const Icon = RISK_ICON[r.key] ?? st.icon;
+              const Level = st.icon;
               return (
                 <div key={r.key} className={`rounded-xl border p-3 ${st.card}`}>
-                  <div className="flex items-center gap-1.5">
-                    <Icon className={`h-4 w-4 shrink-0 ${st.iconCls}`} aria-hidden="true" />
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-700">{r.label}</p>
+                  <div className="flex items-center gap-2">
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${st.chip}`}>
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <p className="min-w-0 flex-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-slate-700">
+                      {r.label}
+                    </p>
+                    <Level className={`h-4 w-4 shrink-0 ${st.text}`} aria-hidden="true" />
                   </div>
                   <p className={`mt-1 text-2xl font-extrabold tabular-nums tracking-tight ${st.text}`}>
                     {r.count === null ? '—' : r.key === 'QA' ? `${nf2.format(r.count)}%` : nf.format(r.count)}
@@ -314,6 +392,7 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
           Ảnh xuất tự động từ Monica Garment ERP. Con số hiển thị &quot;—&quot; nghĩa là hệ thống
           KHÔNG đọc được dữ liệu tại thời điểm chốt, không phải bằng không.
         </p>
+        </div>
       </div>
 
       <div className="px-3 pb-3">
@@ -321,7 +400,7 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
           type="button"
           onClick={() => void exportImage()}
           disabled={exporting}
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
         >
           {exporting ? (
             <>

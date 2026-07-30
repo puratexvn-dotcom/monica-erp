@@ -126,13 +126,13 @@ export default function EvidenceUpload({
 
       {!preview ? (
         <div className="flex gap-2">
-          <label className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white text-sm font-semibold text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600 active:scale-[0.98]">
+          <label className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 active:scale-[0.98]">
             <Camera className="h-4 w-4" aria-hidden="true" />
             Chụp ảnh
             <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={onPick} />
           </label>
 
-          <label className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white text-sm font-semibold text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600 active:scale-[0.98]">
+          <label className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 active:scale-[0.98]">
             <ImageUp className="h-4 w-4" aria-hidden="true" />
             Chọn tệp
             <input type="file" accept="image/*" className="sr-only" onChange={onPick} />

@@ -16,7 +16,7 @@ function SubmitButton() {
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className="group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-indigo-600 text-base font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
+      className="group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-blue-600 text-base font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? (
         <>
@@ -69,7 +69,7 @@ export default function LoginForm({ next }: { next?: string }) {
             autoComplete="username"
             autoFocus
             placeholder="ten.ban@monicagarment.vn"
-            className="h-14 w-full rounded-xl border border-slate-200 bg-white/80 pl-12 pr-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+            className="h-14 w-full rounded-xl border border-slate-200 bg-white/80 pl-12 pr-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100"
           />
         </div>
       </div>

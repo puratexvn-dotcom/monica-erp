@@ -132,7 +132,7 @@ function StyleList({
                     </span>
                   )}
                 </td>
-                <td className={`${tdCls} tabular-nums font-semibold text-indigo-700`}>{r.order_count}</td>
+                <td className={`${tdCls} tabular-nums font-semibold text-blue-700`}>{r.order_count}</td>
                 <td className={tdCls}>
                   <Badge
                     tone={
@@ -149,7 +149,7 @@ function StyleList({
                   <button
                     type="button"
                     onClick={() => setOpen(r)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
                   >
                     <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
                     Chi tiết

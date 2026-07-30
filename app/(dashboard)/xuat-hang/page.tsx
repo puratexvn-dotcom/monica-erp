@@ -34,14 +34,14 @@ export default async function LogisticsWarehousePage() {
         
         {/* TAB 1: NHẬP KHO THÀNH PHẨM VÀ TỒN KHO */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-indigo-200 shadow-sm p-6 bg-indigo-50/20">
-            <h2 className="font-semibold text-indigo-900 mb-2 flex justify-between">
+          <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-6 bg-blue-50/20">
+            <h2 className="font-semibold text-blue-900 mb-2 flex justify-between">
               <span>🔫 Quét Mã Nhập Kho Thành Phẩm (Scan-in)</span>
               <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded">Có {pendingCount} thùng đang kẹt ở xưởng</span>
             </h2>
             <form action={async (formData) => { await scanInCartonToFG(formData) }} className="flex gap-2">
-              <input type="text" name="carton_code" placeholder="Quét Barcode Thùng (VD: CTN-PO-123...)" required autoFocus className="flex-1 px-4 py-2 border border-indigo-300 rounded-lg font-mono text-sm shadow-inner" />
-              <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Nhập Kho (IN_FG)</button>
+              <input type="text" name="carton_code" placeholder="Quét Barcode Thùng (VD: CTN-PO-123...)" required autoFocus className="flex-1 px-4 py-2 border border-blue-300 rounded-lg font-mono text-sm shadow-inner" />
+              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Nhập Kho (IN_FG)</button>
             </form>
           </div>
 

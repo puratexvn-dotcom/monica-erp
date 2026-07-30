@@ -117,13 +117,13 @@ export default function AppBottomNav({
               href={workbenchHref}
               onClick={goWorkbench}
               aria-current={onWorkbench ? 'page' : undefined}
-              className={`${btn} ${onWorkbench ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${onWorkbench ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <span className="relative">
                 <LayoutDashboard className={icon} aria-hidden="true" />
                 {onWorkbench && (
                   <span
-                    className="absolute -top-2.5 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-indigo-600"
+                    className="absolute -top-2.5 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-blue-600"
                     aria-hidden="true"
                   />
                 )}
@@ -136,7 +136,7 @@ export default function AppBottomNav({
             <button
               type="button"
               onClick={() => toggleSheet('chat')}
-              className={`${btn} ${openSheet === 'chat' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${openSheet === 'chat' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <MessageSquare className={icon} aria-hidden="true" />
               Chat
@@ -147,7 +147,7 @@ export default function AppBottomNav({
             <button
               type="button"
               onClick={() => toggleSheet('report')}
-              className={`${btn} ${openSheet === 'report' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${openSheet === 'report' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <BarChart3 className={icon} aria-hidden="true" />
               Báo cáo
@@ -158,7 +158,7 @@ export default function AppBottomNav({
             <button
               type="button"
               onClick={() => toggleSheet('ai')}
-              className={`${btn} ${openSheet === 'ai' ? 'text-violet-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${openSheet === 'ai' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <Sparkles className={icon} aria-hidden="true" />
               A.I

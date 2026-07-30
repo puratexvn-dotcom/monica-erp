@@ -154,7 +154,7 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
           <Link
             href="/"
             aria-label="Về trang chủ Monica ERP"
-            className="relative h-10 w-32 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:h-14 sm:w-52"
+            className="relative h-10 w-32 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-14 sm:w-52"
           >
             <Image
               src={LOGO_SRC}
@@ -178,7 +178,7 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Mở tìm kiếm nhanh"
-              className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-400 shadow-sm transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-500 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 md:w-64 md:justify-start md:gap-3 md:px-4 lg:w-72"
+              className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-400 shadow-sm transition-all hover:border-blue-300 hover:bg-white hover:text-blue-500 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:w-64 md:justify-start md:gap-3 md:px-4 lg:w-72"
             >
               <Search className="h-5 w-5 shrink-0" />
               <span className="hidden flex-1 truncate text-left text-sm text-slate-400 md:inline">
@@ -193,7 +193,7 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
             <button
               type="button"
               aria-label="Thông báo (3 chưa đọc)"
-              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition-all hover:border-indigo-300 hover:text-indigo-600 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
               <Bell className="h-5 w-5" />
               <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white ring-2 ring-white">
@@ -205,9 +205,9 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
             <button
               type="button"
               aria-label="Tài khoản"
-              className="flex h-11 shrink-0 items-center gap-2.5 rounded-xl border border-slate-200 bg-white/80 pl-1.5 pr-1.5 shadow-sm transition-all hover:border-indigo-300 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:pr-2.5"
+              className="flex h-11 shrink-0 items-center gap-2.5 rounded-xl border border-slate-200 bg-white/80 pl-1.5 pr-1.5 shadow-sm transition-all hover:border-blue-300 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:pr-2.5"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-bold text-white">
                 JS
               </span>
               <span className="hidden text-left lg:block">
@@ -263,7 +263,7 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
                     onMouseEnter={() => setActive(i)}
                     onClick={() => go(m.href)}
                     className={`flex w-full items-center gap-3.5 rounded-xl px-4 py-3 text-left transition-colors ${
-                      i === active ? 'bg-indigo-50' : 'hover:bg-slate-50'
+                      i === active ? 'bg-blue-50' : 'hover:bg-slate-50'
                     }`}
                   >
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${m.dot}`} aria-hidden="true" />
@@ -271,7 +271,7 @@ export default function TopNavbar({ modules }: { modules: NavModule[] }) {
                       <span className="block truncate text-base font-bold text-slate-900">{m.name}</span>
                       <span className="block truncate text-sm text-slate-500">{m.desc}</span>
                     </span>
-                    {i === active && <CornerDownLeft className="h-4 w-4 shrink-0 text-indigo-400" />}
+                    {i === active && <CornerDownLeft className="h-4 w-4 shrink-0 text-blue-400" />}
                   </button>
                 ))
               )}

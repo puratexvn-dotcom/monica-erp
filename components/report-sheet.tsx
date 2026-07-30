@@ -87,7 +87,7 @@ export default function ReportSheet({
     setExporting(true);
     try {
       const stamp = vnNow.toISOString().slice(0, 10);
-      const res = await exportNodeAsPng(node, `bao-cao-${role ?? 'chung'}-${stamp}.png`, 760);
+      const res = await exportNodeAsPng(node, `bao-cao-${role ?? 'chung'}-${stamp}.png`);
       if (res.ok) {
         toast.success(res.openedInTab ? 'Ảnh đã mở ở tab mới' : 'Đã lưu ảnh báo cáo', {
           description: res.message,
@@ -113,7 +113,7 @@ export default function ReportSheet({
           type="button"
           onClick={() => void exportImage()}
           disabled={exporting}
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
         >
           {exporting ? (
             <>
@@ -136,7 +136,7 @@ export default function ReportSheet({
           aria-selected={view === 'ceo'}
           onClick={() => setView('ceo')}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition ${
-            view === 'ceo' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:text-indigo-600'
+            view === 'ceo' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:text-blue-600'
           }`}
         >
           <LayoutDashboard className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -148,7 +148,7 @@ export default function ReportSheet({
           aria-selected={view === 'dept'}
           onClick={() => setView('dept')}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition ${
-            view === 'dept' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:text-indigo-600'
+            view === 'dept' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:text-blue-600'
           }`}
         >
           <ListOrdered className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -159,10 +159,13 @@ export default function ReportSheet({
       {view === 'ceo' && <CeoReportPanel />}
 
       {view === 'dept' && (
-      /* Vùng được chụp — mọi thứ trong đây sẽ vào ảnh */
-      <div ref={captureRef} className="bg-white p-5">
+      /* Vùng được chụp — khoá cùng bề rộng điện thoại như bản Giám đốc để hai
+         loại ảnh xuất ra đồng dạng, và để hàm chụp lấy đúng kích thước thật
+         (không còn mảng trắng thừa bên phải). */
+      <div className="flex justify-center overflow-x-auto px-2 py-2">
+      <div ref={captureRef} className="w-[390px] min-w-[390px] shrink-0 overflow-hidden bg-white p-4">
         <div className="mb-5 border-b border-slate-200 pb-4">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
             Monica Garment ERP
           </p>
           <h3 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900">
@@ -207,6 +210,7 @@ export default function ReportSheet({
             Ảnh xuất tự động, dùng để báo cáo nhanh qua Zalo/nhóm nội bộ.
           </span>
         </div>
+      </div>
       </div>
       )}
     </Sheet>

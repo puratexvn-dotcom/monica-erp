@@ -99,7 +99,7 @@ export default function StaffTable({ staff, emails, loading, error, onRefresh }:
                 <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{u.employeeCode ?? '—'}</td>
                 <td className={tdCls}>
                   <span className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[10px] font-bold text-white">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-[10px] font-bold text-white">
                       {u.avatar}
                     </span>
                     <span className="min-w-0">
@@ -134,7 +134,7 @@ export default function StaffTable({ staff, emails, loading, error, onRefresh }:
                         <button
                           title="Đặt lại mật khẩu"
                           onClick={() => onResetPassword(u)}
-                          className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:text-indigo-600"
+                          className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:text-blue-600"
                         >
                           <KeyRound className="h-4 w-4" />
                         </button>

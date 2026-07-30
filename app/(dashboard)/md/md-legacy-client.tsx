@@ -216,8 +216,8 @@ export default function MdPage() {
                 const pct = progressPercent(done, o.target_qty);
                 return (
                   <tr key={o.id} onClick={() => setSelectedId(o.id)}
-                    className={`cursor-pointer transition ${selectedId === o.id ? 'bg-indigo-50/60' : 'hover:bg-slate-50/70'}`}>
-                    <td className={`${tdCls} font-semibold text-indigo-700`}>{o.po_code}</td>
+                    className={`cursor-pointer transition ${selectedId === o.id ? 'bg-blue-50/60' : 'hover:bg-slate-50/70'}`}>
+                    <td className={`${tdCls} font-semibold text-blue-700`}>{o.po_code}</td>
                     <td className={tdCls}>{o.brand}</td>
                     <td className={`${tdCls} font-medium text-slate-800`}>{o.product_name}</td>
                     <td className={tdCls}>{assignName(o)}</td>
@@ -336,7 +336,7 @@ export default function MdPage() {
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-slate-500">Chi phí NPL ước tính/SP</span>
                   <input type="number" value={nplCostPerPcs} onChange={(e) => setNplCostPerPcs(Number(e.target.value) || 0)}
-                    className="w-32 rounded-lg border border-slate-200 px-2 py-1 text-right text-sm tabular-nums focus:border-indigo-400 focus:outline-none" />
+                    className="w-32 rounded-lg border border-slate-200 px-2 py-1 text-right text-sm tabular-nums focus:border-blue-400 focus:outline-none" />
                 </div>
                 <div className="border-t border-slate-100 pt-2.5">
                   {costing && (
@@ -417,7 +417,7 @@ export default function MdPage() {
           <Field label="Hao hụt (%)"><input type="number" step="0.1" className={inputCls} value={fBom.wastage} onChange={(e) => setFBom({ ...fBom, wastage: e.target.value })} /></Field>
         </div>
         {selected && fBom.norm && (
-          <p className="mt-3 rounded-lg bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
+          <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
             Tổng nhu cầu dự kiến: <b className="tabular-nums">
               {fmtNum1(bomTotalNeed(selected.target_qty, Number(fBom.norm) || 0, Number(fBom.wastage) || 0))} {fBom.unit}
             </b> cho {fmtNum(selected.target_qty)} SP

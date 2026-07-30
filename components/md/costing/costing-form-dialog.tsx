@@ -158,7 +158,7 @@ export function CostingFormDialog({
           </Field>
         </div>
 
-        <p className="mt-3 rounded-lg bg-indigo-50 px-3 py-2 text-[11px] leading-relaxed text-indigo-800">
+        <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-800">
           Sau khi tạo, mở <strong>Chi tiết</strong> để nhập từng khoản mục chi phí. Thành tiền của
           mỗi khoản mục do cơ sở dữ liệu tự tính (định mức × đơn giá), giao diện không tự nhân —
           nhờ vậy bảng chiết tính và báo cáo lợi nhuận không thể ra hai con số khác nhau.

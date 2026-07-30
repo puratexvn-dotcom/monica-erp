@@ -368,8 +368,8 @@ export default function MdClient({
                     onClick={() => setTab(t.key)}
                     className={`flex shrink-0 touch-manipulation select-none items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition active:scale-95 ${
                       on
-                        ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/25'
-                        : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-600'
+                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/25'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600'
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -398,7 +398,7 @@ export default function MdClient({
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
           <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-            <active.icon className="h-4 w-4 text-indigo-500" aria-hidden="true" />
+            <active.icon className="h-4 w-4 text-blue-500" aria-hidden="true" />
             {active.label}
           </h2>
           <div className="flex flex-wrap items-center gap-2">

@@ -123,7 +123,7 @@ export default function CostingDetailSheet({
         <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">Chiết tính giá</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600">Chiết tính giá</p>
               <h2 className="truncate text-lg font-extrabold tracking-tight text-slate-900">
                 {costing.costing_no}
                 <span className="ml-2 rounded-md bg-slate-100 px-1.5 py-0.5 text-sm font-bold text-slate-600">
@@ -148,7 +148,7 @@ export default function CostingDetailSheet({
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" disabled={pending} onClick={() => decide('SUBMITTED')} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50">
+            <button type="button" disabled={pending} onClick={() => decide('SUBMITTED')} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-600 disabled:opacity-50">
               <Send className="h-3.5 w-3.5" aria-hidden="true" /> Trình duyệt
             </button>
             <button type="button" disabled={pending} onClick={() => decide('APPROVED')} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-100 disabled:opacity-50">
@@ -157,7 +157,7 @@ export default function CostingDetailSheet({
             <button type="button" disabled={pending} onClick={() => decide('REJECTED')} className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-800 shadow-sm transition hover:bg-rose-100 disabled:opacity-50">
               <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Từ chối
             </button>
-            <button type="button" disabled={pending} onClick={() => act(() => reviseCosting(costing.id), 'Đã tạo phiên bản mới')} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-bold text-indigo-800 shadow-sm transition hover:bg-indigo-100 disabled:opacity-50">
+            <button type="button" disabled={pending} onClick={() => act(() => reviseCosting(costing.id), 'Đã tạo phiên bản mới')} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 disabled:opacity-50">
               <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Làm bản mới
             </button>
           </div>
@@ -210,7 +210,7 @@ export default function CostingDetailSheet({
                             </span>
                           </div>
                           <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
-                            <div className="h-full rounded-full bg-indigo-500" style={{ width: `${Math.min(100, pct)}%` }} />
+                            <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.min(100, pct)}%` }} />
                           </div>
                         </div>
                       );
@@ -229,7 +229,7 @@ export default function CostingDetailSheet({
                   <button
                     type="button"
                     onClick={() => setItemOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
                   >
                     <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Thêm khoản mục
                   </button>
@@ -270,7 +270,7 @@ export default function CostingDetailSheet({
               >
                 <DataTable head={['Phiên bản', 'Giá báo', 'Trạng thái', 'Ngày tạo', '']} minWidth={560}>
                   {data.versions.map((v) => (
-                    <tr key={v.id} className={v.id === costing.id ? 'bg-indigo-50/50' : 'hover:bg-slate-50/70'}>
+                    <tr key={v.id} className={v.id === costing.id ? 'bg-blue-50/50' : 'hover:bg-slate-50/70'}>
                       <td className={`${tdCls} font-bold tabular-nums text-slate-800`}>v{v.version}</td>
                       <td className={`${tdCls} tabular-nums`}>{fmtMoney(v.quoted_price, costing.currency)}</td>
                       <td className={tdCls}>
@@ -279,7 +279,7 @@ export default function CostingDetailSheet({
                         </Badge>
                       </td>
                       <td className={tdCls}>{fmtDate(v.created_at)}</td>
-                      <td className={`${tdCls} text-xs text-indigo-600`}>
+                      <td className={`${tdCls} text-xs text-blue-600`}>
                         {v.id === costing.id ? 'đang xem' : ''}
                       </td>
                     </tr>

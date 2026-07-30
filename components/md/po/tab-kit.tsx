@@ -124,7 +124,7 @@ export function Metric({
   tone?: Tone;
 }) {
   const ring: Record<Tone, string> = {
-    indigo: 'border-indigo-200 bg-indigo-50/50',
+    indigo: 'border-blue-200 bg-blue-50/50',
     emerald: 'border-emerald-200 bg-emerald-50/50',
     rose: 'border-rose-200 bg-rose-50/50',
     amber: 'border-amber-200 bg-amber-50/50',

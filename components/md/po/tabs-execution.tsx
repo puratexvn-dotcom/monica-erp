@@ -314,7 +314,7 @@ export function TabCollaboration({ data }: { data: Po360Data }) {
                   <StatusBadge code={c.task_status} labels={TASK_STATUS_LABEL} tone="amber" />
                 )}
                 {c.assigned_role && (
-                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
                     Giao: {ROLE_LABEL_SAFE(c.assigned_role)}
                   </span>
                 )}

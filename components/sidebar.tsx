@@ -54,13 +54,13 @@ export default function Sidebar({ session, collapsed, onToggleCollapse, mobileOp
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className={`flex items-center gap-3 border-b border-slate-100 px-4 py-4 ${collapsed ? 'justify-center px-2' : ''}`}>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 shadow-sm">
           <Factory className="h-5 w-5 text-white" />
         </div>
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-bold tracking-tight text-slate-900">
-              MONICA <span className="font-medium text-indigo-600">ERP</span>
+              MONICA <span className="font-medium text-blue-600">ERP</span>
             </p>
             <p className="truncate text-[11px] text-slate-400">Garment Smart System</p>
           </div>
@@ -73,7 +73,7 @@ export default function Sidebar({ session, collapsed, onToggleCollapse, mobileOp
       {/* User */}
       <div className={`flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 ${collapsed ? 'justify-center px-2' : ''}`}>
         <div className="relative shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-xs font-bold text-white">
             {user.avatar}
           </div>
           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500"
@@ -82,7 +82,7 @@ export default function Sidebar({ session, collapsed, onToggleCollapse, mobileOp
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-800">{user.name}</p>
-            <span className="inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600">
+            <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-600">
               {ROLE_LABEL[user.role]}
             </span>
           </div>
@@ -98,7 +98,7 @@ export default function Sidebar({ session, collapsed, onToggleCollapse, mobileOp
               title={collapsed ? it.label : undefined}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                 active
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               } ${collapsed ? 'justify-center px-2' : ''}`}>
               <it.icon className="h-4.5 w-4.5 h-[18px] w-[18px] shrink-0" />

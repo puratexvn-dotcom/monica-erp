@@ -28,7 +28,7 @@ export default function FinishingDashboard() {
           <p className="text-sm font-semibold text-teal-600">{t('finishing_packing')}</p>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => setIsBuyerModalOpen(true)} className="px-4 py-2 bg-indigo-50 text-indigo-700 font-bold rounded-lg hover:bg-indigo-100 flex gap-2 items-center">
+          <button onClick={() => setIsBuyerModalOpen(true)} className="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg hover:bg-blue-100 flex gap-2 items-center">
             <Plus className="w-4 h-4"/> Buyer
           </button>
           <button onClick={() => setIsOpModalOpen(true)} className="px-4 py-2 bg-teal-50 text-teal-700 font-bold rounded-lg hover:bg-teal-100 flex gap-2 items-center">
@@ -79,7 +79,7 @@ export default function FinishingDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">
                 <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 text-indigo-600 font-bold">PO-ZARA-001</td>
+                  <td className="p-4 text-blue-600 font-bold">PO-ZARA-001</td>
                   <td className="p-4">Áo Sơ Mi Nam</td>
                   <td className="p-4 text-emerald-600">1,200</td>
                   <td className="p-4 text-amber-500">15</td>
@@ -87,7 +87,7 @@ export default function FinishingDashboard() {
                   <td className="p-4"><span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold">Đang Chạy</span></td>
                 </tr>
                 <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 text-indigo-600 font-bold">PO-HM-1092</td>
+                  <td className="p-4 text-blue-600 font-bold">PO-HM-1092</td>
                   <td className="p-4">Váy Nữ Mùa Hè</td>
                   <td className="p-4 text-emerald-600">2,500</td>
                   <td className="p-4 text-amber-500">50</td>

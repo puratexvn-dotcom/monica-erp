@@ -284,7 +284,7 @@ export default function QuantityInputWithEvidence({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-0.5 flex items-center gap-1 truncate text-[11px] font-semibold text-indigo-600 hover:underline"
+                className="mt-0.5 flex items-center gap-1 truncate text-[11px] font-semibold text-blue-600 hover:underline"
               >
                 <Link2 className="h-3 w-3 shrink-0" aria-hidden="true" />
                 <span className="truncate">{url}</span>

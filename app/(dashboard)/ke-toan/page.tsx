@@ -175,7 +175,7 @@ export default function AccountingPage() {
                 return (
                   <tr key={f.id} className="transition hover:bg-slate-50/70">
                     <td className={`${tdCls} font-medium text-slate-800`}>{subconName(f.subcon_id)}</td>
-                    <td className={`${tdCls} font-semibold text-indigo-700`}>{poCode(f.order_id)}</td>
+                    <td className={`${tdCls} font-semibold text-blue-700`}>{poCode(f.order_id)}</td>
                     <td className={`${tdCls} text-right tabular-nums`}>{fmtNum(f.qa_passed_qty)}</td>
                     <td className={`${tdCls} text-right tabular-nums`}>{fmtVND(f.unit_price)}</td>
                     <td className={`${tdCls} text-right tabular-nums font-medium`}>{fmtVND(st.gross)}</td>
@@ -189,7 +189,7 @@ export default function AccountingPage() {
                       <select value={f.status} onChange={(e) => void setStatus(f, e.target.value as FinancialRecord['status'])}
                         className={`rounded-full border px-2 py-1 text-xs font-semibold focus:outline-none ${
                           f.status === 'Đã thanh toán' ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                          : f.status === 'Đã chốt' ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                          : f.status === 'Đã chốt' ? 'border-blue-200 bg-blue-50 text-blue-700'
                           : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
                         <option>Chờ đối soát</option><option>Đã chốt</option><option>Đã thanh toán</option>
                       </select>
@@ -221,11 +221,11 @@ export default function AccountingPage() {
           <div className="flex items-center gap-3 text-xs text-slate-500">
             <label className="flex items-center gap-1.5">NPL % FOB
               <input type="number" value={nplCostPct} onChange={(e) => setNplCostPct(e.target.value)}
-                className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-indigo-400 focus:outline-none" />
+                className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-blue-400 focus:outline-none" />
             </label>
             <label className="flex items-center gap-1.5">Overhead % FOB
               <input type="number" value={overheadPct} onChange={(e) => setOverheadPct(e.target.value)}
-                className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-indigo-400 focus:outline-none" />
+                className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-blue-400 focus:outline-none" />
             </label>
           </div>
         }>
@@ -246,7 +246,7 @@ export default function AccountingPage() {
             <tbody className="divide-y divide-slate-50">
               {pnl.map((r) => (
                 <tr key={r.order.id} className="transition hover:bg-slate-50/70">
-                  <td className={`${tdCls} font-semibold text-indigo-700`}>{r.order.po_code}</td>
+                  <td className={`${tdCls} font-semibold text-blue-700`}>{r.order.po_code}</td>
                   <td className={tdCls}>{r.order.product_name}</td>
                   <td className={`${tdCls} text-right tabular-nums`}>{fmtVND(r.revenue)}</td>
                   <td className={`${tdCls} text-right tabular-nums text-slate-500`}>− {fmtVND(r.cmt)}</td>

@@ -101,8 +101,8 @@ function PoList({
             onClick={() => setFilter(f.key)}
             className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition ${
               filter === f.key
-                ? 'bg-indigo-600 text-white'
-                : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-300'
+                ? 'bg-blue-600 text-white'
+                : 'border border-slate-200 bg-white text-slate-600 hover:border-blue-300'
             }`}
           >
             {f.label}
@@ -170,7 +170,7 @@ function PoList({
                   <button
                     type="button"
                     onClick={() => setOpen({ id: r.id, po: r.po_number })}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
                   >
                     <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
                     Mở 360°

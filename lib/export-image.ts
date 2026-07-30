@@ -42,14 +42,19 @@ async function waitUntilPainted(): Promise<void> {
   await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 }
 
-export async function exportNodeAsPng(
-  node: HTMLElement,
-  fileName: string,
-  /** Bề rộng ép khi chụp. Trên điện thoại vùng chụp chỉ ~340px, ảnh xuất ra sẽ
-   *  chật và biểu đồ bị bóp; ép 900px cho ra tấm đọc thoải mái ở mọi máy. */
-  width = 900,
-): Promise<ExportResult> {
+export async function exportNodeAsPng(node: HTMLElement, fileName: string): Promise<ExportResult> {
   await waitUntilPainted();
+
+  // ─── VÌ SAO KHÔNG CÒN ÉP BỀ RỘNG ─────────────────────────────────────────
+  // Bản trước truyền width: 900 trong khi khối thật chỉ rộng ~340px trên điện
+  // thoại. html-to-image vẽ bản sao ở ĐÚNG bề rộng thật của nó rồi đặt lên một
+  // khung 900px — phần 560px còn lại thành mảng trắng khổng lồ bên phải. Đó
+  // chính là lỗi đã báo.
+  //
+  // Nay chụp ĐÚNG kích thước khối đang hiện. Khối báo cáo tự khoá ở bề rộng
+  // điện thoại (xem components/report/ceo-report.tsx) nên ảnh ra dạng dọc,
+  // gần tỷ lệ 9:16, không còn khoảng trắng thừa nào.
+  const rect = node.getBoundingClientRect();
 
   const options = {
     // Nền trắng BẮT BUỘC: foreignObject không kế thừa nền trong suốt, thiếu là
@@ -57,8 +62,10 @@ export async function exportNodeAsPng(
     backgroundColor: '#ffffff',
     pixelRatio: 2,
     cacheBust: true,
-    width,
-    style: { width: `${width}px` },
+    // Làm tròn LÊN: bề rộng đo được thường lẻ (390.4px). Làm tròn xuống sẽ cắt
+    // mất một dải mỏng ở mép phải của viền thẻ.
+    width: Math.ceil(rect.width),
+    height: Math.ceil(rect.height),
   } as const;
 
   let blob: Blob | null = null;

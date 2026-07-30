@@ -131,7 +131,7 @@ function CommentCenter({
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span className="inline-flex items-center gap-1 font-bold text-slate-700">
                     {c.is_task ? (
-                      <ListTodo className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />
+                      <ListTodo className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />
                     ) : (
                       <MessageSquare className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
                     )}
@@ -153,7 +153,7 @@ function CommentCenter({
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {c.mentions.length > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600">
                       <AtSign className="h-3 w-3" aria-hidden="true" />
                       {c.mentions.map((m) => ROLE_LABEL_SAFE(m)).join(', ')}
                     </span>

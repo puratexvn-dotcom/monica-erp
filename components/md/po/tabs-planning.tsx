@@ -131,7 +131,7 @@ export function TabOverview({ data }: { data: Po360Data }) {
                     {fmtNum(matrix.colTotal(s))}
                   </td>
                 ))}
-                <td className="px-3 py-2 text-right font-extrabold tabular-nums text-indigo-700">
+                <td className="px-3 py-2 text-right font-extrabold tabular-nums text-blue-700">
                   {fmtNum(matrix.grandTotal)}
                 </td>
               </tr>
@@ -313,7 +313,7 @@ export function TabMaterials({ data }: { data: Po360Data }) {
       emptyTitle="Chưa tính được nhu cầu NPL"
       emptyHint="Cần gắn mã hàng cho PO và khai định mức ở mã hàng đó."
     >
-      <div className="border-b border-slate-100 bg-indigo-50/40 px-4 py-2.5 text-[11px] leading-relaxed text-indigo-900">
+      <div className="border-b border-slate-100 bg-blue-50/40 px-4 py-2.5 text-[11px] leading-relaxed text-blue-900">
         Số lượng cần = định mức đã tính hao hụt × số lượng PO. Con số này{' '}
         <strong>tính ra tự động</strong>, không nhập tay — sửa định mức ở mã hàng là mọi PO cập nhật theo.
       </div>
@@ -328,7 +328,7 @@ export function TabMaterials({ data }: { data: Po360Data }) {
             <td className={`${tdCls} tabular-nums text-slate-600`}>
               {fmtNum(b.net_consumption)} {b.unit}
             </td>
-            <td className={`${tdCls} tabular-nums text-base font-extrabold text-indigo-700`}>
+            <td className={`${tdCls} tabular-nums text-base font-extrabold text-blue-700`}>
               {fmtNum(b.required_qty)} {b.unit}
             </td>
             <td className={`${tdCls} text-xs text-slate-500`}>{b.supplier ?? '—'}</td>

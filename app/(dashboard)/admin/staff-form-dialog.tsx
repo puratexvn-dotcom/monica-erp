@@ -91,7 +91,7 @@ export default function StaffFormDialog({
           </Field>
         </div>
 
-        <p className="mt-3 rounded-lg bg-indigo-50 px-3 py-2 text-[11px] leading-relaxed text-indigo-800">
+        <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-800">
           Tài khoản tạo qua Supabase Auth, mật khẩu lưu dạng băm. Hệ thống tự bật cờ buộc đổi mật khẩu ở
           lần đăng nhập đầu, nên mật khẩu khởi tạo chỉ sống đúng một phiên. Gửi riêng cho từng người.
         </p>

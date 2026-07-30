@@ -190,9 +190,9 @@ export default function ChatSheet({
                   key={r}
                   type="button"
                   onClick={() => pickMention(r)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-indigo-50"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-blue-50"
                 >
-                  <span className="font-mono text-xs text-indigo-600">@{r}</span>
+                  <span className="font-mono text-xs text-blue-600">@{r}</span>
                   <span className="truncate text-slate-700">{ROLE_LABEL[r]}</span>
                 </button>
               ))}
@@ -212,21 +212,21 @@ export default function ChatSheet({
 
           {/* Ảnh đã đính kèm — xem trước ngay trên ô nhập để không gửi nhầm */}
           {attachment && (
-            <div className="mb-2 flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 p-2">
+            <div className="mb-2 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={attachment.url}
                 alt="Ảnh đính kèm"
                 className="h-10 w-10 shrink-0 rounded object-cover"
               />
-              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-indigo-800">
+              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-blue-800">
                 {attachment.name}
               </span>
               <button
                 type="button"
                 onClick={() => setAttachment(null)}
                 aria-label="Bỏ ảnh đính kèm"
-                className="shrink-0 rounded p-1 text-indigo-500 transition hover:bg-indigo-100 hover:text-indigo-700"
+                className="shrink-0 rounded p-1 text-blue-500 transition hover:bg-blue-100 hover:text-blue-700"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -246,7 +246,7 @@ export default function ChatSheet({
               onClick={() => fileRef.current?.click()}
               disabled={!role || uploading}
               aria-label="Đính kèm ảnh"
-              className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 active:scale-95 disabled:opacity-40"
+              className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-blue-300 hover:text-blue-600 active:scale-95 disabled:opacity-40"
             >
               {uploading ? (
                 <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
@@ -276,7 +276,7 @@ export default function ChatSheet({
               onClick={send}
               disabled={!role || (!text.trim() && !attachment)}
               aria-label="Gửi tin nhắn"
-              className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 disabled:opacity-40"
+              className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 active:scale-95 disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>
@@ -291,7 +291,7 @@ export default function ChatSheet({
       </p>
 
       {readsAll && (
-        <p className="flex items-center gap-1.5 border-b border-indigo-100 bg-indigo-50 px-5 py-2 text-[11px] font-semibold text-indigo-800">
+        <p className="flex items-center gap-1.5 border-b border-blue-100 bg-blue-50 px-5 py-2 text-[11px] font-semibold text-blue-800">
           <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Bạn đang xem được toàn bộ hội thoại của mọi bộ phận.
         </p>
@@ -337,7 +337,7 @@ export default function ChatSheet({
                   href={m.attachmentUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 transition hover:border-indigo-300 hover:bg-indigo-50"
+                  className="mt-2 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 transition hover:border-blue-300 hover:bg-blue-50"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -346,7 +346,7 @@ export default function ChatSheet({
                     className="h-12 w-12 shrink-0 rounded object-cover"
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-1 text-xs font-bold text-indigo-700">
+                    <span className="flex items-center gap-1 text-xs font-bold text-blue-700">
                       <ImageIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       Ảnh đính kèm
                     </span>
@@ -362,7 +362,7 @@ export default function ChatSheet({
                   {m.mentions.map((r) => (
                     <span
                       key={r}
-                      className="max-w-full break-words rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700"
+                      className="max-w-full break-words rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700"
                     >
                       @{ROLE_LABEL[r]}
                     </span>

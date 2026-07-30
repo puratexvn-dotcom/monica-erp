@@ -195,7 +195,7 @@ export default function StyleFormDialog({
           </Field>
         </div>
 
-        <p className="mt-3 rounded-lg bg-indigo-50 px-3 py-2 text-[11px] leading-relaxed text-indigo-800">
+        <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-800">
           Sau khi tạo, mở <strong>Chi tiết</strong> để khai bảng màu, bảng size, công đoạn và định mức
           nguyên phụ liệu. Khai một lần ở đây, mọi đơn hàng dùng mã này đều lấy theo — không nhập lại.
         </p>

@@ -18,8 +18,9 @@ import { fmtNum } from '../po/tab-kit';
 //
 // ─── VÌ SAO MỖI THẺ MỘT MÀU ────────────────────────────────────────────────
 // Sáu thẻ trắng giống hệt nhau buộc người dùng phải ĐỌC hết nhãn mới biết thẻ
-// nào là cảnh báo. Màu mang nghĩa cố định: đỏ là đang trễ, cam là đang chờ,
-// tím là nguy hiểm, xanh dương là đang chạy trôi chảy. Liếc một cái là thấy.
+// nào là cảnh báo. Màu mang nghĩa cố định: hồng là đang trễ, hổ phách là đang
+// chờ, đỏ là nguy hiểm, xanh dương là đang chạy trôi chảy, xanh lá là cơ hội.
+// Liếc một cái là thấy, không phải đọc.
 //
 // ─── VÌ SAO BẤM ĐƯỢC ───────────────────────────────────────────────────────
 // Con trỏ hình bàn tay mà bấm vào không xảy ra gì là nói dối người dùng. Mỗi
@@ -32,10 +33,10 @@ import { fmtNum } from '../po/tab-kit';
 // điều hành yên tâm nhầm.
 // ============================================================================
 
-type KpiTone = 'blue' | 'rose' | 'amber' | 'purple' | 'emerald' | 'slate';
+type KpiTone = 'blue' | 'rose' | 'amber' | 'red' | 'emerald' | 'slate';
 
 /** Bảng màu riêng của khối chỉ số, KHÔNG dùng chung Tone của bộ giao diện gốc:
- *  ở đây cần cả xanh dương và tím, mà mở rộng Tone gốc thì kéo theo thay đổi ở
+ *  ở đây cần sáu sắc riêng biệt, mà mở rộng Tone gốc thì kéo theo thay đổi ở
  *  mọi phù hiệu và thanh tiến độ trong toàn hệ thống.
  *
  *  ĐÃ ĐO tương phản trên cả sáu nền (thuật toán WCAG 2.1):
@@ -46,7 +47,7 @@ type KpiTone = 'blue' | 'rose' | 'amber' | 'purple' | 'emerald' | 'slate';
  *  Thấp nhất 4,84:1, đều vượt ngưỡng 4,5:1 của WCAG AA cho chữ thường.
  *
  *  ⚠️ Phụ đề từng dùng slate-500 và tụt xuống 4,33:1 trên nền xanh dương, hồng,
- *  tím và xám — dưới chuẩn. Đừng hạ lại xuống 500 cho "nhạt bớt". */
+ *  đỏ và xám — dưới chuẩn. Đừng hạ lại xuống 500 cho "nhạt bớt". */
 const TONE: Record<KpiTone, { card: string; icon: string; value: string; arrow: string }> = {
   blue: {
     card: 'border-blue-200 bg-blue-50 hover:border-blue-300',
@@ -66,11 +67,14 @@ const TONE: Record<KpiTone, { card: string; icon: string; value: string; arrow: 
     value: 'text-amber-900',
     arrow: 'text-amber-500 group-hover:text-amber-700',
   },
-  purple: {
-    card: 'border-violet-200 bg-violet-50 hover:border-violet-300',
-    icon: 'bg-violet-100 text-violet-700',
-    value: 'text-violet-900',
-    arrow: 'text-violet-400 group-hover:text-violet-600',
+  // Đỏ (red) chứ KHÔNG phải hồng (rose): rose đã dành cho "Mốc T&A trễ", hai
+  // thẻ cạnh nhau cùng sắc hồng thì mất luôn ý nghĩa phân biệt. red-600
+  // (#dc2626) ngả cam, rose-600 (#e11d48) ngả hồng — nhìn ra ngay là hai thứ.
+  red: {
+    card: 'border-red-200 bg-red-50 hover:border-red-300',
+    icon: 'bg-red-100 text-red-700',
+    value: 'text-red-900',
+    arrow: 'text-red-400 group-hover:text-red-600',
   },
   emerald: {
     card: 'border-emerald-200 bg-emerald-50 hover:border-emerald-300',
@@ -111,7 +115,7 @@ function KpiCard({
       type="button"
       onClick={onGo}
       aria-label={`${label}: ${value}. ${goLabel}`}
-      className={`group cursor-pointer rounded-2xl border p-4 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${t.card}`}
+      className={`group cursor-pointer rounded-2xl border p-4 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${t.card}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${t.icon}`}>
@@ -155,7 +159,7 @@ export default function KpiGrid({
           type="button"
           onClick={onReload}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600 disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
           Tính lại
@@ -207,7 +211,7 @@ export default function KpiGrid({
         />
         <KpiCard
           icon={TriangleAlert}
-          tone="purple"
+          tone="red"
           label="Đơn rủi ro cao"
           value={dash(k.criticalRisks)}
           sub="mức Cao và Nguy kịch"

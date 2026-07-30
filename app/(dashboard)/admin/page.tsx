@@ -127,7 +127,7 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-2 p-5">
           {NAV_ITEMS.map((n) => (
             <Link key={n.path} href={n.path}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600">
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600">
               <n.icon className="h-4 w-4" /> {n.label}
             </Link>
           ))}

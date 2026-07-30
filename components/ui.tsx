@@ -12,21 +12,21 @@ import { X, Inbox, ShieldAlert, CloudOff, Star } from 'lucide-react';
 export type Tone = 'indigo' | 'emerald' | 'rose' | 'amber' | 'slate';
 
 export const TONE_BG: Record<Tone, string> = {
-  indigo: 'bg-indigo-50 text-indigo-600',
+  indigo: 'bg-blue-50 text-blue-600',
   emerald: 'bg-emerald-50 text-emerald-600',
   rose: 'bg-rose-50 text-rose-600',
   amber: 'bg-amber-50 text-amber-600',
   slate: 'bg-slate-100 text-slate-500',
 };
 export const TONE_BADGE: Record<Tone, string> = {
-  indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  indigo: 'bg-blue-50 text-blue-700 border-blue-200',
   emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   rose: 'bg-rose-50 text-rose-700 border-rose-200',
   amber: 'bg-amber-50 text-amber-700 border-amber-200',
   slate: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 export const TONE_BAR: Record<Tone, string> = {
-  indigo: 'bg-indigo-500',
+  indigo: 'bg-blue-500',
   emerald: 'bg-emerald-500',
   rose: 'bg-rose-500',
   amber: 'bg-amber-500',
@@ -36,10 +36,10 @@ export const TONE_BAR: Record<Tone, string> = {
 // ── Class tiện dụng cho form ────────────────────────────────────────────────
 export const inputCls =
   'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm ' +
-  'placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100';
+  'placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100';
 export const btnPrimary =
-  'inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white ' +
-  'shadow-sm transition hover:bg-indigo-700 active:scale-95 disabled:opacity-50';
+  'inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white ' +
+  'shadow-sm transition hover:bg-blue-700 active:scale-95 disabled:opacity-50';
 export const btnGhost =
   'inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm ' +
   'font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95';
@@ -55,7 +55,7 @@ export function Card({ title, icon: Icon, action, children, className = '' }: {
       {title && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
           <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-            {Icon && <Icon className="h-4 w-4 text-indigo-500" />} {title}
+            {Icon && <Icon className="h-4 w-4 text-blue-500" />} {title}
           </h2>
           {action}
         </div>

@@ -127,7 +127,7 @@ export default function StyleDetailSheet({
         <header className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">Mã hàng</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600">Mã hàng</p>
               <h2 className="truncate text-lg font-extrabold tracking-tight text-slate-900">
                 {style.style_no}
               </h2>
@@ -166,7 +166,7 @@ export default function StyleDetailSheet({
                   aria-selected={on}
                   onClick={() => setSection(s.key)}
                   className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                    on ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-300'
+                    on ? 'bg-blue-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:border-blue-300'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

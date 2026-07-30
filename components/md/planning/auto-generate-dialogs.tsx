@@ -77,7 +77,7 @@ export function MaterialGenDialog({
   return (
     <Modal open={open} title="Sinh đề nghị mua NPL từ định mức" onClose={onClose}>
       <form onSubmit={onSubmit} noValidate>
-        <p className="mb-3 rounded-lg bg-indigo-50 px-3 py-2 text-[11px] leading-relaxed text-indigo-900">
+        <p className="mb-3 rounded-lg bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-900">
           Nhu cầu từng loại nguyên phụ liệu được <strong>tính ra</strong> bằng
           định mức đã cộng hao hụt của mã hàng × số lượng đơn. Bạn không phải gõ lại con số nào.
           Đề nghị sinh ra ở trạng thái <strong>Nháp</strong> để soát lại trước khi trình duyệt.
@@ -200,7 +200,7 @@ export function ProductionGenDialog({
   return (
     <Modal open={open} title="Sinh lệnh sản xuất từ thời gian chuẩn (SAM)" onClose={onClose}>
       <form onSubmit={onSubmit} noValidate>
-        <p className="mb-3 rounded-lg bg-indigo-50 px-3 py-2 text-[11px] leading-relaxed text-indigo-900">
+        <p className="mb-3 rounded-lg bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-900">
           Số ngày sản xuất tính từ <strong>SAM của mã hàng</strong>: tổng phút chuẩn =
           SAM × số lượng, chia cho năng lực một ngày của chuyền. Bạn chỉ khai phần
           máy không tự biết được: số công nhân, số giờ và hiệu suất.
@@ -272,7 +272,7 @@ export function ProductionGenDialog({
               {preview.dailyCapacityMinutes.toLocaleString('vi-VN')} phút
             </dd>
             <dt className="text-slate-500">Số ngày cần</dt>
-            <dd className="text-right font-extrabold tabular-nums text-indigo-700">{preview.days} ngày</dd>
+            <dd className="text-right font-extrabold tabular-nums text-blue-700">{preview.days} ngày</dd>
             <dt className="text-slate-500">Chạy từ</dt>
             <dd className="text-right font-semibold tabular-nums text-slate-800">
               {preview.startDate} → {preview.dueDate}

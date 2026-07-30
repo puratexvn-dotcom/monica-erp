@@ -114,11 +114,11 @@ const MODULES: ModuleItem[] = [
   },
   {
     name: 'Tổ Hoàn Thành', desc: 'Ủi, Đóng gói & Xuất hàng', href: '/hoan-thanh', icon: Box,
-    bg: 'bg-indigo-700', badgeCls: 'bg-white text-indigo-800', sub: 'text-indigo-100', glow: 'hover:shadow-indigo-500/40', dot: 'bg-indigo-700',
+    bg: 'bg-blue-700', badgeCls: 'bg-white text-blue-800', sub: 'text-blue-100', glow: 'hover:shadow-blue-500/40', dot: 'bg-blue-700',
   },
   {
     name: 'Trạm Subcon', desc: 'Cổng báo cáo Xưởng gia công', href: '/subcon', icon: Users,
-    bg: 'bg-violet-700', badgeCls: 'bg-white text-violet-800', sub: 'text-violet-100', glow: 'hover:shadow-violet-500/40', dot: 'bg-violet-700',
+    bg: 'bg-blue-700', badgeCls: 'bg-white text-blue-800', sub: 'text-blue-100', glow: 'hover:shadow-blue-500/40', dot: 'bg-blue-700',
   },
   {
     name: 'Quản Trị Hệ Thống', desc: 'Cài đặt & Phân quyền', href: '/admin', icon: Settings,
@@ -236,7 +236,7 @@ export default async function HomePage() {
             Hotline Hỗ trợ Kỹ thuật:{' '}
             <a
               href="tel:0908779585"
-              className="font-semibold text-slate-600 underline-offset-2 transition hover:text-indigo-600 hover:underline"
+              className="font-semibold text-slate-600 underline-offset-2 transition hover:text-blue-600 hover:underline"
             >
               0908 779 585
             </a>
@@ -253,7 +253,7 @@ export default async function HomePage() {
             Hotline:{' '}
             <a
               href="tel:0908779585"
-              className="font-bold text-indigo-600 underline-offset-4 transition-colors hover:text-indigo-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2"
+              className="font-bold text-blue-600 underline-offset-4 transition-colors hover:text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
             >
               0908779585
             </a>
