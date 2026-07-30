@@ -23,6 +23,7 @@ import {
 
 import TopNavbar, { type NavModule } from './top-navbar';
 import { getHomeMetrics, DASH, type HomeMetrics } from './home-metrics';
+import DailyVerses from '@/components/daily-verses';
 
 // ============================================================================
 // TRANG CHỦ — ULTRA PREMIUM ENTERPRISE DASHBOARD
@@ -159,6 +160,10 @@ export default async function HomePage() {
   const metrics = await getHomeMetrics();
   const live = metrics.status === 'ok';
 
+  // Ban Giám đốc và Merchandiser thấy Lời Chúa THAY CHO dải KPI; các bộ phận
+  // khác vẫn giữ dải KPI. Đây là hai khối loại trừ nhau ở cùng một vị trí.
+  const showVerses = metrics.role === 'giamdoc' || metrics.role === 'md';
+
   return (
     <div className="min-h-screen bg-slate-100/70">
       <TopNavbar modules={NAV_MODULES} />
@@ -179,7 +184,11 @@ export default async function HomePage() {
           </p>
         </section>
 
-        {/* ================= DẢI KPI ================= */}
+        {/* ================= LỜI CHÚA (giamdoc / md) ================= */}
+        {showVerses && <DailyVerses className="mb-12" />}
+
+        {/* ================= DẢI KPI (các bộ phận còn lại) ================= */}
+        {!showVerses && (
         <section aria-label="Chỉ số vận hành" className="mb-12">
           {/* Nói rõ vì sao đang thiếu số, thay vì để người dùng tưởng nhà máy đứng im */}
           {metrics.status === 'error' && (
@@ -237,6 +246,7 @@ export default async function HomePage() {
             })}
           </div>
         </section>
+        )}
 
         {/* ================= LƯỚI PHÂN HỆ ================= */}
         <section aria-label="Danh sách phân hệ">

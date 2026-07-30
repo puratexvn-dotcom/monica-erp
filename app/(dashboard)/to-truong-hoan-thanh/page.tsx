@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/lib/i18n';
 import { Scissors, Shirt, Package, CheckSquare, Plus, Globe } from 'lucide-react';
 import { BuyerModal, OperationModal } from '@/components/MasterDataModals';
-import { ChatDrawer } from '@/components/ChatDrawer';
 
 export default function FinishingDashboard() {
   const { t, toggleLang } = useLanguage();
@@ -104,7 +103,6 @@ export default function FinishingDashboard() {
       {/* Global Modals & Chat */}
       <BuyerModal isOpen={isBuyerModalOpen} onClose={() => setIsBuyerModalOpen(false)} />
       <OperationModal isOpen={isOpModalOpen} onClose={() => setIsOpModalOpen(false)} />
-      <ChatDrawer />
     </div>
   );
 }

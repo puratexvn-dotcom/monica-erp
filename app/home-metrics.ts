@@ -1,4 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
+import { isRole } from '@/lib/rbac';
+import type { Role } from '@/types/erp';
 
 // ============================================================================
 // NẠP SỐ LIỆU THẬT CHO TRANG CHỦ (KPI + nhãn trạng thái trên thẻ)
@@ -72,6 +74,8 @@ export interface KpiValue {
 
 export interface HomeMetrics {
   status: MetricsStatus;
+  /** Vai trò người đang đăng nhập — trang chủ dùng để quyết định hiện khối nào */
+  role: Role | null;
   /** true khi có ít nhất một truy vấn lỗi — số hiển thị có thể thiếu */
   partial: boolean;
   kpi: {
@@ -88,6 +92,7 @@ function blank(status: MetricsStatus): HomeMetrics {
   const none: KpiValue = { value: DASH, delta: status === 'unauthenticated' ? 'Cần đăng nhập' : 'Không lấy được số liệu' };
   return {
     status,
+    role: null,
     partial: false,
     kpi: { activeOrders: none, outputToday: none, aqlRate: none, pendingShipments: none },
     badges: {},
@@ -172,9 +177,12 @@ export async function getHomeMetrics(): Promise<HomeMetrics> {
   }
 
   // Chưa đăng nhập -> không truy vấn gì cả (xem ghi chú QUYỀN ĐỌC ở đầu file)
+  let role: Role | null = null;
   try {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) return blank('unauthenticated');
+    const raw = data.user.app_metadata?.role;
+    role = isRole(raw) ? raw : null;
   } catch {
     return blank('error');
   }
@@ -244,6 +252,7 @@ export async function getHomeMetrics(): Promise<HomeMetrics> {
 
   return {
     status: 'ok',
+    role,
     partial,
     kpi: {
       activeOrders: {
