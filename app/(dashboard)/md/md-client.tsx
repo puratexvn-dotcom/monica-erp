@@ -29,11 +29,15 @@ import RiskCenter from '@/components/md/collab/risk-center';
 import {
   MaterialGenDialog, ProductionGenDialog,
 } from '@/components/md/planning/auto-generate-dialogs';
-import KpiGrid, { type KpiTarget } from '@/components/md/dashboard/kpi-grid';
 import { useMdDashboard } from '@/components/md/dashboard/use-md-dashboard';
-import TaskInbox from '@/components/md/command-center/task-inbox';
+import MosTaskInbox from '@/components/mos/command-center/mos-task-inbox';
+import MosKpiGrid from '@/components/mos/command-center/mos-kpi-grid';
+import MosAlertPanel from '@/components/mos/command-center/mos-alert-panel';
+import {
+  mdTasks, mdKpis, mdAlerts, MD_URGENCY, MD_WATCHING_HINT, MD_TASK_EMPTY_HINT,
+  type MdKpiTarget,
+} from '@/components/md/command-center/md-feed';
 import ActionablePoList from '@/components/md/command-center/actionable-po';
-import CriticalAlerts from '@/components/md/command-center/critical-alerts';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
 import type { CommandCenterData } from './_services/command-center.service';
@@ -375,6 +379,16 @@ export default function MdClient({
     audit: activity?.error ?? null,
   };
 
+  // Ba khu dùng chung khung MOS; lớp chuyển đổi gắn icon, màu và hành động.
+  const ccFeed = useMemo(
+    () => (cc === null ? null : { tasks: mdTasks(cc, openPo), alerts: mdAlerts(cc, openPo) }),
+    [cc, openPo],
+  );
+  const kpiCards = useMemo(
+    () => (dashboard.data === null ? null : mdKpis(dashboard.data, (t: MdKpiTarget) => goTab(t as TabKey))),
+    [dashboard.data, goTab],
+  );
+
   const active = TABS.find((t) => t.key === tab) ?? TABS[0];
   const createLabel = CREATE_LABEL[tab];
 
@@ -410,11 +424,24 @@ export default function MdClient({
       ) : (
         <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
           <div className="space-y-4 lg:col-span-3">
-            <TaskInbox tasks={cc.tasks} error={cc.errors.all} onOpenPo={openPo} />
+            <MosTaskInbox
+              title="Việc cần làm hôm nay"
+              tasks={ccFeed?.tasks ?? []}
+              error={cc.errors.all}
+              wording={MD_URGENCY}
+              emptyTitle="Không có việc nào tới hạn"
+              emptyHint={MD_TASK_EMPTY_HINT}
+            />
             <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />
           </div>
           <div className="lg:col-span-2">
-            <CriticalAlerts alerts={cc.alerts} error={cc.errors.all} onOpenPo={openPo} />
+            <MosAlertPanel
+              title="Cảnh báo nguy cấp"
+              alerts={ccFeed?.alerts ?? []}
+              error={cc.errors.all}
+              emptyTitle="Không có cảnh báo đỏ nào"
+              watchingHint={MD_WATCHING_HINT}
+            />
           </div>
         </div>
       )}
@@ -733,11 +760,12 @@ export default function MdClient({
 
       {/* ── TỔNG QUAN ĐIỀU HÀNH + BIỂU ĐỒ: nằm trong khu gấp ─────────── */}
       <div className="mt-6 space-y-6 border-t border-slate-200 pt-6">
-        <KpiGrid
-          data={dashboard.data}
+        <MosKpiGrid
+          title="Tổng quan điều hành"
+          kpis={kpiCards}
           loading={dashboard.loading}
           onReload={dashboard.reload}
-          onGo={goTab}
+          columns="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
         />
         <MdCharts data={dashboard.data} />
       </div>

@@ -8,9 +8,13 @@ import {
 
 import { Card } from '@/components/ui';
 import { NoData } from '@/components/data-state';
-import WhTaskInbox from '@/components/warehouse/command-center/wh-task-inbox';
-import WhStockKpi, { type KpiTarget } from '@/components/warehouse/command-center/wh-stock-kpi';
-import WhCriticalAlerts from '@/components/warehouse/command-center/wh-critical-alerts';
+import MosTaskInbox from '@/components/mos/command-center/mos-task-inbox';
+import MosKpiGrid from '@/components/mos/command-center/mos-kpi-grid';
+import MosAlertPanel from '@/components/mos/command-center/mos-alert-panel';
+import {
+  whTasks, whKpis, whAlerts, WH_URGENCY, WH_WATCHING_HINT, WH_TASK_EMPTY_HINT,
+  type WhTabTarget,
+} from '@/components/warehouse/command-center/wh-feed';
 import StockTable from '@/components/warehouse/stock/stock-table';
 import Material360Sheet from '@/components/warehouse/stock/material-360-sheet';
 import KhoLegacyPanels from './kho-client';
@@ -115,37 +119,18 @@ export default function WarehouseClient({
     tabBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const onKpiGo = useCallback(
-    (t: KpiTarget) => {
-      const map: Record<KpiTarget, TabKey> = {
-        stock: 'stock', inbound: 'inbound', outbound: 'outbound', reserve: 'reserve',
-      };
-      goTab(map[t]);
-    },
-    [goTab],
-  );
+  // Ba khu đều nhảy tới tab bằng CÙNG một hàm. Trước đây mỗi khu có một bảng
+  // tra riêng nằm rải rác; gom lại đây thì thêm loại việc mới chỉ phải sửa
+  // đúng một chỗ.
+  const goWh = useCallback((t: WhTabTarget) => goTab(t as TabKey), [goTab]);
 
-  // Bấm một nhiệm vụ hoặc một cảnh báo thì nhảy tới tab xử lý nó. Con trỏ hình
-  // bàn tay mà bấm vào không xảy ra gì là nói dối người dùng.
-  const onTaskOpen = useCallback(
-    (t: { kind: string }) => {
-      const map: Record<string, TabKey> = {
-        RECEIVE: 'inbound', INSPECT: 'inspect', PICK: 'outbound', COUNT: 'count',
-      };
-      goTab(map[t.kind] ?? 'stock');
-    },
-    [goTab],
-  );
-
-  const onAlertOpen = useCallback(
-    (a: { kind: string }) => {
-      const map: Record<string, TabKey> = {
-        SHORTAGE: 'stock', LATE_ARRIVAL: 'inbound', QA_FAIL: 'inspect',
-        NO_LOCATION: 'stock', SLOW_MOVING: 'stock',
-      };
-      goTab(map[a.kind] ?? 'risk');
-    },
-    [goTab],
+  const feed = useMemo(
+    () => (cc === null ? null : {
+      tasks: whTasks(cc, goWh),
+      kpis: whKpis(cc, goWh),
+      alerts: whAlerts(cc, goWh),
+    }),
+    [cc, goWh],
   );
 
   const active = TABS.find((t) => t.key === tab) ?? TABS[0];
@@ -166,13 +151,31 @@ export default function WarehouseClient({
       ) : (
         <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <WhTaskInbox tasks={cc.tasks} error={cc.errors.all} onOpen={onTaskOpen} />
+            <MosTaskInbox
+              title="Nhiệm vụ hôm nay"
+              tasks={feed?.tasks ?? []}
+              error={cc.errors.all}
+              wording={WH_URGENCY}
+              emptyTitle="Không có nhiệm vụ nào đang chờ"
+              emptyHint={WH_TASK_EMPTY_HINT}
+            />
           </div>
           <div className="lg:col-span-2">
-            <WhStockKpi kpi={cc.kpi} loading={ccLoading} onReload={loadCc} onGo={onKpiGo} />
+            <MosKpiGrid
+              title="Tổng quan tồn kho"
+              kpis={feed?.kpis ?? null}
+              loading={ccLoading}
+              onReload={loadCc}
+            />
           </div>
           <div className="lg:col-span-1">
-            <WhCriticalAlerts alerts={cc.alerts} error={cc.errors.all} onOpen={onAlertOpen} />
+            <MosAlertPanel
+              title="Cảnh báo rủi ro"
+              alerts={feed?.alerts ?? []}
+              error={cc.errors.all}
+              emptyTitle="Kho đang an toàn"
+              watchingHint={WH_WATCHING_HINT}
+            />
           </div>
         </div>
       )}
@@ -251,7 +254,13 @@ export default function WarehouseClient({
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Đang tổng hợp...
               </p>
             ) : (
-              <WhCriticalAlerts alerts={cc.alerts} error={cc.errors.all} onOpen={onAlertOpen} />
+              <MosAlertPanel
+                title="Cảnh báo rủi ro"
+                alerts={feed?.alerts ?? []}
+                error={cc.errors.all}
+                emptyTitle="Kho đang an toàn"
+                watchingHint={WH_WATCHING_HINT}
+              />
             )}
           </div>
         )}
