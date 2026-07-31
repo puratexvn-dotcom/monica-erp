@@ -6,6 +6,11 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
+// Khai riêng một dòng thay vì chèn vào danh sách trên: tệp này có bất biến
+// "chỉ được cộng thêm, không sửa dòng nào" (bài kiểm Phase 3 canh đúng điều đó,
+// và nó đã bắt được thay đổi này). Sửa danh sách nhập khẩu tuy vô hại nhưng làm
+// hỏng một hàng rào đang có tác dụng — không đáng đổi.
+import { ComposedChart } from 'recharts';
 
 // ============================================================================
 // BỘ BIỂU ĐỒ DÙNG CHUNG CHO BẢNG TỔNG QUAN MERCHANDISER
@@ -245,5 +250,92 @@ export function TargetVsActualBars({
       <Bar dataKey={targetKey} name={targetName} fill="#cbd5e1" radius={[4, 4, 0, 0]} />
       <Bar dataKey={actualKey} name={actualName} fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
     </BarChart>
+  );
+}
+
+/**
+ * Pareto — cột số lỗi theo loại, kèm đường phần trăm cộng dồn.
+ *
+ * ─── VÌ SAO PHẢI CÓ HAI TRỤC ─────────────────────────────────────────────
+ * Số lỗi đếm bằng cái (0 đến hàng trăm), phần trăm cộng dồn luôn kết thúc ở
+ * 100. Dùng chung một trục thì với lô có 400 lỗi, đường cộng dồn sẽ bẹp sát đáy
+ * và không đọc được — mà chính đường đó mới trả lời câu hỏi "sửa mấy loại đầu
+ * là hết phần lớn lỗi".
+ *
+ * ─── VÌ SAO CÓ VẠCH 80% ──────────────────────────────────────────────────
+ * Quy tắc Pareto không nằm ở chỗ vẽ được biểu đồ, mà ở chỗ ĐỌC RA được bao
+ * nhiêu loại đầu bảng đã chiếm 80%. Không có vạch mốc thì mắt phải tự dò trên
+ * trục — và mỗi người dò ra một số khác nhau.
+ */
+export function ParetoSeries({
+  data,
+  xKey,
+  qtyKey,
+  cumKey,
+  qtyName,
+  cumName,
+}: {
+  data: ReadonlyArray<Record<string, string | number>>;
+  xKey: string;
+  qtyKey: string;
+  cumKey: string;
+  qtyName: string;
+  cumName: string;
+}) {
+  return (
+    <ComposedChart data={data as Record<string, string | number>[]} margin={{ top: 8, right: 4, left: -16, bottom: 0 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+      <XAxis
+        dataKey={xKey}
+        tick={{ ...AXIS, fontSize: 10 }}
+        tickLine={false}
+        axisLine={{ stroke: '#e2e8f0' }}
+        interval={0}
+        height={44}
+        angle={-16}
+        textAnchor="end"
+      />
+      <YAxis yAxisId="qty" tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} width={44} />
+      <YAxis
+        yAxisId="cum"
+        orientation="right"
+        domain={[0, 100]}
+        ticks={[0, 20, 40, 60, 80, 100]}
+        tick={AXIS}
+        tickLine={false}
+        axisLine={false}
+        width={38}
+        tickFormatter={(v: number) => `${v}%`}
+      />
+      <Tooltip
+        formatter={(v, name) => [name === cumName ? `${fmtValue(v)}%` : fmtValue(v), name]}
+        contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #e2e8f0' }}
+      />
+      <Legend wrapperStyle={{ fontSize: 11 }} />
+      <Bar yAxisId="qty" dataKey={qtyKey} name={qtyName} fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+      {/* Vạch 80%: vẽ bằng một đường hằng thay vì ReferenceLine để không phải
+          nhập thêm một thành phần Recharts chỉ dùng đúng một lần. */}
+      <Line
+        yAxisId="cum"
+        type="linear"
+        dataKey={() => 80}
+        name="80%"
+        stroke="#cbd5e1"
+        strokeWidth={1}
+        strokeDasharray="4 4"
+        dot={false}
+        legendType="none"
+        isAnimationActive={false}
+      />
+      <Line
+        yAxisId="cum"
+        type="monotone"
+        dataKey={cumKey}
+        name={cumName}
+        stroke={CHART_COLORS[3]}
+        strokeWidth={2.5}
+        dot={{ r: 3 }}
+      />
+    </ComposedChart>
   );
 }

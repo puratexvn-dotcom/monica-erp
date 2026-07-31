@@ -29,6 +29,14 @@ const TabProduction = dynamic(
     loading: () => <div className="h-96 animate-pulse rounded-xl bg-slate-100" aria-hidden="true" />,
   },
 );
+
+const TabQuality = dynamic(
+  () => import('@/components/md/po-command/tabs/tab-quality'),
+  {
+    ssr: false,
+    loading: () => <div className="h-96 animate-pulse rounded-xl bg-slate-100" aria-hidden="true" />,
+  },
+);
 import { getPoTwinHeaderClient } from './_actions/po-twin.client';
 import type { PoTwinHeader, PoTwinResult, PoView } from '@/lib/mos/po-twin.contract';
 import type { ExecutiveOverview } from './_services/executive.service';
@@ -75,6 +83,8 @@ export default function PoCommandClient({
         // Lát cắt này KHÔNG nạp sẵn ở máy chủ: nó không phải lát cắt mở đầu, nạp
         // trước nghĩa là mọi lần mở trang đều trả giá cho thứ có thể không ai xem.
         return <TabProduction poId={poId} revision={revision} />;
+      case 'quality':
+        return <TabQuality poId={poId} revision={revision} />;
       default:
         return <SliceComingSoon view={view} />;
     }

@@ -31,6 +31,7 @@ const WATCHED: ReadonlyArray<{ table: string; key: string }> = [
   { table: 'prod_logs', key: 'order_id' },
   { table: 'hourly_production_logs', key: 'order_id' },
   { table: 'qa_logs', key: 'order_id' },
+  { table: 'capa_logs', key: 'order_id' },
   { table: 'bom', key: 'order_id' },
   { table: 'cut_tickets', key: 'order_id' },
   { table: 'shipments', key: 'order_id' },
