@@ -330,16 +330,23 @@ cấp phạm vi mọc dài ra là chuyện dự kiến trước; chuỗi quyết
 
 | Cấp | Trỏ vào | Ghi chú |
 |---|---|---|
-| `BUNDLE` | `cut_bundles(id)` | ⚠️ va với `assignment_bundles` — xem dưới |
 | `MACHINE` | *(chưa có bảng)* | không có `machines` trong lược đồ |
 | `WORKER` | `profiles(id)` | công nhân là người dùng nội bộ, không phải đối tác |
 
-⚠️ **`BUNDLE` cần một quyết định riêng khi tới lượt.** Thiết kế hiện tại đã có
-`assignment_bundles` (bảng nối nhiều-nhiều, một bó thuộc một Assignment đang
-hiệu lực). Một `scope_level = 'BUNDLE'` với **một** `bundle_id` là mô hình khác
-hẳn. Hai thứ không được cùng tồn tại mà không ai nói rõ cái nào thắng.
+✅ **`BUNDLE` đã bị loại khỏi danh sách này — Nguyên tắc 4 của Kiến trúc sư.**
 
-Không giải ở đây — chưa cần, và giải trước khi có ca dùng thật là đoán mò.
+Tôi từng gắn cờ mâu thuẫn: `scope_level = 'BUNDLE'` (một bó) va với
+`assignment_bundles` (nhiều bó). Kiến trúc sư giải quyết bằng cách phân biệt hai
+khái niệm chứ không chọn một:
+
+```
+PHẠM VI   "quyền chạm tới đâu"      →  scope_level
+QUAN HỆ   "làm trên những bó nào"   →  assignment_bundles
+```
+
+Hai câu hỏi khác nhau, hai cơ chế. `scope_level` **không bao giờ** có giá trị
+`BUNDLE`, và mâu thuẫn biến mất — không phải bằng cách chọn bên nào thắng, mà
+bằng cách nhận ra chúng không tranh nhau.
 
 ---
 

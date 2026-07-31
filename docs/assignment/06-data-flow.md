@@ -13,9 +13,14 @@ MONICA (md · kho · giamdoc)              ĐỐI TÁC (cổng riêng)
    status=ISSUED  ──────────────────────►  3. Thấy việc mới
         │                                     (thông báo)
         │                                          │
-        │                                  4. Nhận việc
-        │  ◄──────────────────────────────    status=ACCEPTED
-        │                                     accepted_at
+        │                                  4a. NHẬN việc
+        │  ◄──────────────────────────────     status=ACCEPTED
+        │                                      accepted_at · accepted_by
+        │                                          │
+        │                                  4b. hoặc TỪ CHỐI (Nguyên tắc 8)
+        │  ◄──────────────────────────────     status=REJECTED
+        │                                      reject_reason ≥ 10 ký tự
+        │  ────── sửa điều khoản, giao lại ──►   quay về ISSUED
         │
 5. Sinh chứng từ                                   │
    subcon_orders.assignment_id                     │
@@ -160,10 +165,25 @@ nhưng **không đụng tới trong phạm vi này**: chúng thuộc miền khá
 Dùng lại `notifications` (5 dòng, đã có). **Không** dựng hệ thống thông báo
 mới — Điều XXIX.
 
-## 7. Chảy vào audit
+## 7. Chảy vào audit và Timeline
 
 Mọi chuyển trạng thái ghi vào `activity_log` với `entity_type = 'assignment'`.
 Điều XI: 100% audit, không ngoại lệ.
+
+**Timeline là thành phần MẶC ĐỊNH của Domain** (Nguyên tắc 10), và nó là một
+**view hợp ba nguồn**, không phải bảng mới:
+
+```
+v_assignment_timeline
+   ① activity_log              đổi trạng thái
+   ② assignment_daily_reports  báo cáo ngày, kể cả bản đính chính
+   ③ assignment_bundles        gắn bó · gỡ bó
+```
+
+Đo được: `activity_log` đã tồn tại với đúng hình dạng cần — `entity_type` ·
+`entity_id` · `action` · `changes` (jsonb) · `actor_id` · `actor_role` ·
+`created_at` — và đang **0 dòng, chưa ai dùng**. Dựng một bảng
+`assignment_events` riêng là nhân bản thứ đã có (Điều XXIX).
 
 Ba cột `assigned_by` / `accepted_at` / `closed_at` **không thay thế** audit
 log — chúng là *trạng thái hiện tại*, log là *lịch sử*. Một Assignment bị mở

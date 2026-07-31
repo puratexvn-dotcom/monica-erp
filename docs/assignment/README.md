@@ -1,6 +1,12 @@
 # ASSIGNMENT CORE DOMAIN — HỒ SƠ THIẾT KẾ
 
-> **Bản 3 — CHỜ PHÊ DUYỆT.** Chưa viết một dòng SQL nào, chưa tạo migration nào.
+> **Bản 4 — CHỜ XÁC NHẬN DOMAIN.** Chưa viết một dòng SQL cho 029.
+>
+> Assignment là **Aggregate Root** của Manufacturing Execution. Bản 4 sửa theo
+> mười nguyên tắc ngày 01/08/2026: trạng thái **REJECTED** · Daily Report là
+> **Business Event** (sửa = bản đính chính, không ghi đè) · **năm phương thức
+> tính giá** · **Timeline là view** hợp ba nguồn ·  là
+> **quan hệ, không phải phạm vi**.
 >
 > **Bản 2** sửa theo sáu Quyết định ngày 31/07/2026: Buyer ra khỏi Assignment
 > (QĐ 4) · năm Portal giao diện riêng (QĐ 6).

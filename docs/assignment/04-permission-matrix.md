@@ -52,6 +52,10 @@ Assignment đang hiệu lực**.
 
 ### Buyer — bảng riêng, phạm vi theo ĐƠN HÀNG
 
+⚠️ Ở trạng thái `ISSUED`, đối tác chỉ ghi được **hai** thứ: `→ ACCEPTED` hoặc
+`→ REJECTED` (Nguyên tắc 8). Không sản lượng, không báo cáo, không tài liệu.
+Mọi ô `W` trong bảng trên chỉ mở từ `ACCEPTED` trở đi — xem tài liệu 03 mục 6.
+
 | Tài nguyên | BUYER |
 |---|:---:|
 | Đơn hàng của khách mình | R |
