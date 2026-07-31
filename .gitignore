@@ -31,7 +31,10 @@ Thumbs.db
 repomix-output.*
 
 # claude code (local machine settings)
-.claude/settings.local.json
+# Bỏ cả thư mục chứ không riêng settings.local.json: settings.json ở đây chỉ là
+# danh sách quyền tích luỹ theo phiên, đầy đường dẫn tuyệt đối tới thư mục tạm
+# của MỘT máy. Đẩy lên chỉ gây xung đột giữa các máy và lộ cấu trúc thư mục cá nhân.
+.claude/
 
 # debug
 npm-debug.log*
