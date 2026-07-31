@@ -1,7 +1,8 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
-import { Search, TriangleAlert, Maximize2, PackageSearch } from 'lucide-react';
+import Link from 'next/link';
+import { Search, TriangleAlert, Maximize2, PackageSearch, Radar } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
@@ -216,6 +217,16 @@ function PoList({
                     <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
                     Mở 360°
                   </button>
+                  {/* Lối vào Trung tâm điều hành — ĐẶT CẠNH nút cũ, không thay
+                      thế nó. PO 360° đang được dùng hàng ngày; hai lối cùng tồn
+                      tại cho tới khi bản mới đủ chín và người dùng tự chuyển. */}
+                  <Link
+                    href={`/md/po/${r.id}`}
+                    className="ml-1.5 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700"
+                  >
+                    <Radar className="h-3.5 w-3.5" aria-hidden="true" />
+                    {t('po_open_command')}
+                  </Link>
                 </td>
               </tr>
             ))}
