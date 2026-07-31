@@ -176,21 +176,62 @@ bốn thư mục Portal riêng.
 
 ---
 
-## Ba điều tôi chưa chắc và cần Kiến trúc sư quyết
+## Ba câu đã được Kiến trúc sư trả lời — 31/07/2026
 
-**① `/assignments` nằm trong `/md` hay `/kho`?** Merchandiser giao việc, nhưng
-kho xuất bó đi. Cả hai đều có lý. Ảnh hưởng tới ràng buộc *12 phân hệ*.
+**① `/assignments` thuộc `/md`.** Quyết định 2: Merchandiser là người điều phối
+sản xuất. Kho chỉ thực hiện cấp phát vật tư **theo** Assignment. Route là
+`app/(dashboard)/md/assignments/` — không phải phân hệ mới, không đụng ràng
+buộc *12 phân hệ*.
 
-**② Đối tác có được xem `unit_price` trên Assignment của chính họ không?** Điều
-XXX mục 10 cấm "Internal Cost", nhưng giá gia công **của chính họ** là thứ họ
-đã ký hợp đồng. Tôi nghiêng về **có**, nhưng đây là quyết định thương mại.
+**② Đối tác XEM ĐƯỢC giá của chính Assignment mình.** Quyết định 3. Đó là giá
+trị hợp đồng giữa Monica và chính họ. Vẫn cấm tuyệt đối: Buyer Price · Internal
+Cost · giá của Assignment khác.
 
-**③ Buyer có Assignment không?** Buyer không "được giao việc" — họ **sở hữu**
-đơn hàng. Có thể quyền của Buyer nên đi qua `partners.customer_id` như migration
-018 đang làm, chứ không qua Assignment. Nếu vậy thì Assignment chỉ dành cho
-SUBCON · SERVICE_VENDOR · SUPPLIER · FORWARDER · AUDITOR, và tài liệu 04 phải
-sửa cột BUYER.
+*Hệ quả kéo theo — đã cập nhật tài liệu 01 và 04:* `unit_price` + `currency`
+chuyển **lên chính bảng `assignments`**. Bản 1 lập luận ngược lại (giá là dữ
+liệu thương mại, nên để ở `subcon_orders`), nhưng lập luận đó phục vụ một yêu
+cầu khác. Khi đối tác **được phép** xem giá của mình, đặt giá ngay trên
+Assignment cho ra phạm vi bảo vệ **hẹp hơn**: ai thấy Assignment thì thấy đúng
+giá của Assignment ấy — cùng một cơ chế, không cần mở thêm đường đọc vào
+`subcon_orders` (bảng chứa giá của **mọi** đối tác).
 
-Câu ③ là câu quan trọng nhất trong ba — nó quyết định Assignment có thật sự là
-nền móng của **toàn bộ** External Collaboration Platform, hay chỉ của phần đối
-tác vận hành.
+⚠️ **Rủi ro mới sinh ra từ quyết định này:** vì giá nằm trên `assignments`, một
+lỗi ở `mos_assignment_covers()` sẽ lộ **giá**, không chỉ lộ sự tồn tại của phần
+việc. Bài kiểm phạm vi (R4) vì thế phải khẳng định thẳng vào cột `unit_price`,
+không chỉ đếm số dòng. Đã thêm thành bài kiểm bắt buộc số 2 ở tài liệu 07.
+
+**③ Buyer KHÔNG dùng Assignment.** Quyết định 4. Buyer là Order Owner; quyền
+của họ tiếp tục đi qua `mos_buyer_can_see_order()` của migration 018.
+
+Assignment là Core Domain của **Manufacturing Execution**, không phải của
+Customer Management (Quyết định 5). Sáu loại Đối tác Thực thi:
+`PRODUCTION_PARTNER` · `SERVICE_PARTNER` · `SUPPLIER` · `FORWARDER` ·
+`INSPECTION` · `AUDITOR`.
+
+*Hệ quả tích cực:* phần phân quyền **đã chạy ổn định nhất** của hệ thống —
+migration 018 và `/buyer` — hoàn toàn không bị động tới. Rủi ro R1 (vá lỗ hổng
+thành mất điện) giảm đáng kể vì bề mặt thay đổi hẹp hơn hẳn.
+
+*Hệ quả phải cài đặt:* bất biến **I-8** — chặn ở tầng CSDL không cho tạo
+Assignment với partner loại `BUYER`. Không có nó, một Assignment tạo nhầm sẽ cấp
+cho Buyer quyền GHI sản lượng, thứ Điều XXX mục 9 cấm tuyệt đối. Đây là loại lỗi
+im lặng mà chỉ ràng buộc CSDL mới bắt được.
+
+---
+
+## Một câu MỚI cần Kiến trúc sư quyết
+
+**Ràng buộc "12 phân hệ" đếm theo gì?**
+
+Quyết định 6 giữ năm Portal giao diện riêng. `/buyer` và `/subcon` đã có;
+`/supplier`, `/forwarder`, `/auditor` là **ba route mới** khi tới lượt.
+
+Ba route đó chỉ hiện với **đối tác** — nhân viên nội bộ không bao giờ thấy
+chúng trong thanh điều hướng, vì `canAccess` lọc theo vai trò.
+
+Vậy "12 phân hệ" đếm theo *route tồn tại* hay theo *phân hệ mà nhân viên nội bộ
+nhìn thấy*? Nếu là vế sau thì không có gì thay đổi. Tôi không tự diễn giải một
+ràng buộc bất di bất dịch.
+
+Câu này **chưa chặn việc gì** — ba Portal đó chưa cần dựng, vì hôm nay có
+0 Supplier, 0 Forwarder, 0 Inspection, 0 Auditor (Điều XXIX).

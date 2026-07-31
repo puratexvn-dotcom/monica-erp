@@ -52,14 +52,24 @@ Giao diện dịch. Cùng khuôn `SummaryLine`.
 
 ```ts
 export const PARTNER_TYPES = [
-  'BUYER', 'SUBCON', 'SERVICE_VENDOR', 'SUPPLIER', 'FORWARDER', 'AUDITOR',
+  'BUYER',                              // Order Owner — KHÔNG có Assignment
+  'PRODUCTION_PARTNER', 'SERVICE_PARTNER', 'SUPPLIER',
+  'FORWARDER', 'INSPECTION', 'AUDITOR', // sáu loại Đối tác Thực thi
 ] as const;
 export type PartnerType = (typeof PARTNER_TYPES)[number];
+
+/** Sáu loại đi qua Assignment. Buyer KHÔNG nằm trong đây (Quyết định 4). */
+export const EXECUTION_PARTNER_TYPES = PARTNER_TYPES.filter(
+  (t) => t !== 'BUYER',
+) as readonly Exclude<PartnerType, 'BUYER'>[];
+
+export function isExecutionPartner(t: PartnerType): boolean;
 
 export const RESOURCE_TYPES = [
   'order', 'style', 'line', 'operation', 'bundle', 'cut_ticket',
   'hourly_log', 'daily_report', 'downtime', 'qa_inline', 'aql',
   'capa', 'material', 'consumption', 'shipment', 'document', 'comment',
+  'assignment_price',   // Quyết định 3 — giá của CHÍNH Assignment mình
 ] as const;
 export type ResourceType = (typeof RESOURCE_TYPES)[number];
 
@@ -72,7 +82,7 @@ export type PartnerAction = 'READ' | 'WRITE';
 
 ## 2. Tầng Service — phía Monica
 
-`app/(dashboard)/assignments/_services/assignment.service.ts`
+`app/(dashboard)/md/assignments/_services/assignment.service.ts` (Quyết định 2)
 
 ```ts
 export interface AssignmentRow {
@@ -122,7 +132,7 @@ Server Action là điểm cuối gọi thẳng được, không tin dữ liệu 
 
 ## 3. Tầng Service — phía đối tác
 
-`app/(dashboard)/partner/_services/partner-portal.service.ts`
+`app/(dashboard)/_partner-core/partner-portal.service.ts` — DÙNG CHUNG cho cả năm Portal (Quyết định 6)
 
 ```ts
 export interface MyAssignment {
@@ -130,6 +140,9 @@ export interface MyAssignment {
   poNumber: string | null; styleCode: string | null;
   lineName: string | null; operationName: string | null;
   assignedQty: number | null; uom: string | null;
+  /** Giá hợp đồng của CHÍNH Assignment này (Quyết định 3).
+   *  KHÔNG bao giờ chứa giá bán cho Buyer hay giá vốn nội bộ. */
+  unitPrice: number | null; currency: string | null;
   startDate: string; endDate: string;
   status: AssignmentStatus;
   /** Đối tác GHI được không — service tính, giao diện chỉ đọc cờ. */

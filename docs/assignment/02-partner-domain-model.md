@@ -44,8 +44,9 @@ bốn bảng trên.
 ```
 id            UUID
 partner_code  VARCHAR  UNIQUE      khoá nghiệp vụ (Điều XXVIII.5)
-partner_type  VARCHAR  CHECK IN (BUYER, SUBCON, SERVICE_VENDOR,
-                                 SUPPLIER, FORWARDER, AUDITOR)
+partner_type  VARCHAR  CHECK IN (BUYER,
+                                 PRODUCTION_PARTNER, SERVICE_PARTNER,
+                                 SUPPLIER, FORWARDER, INSPECTION, AUDITOR)
 name          VARCHAR
 tax_code · phone · email · address · country
 is_active     BOOLEAN
@@ -105,7 +106,8 @@ partners ──1:N── assignments ──N:1── orders
 
 **Giai đoạn 1 · Thêm, không sửa.** Tạo `partners` + `partner_accounts`. Sinh
 một dòng `partners` cho mỗi dòng của bốn bảng cũ (3 + 2 + 0 + 0 = **5 dòng**).
-Bốn bảng cũ **không đổi một cột nào**.
+Bốn bảng cũ **không đổi một cột nào** — Quyết định 1: Partner Domain chỉ là lớp
+trừu tượng, không ép đổi cấu trúc hiện có khi chưa có nhu cầu.
 
 **Giai đoạn 2 · Chạy song song.** Mã mới đọc `partners`. Mã cũ (`/subcon`,
 `/ke-toan`, `/md`) tiếp tục đọc bảng cũ. Hai bên cùng đúng vì `partners` chỉ là
@@ -117,12 +119,15 @@ nó chuyển sang `partners`. Không có "ngày cắt băng" nào cả.
 **Giai đoạn 4 · Chưa lên lịch.** Có thể không bao giờ gộp bốn bảng cũ. Điều
 XXIX: hôm nay không gộp thì hỏng chuyện gì? Không hỏng gì.
 
-## 6. Forwarder và Auditor
+## 6. Forwarder · Inspection · Auditor
 
-Chưa có bảng, và **chưa cần**. Cả hai vào thẳng `partners` với
-`partner_type = FORWARDER / AUDITOR`, bốn cột cầu nối để trống. Khi nào họ cần
-thuộc tính riêng (mã hãng tàu, số chứng chỉ kiểm định) thì mới sinh bảng chuyên
-biệt.
+Chưa có bảng, và **chưa cần**. Cả ba vào thẳng `partners` với
+`partner_type = FORWARDER / INSPECTION / AUDITOR`, bốn cột cầu nối để trống.
+Khi nào họ cần thuộc tính riêng (mã hãng tàu, số chứng chỉ giám định) thì mới
+sinh bảng chuyên biệt — Điều XXIX. Hôm nay có **0 đối tác** thuộc cả ba loại.
+
+⚠️ **Inspection khác Auditor.** Công ty giám định làm AQL cho lô hàng; kiểm
+toán viên đánh giá tuân thủ nhà máy. Hai việc, hai bộ quyền (tài liệu 04).
 
 `shipments.forwarder` (VARCHAR tự do) sẽ nhận thêm `forwarder_partner_id` khi
 Forwarder Portal khởi động — **không** xoá cột chữ, vì dữ liệu cũ nằm ở đó.
@@ -139,3 +144,18 @@ partner_type  →  pháp nhân này là loại đối tác gì         (BUYER / 
 Vai trò vẫn quyết định *vào được màn hình nào*. Assignment quyết định *thấy
 được dòng dữ liệu nào*. Hai hàng rào, hai tầng, không thay nhau — đúng như
 `po-rbac.ts` và RLS đang phối hợp ở phân hệ `/md`.
+
+## 8. Buyer dùng Partner Domain nhưng KHÔNG dùng Assignment
+
+Quyết định 4. Buyer là **Order Owner**, không phải Execution Partner.
+
+```
+Execution Partner  →  partner_accounts → partners → ASSIGNMENT → tài nguyên
+Buyer              →  partner_accounts → partners → customer_id → ĐƠN HÀNG
+```
+
+Đường thứ hai **đã chạy từ migration 018** (`mos_buyer_can_see_order` +
+`buyer_accounts`). Partner Domain bọc lên trên nhưng không thay đổi nó.
+
+`partners.customer_id` chính là cầu nối giữ cho đường cũ tiếp tục hoạt động
+trong khi lớp trừu tượng mới lớn dần.

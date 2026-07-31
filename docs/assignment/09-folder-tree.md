@@ -1,16 +1,24 @@
 # 09 · FOLDER TREE
 
-## 1. Nguyên tắc đặt tệp
+> **Bản 2** — sửa theo Quyết định Kiến trúc ngày 31/07/2026.
+> **Bản 1 đề xuất một cổng `/partner` chung. Kiến trúc sư đã bác.**
+> Quyết định 6: một Business Domain, **năm Portal giao diện riêng**.
+
+## 1. Nguyên tắc
 
 Theo đúng cấu trúc đã dùng suốt Phase 2–6, không phát minh khuôn mới:
 
 ```
-lib/mos/            Domain thuần — không React, không Supabase
-_services/          Nghiệp vụ + truy vấn, 'server-only'
-_actions/           Server Action, cầu nối duy nhất cho client
-components/         Giao diện — không tính toán nghiệp vụ
+lib/mos/              Domain thuần — không React, không Supabase
+_services/            Nghiệp vụ + truy vấn, 'server-only'
+_actions/             Server Action — cầu nối duy nhất cho client
+components/           Giao diện — không tính toán nghiệp vụ
 supabase/migrations/  SQL
 ```
+
+Cộng thêm nguyên tắc của Quyết định 6:
+
+> **Business Domain dùng chung. Giao diện tách riêng.**
 
 ## 2. Cây tệp
 
@@ -19,46 +27,46 @@ lib/mos/
 ├── assignment.ts                  Domain: trạng thái, chuyển đổi, thiếu báo cáo
 ├── partner.ts                     Domain: loại đối tác, tài nguyên, hành động
 ├── use-assignments.ts             Hook — phía Monica
-├── use-my-assignments.ts          Hook — phía đối tác
-└── use-assignment-realtime.ts     Kênh riêng lọc theo assignment_id
+├── use-my-assignments.ts          Hook — dùng CHUNG cho mọi Portal
+└── use-assignment-realtime.ts     Kênh lọc theo assignment_id
 
-app/(dashboard)/assignments/                    ◄── MÀN HÌNH CỦA MONICA
+app/(dashboard)/md/assignments/                 ◄── QUYẾT ĐỊNH 2
 ├── page.tsx                       Danh sách + bộ lọc
 ├── assignments-client.tsx         Adapter (Điều XIX)
-├── [assignmentId]/
-│   └── page.tsx                   Chi tiết một Assignment
+├── [assignmentId]/page.tsx        Chi tiết
 ├── _services/
-│   ├── guard.ts                   Chốt quyền, khuôn của /md và /kho
-│   ├── assignment.service.ts      Đọc/ghi Assignment
-│   ├── partner.service.ts         Đọc/ghi Partner
-│   └── report-status.service.ts   REPORT MISSING
+│   ├── assignment.service.ts
+│   ├── partner.service.ts
+│   └── report-status.service.ts
 └── _actions/
     ├── assignment.client.ts
     └── partner.client.ts
 
-app/(dashboard)/partner/                        ◄── CỔNG ĐỐI TÁC (CHUNG)
-├── page.tsx                       Việc được giao của tôi
-├── partner-client.tsx             Adapter
-├── [assignmentId]/
-│   └── page.tsx                   Chi tiết + form báo cáo ngày
-├── _services/
-│   ├── guard.ts
-│   ├── partner-portal.service.ts
-│   └── daily-report.service.ts
-└── _actions/
-    └── partner-portal.client.ts
+app/(dashboard)/_partner-core/                  ◄── DÙNG CHUNG CHO 5 PORTAL
+├── guard.ts                       Chốt quyền đối tác
+├── partner-portal.service.ts      getMyAssignments · acceptAssignment
+├── daily-report.service.ts        submitDailyReport
+└── portal.client.ts               Server Action dùng chung
+
+app/(dashboard)/subcon/            ◄── Portal Đối tác Sản xuất (ĐÃ CÓ)
+app/(dashboard)/buyer/             ◄── Portal Khách hàng (ĐÃ CÓ)
+app/(dashboard)/supplier/          ◄── Portal Nhà cung cấp   (mới)
+app/(dashboard)/forwarder/         ◄── Portal Giao nhận      (mới)
+app/(dashboard)/auditor/           ◄── Portal Giám định      (mới)
+   mỗi thư mục:
+   ├── page.tsx                    Giao diện CHUYÊN BIỆT của loại đó
+   └── *-client.tsx                Adapter — gọi _partner-core
 
 components/mos/assignment/
-├── assignment-card.tsx            Thẻ một Assignment
+├── assignment-card.tsx            Thẻ Assignment
 ├── assignment-status-chip.tsx     Nhãn trạng thái
-├── assignment-flow-bar.tsx        Thanh 8 bước (dùng lại khuôn FlowBar Phase 6)
+├── assignment-flow-bar.tsx        Thanh 8 bước (khuôn FlowBar, Phase 6)
 ├── scope-summary.tsx              "PO · chuyền · công đoạn"
 ├── daily-report-form.tsx          Form báo cáo ngày
 ├── report-missing-badge.tsx       Cảnh báo thiếu báo cáo
 └── partner-picker.tsx             Chọn đối tác
 
-lib/dictionaries/
-└── assignment.ts                  Từ điển VN · EN · CN
+lib/dictionaries/assignment.ts     Từ điển VN · EN · CN
 
 supabase/migrations/
 ├── 027_partner_domain.sql
@@ -69,90 +77,112 @@ supabase/migrations/
 └── 032_drop_transitional_rls.sql  gỡ 025 · 026
 ```
 
-## 3. Vì sao **một** cổng đối tác chứ không phải bốn
+## 3. Vì sao `_partner-core` chứ không nhân bản năm lần
 
-Điều XXX vẽ Buyer Portal · Subcon Portal · Supplier Portal · Forwarder Portal ·
-Auditor Portal. Nhưng cả năm đều trả lời cùng ba câu hỏi:
-
-```
-Tôi được giao việc gì?     →  danh sách Assignment
-Việc này gồm những gì?     →  phạm vi + tài nguyên
-Tôi phải báo cáo gì?       →  ma trận quyền quyết định form nào hiện ra
-```
-
-Dựng năm thư mục là năm lần lặp lại cùng một khung, năm chỗ để lệch nhau. Một
-`/partner` đọc `partner_type` rồi vẽ đúng phần được phép — **ma trận quyền
-quyết định giao diện**, không phải thư mục quyết định.
-
-Đây là Điều XXIX: không dựng bốn tầng trừu tượng cho quy mô chưa tồn tại. Hôm
-nay có **0 tài khoản Buyer**, **1 tài khoản Subcon**, 0 Supplier, 0 Forwarder.
-
-Khi một loại đối tác thật sự cần màn hình khác hẳn, tách ra lúc đó — tách một
-thư mục đã chạy dễ hơn hợp nhất năm thư mục đã lệch.
-
-## 4. `/subcon` cũ đi về đâu
-
-**Giữ nguyên, không xoá.** Nó thành màn hình **quản lý gia công phía Monica** —
-đúng bản chất mà đo đạc cho thấy: nó lập đơn gia công, xuất bó, nhận bó về, tức
-là việc của kho và merchandiser.
-
-Vai trò `subcon` sẽ được chuyển khỏi `/subcon` sang `/partner` khi cổng mới
-chạy. Lúc đó `MODULE_ACCESS.subcon` đổi từ `['/subcon']` thành `['/partner']`,
-và `/subcon` chỉ còn nội bộ.
-
-**Không xoá `/subcon`.** Nó có nghiệp vụ thật đang chạy, và Điều "nghiêm cấm
-đập đi xây lại" áp dụng.
-
-## 5. Ranh giới module
+Quyết định 6 nói *"mỗi Portal chỉ là một giao diện chuyên biệt trên cùng một
+Business Domain"*. Câu đó vạch ranh giới rất rõ:
 
 ```
-assignments/  ──đọc──►  orders · sewing_lines · cut_bundles · profiles · partners
-              ──ghi──►  CHỈ bảng của chính nó
+KHÁC NHAU  →  page.tsx · component · từ ngữ · bố cục
+DÙNG CHUNG →  service · domain · hook · phân quyền
+```
 
-partner/      ──đọc──►  assignments · tài nguyên trong phạm vi
-              ──ghi──►  assignment_daily_reports · hourly_production_logs
-                        qa_audit_reports · subcon_receipt_logs
+Nếu năm Portal mỗi cái có `partner-portal.service.ts` riêng, thì có **năm bản
+cài đặt của cùng một luật quyền**, và chúng sẽ lệch nhau. Lỗi Phase 5 đã cho
+thấy chuyện gì xảy ra khi hai tầng nói hai điều khác nhau — người dùng nhận
+được một câu sai sự thật.
 
-md/ kho/ qa/  KHÔNG import gì từ assignments/
+`_partner-core` đặt tên có gạch dưới đầu để Next.js **không** biến nó thành
+route. Cùng quy ước với `_services` và `_actions` đang dùng.
+
+## 4. Giao diện năm Portal khác nhau ở đâu
+
+| Portal | Màn hình chính | Ghi cái gì |
+|---|---|---|
+| **Subcon** *(Production)* | Việc được giao · sản lượng theo giờ · bó hàng | sản lượng · lỗi · tiêu hao · báo cáo ngày |
+| **Service** | Bó hàng nhận / trả · tiến độ dịch vụ | nhận · trả · lỗi · báo cáo ngày |
+| **Supplier** | Vật tư phải giao · lịch giao | tiến độ giao · báo cáo ngày |
+| **Forwarder** | Lô hàng · chứng từ · mốc ETD/ATD/ETA/ATA | mốc thời gian · chứng từ |
+| **Auditor / Inspection** | Lô cần giám định · kết quả AQL | kết quả AQL · ảnh · biên bản |
+| **Buyer** | Tiến độ đơn · mẫu · thay đổi · lô hàng | duyệt · bình luận |
+
+Sáu bố cục thật sự khác nhau. Đây là lý do Quyết định 6 đúng còn đề xuất "một
+cổng chung" của tôi sai: tôi tối ưu cho việc **không lặp khung**, nhưng cái phải
+tránh lặp là **luật**, không phải màn hình.
+
+## 5. `/subcon` hiện tại đi về đâu
+
+**Giữ nguyên, không xoá.** Đo được: nó lập đơn gia công, xuất bó, nhận bó về —
+đó là việc của **Monica**, không phải của nhà thầu.
+
+Lộ trình:
+
+```
+Bước 1  /subcon giữ nguyên, đã mở cho md · kho · khotruong · totruongmay · giamdoc
+        (migration 026 + thay đổi MODULE_ACCESS)
+
+Bước 2  Dựng /subcon/portal — giao diện cho ĐỐI TÁC, đọc Assignment
+
+Bước 3  MODULE_ACCESS.subcon: ['/subcon'] → ['/subcon/portal']
+        /subcon còn lại thuần nội bộ
+```
+
+Không xoá gì. Nghiệp vụ đang chạy thật, và "nghiêm cấm đập đi xây lại".
+
+## 6. Ranh giới module
+
+```
+md/assignments/   ──đọc──►  orders · sewing_lines · cut_bundles · profiles · partners
+                  ──ghi──►  CHỈ bảng của chính nó
+
+_partner-core/    ──đọc──►  assignments · tài nguyên trong phạm vi
+                  ──ghi──►  assignment_daily_reports · hourly_production_logs
+                            qa_audit_reports · subcon_receipt_logs
+
+kho/ qa/ ke-toan/  KHÔNG import gì từ md/assignments/
 ```
 
 Assignment Engine **không ghi vào bảng của phân hệ khác**. Nếu một ngày nó cần
-sửa `orders`, đó là dấu hiệu ranh giới đã sai — không phải dấu hiệu cần thêm
-quyền.
+sửa `orders`, đó là dấu hiệu ranh giới sai — không phải dấu hiệu cần thêm quyền.
 
-Ngược lại, `lib/mos/assignment.ts` là Domain thuần nên **bất kỳ phân hệ nào
-cũng import được**, giống `po-flow.ts` đang được `/md` và Trung tâm Xuất hàng
-dùng chung.
+Ngược lại `lib/mos/assignment.ts` là Domain thuần nên **mọi phân hệ import
+được**, giống `po-flow.ts` đang được `/md` và Trung tâm Xuất hàng dùng chung.
 
-## 6. Số phân hệ không đổi
+## 7. Ràng buộc 12 phân hệ — cần Kiến trúc sư xác nhận
 
 Ràng buộc bất di bất dịch: **12 phân hệ, 4 nút bottom nav**.
 
-```
-/assignments  →  KHÔNG phải phân hệ mới. Là màn hình bên trong /md
-                 (merchandiser giao việc) — hoặc /kho tuỳ quyết định
-                 nghiệp vụ. Không thêm nút nav.
+| Route | Ảnh hưởng |
+|---|---|
+| `/md/assignments` | **Không** phân hệ mới — nằm trong `/md` (Quyết định 2) |
+| `/subcon` · `/buyer` | Đã có, không đổi |
+| `/supplier` · `/forwarder` · `/auditor` | ⚠️ **Ba route mới** |
 
-/partner      →  THAY THẾ /subcon và /buyer trong nav của đối tác.
-                 Đối tác chỉ thấy đúng một mục. Không tăng số phân hệ.
-```
+Ba Portal mới sẽ nâng số route từ 12 lên 15. Nhưng chúng chỉ hiện với **đối
+tác** — nhân viên nội bộ không bao giờ thấy chúng trong nav, vì `canAccess` lọc
+theo vai trò.
 
-⚠️ Nếu Kiến trúc sư muốn `/assignments` là mục nav riêng cho nội bộ, đó là
-**thay đổi ràng buộc 12 phân hệ** và cần quyết định tường minh. Tôi không tự
-làm.
+**Câu hỏi cần chốt:** "12 phân hệ" đếm theo *route tồn tại* hay theo *phân hệ mà
+nhân viên nội bộ nhìn thấy*? Nếu là vế sau thì không có gì thay đổi. Tôi không
+tự diễn giải ràng buộc bất di bất dịch.
 
-## 7. Bài kiểm
+Ba Portal đó cũng **chưa cần dựng ngay** — hôm nay có 0 Supplier, 0 Forwarder,
+0 Auditor. Dựng khi có đối tác thật (Điều XXIX).
+
+## 8. Bài kiểm
 
 ```
 scratchpad/
 ├── verify-assignment-domain.mjs   Domain thuần, biên dịch TS rồi chạy thật
-├── live-assignment.mjs            CSDL thật: tạo, chuyển trạng thái, dọn sạch
+├── live-assignment.mjs            CSDL thật: tạo · chuyển trạng thái · dọn sạch
 ├── probe-assignment-rls.mjs       Hai đối tác, chứng minh không thấy chéo
+├── probe-assignment-price.mjs     Giá: thấy của mình, KHÔNG thấy của người khác
 ├── probe-assignment-expiry.mjs    Hết hạn → quyền tắt
-├── matrix-assignment.mjs          Mọi bảng × 14 vai trò, chống mất điện
+├── probe-buyer-no-assignment.mjs  Buyer KHÔNG đi qua Assignment (bất biến I-8)
+├── matrix-assignment.mjs          Mọi bảng × 14 vai trò — chống mất điện
 └── probe-report-missing.mjs       5 ngày, báo 3, phải ra đúng 2
 ```
 
-Sáu bộ, chạy cùng 18 bộ đang có. Mọi bộ đều phải **dọn sạch và chứng minh
-không dư lượng** — và **khôi phục bằng giá trị đã chụp**, không bằng chuỗi
-cứng (bài học `probe-026` đã làm hỏng tên một nhà thầu thật).
+Tám bộ, chạy cùng 18 bộ hiện có. Mọi bộ phải dọn sạch và **khôi phục bằng giá
+trị đã chụp**, không bằng chuỗi cứng — `probe-026` từng làm hỏng tên một nhà
+thầu thật vì lỗi đó.

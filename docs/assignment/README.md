@@ -1,31 +1,42 @@
 # ASSIGNMENT CORE DOMAIN — HỒ SƠ THIẾT KẾ
 
-> **Trạng thái: CHỜ PHÊ DUYỆT.** Chưa viết một dòng SQL nào, chưa tạo migration
+> **Bản 2 — CHỜ PHÊ DUYỆT.** Chưa viết một dòng SQL nào, chưa tạo migration
 > nào. Theo Điều XXVII và Quyết định 8 của Kiến trúc sư.
+>
+> Đã sửa theo sáu Quyết định Kiến trúc ngày 31/07/2026. Hai quyết định **lật
+> ngược đề xuất ban đầu của tôi**: Buyer ra khỏi Assignment (QĐ 4) và Portal
+> tách riêng theo giao diện (QĐ 6).
 
 Assignment là **Core Domain** của MONICA MOS. Nó không thuộc Subcon, không
 thuộc Buyer, không thuộc bất kỳ Portal nào — nó thuộc về chính hệ điều hành
 sản xuất.
 
 ```
-Partner Domain
-      │
-      ▼
-Partner Account
-      │
-      ▼
-  Assignment
-      │
-      ├── Buyer Portal
-      ├── Subcon Portal
-      ├── Supplier Portal
-      ├── Forwarder Portal
-      └── Auditor Portal
+                    Partner Domain
+                          │
+                    Partner Account
+                     ╱          ╲
+        Execution Partner       Order Owner (Buyer)
+                │                      │
+           ASSIGNMENT              customer_id
+                │                      │
+    ┌───────────┼──────────┐           │
+    ▼           ▼          ▼           ▼
+ Subcon    Supplier   Forwarder    Buyer Portal
+ Portal     Portal      Portal
+                        Auditor · Inspection Portal
 ```
 
-Assignment là **nguồn xác định duy nhất** của: Permission · Resource Scope ·
-Reporting · Daily Report · REPORT MISSING · KPI · Notification · Timeline ·
-Audit.
+**Buyer KHÔNG đi qua Assignment** (Quyết định 4). Họ là Order Owner — sở hữu
+đơn hàng chứ không được giao việc. Đường của họ đã chạy từ migration 018 và
+không bị đụng tới.
+
+Với **Đối tác Thực thi**, Assignment là nguồn xác định duy nhất của:
+Permission · Resource Scope · Reporting · Daily Report · REPORT MISSING · KPI ·
+Notification · Timeline · Audit.
+
+Sáu loại Đối tác Thực thi: `PRODUCTION_PARTNER` · `SERVICE_PARTNER` ·
+`SUPPLIER` · `FORWARDER` · `INSPECTION` · `AUDITOR`.
 
 ## Mười tài liệu
 

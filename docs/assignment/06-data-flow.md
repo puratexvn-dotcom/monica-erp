@@ -43,6 +43,11 @@ MONICA (md · kho · giamdoc)              ĐỐI TÁC (cổng riêng)
     close_reason                              (chỉ còn đọc, vĩnh viễn)
 ```
 
+⚠️ Sơ đồ trên là của **Đối tác Thực thi**. Buyer không có luồng này — họ
+không nhận việc, không báo cáo ngày, không có Assignment (Quyết định 4). Luồng
+của Buyer là duyệt mẫu, duyệt thay đổi, và đọc tiến độ theo đơn hàng của mình,
+đi qua `mos_buyer_can_see_order()` của migration 018.
+
 ## 2. Ai ghi cái gì
 
 | Bảng | Monica | Đối tác |

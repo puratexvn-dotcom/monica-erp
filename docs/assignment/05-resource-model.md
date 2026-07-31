@@ -7,6 +7,11 @@
 
 Toàn bộ tài liệu này là cách trả lời câu đó cho nhanh và đúng.
 
+⚠️ **Chỉ áp dụng cho Đối tác Thực thi.** Buyer không đi qua Assignment
+(Quyết định 4) — quyền của họ hỏi một câu khác: *"đơn hàng này có thuộc khách
+hàng của họ không?"*, trả lời bằng `mos_buyer_can_see_order()` đã có từ
+migration 018. Hai câu hỏi, hai hàm, không trộn.
+
 ## 2. Bốn cách một tài nguyên gắn vào Assignment
 
 | Cách | Nghĩa | Tài nguyên |
@@ -146,9 +151,10 @@ không cần. Chặn bằng `mos_is_external()`, không đụng Assignment.
 **② Dữ liệu của chính đối tác** — hồ sơ công ty, tài khoản của họ. Không thuộc
 Assignment nào cả. Quy chiếu bằng `partner_id = mos_partner_id()`.
 
-**③ Dữ liệu liên-PO** — ví dụ Buyer muốn xem tổng tiến độ mọi đơn của mình.
-Không đi qua Assignment mà đi qua `partners.customer_id`, đúng khuôn
-`mos_buyer_can_see_order()` đã có từ migration 018.
+**③ Dữ liệu của Buyer** — mọi thứ Buyer đọc. Không đi qua Assignment mà đi
+qua `partners.customer_id`, đúng khuôn `mos_buyer_can_see_order()` đã có từ
+migration 018. Đây không phải ngoại lệ — đây là **con đường chính thức của
+Buyer** theo Quyết định 4.
 
 Ba đường vào khác nhau, khai tường minh. Cái nguy hiểm không phải là ba đường,
 mà là một đường thứ tư không ai khai mà vẫn đi được.
