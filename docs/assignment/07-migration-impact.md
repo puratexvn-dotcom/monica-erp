@@ -3,14 +3,15 @@
 > **Bản 2** — sửa theo Quyết định Kiến trúc ngày 31/07/2026.
 > Không viết SQL. Đây là bản kê **cái gì bị đụng** và **cái gì sẽ gãy**.
 
-## 1. Bảng mới — 8 bảng
+## 1. Bảng mới — 9 bảng
 
 | Bảng | Vì sao cần | Rủi ro |
 |---|---|---|
 | `partners` | Lớp trừu tượng danh tính (Quyết định 1) | Thấp — bảng mới |
 | `partner_accounts` | Tài khoản → đối tác, tổng quát hoá `buyer_accounts` | Thấp |
 | `partner_permissions` | Ma trận quyền, RLS đọc được | Thấp |
-| `assignments` | Thực thể gốc, **mang `unit_price`** (Quyết định 3) | Trung bình — chứa giá |
+| `assignments` | Thực thể gốc — **không chứa giá** (Quyết định 2 tinh chỉnh) | Thấp |
+| `assignment_commercial_terms` | Điều khoản thương mại, tách khỏi vận hành | Trung bình — chứa giá |
 | `assignment_bundles` | Bó thuộc Assignment | Thấp |
 | `assignment_daily_reports` | Báo cáo ngày bắt buộc | Thấp |
 | `factories` | ⚠️ Không tồn tại, phân cấp Điều XXX cần | Thấp |
@@ -158,7 +159,7 @@ lúc đó đo được chi phí thuần của hàm, không lẫn với chi phí 
 | # | Phải chứng minh | Chống rủi ro |
 |---|---|---|
 | 1 | Đối tác A không thấy dữ liệu của B | R4 |
-| 2 | Đối tác A không thấy **giá** của B | R4 + Quyết định 3 |
+| 2 | Đối tác A không thấy **điều khoản thương mại** của B | R4 |
 | 3 | Hết `end_date` → quyền tắt | I-4 |
 | 4 | `CLOSED` → không ghi được | tài liệu 03 |
 | 5 | **Buyer không đi qua Assignment**, và không tạo được Assignment cho Buyer | I-8 · Quyết định 4 |
@@ -180,11 +181,17 @@ Mục 6 và 9 là hai mục dễ bỏ sót nhất và đắt nhất nếu sai.
 | # | Nội dung | Điểm dừng kiểm chứng được |
 |---|---|---|
 | 027 | Partner Domain | 5 dòng `partners`, chưa ai dùng |
-| 028 | Factory · Operation | 2 bảng tham chiếu |
-| 029 | Assignment Core + I-8 | 3 bảng, trigger, chưa RLS |
-| 030 | Hàm quyền + view | đo hiệu năng tại đây |
-| 031 | Policy RLS | ◄ điểm không quay lại |
-| 032 | Gỡ 025 · 026 | sau khi 10 bài kiểm xanh |
+| 028 | Factory · Operation | 2 bảng tham chiếu, `operations` để rỗng |
+| 029 | **Assignment Domain** — 4 bảng + I-8 | chưa RLS, chưa quyền |
+| 030 | **Permission Engine** — `partner_permissions` + 5 hàm + view | **đo hiệu năng tại đây** |
+| 031 | **RLS** | ◄ điểm không quay lại |
+| 032 | **Cleanup** — gỡ 025 · 026 | sau khi 10 bài kiểm xanh |
+
+⚠️ **Quyền phải được ĐỊNH NGHĨA xong trước khi RLS THỰC THI** (Quyết định 4
+tinh chỉnh). Ở bản 2 tôi để `partner_permissions` nằm trong 027 cùng Partner
+Domain — sai thứ tự về mặt khái niệm: ma trận quyền là một phần của Permission
+Engine, không phải của sổ danh tính đối tác. Nay nó chuyển sang 030, cùng chỗ
+với các hàm đọc nó.
 
 **Không gộp.** Điều XXVIII.4 nói một tính năng là một migration hoàn chỉnh; ở
 đây "tính năng" là từng lớp của nền móng, không phải cả nền móng. Gộp lại thì

@@ -25,7 +25,7 @@
 | `DRAFT` | Monica đang soạn, đối tác **chưa thấy** | Monica |
 | `ISSUED` | Đã giao, chờ đối tác xác nhận | Monica |
 | `ACCEPTED` | Đối tác đã nhận việc | **Đối tác** |
-| `IN_PROGRESS` | Đang chạy, có báo cáo ngày | Tự động ở báo cáo đầu tiên |
+| `IN_PROGRESS` | Đang chạy, có báo cáo ngày | Service, khi nhận báo cáo đầu |
 | `SUSPENDED` | Tạm dừng (hết vải, chờ duyệt mẫu) | Monica |
 | `COMPLETED` | Đối tác báo xong, chờ Monica nghiệm thu | **Đối tác** |
 | `CLOSED` | Monica đã nghiệm thu, chốt sổ | Monica |
@@ -111,7 +111,7 @@ Assignment mới, và lịch sử vẫn còn nguyên.
 |---|---|
 | `→ ISSUED` | `partner_id`, `order_id`, `assigned_qty`, `start_date`, `end_date` |
 | `→ ACCEPTED` | người thực hiện là **tài khoản của chính Partner đó** |
-| `→ IN_PROGRESS` | tự động khi có `assignment_daily_reports` đầu tiên |
+| `→ IN_PROGRESS` | **service** chuyển khi nhận báo cáo ngày đầu tiên — xem mục 8 |
 | `→ SUSPENDED` | `suspend_reason` ≥ 10 ký tự |
 | `→ COMPLETED` | không còn ngày nào thiếu báo cáo trong `[start_date, min(end_date, hôm_nay)]` |
 | `→ CLOSED` | `close_reason` ≥ 10 ký tự, và người thực hiện là **Monica** |
@@ -129,10 +129,35 @@ lý do một chữ không phải là lý do.
 
 | Luật | Đặt ở | Vì sao |
 |---|---|---|
-| Danh sách trạng thái | `CHECK` + hằng TypeScript, **khớp từng chữ** | Có bài kiểm đối chiếu hai bên, như `SHIPMENT_FLOW` của Phase 6 |
-| Chuyển trạng thái hợp lệ | `lib/mos/assignment.ts` (Domain thuần) | Kiểm thử được bằng Node, không cần dựng Postgres |
-| Điều kiện bắt buộc | Service, có trigger CSDL làm lưới an toàn | Service cho thông báo đọc được; trigger chặn cả khi gọi thẳng API |
-| Quyền theo trạng thái | **RLS** | Hàng rào thật. Tầng giao diện chỉ là hàng rào lịch sự |
+| Danh sách trạng thái | `CHECK` + hằng TypeScript, **khớp từng chữ** | Bài kiểm đối chiếu hai bên, như `SHIPMENT_FLOW` của Phase 6 |
+| Chuyển trạng thái hợp lệ | `lib/mos/assignment.ts` (Domain thuần) | Kiểm thử bằng Node, không cần dựng Postgres |
+| Điều kiện bắt buộc | **Service** | Nơi duy nhất cho được thông báo người dùng đọc hiểu |
+| Tự chuyển `→ IN_PROGRESS` | **Service** | Quyết định 5 — đây là QUY TRÌNH, không phải bất biến |
+| Giải phóng bó khi huỷ | **Service** | Cùng lý do |
+| Bất biến dữ liệu (I-8, khoá ngoại, `CHECK`) | **CSDL** | Chặn mọi đường vào, kể cả gọi thẳng PostgREST |
+| Quyền theo trạng thái | **RLS** | Hàng rào thật. Giao diện chỉ là hàng rào lịch sự |
+
+### Quyết định 5 — ranh giới của trigger
+
+> **Trigger chỉ bảo vệ bất biến dữ liệu. Không đặt quy trình nghiệp vụ hay tự
+> động hoá nghiệp vụ trong trigger.**
+
+| Được đặt trong trigger | Không được |
+|---|---|
+| Từ chối Assignment cho partner `BUYER` (I-8) | Tự chuyển trạng thái |
+| Đóng dấu `updated_at`, `updated_by` | Tự gỡ bó khi huỷ |
+| Từ chối `CLOSED` khi thiếu `close_reason` | Tự sinh chứng từ |
+
+Ranh giới đơn giản: trigger được **từ chối** và được **đóng dấu**. Trigger
+không được **thay người dùng quyết định**.
+
+⚠️ **Xung đột với thứ đã lên production.** Migration 024 có trigger
+`shipment_release_cartons`: huỷ lô hàng thì tự xoá mềm liên kết thùng. Theo
+Quyết định 5, đó là **tự động hoá nghiệp vụ** và lẽ ra phải nằm ở service.
+
+Tôi **không tự gỡ** — nó đang giữ cho một ràng buộc `UNIQUE` không khoá vĩnh
+viễn thùng hàng, và gỡ nó mà chưa có service thay thế sẽ sinh lỗi im lặng.
+Đã báo cáo để Kiến trúc sư quyết riêng.
 
 ⚠️ **KHÔNG** lưu cột `can_write`. Điều XXVIII.1 cấm lưu dữ liệu tính được — nó
 sẽ lệch ngay ngày Assignment hết hạn mà không ai chạy lại phép tính.

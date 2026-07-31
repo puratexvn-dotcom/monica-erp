@@ -69,7 +69,7 @@ export const RESOURCE_TYPES = [
   'order', 'style', 'line', 'operation', 'bundle', 'cut_ticket',
   'hourly_log', 'daily_report', 'downtime', 'qa_inline', 'aql',
   'capa', 'material', 'consumption', 'shipment', 'document', 'comment',
-  'assignment_price',   // Quyết định 3 — giá của CHÍNH Assignment mình
+  'commercial_terms',   // điều khoản thương mại của CHÍNH Assignment mình
 ] as const;
 export type ResourceType = (typeof RESOURCE_TYPES)[number];
 
@@ -140,9 +140,12 @@ export interface MyAssignment {
   poNumber: string | null; styleCode: string | null;
   lineName: string | null; operationName: string | null;
   assignedQty: number | null; uom: string | null;
-  /** Giá hợp đồng của CHÍNH Assignment này (Quyết định 3).
-   *  KHÔNG bao giờ chứa giá bán cho Buyer hay giá vốn nội bộ. */
-  unitPrice: number | null; currency: string | null;
+  /** Điều khoản thương mại của CHÍNH Assignment này. `null` khi Monica chưa
+   *  lập, hoặc khi vai trò gọi không được đọc — service phân biệt hai ca bằng
+   *  cờ `termsVisible`, KHÔNG trả `null` chung cho cả hai (bài học Phase 5). */
+  commercialTerms: { unitPrice: number | null; currency: string | null;
+                     contractNo: string | null } | null;
+  termsVisible: boolean;
   startDate: string; endDate: string;
   status: AssignmentStatus;
   /** Đối tác GHI được không — service tính, giao diện chỉ đọc cờ. */

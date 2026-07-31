@@ -1,17 +1,21 @@
 # 01 · ASSIGNMENT DOMAIN MODEL
 
-> **Bản 2** — sửa theo Quyết định Kiến trúc ngày 31/07/2026.
-> Thay đổi lớn: Buyer **không** dùng Assignment · Assignment mang `unit_price` ·
-> đổi tên loại đối tác theo thuật ngữ chính thức.
+> **Bản 3** — sửa theo Quyết định Kiến trúc (tinh chỉnh) ngày 31/07/2026.
+> Thay đổi so với bản 2: **giá RỜI khỏi `assignments`**, sang bảng
+> `assignment_commercial_terms` · bất biến I-8 bảo vệ ở **ba tầng** · trigger
+> chỉ giữ bất biến dữ liệu, không chứa quy trình nghiệp vụ.
 
 ## 1. Assignment là gì
 
 > **Một phần việc THỰC THI mà Monica giao cho một Đối tác Thực thi, trong một
-> phạm vi xác định, trong một khoảng thời gian xác định, ở một mức giá xác
-> định.**
+> phạm vi xác định, trong một khoảng thời gian xác định.**
 
 Assignment là Core Domain của **Manufacturing Execution** — không phải của
-Customer Management (Quyết định 5).
+Customer Management.
+
+⚠️ Câu định nghĩa **cố ý không có chữ "giá"**. Assignment là miền **vận hành**.
+Điều khoản thương mại nằm ở một bảng riêng và Assignment chỉ *tham chiếu tới*
+khi cần — xem mục 3.4.
 
 ### Không phải là gì
 
@@ -71,9 +75,7 @@ operation_id       UUID → operations(id)    ⚠️ bảng chưa tồn tại
 assigned_qty       NUMERIC
 uom                VARCHAR
 
--- ─── GIÁ HỢP ĐỒNG  (Quyết định 3) ────────────────────────────────
-unit_price         NUMERIC
-currency           VARCHAR(3)  CHECK IN (VND, USD, EUR, CNY, JPY, KRW)
+-- ⚠️ KHÔNG có unit_price, KHÔNG có currency. Xem mục 3.4.
 
 start_date         DATE  BẮT BUỘC
 end_date           DATE  BẮT BUỘC
@@ -82,28 +84,6 @@ status             VARCHAR   (tài liệu 03)
 assigned_by · assigned_at · accepted_at · closed_at · close_reason
 created_at · created_by · updated_at · updated_by · deleted_at · deleted_by
 ```
-
-#### Vì sao `unit_price` nằm TRÊN Assignment
-
-**Bản 1 của tài liệu này lập luận ngược lại** — rằng giá là dữ liệu thương mại,
-nên để ở `subcon_orders`, tránh cho mọi truy vấn quyền phải chạm bảng chứa giá.
-
-Quyết định 3 đổi yêu cầu: đối tác **được** xem giá của chính Assignment mình.
-Khi đó lập luận cũ mất chỗ đứng — nếu giá nằm ở `subcon_orders` thì phải mở
-thêm một đường đọc vào bảng đó, và bảng đó chứa giá của **mọi** đối tác. Đặt
-giá ngay trên Assignment cho ra phạm vi bảo vệ **hẹp hơn**: ai thấy Assignment
-thì thấy giá của đúng Assignment ấy, không hơn.
-
-Ba ranh giới Quyết định 3 vạch ra, ánh xạ thẳng vào dữ liệu:
-
-| Cấm xem | Nằm ở | Chặn bằng |
-|---|---|---|
-| Buyer Price | `orders.unit_price` · `customers` | `mos_is_external()` |
-| Internal Cost | `financial_records` | `mos_is_external()` |
-| Giá của Assignment **khác** | `assignments.unit_price` | `mos_assignment_covers()` |
-
-`currency` bắt buộc đi kèm — một con số giá không có đơn vị tiền là một con số
-sai đang chờ ngày lộ ra. Ràng buộc `CHECK` sáu đồng tiền theo Điều XXVIII.2.
 
 ### 3.2 `assignment_bundles`
 
@@ -114,8 +94,16 @@ UNIQUE (bundle_id) WHERE deleted_at IS NULL
 
 ⚠️ Chỉ mục duy nhất **một phần** — bài học `shipment_cartons` (migration 024):
 `UNIQUE` toàn phần sẽ khoá vĩnh viễn bó đã gỡ, và tái phân công là chuyện hằng
-ngày. Kèm trigger giải phóng bó khi Assignment chuyển `CANCELLED`, sao chép
-nguyên `shipment_release_cartons` đã kiểm chứng.
+ngày.
+
+⚠️ **Việc giải phóng bó khi huỷ Assignment nằm ở TẦNG SERVICE, không ở
+trigger** — Quyết định 5: trigger chỉ giữ bất biến dữ liệu, không chứa quy
+trình nghiệp vụ. "Huỷ thì gỡ bó" là quy trình, không phải bất biến.
+
+Hệ quả phải chấp nhận và ghi rõ: nếu ai đó đổi trạng thái thẳng trong cơ sở dữ
+liệu mà không qua service, bó sẽ **kẹt lại** ở Assignment đã huỷ. Bù lại bằng
+một mục trong bài kiểm hồi quy: không được tồn tại `assignment_bundles` còn
+hiệu lực trỏ vào Assignment `CANCELLED`.
 
 ### 3.3 `assignment_daily_reports`
 
@@ -129,6 +117,50 @@ UNIQUE (assignment_id, report_date)
 
 ⚠️ **Không** cột `is_missing`. Điều XXVIII.1 — "thiếu báo cáo" là *không có
 dòng nào*, tính bằng view (tài liệu 06).
+
+### 3.4 `assignment_commercial_terms` — điều khoản thương mại
+
+> **Quyết định 2 (tinh chỉnh):** không đặt `unit_price` trực tiếp vào
+> Assignment. Assignment là miền vận hành; thông tin thương mại nằm riêng và
+> được *tham chiếu tới* khi cần.
+
+```
+id              UUID
+assignment_id   UUID → assignments(id)   UNIQUE
+contract_no     VARCHAR
+unit_price      NUMERIC
+currency        VARCHAR(3) CHECK IN (VND, USD, EUR, CNY, JPY, KRW)
+payment_term    VARCHAR
+note            TEXT
+created_at · created_by · updated_at · updated_by
+```
+
+**Ba điều bảng này mua được:**
+
+**① Truy vấn quyền không còn chạm bảng chứa giá.** RLS trên `assignments` là
+đường đọc nóng nhất của toàn hệ thống. Ở bản 2, một lỗi phạm vi sẽ lộ **giá**;
+nay nó chỉ lộ *sự tồn tại* của phần việc. Rủi ro giảm hẳn một bậc, và tôi đã
+phải tự nêu rủi ro đó ở bản 2 — tinh chỉnh này xoá nó.
+
+**② Hai vòng đời khác nhau được tách ra.** Phạm vi công việc đổi khi tái phân
+công; giá đổi khi đàm phán lại. Nhét chung một bảng thì mỗi lần sửa giá là một
+lần `updated_at` của Assignment nhảy, và lịch sử vận hành lẫn với lịch sử
+thương mại.
+
+**③ Phân quyền tách được.** Kế toán cần đọc giá mà không cần đọc phạm vi
+chuyền. Đối tác cần đọc giá **của chính mình**. Hai policy trên hai bảng, thay
+vì một policy phải phân biệt theo cột.
+
+**`UNIQUE (assignment_id)` — một Assignment một bộ điều khoản.** Đàm phán lại
+giá giữa chừng là chuyện có thật, nhưng phiên bản hoá điều khoản là **chưa
+cần** (Điều XXIX): hôm nay có 0 Assignment. Khi cần, thêm `effective_from` và
+bỏ ràng buộc `UNIQUE` — rẻ hơn nhiều so với dựng sẵn cơ chế phiên bản không ai
+dùng.
+
+**Đối tác đọc được điều khoản của CHÍNH mình** (Quyết định 3 bản trước, vẫn giữ
+nguyên hiệu lực): RLS trên bảng này dùng `mos_assignment_covers('assignment',
+assignment_id)`. Vẫn cấm tuyệt đối: Buyer Price · Internal Cost · điều khoản
+của Assignment khác.
 
 ## 4. Bất biến
 
@@ -151,8 +183,20 @@ không ai phải thu hồi.
 `orders.total_quantity` — không chặn. Xuất dư 2–5% là bình thường (bài học
 `summariseShipping`, Phase 6).
 
-**I-8** *(mới)* · Partner có `partner_type = 'BUYER'` **không được** có
-Assignment. Ràng buộc ở tầng CSDL, không chỉ ở tầng ứng dụng — xem mục 7.
+**I-8** · Partner có `partner_type = 'BUYER'` **không được** có Assignment.
+
+Bảo vệ ở **ba tầng** (Quyết định 1 tinh chỉnh) — mỗi tầng bắt một loại đường
+vào khác nhau:
+
+| Tầng | Cài đặt | Bắt được gì |
+|---|---|---|
+| Domain | `isExecutionPartner()` trong `lib/mos/partner.ts` | lỗi lập trình, thấy ngay lúc biên dịch và kiểm thử |
+| Service | Zod refine + kiểm tra trước khi ghi | dữ liệu vào từ biểu mẫu, cho được thông báo đọc hiểu |
+| CSDL | trigger `BEFORE INSERT/UPDATE` | mọi đường còn lại — gọi thẳng PostgREST, script, tay |
+
+⚠️ Trigger này **đúng phạm vi Quyết định 5**: nó giữ một *bất biến dữ liệu*
+("không dòng `assignments` nào được trỏ tới partner loại BUYER"), không chứa
+quy trình nghiệp vụ. Nó chỉ từ chối, không tự động làm gì thay người dùng.
 
 ## 5. Ba mảnh chưa tồn tại
 
@@ -200,9 +244,8 @@ migration 018, cùng `buyer_accounts`. Không đụng tới, không viết lại
 - `mos_assignment_covers()` không bao giờ được gọi cho Buyer.
 - `partner_accounts` phục vụ cả hai, nhưng Buyer chỉ dùng cầu nối
   `customer_id`, không dùng Assignment.
-- Bất biến I-8 chặn ở CSDL: `CHECK` hoặc trigger từ chối Assignment có
-  `partner_id` trỏ tới partner loại `BUYER`. Không dựa vào giao diện — giao
-  diện là hàng rào lịch sự, CSDL mới là hàng rào thật.
+- Bất biến I-8 chặn ở **ba tầng** (mục 4). Không dựa vào giao diện — giao diện
+  là hàng rào lịch sự, CSDL mới là hàng rào thật.
 
 **Vì sao ràng buộc này đáng có ở CSDL:** nếu một ngày ai đó tạo nhầm Assignment
 cho Buyer, Buyer sẽ đột nhiên có quyền GHI sản lượng — thứ Điều XXX mục 9 cấm

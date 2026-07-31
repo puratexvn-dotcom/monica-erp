@@ -1,11 +1,14 @@
 # ASSIGNMENT CORE DOMAIN — HỒ SƠ THIẾT KẾ
 
-> **Bản 2 — CHỜ PHÊ DUYỆT.** Chưa viết một dòng SQL nào, chưa tạo migration
-> nào. Theo Điều XXVII và Quyết định 8 của Kiến trúc sư.
+> **Bản 3 — CHỜ PHÊ DUYỆT.** Chưa viết một dòng SQL nào, chưa tạo migration nào.
 >
-> Đã sửa theo sáu Quyết định Kiến trúc ngày 31/07/2026. Hai quyết định **lật
-> ngược đề xuất ban đầu của tôi**: Buyer ra khỏi Assignment (QĐ 4) và Portal
-> tách riêng theo giao diện (QĐ 6).
+> **Bản 2** sửa theo sáu Quyết định ngày 31/07/2026: Buyer ra khỏi Assignment
+> (QĐ 4) · năm Portal giao diện riêng (QĐ 6).
+>
+> **Bản 3** sửa theo sáu tinh chỉnh tiếp theo: giá **rời khỏi** `assignments`
+> sang `assignment_commercial_terms` · bất biến I-8 bảo vệ ở **ba tầng** ·
+> trigger **chỉ giữ bất biến dữ liệu** · "12 phân hệ" đếm theo Business
+> Capability · Permission Engine định nghĩa ở 030 trước khi RLS thực thi ở 031.
 
 Assignment là **Core Domain** của MONICA MOS. Nó không thuộc Subcon, không
 thuộc Buyer, không thuộc bất kỳ Portal nào — nó thuộc về chính hệ điều hành

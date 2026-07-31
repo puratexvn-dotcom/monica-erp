@@ -112,8 +112,15 @@ bao giờ gán lại được.
 lô hàng xong thì thùng bị khoá vĩnh viễn, phải thêm trigger giải phóng.
 
 **Cách chặn.** Chỉ mục duy nhất **một phần** `WHERE deleted_at IS NULL`, cộng
-trigger giải phóng bó khi Assignment chuyển `CANCELLED` — sao chép nguyên
-`shipment_release_cartons` của migration 024, thứ đã kiểm chứng chạy đúng.
+việc giải phóng bó khi Assignment chuyển `CANCELLED` — nhưng đặt ở **tầng
+service**, không ở trigger (Quyết định 5).
+
+⚠️ **Đánh đổi phải nói rõ.** Ở service thì một lần đổi trạng thái thẳng trong
+CSDL, hoặc một nhánh mã quên gọi, sẽ để bó **kẹt lại** ở Assignment đã huỷ —
+và lỗi này im lặng. Bù bằng hai thứ: một mục hồi quy khẳng định *không tồn tại
+`assignment_bundles` còn hiệu lực trỏ vào Assignment `CANCELLED`*, và một
+truy vấn rà định kỳ. Trigger bắt được ca này chắc chắn hơn; Quyết định 5 đổi
+độ chắc chắn đó lấy ranh giới kiến trúc sạch, và đó là lựa chọn có chủ đích.
 
 ---
 
@@ -161,6 +168,34 @@ thật.
 **Cách chặn.** Quyết định 6 của Kiến trúc sư, nay là quy tắc: **chụp giá trị
 trước khi sửa, khôi phục theo bản chụp, và có một mục kiểm đối chiếu lại chính
 bản chụp đó.** Cộng `snapshot` toàn bộ bảng trước/sau mỗi lượt chạy.
+
+---
+
+## R12 · Trigger đã lên production vi phạm Quyết định 5 — TRUNG BÌNH / CHẮC CHẮN
+
+**Rủi ro.** Migration 024 (đã chạy) có trigger `shipment_release_cartons`: khi
+lô hàng chuyển `CANCELLED` thì tự xoá mềm mọi liên kết thùng. Theo Quyết định
+5, đó là **tự động hoá nghiệp vụ**, thứ không được đặt trong trigger.
+
+**Vì sao nó tồn tại.** Không có nó thì chỉ mục `uq_shipment_carton_active` sẽ
+khoá vĩnh viễn những thùng của lô đã huỷ — đã kiểm chứng bằng chuỗi thao tác
+thật ở Phase 6.
+
+**Vì sao tôi KHÔNG tự gỡ.** Gỡ trigger mà chưa có service thay thế sẽ mở lại
+đúng cái bẫy nó đang chặn, và lỗi đó im lặng — không ai biết cho tới lúc cần
+xếp lại thùng.
+
+**Ba lối, cần Kiến trúc sư quyết:**
+
+| | Việc | Đánh đổi |
+|---|---|---|
+| **a** | Giữ nguyên, ghi vào Hiến pháp như một ngoại lệ có tên | Ranh giới bị đục một lỗ, nhưng lỗ đó có hồ sơ |
+| **b** | Chuyển sang service, gỡ trigger | Sạch kiến trúc; mất độ chắc chắn ở đường gọi thẳng CSDL |
+| **c** | Giữ trigger nhưng đổi nó thành *từ chối* thay vì *tự làm*: chặn `→ CANCELLED` khi còn thùng chưa gỡ | Đúng tinh thần Quyết định 5 (trigger chỉ từ chối), nhưng bắt người dùng gỡ thùng thủ công trước khi huỷ |
+
+Tôi nghiêng về **(c)** — nó biến tự động hoá thành bất biến, đúng ranh giới
+Quyết định 5 vạch ra, mà không mất độ chắc chắn. Nhưng nó **đổi hành vi của
+màn hình đang chạy**, nên là quyết định của Kiến trúc sư.
 
 ---
 
@@ -219,19 +254,23 @@ im lặng mà chỉ ràng buộc CSDL mới bắt được.
 
 ---
 
-## Một câu MỚI cần Kiến trúc sư quyết
+## Câu "12 phân hệ" — ĐÃ CÓ LỜI ĐÁP
 
-**Ràng buộc "12 phân hệ" đếm theo gì?**
+**Quyết định 3 (tinh chỉnh):** đếm theo **Business Capability**, không đếm theo
+Route. *External Collaboration* là **một** phân hệ; năm Portal là năm giao diện
+thuộc phân hệ đó.
 
-Quyết định 6 giữ năm Portal giao diện riêng. `/buyer` và `/subcon` đã có;
-`/supplier`, `/forwarder`, `/auditor` là **ba route mới** khi tới lượt.
+Số phân hệ không đổi, kể cả khi dựng thêm `/supplier`, `/forwarder`,
+`/auditor`. Cách đếm này cũng giải thích vì sao `/md/po/[poId]` với tám lát cắt
+không làm tăng số phân hệ.
 
-Ba route đó chỉ hiện với **đối tác** — nhân viên nội bộ không bao giờ thấy
-chúng trong thanh điều hướng, vì `canAccess` lọc theo vai trò.
+---
 
-Vậy "12 phân hệ" đếm theo *route tồn tại* hay theo *phân hệ mà nhân viên nội bộ
-nhìn thấy*? Nếu là vế sau thì không có gì thay đổi. Tôi không tự diễn giải một
-ràng buộc bất di bất dịch.
+## Câu MỚI cần quyết — xem R12
 
-Câu này **chưa chặn việc gì** — ba Portal đó chưa cần dựng, vì hôm nay có
-0 Supplier, 0 Forwarder, 0 Inspection, 0 Auditor (Điều XXIX).
+Trigger `shipment_release_cartons` của migration 024 vi phạm Quyết định 5.
+Ba lối xử lý ở R12; tôi nghiêng về **(c)** — đổi trigger từ *tự làm* thành *từ
+chối* — nhưng nó đổi hành vi màn hình đang chạy nên không tự quyết.
+
+Câu này **không chặn** migration 027–032. Assignment Domain thiết kế đúng
+Quyết định 5 ngay từ đầu; chỉ có thứ đã lên production cần xử lý riêng.

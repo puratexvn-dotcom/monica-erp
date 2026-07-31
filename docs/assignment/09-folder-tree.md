@@ -69,13 +69,17 @@ components/mos/assignment/
 lib/dictionaries/assignment.ts     Từ điển VN · EN · CN
 
 supabase/migrations/
-├── 027_partner_domain.sql
-├── 028_factory_operation.sql
-├── 029_assignment_core.sql
-├── 030_assignment_functions.sql
-├── 031_assignment_rls.sql         ◄ điểm không quay lại
-└── 032_drop_transitional_rls.sql  gỡ 025 · 026
+├── 027_partner_domain.sql         Partner Domain
+├── 028_factory_operation.sql      Factory + Operation
+├── 029_assignment_domain.sql      Assignment Domain (4 bảng, I-8)
+├── 030_permission_engine.sql      Permission Engine (ma trận + 5 hàm + view)
+├── 031_assignment_rls.sql         RLS            ◄ điểm không quay lại
+└── 032_cleanup.sql                Cleanup — gỡ 025 · 026
 ```
+
+⚠️ **Quyền được ĐỊNH NGHĨA ở 030, chỉ THỰC THI ở 031** (Quyết định 4 tinh
+chỉnh). Bản trước để bảng `partner_permissions` trong 027 — sai về khái niệm:
+ma trận quyền thuộc Permission Engine, không thuộc sổ danh tính đối tác.
 
 ## 3. Vì sao `_partner-core` chứ không nhân bản năm lần
 
@@ -148,26 +152,32 @@ sửa `orders`, đó là dấu hiệu ranh giới sai — không phải dấu hi
 Ngược lại `lib/mos/assignment.ts` là Domain thuần nên **mọi phân hệ import
 được**, giống `po-flow.ts` đang được `/md` và Trung tâm Xuất hàng dùng chung.
 
-## 7. Ràng buộc 12 phân hệ — cần Kiến trúc sư xác nhận
+## 7. Ràng buộc 12 phân hệ — ĐÃ ĐƯỢC ĐỊNH NGHĨA
 
-Ràng buộc bất di bất dịch: **12 phân hệ, 4 nút bottom nav**.
+> **Quyết định 3 (tinh chỉnh):** "12 phân hệ" đếm theo **Business Capability**,
+> không đếm theo Route.
 
-| Route | Ảnh hưởng |
-|---|---|
-| `/md/assignments` | **Không** phân hệ mới — nằm trong `/md` (Quyết định 2) |
-| `/subcon` · `/buyer` | Đã có, không đổi |
-| `/supplier` · `/forwarder` · `/auditor` | ⚠️ **Ba route mới** |
+**External Collaboration là MỘT phân hệ.** Năm Portal — Buyer · Subcon ·
+Supplier · Forwarder · Auditor — đều là *giao diện* thuộc cùng phân hệ đó.
 
-Ba Portal mới sẽ nâng số route từ 12 lên 15. Nhưng chúng chỉ hiện với **đối
-tác** — nhân viên nội bộ không bao giờ thấy chúng trong nav, vì `canAccess` lọc
-theo vai trò.
+```
+Business Capability          Route
+─────────────────────        ─────────────────────────────────────
+External Collaboration  ──►  /buyer · /subcon · /supplier
+        (1 phân hệ)          /forwarder · /auditor
+                             + _partner-core (dùng chung)
 
-**Câu hỏi cần chốt:** "12 phân hệ" đếm theo *route tồn tại* hay theo *phân hệ mà
-nhân viên nội bộ nhìn thấy*? Nếu là vế sau thì không có gì thay đổi. Tôi không
-tự diễn giải ràng buộc bất di bất dịch.
+Merchandiser            ──►  /md · /md/assignments · /md/po/[id]
+        (1 phân hệ)
+```
 
-Ba Portal đó cũng **chưa cần dựng ngay** — hôm nay có 0 Supplier, 0 Forwarder,
-0 Auditor. Dựng khi có đối tác thật (Điều XXIX).
+Cách đếm này giải thích luôn vì sao `/md/po/[poId]` với tám lát cắt không làm
+tăng số phân hệ: nó là **một** năng lực nghiệp vụ, nhiều màn hình.
+
+Số phân hệ **không đổi**. Ba route mới khi tới lượt cũng không đổi.
+
+Và ba Portal đó **chưa cần dựng** — hôm nay có 0 Supplier, 0 Forwarder,
+0 Inspection, 0 Auditor (Điều XXIX).
 
 ## 8. Bài kiểm
 
@@ -176,7 +186,8 @@ scratchpad/
 ├── verify-assignment-domain.mjs   Domain thuần, biên dịch TS rồi chạy thật
 ├── live-assignment.mjs            CSDL thật: tạo · chuyển trạng thái · dọn sạch
 ├── probe-assignment-rls.mjs       Hai đối tác, chứng minh không thấy chéo
-├── probe-assignment-price.mjs     Giá: thấy của mình, KHÔNG thấy của người khác
+├── probe-commercial-terms.mjs     Điều khoản: thấy của mình, KHÔNG của người khác
+├── probe-trigger-boundary.mjs     Trigger KHÔNG chứa quy trình (Quyết định 5)
 ├── probe-assignment-expiry.mjs    Hết hạn → quyền tắt
 ├── probe-buyer-no-assignment.mjs  Buyer KHÔNG đi qua Assignment (bất biến I-8)
 ├── matrix-assignment.mjs          Mọi bảng × 14 vai trò — chống mất điện

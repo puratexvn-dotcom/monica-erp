@@ -1,8 +1,8 @@
 # 04 · ASSIGNMENT PERMISSION MATRIX
 
-> **Bản 2** — sửa theo Quyết định Kiến trúc ngày 31/07/2026.
-> **Bỏ cột BUYER** (Quyết định 4) · thêm tài nguyên `assignment_price`
-> (Quyết định 3) · đổi tên loại đối tác.
+> **Bản 3** — sửa theo Quyết định Kiến trúc và các tinh chỉnh ngày 31/07/2026.
+> **Bỏ cột BUYER** (QĐ 4) · giá chuyển sang bảng `assignment_commercial_terms`
+> riêng thay vì nằm trên `assignments` · đổi tên loại đối tác.
 
 ## 1. Hai chuỗi quyết định, không phải một
 
@@ -46,7 +46,7 @@ Assignment đang hiệu lực**.
 | **Tiêu hao vật tư** | **W** | **W** | — | — | — | — |
 | Lô hàng xuất | — | — | — | **W** | — | — |
 | Chứng từ vận tải | — | — | — | **W** | — | R |
-| **Giá của chính Assignment** | **R** | **R** | **R** | **R** | **R** | **R** |
+| **Điều khoản thương mại của chính Assignment** | **R** | **R** | **R** | **R** | **R** | **R** |
 | Tài liệu của chính mình | **W** | **W** | **W** | **W** | **W** | **W** |
 | Bình luận / trao đổi | **W** | **W** | **W** | **W** | **W** | **W** |
 
@@ -71,30 +71,32 @@ hai cột trong cùng một bảng.
 ## 3. Giá — ba ranh giới của Quyết định 3
 
 ```
-✓ ĐƯỢC xem   assignments.unit_price  CỦA CHÍNH Assignment mình
+✓ ĐƯỢC xem   assignment_commercial_terms  CỦA CHÍNH Assignment mình
               (giá hợp đồng giữa Monica và chính đối tác đó)
 
-✗ CẤM        orders.unit_price          → giá bán cho Buyer
-✗ CẤM        financial_records.*        → giá vốn, lợi nhuận, thanh toán
-✗ CẤM        assignments.unit_price     CỦA Assignment KHÁC
+✗ CẤM        orders.unit_price             → giá bán cho Buyer
+✗ CẤM        financial_records.*           → giá vốn, lợi nhuận, thanh toán
+✗ CẤM        điều khoản của Assignment KHÁC
 ```
 
-Ba ranh giới, ba cơ chế khác nhau:
+Ba ranh giới, ba cơ chế:
 
 | Ranh giới | Chặn bằng |
 |---|---|
 | Buyer Price | `mos_is_external()` trên `orders` — đã có từ 018 |
 | Internal Cost | `mos_is_external()` trên `financial_records` — đã có từ 025 |
-| Giá Assignment khác | `mos_assignment_covers()` — chính nó |
+| Điều khoản của Assignment khác | `mos_assignment_covers('assignment', …)` |
 
-Ranh giới thứ ba là **cùng một cơ chế** bảo vệ dòng Assignment. Không cần thêm
-gì: ai thấy được Assignment thì thấy giá của nó, ai không thấy Assignment thì
-không thấy giá.
+**Quyết định 2 (tinh chỉnh) làm ranh giới thứ ba rẻ hơn hẳn.** Giá nằm ở bảng
+`assignment_commercial_terms` riêng, không nằm trên `assignments`. Hệ quả:
 
-⚠️ **Hệ quả phải nói rõ:** vì giá nằm ngay trên `assignments`, một lỗi ở
-`mos_assignment_covers()` sẽ lộ **giá** chứ không chỉ lộ *sự tồn tại* của phần
-việc. Bài kiểm phạm vi (R4, tài liệu 10) vì thế phải khẳng định thẳng vào cột
-`unit_price`, không chỉ đếm số dòng.
+- RLS trên `assignments` — đường đọc **nóng nhất** — không còn chạm dữ liệu giá.
+- Một lỗi phạm vi nay lộ *sự tồn tại* của phần việc, **không lộ giá**.
+- Kế toán đọc được giá mà không cần quyền đọc phạm vi chuyền, và ngược lại.
+
+Bản 2 của tài liệu này phải tự cảnh báo rằng lỗi phạm vi sẽ lộ giá. Tinh chỉnh
+của Kiến trúc sư xoá hẳn cảnh báo đó — đây là thiết kế tốt hơn đề xuất của
+tôi.
 
 ## 4. Bảy thứ không đối tác nào chạm tới
 
