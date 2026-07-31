@@ -185,7 +185,9 @@ thật ở Phase 6.
 đúng cái bẫy nó đang chặn, và lỗi đó im lặng — không ai biết cho tới lúc cần
 xếp lại thùng.
 
-**Ba lối, cần Kiến trúc sư quyết:**
+**ĐÃ QUYẾT: phương án (c)**, thực hiện ở migration `026b_shipment_cancel_guard`.
+
+Ba lối đã trình:
 
 | | Việc | Đánh đổi |
 |---|---|---|
@@ -193,9 +195,13 @@ xếp lại thùng.
 | **b** | Chuyển sang service, gỡ trigger | Sạch kiến trúc; mất độ chắc chắn ở đường gọi thẳng CSDL |
 | **c** | Giữ trigger nhưng đổi nó thành *từ chối* thay vì *tự làm*: chặn `→ CANCELLED` khi còn thùng chưa gỡ | Đúng tinh thần Quyết định 5 (trigger chỉ từ chối), nhưng bắt người dùng gỡ thùng thủ công trước khi huỷ |
 
-Tôi nghiêng về **(c)** — nó biến tự động hoá thành bất biến, đúng ranh giới
-Quyết định 5 vạch ra, mà không mất độ chắc chắn. Nhưng nó **đổi hành vi của
-màn hình đang chạy**, nên là quyết định của Kiến trúc sư.
+An toàn để đổi: đã đo trước khi viết — `shipments` 0 dòng, `shipment_cartons`
+0 dòng, và **không mã nguồn nào** chuyển lô hàng sang `CANCELLED`. Nên thay đổi
+hành vi lúc này không gãy màn hình nào.
+
+Hệ quả cho tầng ứng dụng: luồng huỷ lô hàng phải **gỡ thùng trước, huỷ sau**.
+Làm ngược sẽ nhận mã lỗi `23001` kèm câu nói rõ còn bao nhiêu thùng — người
+dùng biết phải làm gì, thay vì hệ thống âm thầm xoá liên kết thay họ.
 
 ---
 
@@ -266,11 +272,7 @@ không làm tăng số phân hệ.
 
 ---
 
-## Câu MỚI cần quyết — xem R12
+## Không còn câu nào chờ quyết
 
-Trigger `shipment_release_cartons` của migration 024 vi phạm Quyết định 5.
-Ba lối xử lý ở R12; tôi nghiêng về **(c)** — đổi trigger từ *tự làm* thành *từ
-chối* — nhưng nó đổi hành vi màn hình đang chạy nên không tự quyết.
-
-Câu này **không chặn** migration 027–032. Assignment Domain thiết kế đúng
-Quyết định 5 ngay từ đầu; chỉ có thứ đã lên production cần xử lý riêng.
+Toàn bộ câu hỏi kiến trúc đã có lời đáp. Migration `026b` và `027` đã viết
+xong, chờ chạy.

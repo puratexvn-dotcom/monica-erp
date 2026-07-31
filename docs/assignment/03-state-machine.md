@@ -151,13 +151,17 @@ lý do một chữ không phải là lý do.
 Ranh giới đơn giản: trigger được **từ chối** và được **đóng dấu**. Trigger
 không được **thay người dùng quyết định**.
 
-⚠️ **Xung đột với thứ đã lên production.** Migration 024 có trigger
-`shipment_release_cartons`: huỷ lô hàng thì tự xoá mềm liên kết thùng. Theo
-Quyết định 5, đó là **tự động hoá nghiệp vụ** và lẽ ra phải nằm ở service.
+✅ **Xung đột với migration 024 — ĐÃ XỬ LÝ.** Trigger
+`shipment_release_cartons` tự xoá mềm liên kết thùng khi huỷ lô hàng: đó là tự
+động hoá nghiệp vụ, vi phạm Quyết định 5.
 
-Tôi **không tự gỡ** — nó đang giữ cho một ràng buộc `UNIQUE` không khoá vĩnh
-viễn thùng hàng, và gỡ nó mà chưa có service thay thế sẽ sinh lỗi im lặng.
-Đã báo cáo để Kiến trúc sư quyết riêng.
+Kiến trúc sư chọn **phương án (c)**, thực hiện ở migration `026b`: trigger đổi
+từ *TỰ LÀM* thành *TỪ CHỐI* — nó chặn `→ CANCELLED` khi còn thùng chưa gỡ, và
+tầng ứng dụng phải gỡ thùng trước.
+
+Cách này giữ nguyên độ chắc chắn của CSDL (chặn cả khi gọi thẳng PostgREST) mà
+không vi phạm ranh giới. Phương án chuyển hẳn sang service sẽ mở lại cái bẫy
+`UNIQUE` khoá vĩnh viễn thùng — và lỗi đó im lặng.
 
 ⚠️ **KHÔNG** lưu cột `can_write`. Điều XXVIII.1 cấm lưu dữ liệu tính được — nó
 sẽ lệch ngay ngày Assignment hết hạn mà không ai chạy lại phép tính.
