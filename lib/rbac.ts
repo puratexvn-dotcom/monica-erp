@@ -62,21 +62,38 @@ export const MODULE_ACCESS: Record<Role, readonly string[]> = {
   superadmin: ['*'],
   // Giám đốc xem được cả danh sách PO: /giam-doc là bảng tổng hợp, còn
   // /orders là chi tiết từng đơn — hai thứ bổ sung cho nhau.
-  giamdoc: ['/giam-doc', '/orders'],
-  md: ['/md', '/orders'],
+  // ─── /subcon MỞ CHO NỘI BỘ MONICA ────────────────────────────────────
+  // Migration 026 chặn nhà thầu GHI vào `subcon_orders` (họ từng tự tạo đơn,
+  // tự đặt giá, tự xoá). Nhưng trước đó CHỈ vai trò `subcon` và `superadmin`
+  // vào được /subcon — chặn xong thì Monica không còn chỗ nào để LẬP đơn gia
+  // công, và Điều XXX mục 4 nói rõ "mọi Assignment phải do Monica tạo".
+  //
+  // Superadmin là tài khoản quản trị hệ thống, không phải tài khoản nghiệp vụ
+  // hằng ngày — không được lấy nó ra chạy việc.
+  //
+  // Danh sách dưới đây theo đúng năm nhóm Kiến trúc sư chỉ định:
+  // Merchandiser · Kho · Quản lý sản xuất · Giám đốc · CEO.
+  giamdoc: ['/giam-doc', '/orders', '/subcon'],
+  md: ['/md', '/orders', '/subcon'],
   qa: ['/qa'],
   totruongcat: ['/to-truong-cat'],
-  totruongmay: ['/to-truong-may'],
+  totruongmay: ['/to-truong-may', '/subcon'],
   hoanthanh: ['/hoan-thanh', '/to-truong-hoan-thanh'],
-  kho: ['/kho', '/xuat-hang'],
+  kho: ['/kho', '/xuat-hang', '/subcon'],
   ketoan: ['/ke-toan'],
+  // Nhà thầu chỉ vào cổng của chính mình. Quyền GHI đã bị 026 chặn ở tầng CSDL
+  // — hàng rào thật nằm ở đó, không nằm ở dòng này.
   subcon: ['/subcon'],
   buyer: ['/buyer'],
   // Ba vai trò kho cùng vào /kho; phân biệt việc ai được LÀM GÌ nằm ở tầng
   // hành động (xem WH_PERMISSIONS bên dưới), không nằm ở quyền vào route.
   // Chặn ở route thì tổ trưởng và thủ kho phải có hai màn hình khác nhau —
   // vô lý vì họ đứng cạnh nhau xử lý cùng một lô hàng.
-  khotruong: ['/kho', '/xuat-hang'],
+  khotruong: ['/kho', '/xuat-hang', '/subcon'],
+  // ⚠️ `thukho` và `ketoanvattu` CỐ Ý không được mở /subcon: thủ kho giữ hàng
+  // trong kho, kế toán vật tư đối soát vật tư — cả hai không lập đơn gia công.
+  // Kiến trúc sư chỉ định "Kho" chứ không chỉ định từng vai trò con; mở hẹp
+  // trước, nới sau vẫn dễ hơn thu lại quyền đã trao.
   thukho: ['/kho'],
   ketoanvattu: ['/kho', '/ke-toan'],
 };

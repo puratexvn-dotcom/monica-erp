@@ -102,6 +102,17 @@ export async function createSubconOrder(formData: FormData) {
     issued_date: new Date().toISOString(),
   })
 
+  // Điều XXX mục 4: Assignment phải do Monica tạo, nhà thầu không tự giao việc
+  // cho mình. Migration 026 chặn ở tầng CSDL; ở đây chỉ dịch mã lỗi 42501 sang
+  // câu người dùng hiểu, thay vì ném nguyên văn "new row violates row-level
+  // security policy" ra màn hình.
+  if (error?.code === '42501') {
+    return {
+      error:
+        'Nhà thầu không được tự tạo Đơn gia công. Đơn gia công do Monica lập và ' +
+        'giao xuống; nhà thầu chỉ cập nhật dữ liệu phát sinh trên đơn đã có.',
+    }
+  }
   if (error) return { error: `Không thể tạo Đơn gia công: ${error.message}` }
 
   revalidatePath('/subcon')
