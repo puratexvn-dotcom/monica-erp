@@ -203,3 +203,47 @@ export function PieSeries({
     </PieChart>
   );
 }
+
+/**
+ * Hai cột cạnh nhau — Kế hoạch vs Thực tế.
+ *
+ * ─── VÌ SAO THÊM MỚI CHỨ KHÔNG SỬA BarSeries ─────────────────────────────
+ * `BarSeries` chỉ vẽ được MỘT chuỗi và đang phục vụ bốn biểu đồ khác của /md.
+ * Nới nó ra thành nhiều chuỗi nghĩa là đổi chữ ký của một thứ đang chạy — luật
+ * #9 của bản phê duyệt cấm làm mất tính ổn định. Đây là export MỚI, hoàn toàn
+ * cộng thêm, không một dòng nào của phần cũ bị đụng.
+ *
+ * ─── VÌ SAO CỘT CHỨ KHÔNG PHẢI ĐƯỜNG ─────────────────────────────────────
+ * Người đọc cần so SÁNH hai giá trị tại cùng một ngày, không cần đọc xu hướng.
+ * Hai cột cạnh nhau cho phép nhìn ra chênh lệch bằng chiều cao; hai đường chồng
+ * nhau thì phải dò mắt theo trục.
+ */
+export function TargetVsActualBars({
+  data,
+  xKey,
+  targetKey,
+  actualKey,
+  targetName,
+  actualName,
+}: {
+  data: ReadonlyArray<Record<string, string | number>>;
+  xKey: string;
+  targetKey: string;
+  actualKey: string;
+  targetName: string;
+  actualName: string;
+}) {
+  return (
+    <BarChart data={data as Record<string, string | number>[]} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+      <XAxis dataKey={xKey} tick={AXIS} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} interval="preserveStartEnd" />
+      <YAxis tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v: number) => nf.format(v)} width={56} />
+      <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #e2e8f0' }} />
+      <Legend wrapperStyle={{ fontSize: 11 }} />
+      {/* Kế hoạch xám nhạt làm nền, thực tế xanh đè lên: mắt bắt ngay chỗ cột
+          xanh thấp hơn cột xám — đó chính là ngày hụt sản lượng. */}
+      <Bar dataKey={targetKey} name={targetName} fill="#cbd5e1" radius={[4, 4, 0, 0]} />
+      <Bar dataKey={actualKey} name={actualName} fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+    </BarChart>
+  );
+}
