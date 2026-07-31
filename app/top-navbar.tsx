@@ -51,11 +51,11 @@ export default function TopNavbar() {
             />
           </Link>
 
-          {/* ── LỜI CHÚA — căn giữa TUYỆT ĐỐI theo thanh ────────────────
+          {/* ── LỜI CHÚA (màn rộng) — căn giữa TUYỆT ĐỐI theo thanh ─────
               Nằm ngoài luồng flex nên không bị logo và cụm nút đẩy lệch. Chỉ
-              hiện từ lg trở lên: khối căn tuyệt đối không đẩy được ai ra, màn
-              hẹp hơn thì nó sẽ đè lên logo. */}
-          <HeaderVerse />
+              hiện từ lg: khối căn tuyệt đối không đẩy được ai ra, màn hẹp hơn
+              thì nó sẽ đè lên logo — biến thể 'bar' bên dưới lo phần đó. */}
+          <HeaderVerse variant="center" />
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
@@ -73,6 +73,12 @@ export default function TopNavbar() {
             </button>
           </div>
         </div>
+
+        {/* ── LỜI CHÚA (điện thoại & máy tính bảng) — hàng riêng ──────────
+            Nằm TRONG luồng nên tự chiếm chỗ, không đè lên logo. Đây là cách
+            duy nhất để câu hiện được ở màn hẹp mà vẫn giữ căn giữa tuyệt đối
+            ở màn rộng. */}
+        <HeaderVerse variant="bar" />
       </header>
 
     </>
