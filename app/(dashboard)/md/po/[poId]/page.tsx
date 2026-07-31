@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { canAccess, isRole } from '@/lib/rbac';
 import { defaultViewFor, viewsFor } from './_services/po-rbac';
-import { getPoTwinHeader } from './_services/po-twin.service';
+import { getExecutiveOverview } from './_services/executive.service';
 import PoCommandClient from './po-command-client';
 
 // ============================================================================
@@ -52,9 +52,19 @@ export default async function PoCommandPage({ params }: { params: { poId: string
   // đưa về bàn làm việc còn hơn hiện một trang trắng không giải thích gì.
   if (!initial || views.length === 0) redirect('/md');
 
-  // Lỗi đọc dữ liệu KHÔNG được đá người dùng ra khỏi trang: khung sẽ hiện đúng
-  // câu lỗi kèm nút Thử lại, giữ nguyên thanh điều hướng để họ đi tiếp được.
-  const initialData = await getPoTwinHeader(params.poId);
+  // MỘT lượt gọi duy nhất cho cả thanh đầu lẫn lát cắt 1.
+  //
+  // ⚠️ Bản đầu gọi getPoTwinHeader ở đây, rồi lát cắt 1 lại gọi
+  // getExecutiveOverview — mà hàm đó BÊN TRONG gọi getPoTwinHeader lần nữa.
+  // Tức mỗi lần mở trang là hai lượt đọc y hệt nhau, mười hai truy vấn thừa.
+  // Nay gọi một lần, chia kết quả cho cả hai nơi.
+  //
+  // Lát cắt 1 luôn là lát cắt mở đầu của MỌI vai trò (xem po-rbac.ts), nên nạp
+  // sẵn nó không bao giờ là công thừa.
+  const exec = await getExecutiveOverview(params.poId);
+  const initialData = exec.ok
+    ? ({ ok: true, data: exec.data.head, partial: exec.data.partial } as const)
+    : ({ ok: false, message: exec.message } as const);
 
   return (
     <PoCommandClient
@@ -62,6 +72,7 @@ export default async function PoCommandPage({ params }: { params: { poId: string
       views={views}
       initialView={initial}
       initialData={initialData}
+      initialExecutive={exec.ok ? exec.data : null}
     />
   );
 }

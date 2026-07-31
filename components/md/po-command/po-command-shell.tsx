@@ -74,7 +74,9 @@ export default function PoCommandShell({
   /** Nạp sẵn ở máy chủ. Khung dùng ngay, chỉ nạp lại khi realtime báo có đổi. */
   initialData: PoTwinResult;
   load: () => Promise<{ ok: true; data: PoTwinHeader; partial: string[] } | { ok: false; message: string }>;
-  renderSlice: (view: PoView, head: PoTwinHeader) => React.ReactNode;
+  /** `revision` tăng mỗi khi realtime báo có thay đổi — lát cắt dùng nó làm
+   *  tín hiệu nạp lại phần dữ liệu riêng của mình. */
+  renderSlice: (view: PoView, head: PoTwinHeader, revision: number) => React.ReactNode;
 }) {
   const { t } = useLanguage();
   const [view, setView] = useState<PoView>(initialView);
@@ -162,7 +164,7 @@ export default function PoCommandShell({
       )}
 
       <main className="mx-auto min-w-0 max-w-[110rem] px-4 py-4 sm:px-6">
-        {renderSlice(view, head)}
+        {renderSlice(view, head, revision)}
       </main>
     </div>
   );
