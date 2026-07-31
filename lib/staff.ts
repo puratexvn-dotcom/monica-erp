@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — Danh sách nhân sự đọc từ profiles + user_roles
+// MONICA MOS — Danh sách nhân sự đọc từ profiles + user_roles
 //
 // Bảng `users` cũ (lưu mật khẩu dạng chữ thường) đã bị xoá trong migration 010.
 // Nguồn dữ liệu nhân sự nay gồm ba mảnh:

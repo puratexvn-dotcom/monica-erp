@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================================
-// MONICA GARMENT ERP — Sidebar điều hướng phân quyền 10 vai trò
+// MONICA MOS — Sidebar điều hướng phân quyền 10 vai trò
 // Desktop: cố định bên trái, thu gọn được. Mobile: drawer trượt.
 // ============================================================================
 

@@ -7,14 +7,17 @@ import { LanguageProvider } from "@/lib/i18n";
 
 import { createClient } from "@/utils/supabase/server";
 import { isRole, type Role } from "@/lib/rbac";
+import { APP_NAME } from "@/lib/brand";
 import AppBottomNav from "@/components/app-bottom-nav";
 import type { ReportMetric } from "@/components/report-sheet";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Thẻ meta dùng tên NGẮN: đây là chữ trên tab trình duyệt, nơi chỉ hiện được
+// khoảng 20 ký tự trước khi bị cắt bằng dấu ba chấm.
 export const metadata: Metadata = {
-  title: "Monica Garment ERP",
-  description: "Hệ thống quản trị sản xuất ngành may",
+  title: APP_NAME,
+  description: "Hệ điều hành sản xuất ngành may — Manufacturing Operating System",
 };
 
 // ============================================================================

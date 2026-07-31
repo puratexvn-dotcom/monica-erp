@@ -6,6 +6,7 @@ import { Boxes, Minus, Receipt, TrendingDown, TrendingUp, Wallet } from 'lucide-
 import { ProgressBar, Badge } from '@/components/ui';
 import type { DeptMetrics } from '@/app/actions/ceo-report';
 import type { ReportMetric } from '@/components/report-sheet';
+import { APP_NAME } from '@/lib/brand';
 
 // ============================================================================
 // DASHBOARD MINI "SỐ LIỆU BỘ PHẬN"
@@ -228,7 +229,7 @@ export default function DeptReport({
       )}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-2.5">
-        <Badge tone="slate">Nguồn: Monica ERP</Badge>
+        <Badge tone="slate">Nguồn: {APP_NAME}</Badge>
         <span className="text-[10px] leading-snug text-slate-500">
           Doanh thu tính bằng đơn giá × số lượng của các đơn chưa đóng. Ô hiện &quot;—&quot; nghĩa là
           chưa đủ dữ liệu để tính, không phải bằng không.

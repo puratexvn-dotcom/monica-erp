@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// MONICA GARMENT ERP — Tạo tài khoản đăng nhập cho tất cả phòng ban
+// MONICA MOS — Tạo tài khoản đăng nhập cho tất cả phòng ban
 //
 // CHẠY:  node scripts/seed-users.mjs
 //        node scripts/seed-users.mjs --dry-run    (chỉ in ra, không ghi gì)
@@ -109,7 +109,7 @@ if (SERVICE_KEY && SERVICE_KEY === env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 
 // ─── In bảng tài khoản ───────────────────────────────────────────────────────
-console.log(`\nMONICA ERP — seed ${USERS.length} tài khoản  (miền: @${EMAIL_DOMAIN})`);
+console.log(`\nMONICA MOS — seed ${USERS.length} tài khoản  (miền: @${EMAIL_DOMAIN})`);
 console.log(`Mật khẩu mặc định: ${DEFAULT_PASSWORD}   [buộc đổi ở lần đăng nhập đầu]\n`);
 console.log('  ' + 'EMAIL'.padEnd(34) + 'VAI TRÒ'.padEnd(14) + 'HỌ TÊN');
 console.log('  ' + '-'.repeat(78));

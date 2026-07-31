@@ -17,7 +17,7 @@ import {
 
 import TopNavbar from './top-navbar';
 import { getHomeMetrics } from './home-metrics';
-import { LOGO_TEXT_GRADIENT } from '@/lib/brand';
+import { APP_NAME_FULL, LOGO_TEXT_GRADIENT } from '@/lib/brand';
 
 // ============================================================================
 // TRANG CHỦ — ULTRA PREMIUM ENTERPRISE DASHBOARD
@@ -234,7 +234,7 @@ export default async function HomePage() {
           tới cuối trang mới thấy — đúng chỗ của một dòng bản quyền. */}
       <footer className="border-t border-slate-200 bg-white/60 px-4 py-5 text-center">
         <p className="text-xs leading-relaxed text-slate-500">
-          © 2026 Monica ERP. Thiết kế &amp; Phát triển bởi Joseph.
+          © 2026 {APP_NAME_FULL}. Thiết kế &amp; Phát triển bởi Joseph.
           <span className="mx-1.5 hidden text-slate-300 sm:inline">|</span>
           <span className="block sm:inline">
             Hotline Hỗ trợ Kỹ thuật:{' '}

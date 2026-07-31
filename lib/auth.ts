@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — Lớp tương thích cho session phía client
+// MONICA MOS — Lớp tương thích cho session phía client
 //
 // TRƯỚC ĐÂY file này tự làm xác thực: đọc bảng `users`, SO SÁNH MẬT KHẨU DẠNG
 // CHỮ THƯỜNG, rồi nhét cả người dùng vào localStorage. Ba lỗ hổng cùng lúc:

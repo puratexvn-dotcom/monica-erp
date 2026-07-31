@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { ShieldCheck, Lock, Factory, AlertTriangle } from 'lucide-react';
 
-import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
+import { LOGO_SRC, LOGO_ALT, APP_NAME_FULL } from '@/lib/brand';
 import LoginForm from './form';
 
 export const dynamic = 'force-dynamic';
@@ -127,7 +127,7 @@ export default async function LoginPage({
             </div>
 
             <p className="mt-6 text-center text-sm font-medium text-slate-500">
-              Bản quyền © Joseph · Monica Garment ERP
+              Bản quyền © Joseph · {APP_NAME_FULL}
             </p>
           </section>
         </div>

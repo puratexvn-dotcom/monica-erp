@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — Fallback Mock Data (Single Source khi mất kết nối)
+// MONICA MOS — Fallback Mock Data (Single Source khi mất kết nối)
 // Bộ dữ liệu được thiết kế "có chuyện để kể": có PO trễ >3 ngày, xưởng lỗi >3%,
 // NPL dưới tồn an toàn, lô QA rớt AQL, yêu cầu chờ duyệt… để MỌI trạng thái UI
 // đều hiển thị sinh động, không bao giờ trắng màn hình.

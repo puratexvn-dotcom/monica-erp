@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — Data Layer cho Client Component (fallback mock tự động)
+// MONICA MOS — Data Layer cho Client Component (fallback mock tự động)
 //
 // ─── HAI LỖI ĐÃ SỬA Ở ĐÂY ─────────────────────────────────────────────────
 //
@@ -59,7 +59,7 @@ function noteError(table: string, message: string): void {
       // Sau khi siết RLS về authenticated-only, 401 gần như luôn có nghĩa là
       // PHIÊN ĐĂNG NHẬP đã hết hạn — không còn là chuyện dán sai khoá API nữa.
       console.warn(
-        `%c[MONICA ERP] Supabase từ chối truy cập: "${message}".\n` +
+        `%c[MONICA MOS] Supabase từ chối truy cập: "${message}".\n` +
         '→ Mọi bảng nay chỉ cho người đã đăng nhập đọc (RLS authenticated-only).\n' +
         '→ Nhiều khả năng phiên đã hết hạn: đăng nhập lại tại /login.\n' +
         '→ Nếu vừa đăng nhập mà vẫn lỗi, kiểm tra NEXT_PUBLIC_SUPABASE_URL và\n' +
@@ -67,7 +67,7 @@ function noteError(table: string, message: string): void {
         'color:#e11d48;font-weight:bold',
       );
     } else {
-      console.warn(`[MONICA ERP] Supabase lỗi: ${message} — đang dùng mock data.`);
+      console.warn(`[MONICA MOS] Supabase lỗi: ${message} — đang dùng mock data.`);
     }
   }
 }

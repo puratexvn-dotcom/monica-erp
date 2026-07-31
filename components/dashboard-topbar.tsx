@@ -7,7 +7,7 @@ import { Search } from 'lucide-react';
 
 import NotificationBell from '@/components/notification-bell';
 
-import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
+import { LOGO_SRC, LOGO_ALT, APP_NAME } from '@/lib/brand';
 
 // ============================================================================
 // THANH ĐẦU TRANG CHO KHU VỰC DASHBOARD
@@ -91,7 +91,7 @@ export default function DashboardTopbar() {
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:h-16 sm:px-6">
         <Link
           href="/"
-          aria-label="Về trang chủ Monica ERP"
+          aria-label={`Về trang chủ ${APP_NAME}`}
           className="relative h-9 w-24 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-10 sm:w-28"
         >
           <Image src={LOGO_SRC} alt={LOGO_ALT} fill sizes="128px" className="object-contain object-left" />

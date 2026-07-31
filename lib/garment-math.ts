@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — Thư viện công thức nghiệp vụ ngành may
+// MONICA MOS — Thư viện công thức nghiệp vụ ngành may
 // MỌI MODULE PHẢI GỌI CHUNG CÁC HÀM NÀY — không copy công thức rải rác.
 // Không làm tròn trong phép tính trung gian; chỉ làm tròn khi hiển thị.
 // ============================================================================

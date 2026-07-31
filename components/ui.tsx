@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================================
-// MONICA GARMENT ERP — Bộ UI components dùng chung cho 10 module
+// MONICA MOS — Bộ UI components dùng chung cho 10 module
 // Tông sáng: nền Slate-50, card trắng, accent Indigo/Emerald/Rose/Amber.
 // Trạng thái luôn có icon + chữ (không phân biệt bằng màu đơn thuần).
 // ============================================================================

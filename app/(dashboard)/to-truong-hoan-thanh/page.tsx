@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/lib/i18n';
 import { Scissors, Shirt, Package, CheckSquare, Plus, Globe } from 'lucide-react';
 import { BuyerModal, OperationModal } from '@/components/MasterDataModals';
+import { APP_NAME } from '@/lib/brand';
 
 export default function FinishingDashboard() {
   const { t, toggleLang } = useLanguage();
@@ -24,7 +25,7 @@ export default function FinishingDashboard() {
       {/* Header Sinh Động */}
       <header className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-30">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">MONICA ERP</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">{APP_NAME}</h1>
           <p className="text-sm font-semibold text-teal-600">{t('finishing_packing')}</p>
         </div>
         <div className="flex items-center gap-4">

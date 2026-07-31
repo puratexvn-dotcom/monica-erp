@@ -1,4 +1,4 @@
-# Tiêu chuẩn UI/UX & Luồng dữ liệu — Monica Garment ERP
+# Tiêu chuẩn UI/UX & Luồng dữ liệu — MONICA MOS (Manufacturing Operating System)
 
 > Tài liệu này chắt lọc từ quá trình dựng phân hệ **Merchandiser (`/md`)**. Mọi phân hệ
 > làm sau (Kho, Sản xuất, Mua hàng, QA…) phải theo đúng các quy tắc dưới đây để mười hai

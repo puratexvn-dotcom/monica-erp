@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — Hằng số nhận diện thương hiệu
+// MONICA MOS — Hằng số nhận diện thương hiệu
 //
 // Gom đường dẫn logo về MỘT chỗ để đổi file chỉ phải sửa một dòng, thay vì đi
 // lùng trong navbar, trang login và trang đổi mật khẩu.
@@ -14,7 +14,25 @@
 // bản deploy — loại lỗi rất khó đoán vì local vẫn tốt. Tên đúng: MONICA.png
 export const LOGO_SRC = '/MONICA.png';
 
-export const LOGO_ALT = 'Monica Garment';
+// ─── TÊN HỆ THỐNG ────────────────────────────────────────────────────────
+// Hệ thống không còn định vị là ERP truyền thống mà là Hệ điều hành Sản xuất
+// (Manufacturing Operating System).
+//
+// Hai biến thể, dùng đúng chỗ:
+//   • APP_NAME      — chỗ HẸP: logo, thanh đầu trang, thanh dưới, thẻ meta,
+//                     nhãn ngắn. Tên dài ở đây sẽ bị cắt hoặc bóp vỡ bố cục.
+//   • APP_NAME_FULL — chỗ RỘNG: trang chủ, chân trang, tài liệu, đoạn văn
+//                     xuôi trong báo cáo — nơi có chỗ cho cả phần giải nghĩa.
+//
+// Gom về đây thay vì viết thẳng chuỗi ở từng nơi: lần đổi tên này phải sờ vào
+// mười mấy tệp rải rác, chính là cái giá của việc trước kia chép chuỗi khắp
+// nơi. Từ nay đổi tên hệ thống chỉ sửa hai dòng dưới đây.
+export const APP_NAME = 'MONICA MOS';
+export const APP_NAME_FULL = 'MONICA MOS (Manufacturing Operating System)';
+
+// Chữ thay ảnh logo. Dùng tên NGẮN vì đây là nhãn đọc màn hình cho một hình
+// ảnh nhỏ — đọc cả cụm dài mỗi lần lướt qua logo là tra tấn người khiếm thị.
+export const LOGO_ALT = APP_NAME;
 
 // ─── BẢNG MÀU LẤY TỪ CHÍNH FILE LOGO ─────────────────────────────────────
 // Sáu màu dưới đây KHÔNG phải ước lượng bằng mắt: giải mã public/MONICA.png

@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================================
-// MONICA GARMENT ERP — Hooks dùng chung: session + bộ lọc thời gian toàn cục
+// MONICA MOS — Hooks dùng chung: session + bộ lọc thời gian toàn cục
 // ============================================================================
 
 import { createContext, useContext, useEffect, useState } from 'react';

@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — RBAC: NGUỒN CHÂN LÝ DUY NHẤT
+// MONICA MOS — RBAC: NGUỒN CHÂN LÝ DUY NHẤT
 //
 // File này KHÔNG import gì ngoài kiểu dữ liệu, để middleware chạy được trên
 // Edge Runtime (nơi không có Node API).

@@ -11,6 +11,7 @@ import { getCeoReport, type DeptMetrics } from '@/app/actions/ceo-report';
 import { ProgressBar, Badge } from '@/components/ui';
 import { ROLE_LABEL, type Role } from '@/lib/rbac';
 import { exportNodeAsPng } from '@/lib/export-image';
+import { APP_NAME } from '@/lib/brand';
 
 // Recharts nặng gần 100 kB — chỉ tải khi người dùng thật sự mở tab Giám đốc,
 // không nhét vào gói chung của mọi trang chỉ vì thanh điều hướng có nút Báo cáo.
@@ -179,7 +180,7 @@ export default function ReportSheet({
         <div className="mb-3 flex items-start justify-between gap-3 border-b-2 border-blue-600 pb-3">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600">
-              Monica Garment ERP
+              {APP_NAME}
             </p>
             <h3 className="mt-0.5 text-lg font-extrabold leading-tight tracking-tight text-slate-900">
               Số liệu bộ phận

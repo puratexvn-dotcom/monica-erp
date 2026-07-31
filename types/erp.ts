@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA GARMENT ERP — TypeScript Interfaces (Single Source of Truth)
+// MONICA MOS — TypeScript Interfaces (Single Source of Truth)
 // ============================================================================
 
 export type Role =

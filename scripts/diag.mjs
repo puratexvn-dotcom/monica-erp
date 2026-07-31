@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA ERP — KHÁM TỔNG QUÁT LỖI 401 (chạy: node scripts/diag.mjs)
+// MONICA MOS — KHÁM TỔNG QUÁT LỖI 401 (chạy: node scripts/diag.mjs)
 // Đọc file lib/supabase.ts THẬT trên máy → so từng ký tự với bản chuẩn
 // → tự gọi Supabase bằng cả 2 bộ giá trị → in kết luận + cách sửa.
 // ============================================================================

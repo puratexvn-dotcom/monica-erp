@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA ERP — Chẩn đoán kết nối Supabase (chạy: node scripts/check-supabase.mjs)
+// MONICA MOS — Chẩn đoán kết nối Supabase (chạy: node scripts/check-supabase.mjs)
 // Tự đọc .env.local, gọi thử REST API và báo ĐÚNG BỆNH + cách chữa.
 // ============================================================================
 import { readFileSync, existsSync } from 'node:fs';

@@ -21,7 +21,7 @@ import { Bell } from 'lucide-react';
 import HeaderVerse from '@/components/header-verse';
 import LanguageSwitcher from '@/components/language-switcher';
 
-import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
+import { LOGO_SRC, LOGO_ALT, APP_NAME } from '@/lib/brand';
 
 export default function TopNavbar() {
   return (
@@ -37,7 +37,7 @@ export default function TopNavbar() {
               vực nội bộ. */}
           <Link
             href="/"
-            aria-label="Về trang chủ Monica ERP"
+            aria-label={`Về trang chủ ${APP_NAME}`}
             className="relative h-8 w-24 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-10 sm:w-36"
           >
             <Image

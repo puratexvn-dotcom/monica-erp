@@ -15,6 +15,7 @@ import {
 import { getCeoReport, type CeoReport } from '@/app/actions/ceo-report';
 import { exportNodeAsPng } from '@/lib/export-image';
 import { ROLE_LABEL } from '@/lib/rbac';
+import { APP_NAME, APP_NAME_FULL } from '@/lib/brand';
 
 // ============================================================================
 // BÁO CÁO GIÁM ĐỐC HẰNG NGÀY — BẢN CHỤP GỬI ZALO
@@ -248,7 +249,7 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
         <div className="mb-4 flex items-start justify-between gap-3 border-b-2 border-blue-600 pb-3">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600">
-              Monica Garment ERP
+              {APP_NAME}
             </p>
             <h3 className="mt-0.5 text-lg font-extrabold leading-tight tracking-tight text-slate-900">
               Báo cáo điều hành hằng ngày
@@ -389,7 +390,7 @@ export default function CeoReportPanel({ onBusyChange }: { onBusyChange?: (busy:
         </section>
 
         <p className="mt-3 border-t border-slate-200 pt-2 text-[9px] leading-relaxed text-slate-400">
-          Ảnh xuất tự động từ Monica Garment ERP. Con số hiển thị &quot;—&quot; nghĩa là hệ thống
+          Ảnh xuất tự động từ {APP_NAME_FULL}. Con số hiển thị &quot;—&quot; nghĩa là hệ thống
           KHÔNG đọc được dữ liệu tại thời điểm chốt, không phải bằng không.
         </p>
         </div>
