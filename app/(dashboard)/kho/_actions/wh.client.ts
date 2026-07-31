@@ -12,6 +12,10 @@ import {
 import type {
   RollForInspection, InspectionRow, CustomerLimit, InspectionFormValues,
 } from '@/schemas/warehouse/inspection.schema';
+import {
+  getAllocationBoard, allocateRoll, releaseReservation,
+} from '../_services/allocation.service';
+import type { AllocateResult, AllocationBoard } from '@/schemas/warehouse/allocation.schema';
 
 // ============================================================================
 // CẦU NỐI CHO CÁC MÀN HÌNH KHO
@@ -75,4 +79,20 @@ export async function getFourPointDataClient(): Promise<FourPointBootstrap> {
 
 export async function createInspectionClient(values: InspectionFormValues): Promise<SaveResult> {
   return createInspection(values);
+}
+
+// ─── GIỮ CHỖ & PHÂN BỔ THEO TÔNG MÀU ────────────────────────────────────────
+
+export async function getAllocationBoardClient(materialId: string | null): Promise<AllocationBoard> {
+  return getAllocationBoard(materialId);
+}
+
+export async function allocateRollClient(input: {
+  rollId: string; cutTicketId: string; materialId: string; lotId: string | null; qtyM: number;
+}): Promise<AllocateResult> {
+  return allocateRoll(input);
+}
+
+export async function releaseReservationClient(reservationId: string): Promise<AllocateResult> {
+  return releaseReservation(reservationId);
 }

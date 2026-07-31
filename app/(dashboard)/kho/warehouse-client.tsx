@@ -17,6 +17,7 @@ import {
 } from '@/components/warehouse/command-center/wh-feed';
 import StockTable from '@/components/warehouse/stock/stock-table';
 import FourPointPanel from '@/components/warehouse/inspection/four-point-panel';
+import AllocationPanel from '@/components/warehouse/allocation/allocation-panel';
 import Material360Sheet from '@/components/warehouse/stock/material-360-sheet';
 import KhoLegacyPanels from './kho-client';
 import { getWhCommandCenterClient, listStockClient, listRollsClient } from './_actions/wh.client';
@@ -60,7 +61,7 @@ const TABS: Array<{ key: TabKey; label: string; icon: LucideIcon; group: Group }
 
 /** Tab nào đã dựng xong giao diện. Tab chưa dựng hiện trạng thái nói THẬT là
  *  chưa có, thay vì một bảng rỗng khiến người dùng tưởng kho không có dữ liệu. */
-const READY: ReadonlySet<TabKey> = new Set<TabKey>(['stock', 'inbound', 'outbound', 'risk', 'inspect']);
+const READY: ReadonlySet<TabKey> = new Set<TabKey>(['stock', 'inbound', 'outbound', 'risk', 'inspect', 'reserve']);
 
 export default function WarehouseClient({
   initialStock,
@@ -250,6 +251,8 @@ export default function WarehouseClient({
 
         {tab === 'inspect' && <FourPointPanel />}
 
+        {tab === 'reserve' && <AllocationPanel />}
+
         {tab === 'risk' && (
           <div className="space-y-3">
             {cc === null ? (
@@ -274,9 +277,7 @@ export default function WarehouseClient({
           <NoData
             title={`Màn hình "${active.label}" chưa dựng xong`}
             sub={
-              tab === 'reserve'
-                  ? 'Bảng stock_reservations đã sẵn sàng. Màn hình giữ chỗ và phân bổ theo tông màu sẽ làm ở bước tiếp theo.'
-                  : tab === 'count'
+              tab === 'count'
                     ? 'Bảng stock_counts và stock_adjustments đã sẵn sàng. Màn hình đếm và đối chiếu chênh lệch sẽ làm ở bước tiếp theo.'
                     : 'Cấu trúc dữ liệu đã có trong migration 017. Giao diện sẽ làm ở bước tiếp theo.'
             }
