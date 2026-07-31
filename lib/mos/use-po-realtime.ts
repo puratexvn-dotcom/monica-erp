@@ -35,6 +35,7 @@ const WATCHED: ReadonlyArray<{ table: string; key: string }> = [
   { table: 'bom', key: 'order_id' },
   { table: 'cut_tickets', key: 'order_id' },
   { table: 'shipments', key: 'order_id' },
+  { table: 'cartons', key: 'order_id' },
   { table: 'financial_records', key: 'order_id' },
   { table: 'stock_reservations', key: 'order_id' },
   { table: 'risk_assessments', key: 'order_id' },
@@ -48,6 +49,10 @@ const WATCHED: ReadonlyArray<{ table: string; key: string }> = [
   // hỏng tệ nhất vì không có triệu chứng nào để lần ra.
   { table: 'communications', key: 'context_id' },
   { table: 'md_documents', key: 'entity_id' },
+  // ⚠️ `shipment_cartons` CỐ Ý KHÔNG có mặt: đã đo, nó không có cột order_id
+  // (nó chỉ nối shipment với carton). Lọc sai cột thì kênh im lặng hoàn toàn —
+  // đúng cái bẫy vừa nói ở trên. Mà xếp thùng lên lô luôn kèm một lần sửa
+  // `shipments` hoặc `cartons`, nên hai bảng đó đã đủ để báo có thay đổi.
 ];
 
 const QUIET_MS = 800;

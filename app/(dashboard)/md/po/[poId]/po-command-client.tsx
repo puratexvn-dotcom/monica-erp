@@ -37,6 +37,14 @@ const TabQuality = dynamic(
     loading: () => <div className="h-96 animate-pulse rounded-xl bg-slate-100" aria-hidden="true" />,
   },
 );
+
+const TabShipment = dynamic(
+  () => import('@/components/md/po-command/tabs/tab-shipment'),
+  {
+    ssr: false,
+    loading: () => <div className="h-96 animate-pulse rounded-xl bg-slate-100" aria-hidden="true" />,
+  },
+);
 import { getPoTwinHeaderClient } from './_actions/po-twin.client';
 import type { PoTwinHeader, PoTwinResult, PoView } from '@/lib/mos/po-twin.contract';
 import type { ExecutiveOverview } from './_services/executive.service';
@@ -85,6 +93,8 @@ export default function PoCommandClient({
         return <TabProduction poId={poId} revision={revision} />;
       case 'quality':
         return <TabQuality poId={poId} revision={revision} />;
+      case 'shipment':
+        return <TabShipment poId={poId} revision={revision} />;
       default:
         return <SliceComingSoon view={view} />;
     }

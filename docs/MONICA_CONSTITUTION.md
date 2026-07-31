@@ -409,3 +409,83 @@ Mọi quyết định phải trả lời được:
 5. Có giúp mở rộng lên **100.000 PO/năm** không?
 
 **Nếu KHÔNG thì không được triển khai.**
+
+---
+
+## XXVII. THAY ĐỔI CƠ SỞ DỮ LIỆU LÀ QUYẾT ĐỊNH KIẾN TRÚC
+
+Mọi thay đổi **Schema, Migration, RLS, Permission, Policy** hoặc **dữ liệu
+nghiệp vụ** đều là QUYẾT ĐỊNH KIẾN TRÚC. Claude **KHÔNG ĐƯỢC TỰ Ý THỰC HIỆN**.
+
+Claude chỉ được làm ba việc, đúng thứ tự:
+
+1. **Phân tích tác động** — đo trên cơ sở dữ liệu đang chạy, không suy từ tên
+   bảng hay từ trí nhớ.
+2. **Đề xuất phương án** — kèm cái được, cái mất, và cái sẽ gãy.
+3. **Chờ phê duyệt** — rồi mới viết.
+
+Điều này áp dụng cả khi thay đổi là *siết chặt* và có vẻ an toàn: nới hay siết
+đều làm lệch hành vi của hệ thống đang chạy.
+
+⚠️ Điều khoản này KHÔNG dừng lại ở lúc viết migration. Nếu trong lúc thực thi
+một hạng mục ĐÃ ĐƯỢC DUYỆT mà phát hiện phải đổi thêm schema ngoài phần đã
+duyệt, phải **dừng lại và hỏi**, không được tự nới phạm vi.
+
+---
+
+## XXVIII. NĂM QUY TẮC VÀNG THIẾT KẾ MIGRATION
+
+Áp dụng từ **migration 024** trở đi.
+
+### 1. Không lưu dữ liệu tính toán
+
+Tuyệt đối không tạo cột lưu `delay_days`, `completion_percent`, `risk_score`…
+Mọi chỉ số dẫn xuất phải tính tại chỗ từ dữ liệu gốc, hoặc qua SQL View.
+
+*Vì sao:* số đã lưu sẽ lệch với dữ liệu gốc ngay lần đầu ai đó sửa dữ liệu gốc
+mà quên chạy lại phép tính — và không có cách nào biết số nào đúng.
+
+### 2. Không để VARCHAR tự do cho tập giá trị hữu hạn
+
+Trạng thái và danh mục hữu hạn (`status`, `incoterm`, `currency`, `country`)
+phải có `CHECK` hoặc bảng tham chiếu.
+
+*Ranh giới:* "hữu hạn" nghĩa là đếm được và ổn định. Tên cảng, tên forwarder,
+tên tàu KHÔNG thuộc loại này — ràng buộc chúng là tạo ra một danh mục phải bảo
+trì suốt đời để đổi lấy con số không.
+
+### 3. Vết dấu vận hành đầy đủ
+
+Mọi bảng nghiệp vụ mới BẮT BUỘC có `created_at`, `created_by`, `updated_at`,
+`updated_by`. Bảng có thao tác xoá nghiệp vụ BẮT BUỘC dùng xoá mềm
+(`deleted_at`, `deleted_by`) — không `DELETE` cứng.
+
+⚠️ Xoá mềm và ràng buộc `UNIQUE` **xung khắc nhau**: dòng đã xoá mềm vẫn chiếm
+chỗ trong chỉ mục duy nhất. Phải dùng **chỉ mục duy nhất một phần**
+(`UNIQUE ... WHERE deleted_at IS NULL`), nếu không thao tác huỷ sẽ khoá vĩnh
+viễn cái vừa huỷ.
+
+### 4. Idempotent và không phá vỡ chuỗi đang chạy
+
+Chạy lại phải an toàn. Không `DROP` dữ liệu, không phá View/Function đang chạy.
+
+*Ranh giới:* `DROP DEFAULT` và `DROP NOT NULL` KHÔNG thuộc phạm vi cấm — chúng
+nới lỏng ràng buộc, không xoá một byte nào và không đổi kiểu cột, nên View phụ
+thuộc vẫn chạy.
+
+### 5. Giữ bản sắc khoá nghiệp vụ
+
+Luôn duy trì khoá nghiệp vụ đọc được (`po_number`, `shipment_no`, `carton_code`,
+`style_code`) bên cạnh `id` kỹ thuật, để đối soát và truy vết.
+
+---
+
+## XXIX. ĐIỂM CÂN BẰNG THỰC DỤNG — CHỐNG PHỨC TẠP HOÁ
+
+Không tách bảng danh mục nhỏ lẻ không cần thiết. Không dựng thêm tầng trừu
+tượng hay framework cho quy mô **chưa tồn tại**.
+
+Mục tiêu tối thượng: **dữ liệu đúng · ràng buộc đúng · modular monolith sạch**.
+
+Mọi đề xuất thêm bảng, thêm tầng, thêm khuôn mẫu phải trả lời được: hôm nay
+KHÔNG có nó thì hỏng chuyện gì?

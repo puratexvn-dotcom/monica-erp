@@ -70,11 +70,25 @@ export function vnTodayISO(now: number = Date.now()): string {
  * "còn 0 ngày" cho một đơn giao ngày mai.
  */
 export function daysUntil(deliveryDate: string | null, today: string = vnTodayISO()): number | null {
-  if (!deliveryDate) return null;
-  const d = Date.parse(`${deliveryDate.slice(0, 10)}T00:00:00Z`);
-  const t = Date.parse(`${today}T00:00:00Z`);
-  if (Number.isNaN(d) || Number.isNaN(t)) return null;
-  return Math.round((d - t) / 86_400_000);
+  return daysBetween(today, deliveryDate);
+}
+
+/**
+ * Số ngày từ `from` tới `to`. Dương = `to` sau `from`.
+ *
+ * Cùng quy ước với `daysUntil`: cắt về 00:00Z rồi so theo NGÀY LỊCH, không so
+ * theo mốc thời gian.
+ *
+ * Tách ra để Trung tâm Xuất hàng đo độ trễ giữa HAI ngày bất kỳ (kế hoạch so
+ * với thực tế) mà không phải viết lại phép trừ ngày — hai bản cài đặt thì một
+ * trong hai sẽ sai trước, và không ai biết bên nào.
+ */
+export function daysBetween(from: string | null, to: string | null): number | null {
+  if (!from || !to) return null;
+  const a = Date.parse(`${from.slice(0, 10)}T00:00:00Z`);
+  const b = Date.parse(`${to.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(a) || Number.isNaN(b)) return null;
+  return Math.round((b - a) / 86_400_000);
 }
 
 /** Gộp status thô về giai đoạn hiển thị. Trạng thái lạ hoặc đã huỷ trả null —
