@@ -2,6 +2,8 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 
+import { WAREHOUSE_DICT } from '@/lib/dictionaries/warehouse';
+
 export type Language = 'VN' | 'EN' | 'CN';
 
 /** Ba ngôn ngữ kèm quốc kỳ, dùng chung cho bộ chọn ở thanh đầu trang. */
@@ -11,7 +13,9 @@ export const LANGUAGES: ReadonlyArray<{ code: Language; flag: string; label: str
   { code: 'CN', flag: '🇨🇳', label: 'CN', title: '中文' },
 ];
 
-const dictionary = {
+// Từ điển lõi. Từ điển của từng phân hệ nằm ở lib/dictionaries/* và được trộn
+// vào ngay bên dưới — xem chú thích ở khối `dictionary`.
+const core = {
   VN: {
     dashboard: 'Bảng Điều Khiển',
     finishing_packing: 'Tổ Hoàn Thành & Đóng Gói',
@@ -71,7 +75,16 @@ const dictionary = {
   },
 };
 
-type DictionaryKey = keyof typeof dictionary.VN;
+// Trộn từ điển lõi với từ điển từng phân hệ. Kiểu dữ liệu suy ra từ kết quả
+// trộn nên `t()` vẫn báo lỗi lúc BIÊN DỊCH nếu gõ sai tên khoá — thêm phân hệ
+// mới chỉ cần thêm một dòng ở cả ba ngôn ngữ, không phải sửa gì khác.
+const dictionary = {
+  VN: { ...core.VN, ...WAREHOUSE_DICT.VN },
+  EN: { ...core.EN, ...WAREHOUSE_DICT.EN },
+  CN: { ...core.CN, ...WAREHOUSE_DICT.CN },
+};
+
+export type DictionaryKey = keyof typeof dictionary.VN;
 
 interface LanguageContextType {
   lang: Language;
