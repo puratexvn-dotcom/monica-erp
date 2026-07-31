@@ -2,6 +2,7 @@ import 'server-only';
 
 import { guard, safeQuery, one } from '../../../_services/guard';
 import { factsOf } from '@/lib/mos/po-flow';
+import { readLegacyStatus } from '@/lib/mos/material-readiness';
 import type {
   PoTwinHeader, PoTwinResult,
 } from '@/lib/mos/po-twin.contract';
@@ -171,8 +172,17 @@ export async function getPoTwinHeader(poId: string): Promise<PoTwinResult> {
     },
     material: {
       bomLines: bom.error ? null : bom.rows.length,
-      readyLines: bom.error ? null : bom.rows.filter((r) => (r.npl_status ?? '').toUpperCase() === 'READY').length,
-      missingLines: bom.error ? null : bom.rows.filter((r) => (r.npl_status ?? '').toUpperCase() !== 'READY').length,
+      // ⚠️ LỖI ĐÃ SỬA. Bản đầu so `npl_status` với chuỗi 'READY', trong khi giá
+      // trị THẬT trong cơ sở dữ liệu là tiếng Việt: "Đã về kho" · "Thiếu hụt" ·
+      // "Đang về" · "Chưa đặt". Không giá trị nào khớp, nên MỌI dòng đều bị đếm
+      // là thiếu và điểm rủi ro NPL luôn nhảy lên 100 — một báo động giả không
+      // ai gỡ được. Lỗi chưa lộ ra vì các PO thật có 0 dòng định mức, nhưng nó
+      // sẽ nổ ngay khi ai đó thêm một dòng.
+      // Bảng tra nằm ở lib/mos/material-readiness.ts, dùng chung với Lát cắt 3.
+      readyLines: bom.error ? null
+        : bom.rows.filter((r) => readLegacyStatus(r.npl_status) === 'READY').length,
+      missingLines: bom.error ? null
+        : bom.rows.filter((r) => readLegacyStatus(r.npl_status) === 'MISSING').length,
       reservedRolls: res.error ? null : res.rows.length,
     },
     quality: {

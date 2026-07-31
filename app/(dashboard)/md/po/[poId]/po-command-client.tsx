@@ -14,6 +14,14 @@ import TabExecutive from '@/components/md/po-command/tabs/tab-executive';
 //
 // Nạp trễ: chỉ ai bấm sang Sản xuất mới tải. Khung xám giữ nguyên chiều cao để
 // nội dung phía dưới không nhảy khi mã về tới.
+const TabMaterial = dynamic(
+  () => import('@/components/md/po-command/tabs/tab-material'),
+  {
+    ssr: false,
+    loading: () => <div className="h-96 animate-pulse rounded-xl bg-slate-100" aria-hidden="true" />,
+  },
+);
+
 const TabProduction = dynamic(
   () => import('@/components/md/po-command/tabs/tab-production'),
   {
@@ -61,6 +69,8 @@ export default function PoCommandClient({
     switch (view) {
       case 'executive':
         return <TabExecutive poId={poId} revision={revision} initial={initialExecutive} />;
+      case 'material':
+        return <TabMaterial poId={poId} revision={revision} />;
       case 'production':
         // Lát cắt này KHÔNG nạp sẵn ở máy chủ: nó không phải lát cắt mở đầu, nạp
         // trước nghĩa là mọi lần mở trang đều trả giá cho thứ có thể không ai xem.
