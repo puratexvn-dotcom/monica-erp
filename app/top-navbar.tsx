@@ -28,24 +28,23 @@ export default function TopNavbar() {
     <>
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl backdrop-saturate-150">
-        <div className="relative mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-3 sm:h-20 sm:gap-4 sm:px-6 lg:px-8">
-          {/* Logo — h-10/w-32 (mobile), h-14/w-52 (từ sm): đúng một nửa cỡ ở
-              bản trước. Chiều cao thanh hạ theo (h-24/sm:h-32 -> h-16/sm:h-20),
-              nếu giữ nguyên thanh cao thì logo nhỏ sẽ trôi giữa một dải trống
-              rất rộng.
+        <div className="relative mx-auto flex min-h-16 max-w-[1600px] items-center gap-3 px-3 py-2 sm:min-h-20 sm:gap-4 sm:px-6 lg:min-h-[6.5rem] lg:px-8">
+          {/* Logo — h-8/w-24 (mobile), h-10/w-36 (từ sm). Thu thêm một nấc so
+              với bản trước để nhường bề ngang cho câu Lời Chúa ở giữa: câu càng
+              có nhiều chỗ thì càng ít phải xuống dòng.
               Bấm vào về trang chủ: logo dẫn về "/" là quy ước chung của mọi ứng
               dụng web, và đây cũng là đường duy nhất quay lại trang chủ từ khu
               vực nội bộ. */}
           <Link
             href="/"
             aria-label="Về trang chủ Monica ERP"
-            className="relative h-10 w-32 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-14 sm:w-52"
+            className="relative h-8 w-24 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-10 sm:w-36"
           >
             <Image
               src={LOGO_SRC}
               alt={LOGO_ALT}
               fill
-              sizes="(max-width: 640px) 128px, 208px"
+              sizes="(max-width: 640px) 96px, 144px"
               className="object-contain object-left"
               priority
             />
