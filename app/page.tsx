@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-import TopNavbar, { type NavModule } from './top-navbar';
+import TopNavbar from './top-navbar';
 import { getHomeMetrics } from './home-metrics';
 import DailyVerses from '@/components/daily-verses';
 import { LOGO_TEXT_GRADIENT } from '@/lib/brand';
@@ -127,7 +127,6 @@ const MODULES: ModuleItem[] = [
 ];
 
 // Chỉ truyền trường serialize được sang client — không truyền icon component
-const NAV_MODULES: NavModule[] = MODULES.map(({ name, desc, href, dot }) => ({ name, desc, href, dot }));
 
 // Đọc cookie phiên đăng nhập => không thể prerender tĩnh
 export const dynamic = 'force-dynamic';
@@ -144,9 +143,10 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-100/70">
-      <TopNavbar modules={NAV_MODULES} />
+      <TopNavbar />
 
-      {/* pb-28: chừa chỗ cho system footer cố định ở đáy màn hình */}
+      {/* Đã gỡ footer hệ thống cố định, nên không còn phải chừa chỗ cho nó.
+          Phần chừa cho thanh điều hướng 4 nút vẫn nằm ở app/layout.tsx (pb-20). */}
       <main className="mx-auto max-w-[1600px] px-3 pb-10 pt-8 sm:px-6 sm:pt-10 lg:px-8">
         {/* ═══ LỜI CHÚA + LỜI CHÀO ══════════════════════════════════════
             Logo và chuông CHỈ nằm trên Top Navigation Bar. Trước đây khối
@@ -159,18 +159,24 @@ export default async function HomePage() {
 
         <section className="mb-12 text-center">
 
-          {/* Chữ thương hiệu.
-              "Welcome to" cố tình NHỎ hơn hẳn "Monica" — nó chỉ là lời dẫn,
-              còn tên thương hiệu mới là thứ cần nổi bật nhất.
+          {/* Chữ thương hiệu — MỘT DÒNG DUY NHẤT.
+              "Welcome to" cố tình NHỎ hơn hẳn "Monica": nó chỉ là lời dẫn, tên
+              thương hiệu mới là thứ cần nổi bật.
               "Monica" tô bằng dải chuyển sắc lấy từ chính file logo (xem
-              lib/brand.ts), nên chữ và logo cùng một hệ màu.
-              Đã bỏ gạch chân gradient dưới chân chữ theo yêu cầu. */}
-          <h1 className="tracking-tight">
-            <span className="block text-xl font-bold text-slate-500 sm:text-2xl lg:text-3xl">
+              lib/brand.ts) nên chữ và logo cùng một hệ màu.
+
+              ─── VÌ SAO CỠ CHỮ BẮT ĐẦU TỪ text-3xl ───────────────────────
+              whitespace-nowrap ép một dòng, nhưng ép suông thì trên màn 360px
+              cụm chữ sẽ rộng hơn màn hình và đẩy cả trang cuộn ngang. Cỡ được
+              chọn để "Welcome to Monica" vừa khít bề ngang hẹp nhất rồi mới
+              phóng dần theo breakpoint — một dòng ở MỌI cỡ màn, không phải chỉ
+              trên máy bàn. */}
+          <h1 className="flex flex-wrap items-baseline justify-center gap-x-2 whitespace-nowrap tracking-tight sm:gap-x-3">
+            <span className="text-base font-bold text-slate-500 sm:text-xl lg:text-3xl">
               Welcome to
             </span>
             <span
-              className="mt-1 block bg-clip-text text-5xl font-black leading-[1.05] tracking-tighter text-transparent sm:text-6xl lg:text-7xl"
+              className="bg-clip-text text-3xl font-black leading-[1.05] tracking-tighter text-transparent sm:text-5xl lg:text-7xl"
               style={{ backgroundImage: LOGO_TEXT_GRADIENT }}
             >
               Monica
@@ -244,30 +250,6 @@ export default async function HomePage() {
         </p>
       </footer>
 
-      {/* ================= SYSTEM FOOTER CỐ ĐỊNH ================= */}
-      <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/70 bg-white/80 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-3.5 text-center sm:px-6 lg:px-8">
-          <span className="text-base font-semibold text-slate-700">Bản quyền © Joseph</span>
-          <span className="text-slate-300" aria-hidden="true">|</span>
-          <span className="text-base font-semibold text-slate-700">
-            Hotline:{' '}
-            <a
-              href="tel:0908779585"
-              className="font-bold text-blue-600 underline-offset-4 transition-colors hover:text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
-            >
-              0908779585
-            </a>
-          </span>
-          <span className="text-slate-300" aria-hidden="true">|</span>
-          <span className="flex items-center gap-2 text-base font-semibold text-slate-700">
-            <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-            </span>
-            Trạng thái: <span className="font-bold text-emerald-600">Ổn định</span>
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }

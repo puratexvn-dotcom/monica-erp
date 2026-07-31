@@ -87,6 +87,17 @@ function verseOfDay(dayNumber: number): Verse {
   return VERSES[dayNumber % VERSES.length];
 }
 
+export type { Verse };
+
+/**
+ * Câu Lời Chúa của hôm nay. Xuất ra để dải gọn trên thanh đầu trang dùng CHUNG
+ * đúng một nguồn với khối lớn ở thân trang — hai chỗ hiện hai câu khác nhau
+ * trong cùng một ngày thì còn tệ hơn là chỉ có một chỗ.
+ */
+export function todaysVerse(): Verse {
+  return verseOfDay(verseDayNumber());
+}
+
 export default function DailyVerses({ className = '' }: { className?: string }) {
   const verse = verseOfDay(verseDayNumber());
   const label = vnDateLabel();
