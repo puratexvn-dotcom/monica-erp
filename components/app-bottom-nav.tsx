@@ -3,21 +3,32 @@
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, BarChart3, Sparkles } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, BarChart3, Sparkles, BookOpen } from 'lucide-react';
 
 import { ROLE_HOME, type Role } from '@/lib/rbac';
 import { useNavVisibility } from '@/lib/use-nav-visibility';
+import { moduleOfPath } from '@/lib/mos/mos-context';
 import ChatSheet from '@/components/chat-sheet';
 import ReportSheet, { type ReportMetric } from '@/components/report-sheet';
 import AiSheet from '@/components/ai-sheet';
+import ContextualGuideSheet from '@/components/mos/contextual-guide-sheet';
 
 // ============================================================================
-// THANH ĐIỀU HƯỚNG CỐ ĐỊNH — 4 nút, luôn hiện dù đang ở bộ phận nào
+// THANH ĐIỀU HƯỚNG CỐ ĐỊNH — 5 nút, luôn hiện dù đang ở bộ phận nào
 //
 //   1. Bàn làm việc  -> điều hướng về dashboard của chính bộ phận (ROLE_HOME)
 //   2. Chat          -> mở sheet trao đổi liên bộ phận, có tag @
 //   3. Báo cáo       -> mở bảng số liệu, xuất được thành ảnh gửi Zalo
 //   4. A.I           -> mở khung trợ lý
+//   5. Hướng dẫn     -> mở sách hướng dẫn của ĐÚNG phân hệ đang mở
+//
+// ⚠️ Bốn nút đầu GIỮ NGUYÊN 100% chức năng cũ. Nút thứ năm là thêm mới, không
+// thay thế và không rút gọn nút nào.
+//
+// ─── VÌ SAO 5 NÚT VẪN VỪA MÀN 360px ──────────────────────────────────────
+// Ô nút hẹp lại từ 90px còn 72px. Ngưỡng vùng chạm khuyến nghị là 44px nên vẫn
+// dư. Chữ mới dài nhất là "Bàn làm việc" (12 ký tự) — ở cỡ 10px chiếm khoảng
+// 62px, vẫn lọt trong 72px trừ đi 4px đệm mỗi bên. Không nhãn nào phải cắt.
 //
 // ─── VÌ SAO ẨN Ở CÁC TRANG XÁC THỰC ──────────────────────────────────────
 // Đặt ở layout gốc nên thanh này cũng phủ lên /login, /update-password,
@@ -39,7 +50,12 @@ export default function AppBottomNav({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [openSheet, setOpenSheet] = useState<'chat' | 'report' | 'ai' | null>(null);
+  const [openSheet, setOpenSheet] = useState<'chat' | 'report' | 'ai' | 'guide' | null>(null);
+
+  // Kênh hội thoại theo phân hệ đang đứng: mở chat ở /kho là nói trong kênh kho,
+  // không lẫn với kênh Merchandiser. Suy từ đường dẫn vì thanh này dựng ở layout
+  // và layout không biết trang con là trang nào.
+  const mod = moduleOfPath(pathname);
 
   // Chưa đăng nhập thì Bàn làm việc chưa biết dẫn đi đâu -> đưa về /login
   const workbenchHref = role ? ROLE_HOME[role] : '/login';
@@ -94,7 +110,7 @@ export default function AppBottomNav({
   /** Bấm lại đúng nút đang mở thì đóng panel — hành vi bật/tắt mà người dùng
    *  điện thoại luôn mong đợi ở thanh điều hướng dưới đáy. */
   const toggleSheet = useCallback(
-    (key: 'chat' | 'report' | 'ai') => setOpenSheet((cur) => (cur === key ? null : key)),
+    (key: 'chat' | 'report' | 'ai' | 'guide') => setOpenSheet((cur) => (cur === key ? null : key)),
     [],
   );
 
@@ -181,10 +197,27 @@ export default function AppBottomNav({
               A.I
             </button>
           </li>
+
+          <li className="flex-1">
+            <button
+              type="button"
+              onClick={() => toggleSheet('guide')}
+              className={`${btn} ${openSheet === 'guide' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <BookOpen className={icon} aria-hidden="true" />
+              Hướng dẫn
+            </button>
+          </li>
         </ul>
       </nav>
 
-      <ChatSheet open={openSheet === 'chat'} onClose={() => setOpenSheet(null)} role={role} />
+      <ChatSheet
+        open={openSheet === 'chat'}
+        onClose={() => setOpenSheet(null)}
+        role={role}
+        channel={{ module: mod.key, contextType: 'module', contextId: null }}
+        channelLabel={mod.label}
+      />
       <ReportSheet
         open={openSheet === 'report'}
         onClose={() => setOpenSheet(null)}
@@ -192,6 +225,7 @@ export default function AppBottomNav({
         metrics={reportMetrics}
       />
       <AiSheet open={openSheet === 'ai'} onClose={() => setOpenSheet(null)} role={role} />
+      <ContextualGuideSheet open={openSheet === 'guide'} onClose={() => setOpenSheet(null)} />
     </>
   );
 }

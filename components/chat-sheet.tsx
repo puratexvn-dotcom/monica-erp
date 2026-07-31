@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Send, TriangleAlert, MessageSquare, Eye, AtSign, Paperclip, X, Loader2, ImageIcon,
+  CloudOff, RefreshCw, Wifi,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,63 +12,70 @@ import { uploadEvidence } from '@/app/actions/upload-action';
 import Sheet from '@/components/sheet';
 import { Badge, inputCls } from '@/components/ui';
 import { ALL_ROLES, ROLE_LABEL, type Role } from '@/lib/rbac';
+import {
+  loadMessages, sendMessage, subscribeMessages,
+  type ChatAttachment, type ChatChannel, type ChatMessage,
+} from '@/lib/mos/communications.service';
 
 // ============================================================================
 // CHAT LIÊN BỘ PHẬN — có tag @ để gọi đúng người
 //
-// ─── QUYỀN ĐỌC ───────────────────────────────────────────────────────────
-// Theo nghiệp vụ: giamdoc và md đọc được MỌI hội thoại; các bộ phận khác chỉ
-// thấy tin của mình gửi và tin có tag @ bộ phận mình.
+// ─── ĐÃ LƯU TRỮ THẬT (migration 019) ─────────────────────────────────────
+// Trước đây tin nhắn chỉ nằm trong useState nên mất sạch khi tải lại trang, và
+// việc lọc quyền đọc làm bằng .filter() trong trình duyệt — ai mở DevTools
+// cũng đọc được hết. Nay:
+//   • Tin nằm trong bảng `communications`, tải lại vẫn còn.
+//   • Quyền đọc do RLS trong Postgres quyết định. Phần lọc ở client đã GỠ BỎ
+//     hoàn toàn: giữ lại chỉ tạo ảo giác là còn hàng rào thứ hai, trong khi
+//     thật ra nó chỉ khiến hai chỗ dễ lệch luật nhau.
+//   • Realtime đẩy tin mới sang máy người khác, không cần F5.
 //
-// ⚠️ Việc lọc dưới đây là LỌC HIỂN THỊ, KHÔNG phải hàng rào bảo mật. Tin nhắn
-// hiện nằm trong bộ nhớ trình duyệt nên chưa có gì để rò rỉ, nhưng khi nối vào
-// Supabase thì BẮT BUỘC viết RLS policy trên bảng messages — lọc ở client thì
-// ai mở DevTools cũng đọc được hết.
-//
-// ─── TRẠNG THÁI DỮ LIỆU ──────────────────────────────────────────────────
-// Chưa có bảng `messages` trong schema nên tin nhắn mất khi tải lại trang. Cố ý
-// không dựng dữ liệu giả trông như thật, và có nhãn "Chưa lưu trữ" ngay đầu
-// khung để không ai coi đây là kênh liên lạc chính thức.
+// ─── LUẬT ĐỌC (nay thi hành ở máy chủ) ───────────────────────────────────
+// Kênh chung của phân hệ: giám đốc / MD / superadmin đọc mọi hội thoại; bộ
+// phận khác chỉ thấy tin mình gửi và tin có @ gọi mình.
+// Kênh gắn hồ sơ (PO, khách hàng...): ai xem được hồ sơ thì đọc được hội thoại.
 // ============================================================================
 
-export interface ChatMessage {
-  id: string;
-  from: Role;
-  text: string;
-  /** Các bộ phận được tag bằng @ */
-  mentions: Role[];
-  redFlag: boolean;
-  at: string;
-  /** Ảnh đính kèm — URL công khai trong bucket `evidences`, null nếu không có */
-  attachmentUrl?: string | null;
-  attachmentName?: string | null;
-}
+const timeFmt = new Intl.DateTimeFormat('vi-VN', {
+  hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit',
+});
 
-const timeFmt = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
-/** Bộ phận nào đọc được mọi hội thoại */
+/** Bộ phận nào đọc được mọi hội thoại — dùng để hiện dải nhắc, KHÔNG để lọc */
 const CAN_READ_ALL: readonly Role[] = ['giamdoc', 'md', 'superadmin'];
 
 /** Bỏ dấu để gõ '@ke toan' hay '@ketoan' đều gợi ý ra Kế toán */
 function deaccent(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .toLowerCase();
+  // Lọc theo MÃ KÝ TỰ thay vì viết dãy ̀-ͯ vào biểu thức chính quy.
+  // Dãy đó gồm toàn dấu tổ hợp KHÔNG NHÌN THẤY trong mã nguồn: chỉ cần một lần
+  // sao chép qua công cụ khác là nó biến dạng âm thầm mà mắt không phát hiện.
+  const bare = Array.from(s.normalize('NFD'))
+    .filter((c) => { const n = c.codePointAt(0) ?? 0; return n < 0x300 || n > 0x36f; })
+    .join('');
+  return bare.replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
+
+export type { ChatMessage };
 
 export default function ChatSheet({
   open,
   onClose,
   role,
+  channel,
+  channelLabel,
 }: {
   open: boolean;
   onClose: () => void;
   role: Role | null;
+  /** Kênh hội thoại. Thanh điều hướng truyền kênh chung của phân hệ đang mở. */
+  channel: ChatChannel;
+  channelLabel: string;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  /** null = chưa có lỗi. Chuỗi = lỗi thật, phải hiện ra chứ không nuốt. */
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [live, setLive] = useState(false);
+  const [sending, setSending] = useState(false);
   const [text, setText] = useState('');
   const [redFlag, setRedFlag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,25 +87,25 @@ export default function ChatSheet({
   // lộ ra lúc người dùng còn đứng đó chụp lại được, thay vì mất cả tin đã gõ.
   //
   // ⚠️ Bucket `evidences` hiện CHỈ nhận ảnh (jpeg/png/webp/heic, tối đa 8 MB) —
-  // xem migration 013. Vì vậy ô chọn tệp giới hạn accept="image/*" thay vì mở
-  // rộng ra PDF/Excel rồi để người dùng chọn xong mới báo lỗi.
-  const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
+  // xem migration 013. Vì vậy ô chọn tệp giới hạn accept="image/*".
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  async function pickFile(file: File | null) {
-    if (!file) return;
+  async function pickFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('folder', 'chat');
-      const res = await uploadEvidence(fd);
-      if (!res.ok || !res.url) {
-        toast.error('Không tải được ảnh', { description: res.message });
-        return;
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'chat');
+        const res = await uploadEvidence(fd);
+        if (!res.ok || !res.url) {
+          toast.error(`Không tải được ${file.name}`, { description: res.message });
+          continue;
+        }
+        setAttachments((prev) => [...prev, { url: res.url as string, name: file.name }]);
       }
-      setAttachment({ url: res.url, name: file.name });
-      toast.success('Đã đính kèm ảnh', { description: res.message });
     } finally {
       setUploading(false);
       // Xoá giá trị ô chọn tệp để chọn LẠI ĐÚNG tệp vừa rồi vẫn kích hoạt
@@ -105,6 +113,52 @@ export default function ChatSheet({
       if (fileRef.current) fileRef.current.value = '';
     }
   }
+
+  // ─── TẢI LỊCH SỬ + NGHE REALTIME ─────────────────────────────────────────
+  // Khoá kênh thành chuỗi phẳng để làm dependency: truyền thẳng object `channel`
+  // thì mỗi lượt render cha sinh một tham chiếu mới và effect chạy lại vô tận,
+  // kéo theo huỷ/đăng ký lại kênh realtime liên tục.
+  const chKey = `${channel.module}|${channel.contextType}|${channel.contextId ?? ''}`;
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    const res = await loadMessages(channel);
+    if (res.ok) {
+      setMessages(res.messages);
+      setLoadError(null);
+    } else {
+      setMessages([]);
+      setLoadError(res.message);
+    }
+    setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chKey]);
+
+  useEffect(() => {
+    if (!open) return;
+    void refresh();
+  }, [open, refresh]);
+
+  useEffect(() => {
+    // Chỉ nối realtime khi khung ĐANG MỞ. Nối sẵn từ lúc dựng trang nghĩa là
+    // mỗi tab mở suốt ngày giữ một websocket không ai đọc.
+    if (!open) {
+      setLive(false);
+      return;
+    }
+    const stop = subscribeMessages(
+      channel,
+      (m) => {
+        setLive(true);
+        // Chống trùng: người gửi vừa nhận lại chính tin mình vừa ghi
+        setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      },
+      (id) => setMessages((prev) => prev.filter((x) => x.id !== id)),
+    );
+    setLive(true);
+    return stop;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, chKey]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -119,7 +173,6 @@ export default function ChatSheet({
   // xong rồi gõ tiếp nội dung, bảng gợi ý vẫn hiện ra và che mất ô nhập.
   // Dùng [^@] thay cho \p{L}: \p{L} bắt buộc cờ 'u', mà cờ 'u' lại đòi
   // target es6 — tsconfig của dự án không đặt target nên TS từ chối biên dịch.
-  // Giới hạn 30 ký tự để khi gõ xong nội dung dài thì bảng gợi ý tự tắt.
   const mentionQuery = useMemo(() => {
     const m = text.match(/@([^@]{0,30})$/);
     return m ? deaccent(m[1].trim()) : null;
@@ -133,39 +186,33 @@ export default function ChatSheet({
   }, [mentionQuery]);
 
   function pickMention(r: Role) {
-    // Thay đúng cụm @... đang gõ ở cuối bằng thẻ tag hoàn chỉnh
     setText((prev) => prev.replace(/@([^@]{0,30})$/, `@${r} `));
     inputRef.current?.focus();
   }
 
-  function send() {
+  async function send() {
     const body = text.trim();
     // Cho phép gửi tin CHỈ có ảnh, không bắt buộc phải kèm chữ
-    if ((!body && !attachment) || !role) return;
+    if ((!body && attachments.length === 0) || !role || sending) return;
 
-    // Trích tag từ nội dung: '@ketoan' -> role 'ketoan'
-    const mentions = ALL_ROLES.filter((r) => new RegExp(`@${r}\\b`, 'i').test(body));
+    setSending(true);
+    const res = await sendMessage(channel, { text: body, attachments, redFlag });
+    setSending(false);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(), from: role, text: body, mentions, redFlag,
-        at: new Date().toISOString(),
-        attachmentUrl: attachment?.url ?? null,
-        attachmentName: attachment?.name ?? null,
-      },
-    ]);
+    if (!res.ok) {
+      // KHÔNG xoá ô nhập khi gửi hỏng: người dùng vừa gõ xong một đoạn dài mà
+      // mất trắng vì rớt mạng là lỗi khó tha thứ nhất của một khung chat.
+      toast.error('Chưa gửi được tin', { description: res.message });
+      return;
+    }
+
     setText('');
     setRedFlag(false);
-    setAttachment(null);
+    setAttachments([]);
+    // Realtime thường đẩy tin về trước khi tới dòng này, nhưng nếu websocket
+    // đang rớt thì tải lại để người gửi vẫn thấy tin của mình.
+    if (!live) void refresh();
   }
-
-  // Lọc hiển thị theo quyền đọc
-  const visible = useMemo(() => {
-    if (!role) return [];
-    if (CAN_READ_ALL.includes(role)) return messages;
-    return messages.filter((m) => m.from === role || m.mentions.includes(role));
-  }, [messages, role]);
 
   const readsAll = role ? CAN_READ_ALL.includes(role) : false;
 
@@ -174,7 +221,7 @@ export default function ChatSheet({
       open={open}
       onClose={onClose}
       title="Trao đổi liên bộ phận"
-      subtitle={role ? `Gửi với vai trò ${ROLE_LABEL[role]}` : 'Cần đăng nhập để gửi'}
+      subtitle={role ? `${channelLabel} · gửi với vai trò ${ROLE_LABEL[role]}` : 'Cần đăng nhập để gửi'}
       size="full"
       footer={
         // min-w-0 + overflow-hidden: ô nhập và bảng gợi ý không được đẩy rộng
@@ -212,25 +259,26 @@ export default function ChatSheet({
           </label>
 
           {/* Ảnh đã đính kèm — xem trước ngay trên ô nhập để không gửi nhầm */}
-          {attachment && (
-            <div className="mb-2 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={attachment.url}
-                alt="Ảnh đính kèm"
-                className="h-10 w-10 shrink-0 rounded object-cover"
-              />
-              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-blue-800">
-                {attachment.name}
-              </span>
-              <button
-                type="button"
-                onClick={() => setAttachment(null)}
-                aria-label="Bỏ ảnh đính kèm"
-                className="shrink-0 rounded p-1 text-blue-500 transition hover:bg-blue-100 hover:text-blue-700"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          {attachments.length > 0 && (
+            <div className="mb-2 space-y-1.5">
+              {attachments.map((a, i) => (
+                <div
+                  key={a.url}
+                  className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-2"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={a.url} alt="Ảnh đính kèm" className="h-10 w-10 shrink-0 rounded object-cover" />
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-blue-800">{a.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                    aria-label={`Bỏ ảnh ${a.name}`}
+                    className="shrink-0 rounded p-1 text-blue-500 transition hover:bg-blue-100 hover:text-blue-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
@@ -239,8 +287,9 @@ export default function ChatSheet({
               ref={fileRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
-              onChange={(e) => void pickFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => void pickFiles(e.target.files)}
             />
             <button
               type="button"
@@ -263,7 +312,7 @@ export default function ChatSheet({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey && suggestions.length === 0) {
                   e.preventDefault();
-                  send();
+                  void send();
                 }
               }}
               disabled={!role}
@@ -274,22 +323,32 @@ export default function ChatSheet({
             />
             <button
               type="button"
-              onClick={send}
-              disabled={!role || (!text.trim() && !attachment)}
+              onClick={() => void send()}
+              disabled={!role || sending || (!text.trim() && attachments.length === 0)}
               aria-label="Gửi tin nhắn"
               className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 active:scale-95 disabled:opacity-40"
             >
-              <Send className="h-4 w-4" />
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
           </div>
         </div>
       }
     >
-      <p className="border-b border-amber-100 bg-amber-50 px-5 py-2 text-[11px] font-semibold leading-relaxed text-amber-800">
-        Chưa lưu trữ — <strong>nội dung tin nhắn mất khi tải lại trang</strong>. Riêng ảnh đính kèm
-        đã nằm thật trong kho lưu trữ nên đường dẫn vẫn mở được sau đó. Việc cần bằng chứng hãy ghi
-        vào phiếu của phân hệ tương ứng.
-      </p>
+      {loadError && (
+        <div className="flex items-start gap-2 border-b border-rose-100 bg-rose-50 px-5 py-2.5 text-[11px] font-semibold leading-relaxed text-rose-800">
+          <CloudOff className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1 break-words">
+            Không đọc được lịch sử hội thoại — {loadError}
+          </span>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="flex shrink-0 items-center gap-1 rounded-md border border-rose-300 bg-white px-2 py-1 font-bold text-rose-700 transition hover:bg-rose-100"
+          >
+            <RefreshCw className="h-3 w-3" aria-hidden="true" /> Thử lại
+          </button>
+        </div>
+      )}
 
       {readsAll && (
         <p className="flex items-center gap-1.5 border-b border-blue-100 bg-blue-50 px-5 py-2 text-[11px] font-semibold text-blue-800">
@@ -299,7 +358,12 @@ export default function ChatSheet({
       )}
 
       <div className="mx-auto min-w-0 max-w-3xl space-y-3 overflow-x-hidden p-3 sm:p-4">
-        {visible.length === 0 ? (
+        {loading && messages.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-400">
+            <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+            <p className="text-sm font-medium text-slate-600">Đang tải hội thoại...</p>
+          </div>
+        ) : messages.length === 0 && !loadError ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-400">
             <MessageSquare className="h-8 w-8" aria-hidden="true" />
             <p className="text-sm font-medium text-slate-600">Chưa có tin nhắn nào</p>
@@ -308,7 +372,7 @@ export default function ChatSheet({
             </p>
           </div>
         ) : (
-          visible.map((m) => (
+          messages.map((m) => (
             <div
               key={m.id}
               className={`min-w-0 overflow-hidden rounded-xl border bg-white p-3 shadow-sm ${
@@ -316,7 +380,11 @@ export default function ChatSheet({
               }`}
             >
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <Badge tone={m.redFlag ? 'rose' : 'indigo'}>{ROLE_LABEL[m.from]}</Badge>
+                <Badge tone={m.redFlag ? 'rose' : 'indigo'}>
+                  {/* Vai trò lạ (tài khoản cũ, vai trò đã gỡ) hiện mã thô chứ
+                      không hiện "undefined" */}
+                  {m.from ? ROLE_LABEL[m.from] : m.fromRaw || '—'}
+                </Badge>
                 {m.redFlag && (
                   <Badge tone="rose" icon={TriangleAlert}>
                     Cần xử lý ngay
@@ -333,30 +401,25 @@ export default function ChatSheet({
                 </p>
               )}
 
-              {m.attachmentUrl && (
+              {m.attachments.map((a) => (
                 <a
-                  href={m.attachmentUrl}
+                  key={a.url}
+                  href={a.url}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 transition hover:border-blue-300 hover:bg-blue-50"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={m.attachmentUrl}
-                    alt={m.attachmentName ?? 'Ảnh đính kèm'}
-                    className="h-12 w-12 shrink-0 rounded object-cover"
-                  />
+                  <img src={a.url} alt={a.name} className="h-12 w-12 shrink-0 rounded object-cover" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1 text-xs font-bold text-blue-700">
                       <ImageIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       Ảnh đính kèm
                     </span>
-                    <span className="block truncate text-[11px] text-slate-500">
-                      {m.attachmentName ?? 'ảnh'}
-                    </span>
+                    <span className="block truncate text-[11px] text-slate-500">{a.name}</span>
                   </span>
                 </a>
-              )}
+              ))}
 
               {m.mentions.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -375,6 +438,15 @@ export default function ChatSheet({
         )}
         <div ref={endRef} />
       </div>
+
+      {/* Dải trạng thái realtime đặt CUỐI luồng đọc: nó là thông tin phụ trợ,
+          không được chiếm chỗ phía trên nơi người dùng tìm tin nhắn. */}
+      {live && !loadError && (
+        <p className="flex items-center justify-center gap-1.5 pb-2 text-[10px] font-semibold text-emerald-600">
+          <Wifi className="h-3 w-3" aria-hidden="true" />
+          Đang nhận tin theo thời gian thực
+        </p>
+      )}
     </Sheet>
   );
 }

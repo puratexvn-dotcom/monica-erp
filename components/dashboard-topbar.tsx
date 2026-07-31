@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 import NotificationBell from '@/components/notification-bell';
 
@@ -14,10 +14,12 @@ import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
 //
 // ─── VÌ SAO PHẢI CÓ ─────────────────────────────────────────────────────
 // Trước đây các trang phân hệ KHÔNG có header nào: TopNavbar chỉ tồn tại ở
-// app/page.tsx. Cộng với thanh điều hướng dưới đáy chỉ có đúng 4 nút (Bàn làm
-// việc / Chat / Báo cáo / A.I) mà nút "Bàn làm việc" lại dẫn về dashboard bộ
-// phận, kết quả là KHÔNG CÒN ĐƯỜNG NÀO quay về trang chủ sau khi đăng nhập.
-// Người dùng vì thế không bao giờ thấy Lời Chúa ở trang chủ.
+// app/page.tsx. Cộng với thanh điều hướng dưới đáy mà nút "Bàn làm việc" lại
+// dẫn về dashboard bộ phận, kết quả là KHÔNG CÒN ĐƯỜNG NÀO quay về trang chủ
+// sau khi đăng nhập. Người dùng vì thế không bao giờ thấy Lời Chúa ở trang chủ.
+//
+// Nay đường về trang chủ là CHÍNH CÁI LOGO bên trái. Nút "Trang chủ" riêng đã
+// gỡ vì trùng chức năng với logo.
 //
 // ─── VÌ SAO TIÊU ĐỀ TRANG NẰM Ở ĐÂY, KHÔNG NẰM TRONG THÂN TRANG ─────────
 // Để trong thân trang thì khối tiêu đề chiếm gần 90px, đẩy phần nghiệp vụ
@@ -135,15 +137,11 @@ export default function DashboardTopbar() {
             </button>
           )}
 
+          {/* Nút "Trang chủ" đã GỠ: chính cái logo bên trái đã là đường về trang
+              chủ, hai lối vào cùng một nơi trên một thanh chỉ tốn chỗ và bắt mắt
+              phải cân nhắc thừa. Logo giữ nguyên aria-label để người dùng đọc
+              màn hình vẫn nghe rõ đó là đường về trang chủ. */}
           <NotificationBell />
-
-          <Link
-            href="/"
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:px-3"
-          >
-            <Home className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">Trang chủ</span>
-          </Link>
         </div>
       </div>
     </header>

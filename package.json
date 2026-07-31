@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "manuals": "node scripts/build-manuals.mjs",
+    "predev": "node scripts/build-manuals.mjs",
+    "prebuild": "node scripts/build-manuals.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",
