@@ -206,8 +206,8 @@ const VN = {
   po_qc_qa_hidden: 'Phiếu kiểm nội bộ không hiển thị cho vai trò của bạn',
   po_qc_qa_hidden_hint: 'Đây KHÔNG có nghĩa là đơn chưa được kiểm. Phiếu kiểm từng lô là hồ sơ nội bộ của QC nhà máy. Biên bản kiểm hàng chính thức được gửi riêng qua kênh làm việc với khách hàng.',
 
-  po_qc_pareto_title: 'Lỗi nhiều nhất (Pareto)',
-  po_qc_pareto_hint: 'Cột là số lỗi, đường là phần trăm cộng dồn. Vạch đứt là mốc 80%.',
+  po_qc_pareto_title: 'Top lỗi phổ biến (theo phiếu kiểm AQL)',
+  po_qc_pareto_hint: 'Cột là số lỗi, đường là phần trăm cộng dồn, vạch đứt là mốc 80%. CHỈ tính lỗi ghi trên phiếu kiểm AQL — lỗi kiểm giữa chuyền được ghi ở phân hệ QA và không gộp vào đây.',
   po_qc_pareto_qty: 'Số lỗi',
   po_qc_pareto_cum: 'Cộng dồn',
   po_qc_pareto_other: 'Khác',
@@ -545,8 +545,8 @@ const EN: Record<MdKey, string> = {
   po_qc_qa_hidden: 'Internal inspection records are not shown for your role',
   po_qc_qa_hidden_hint: 'This does NOT mean the order has not been inspected. Per-lot inspection records are internal factory QC files. Official inspection reports are issued separately through the customer channel.',
 
-  po_qc_pareto_title: 'Top defects (Pareto)',
-  po_qc_pareto_hint: 'Bars are defect counts, the line is the cumulative share. The dashed mark is 80%.',
+  po_qc_pareto_title: 'Top defects (by AQL lot inspection)',
+  po_qc_pareto_hint: 'Bars are defect counts, the line is the cumulative share, the dashed mark is 80%. Counts defects recorded on AQL lot inspections ONLY - inline QC defects are recorded in the QA module and are not merged here.',
   po_qc_pareto_qty: 'Defects',
   po_qc_pareto_cum: 'Cumulative',
   po_qc_pareto_other: 'Other',
@@ -881,8 +881,8 @@ const CN: Record<MdKey, string> = {
   po_qc_qa_hidden: '您的角色不显示内部检验单',
   po_qc_qa_hidden_hint: '这并不表示该订单尚未检验。逐批检验单属工厂内部 QC 档案。正式验货报告将通过客户渠道另行提供。',
 
-  po_qc_pareto_title: '主要缺陷（柏拉图）',
-  po_qc_pareto_hint: '柱形为缺陷数，折线为累计百分比，虚线为 80% 基准。',
+  po_qc_pareto_title: '主要缺陷（按 AQL 检验单）',
+  po_qc_pareto_hint: '柱形为缺陷数，折线为累计百分比，虚线为 80% 基准。仅统计 AQL 检验单上的缺陷 — 产线中检缺陷记录于 QA 模块，不并入此处。',
   po_qc_pareto_qty: '缺陷数',
   po_qc_pareto_cum: '累计',
   po_qc_pareto_other: '其他',
