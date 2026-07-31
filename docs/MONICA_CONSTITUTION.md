@@ -660,3 +660,61 @@ Phần còn thiếu để đạt Điều XXX:
   người chỉ đọc.
 
 Nợ này phải trả trong phase xây dựng Cổng Đối tác. Không được coi 025 là xong.
+
+---
+
+## XXXI. HIẾN PHÁP KIỂM THỬ
+
+> **Mọi bài kiểm thử phá huỷ PHẢI dùng dữ liệu tạm. TUYỆT ĐỐI không `UPDATE`
+> hay `DELETE` trực tiếp lên dữ liệu nghiệp vụ thật.**
+
+### Ba mức, áp dụng theo thứ tự
+
+**① Tạo dữ liệu dùng-một-lần rồi thử trên nó.** Ràng buộc có hay không, thứ mất
+đi cũng chỉ là dữ liệu thử.
+
+**② Nếu buộc phải chạm dòng thật: chụp giá trị TRƯỚC, khôi phục theo BẢN CHỤP.**
+Không bao giờ khôi phục bằng chuỗi viết cứng.
+
+**③ Có một mục kiểm đối chiếu lại chính bản chụp** ở cuối bài, cộng ảnh chụp
+toàn bộ bảng trước/sau.
+
+### Vì sao điều khoản này tồn tại
+
+Ba lần vi phạm thật, tất cả đều do chính bài kiểm gây ra:
+
+| Lần | Hậu quả |
+|---|---|
+| `probe-026` | ghi đè tên `SUB-GIAT-02` bằng chuỗi cứng — mất tên thật của một nhà thầu |
+| `probe-subcon-rls` | để lại một dòng rác trong `financial_records` |
+| `live-028` | **xoá mất đối tác `SC1`** vì thử `DELETE` lên dòng thật khi ràng buộc `RESTRICT` chưa tồn tại |
+
+Lần thứ ba cho thấy mức ② chưa đủ: bản chụp chỉ cứu được thứ mình nhớ chụp.
+Mức ① không phụ thuộc trí nhớ.
+
+**Một bài kiểm tự làm bẩn cơ sở dữ liệu thì tệ hơn không có bài kiểm** — nó vừa
+không chứng minh được gì, vừa để lại thiệt hại.
+
+---
+
+## XXXII. DANH MỤC NGHIỆM THU TRƯỚC KHI HỢP NHẤT
+
+Mọi migration, trước khi commit, phải tự kiểm đủ **mười hai** mục:
+
+```
+☐  ADR                      quyết định kiến trúc đã được ghi và duyệt
+☐  Architecture Review      tự soi lại theo Hiến pháp
+☐  Regression               toàn bộ bộ kiểm thử cũ vẫn xanh
+☐  Performance              đo ĐAN XEN với đường cơ sở, không đo cụm
+☐  Security                 ma trận vai trò, phiên đăng nhập THẬT
+☐  Snapshot                 ảnh chụp toàn bộ bảng, không dư lượng
+☐  Live Verification        kiểm trên CSDL đang chạy, không chỉ trên giấy
+☐  No Fake Data             không sinh dữ liệu mẫu để lấp chỗ trống
+☐  No Silent Semantic Change  không đổi ngữ nghĩa dữ liệu một cách âm thầm
+☐  Rollback Strategy        ghi rõ hoàn tác được gì, KHÔNG hoàn tác được gì
+☐  Constitution Compliance  đối chiếu từng điều khoản liên quan
+☐  Final Self Review        đọc lại toàn bộ như người ngoài
+```
+
+**Chỉ khi TOÀN BỘ đều đạt mới được commit.** Một mục chưa đạt là dừng lại và
+báo cáo, không phải ghi chú "sẽ làm sau".

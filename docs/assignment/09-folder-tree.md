@@ -1,6 +1,6 @@
 # 09 · FOLDER TREE
 
-> ⚠️ **MỘT PHẦN TÀI LIỆU NÀY ĐÃ BỊ THAY THẾ** bởi
+> ⚠️ **MỘT PHẦN TÀI LIỆU NÀY ĐÃ BỊ THAY THẾ** (ADR đã được duyệt 01/08/2026) bởi
 > [ADR-001](ADR-001-site-and-operation.md) (01/08/2026):
 > `factories` → **`production_sites`** · **KHÔNG** tạo bảng `operations`
 > (dùng `style_operations` đã có) · **NULL không bao giờ nghĩa là "tất cả"** —

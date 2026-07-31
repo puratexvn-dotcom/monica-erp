@@ -1,6 +1,10 @@
 # ADR-001 · ĐỊA ĐIỂM SẢN XUẤT & CÔNG ĐOẠN
 
-**Ngày** 01/08/2026 · **Trạng thái** CHỜ XÁC NHẬN · **Bối cảnh** Migration 028
+**Ngày** 01/08/2026 · **Trạng thái** ✅ **ĐÃ DUYỆT** · **Bối cảnh** Migration 028
+
+> Kiến trúc sư duyệt ngày 01/08/2026 kèm ba điều chỉnh, đã áp vào bản này:
+> `OPERATION` → **`STYLE_OPERATION`** · `site_id` nullable là **trạng thái
+> chuyển tiếp** · phạm vi phải **mở rộng được** tới Bundle · Machine · Worker.
 
 ---
 
@@ -205,7 +209,7 @@ tự nêu.
 ### Thiết kế mới — tuyên bố phạm vi TƯỜNG MINH
 
 ```
-assignments.scope_level  NOT NULL  IN (ORDER, SITE, LINE, OPERATION)
+assignments.scope_level  NOT NULL  IN (ORDER, SITE, LINE, STYLE_OPERATION)
 ```
 
 | `scope_level` | site_id | line_id | style_operation_id | Nghĩa |
@@ -213,7 +217,11 @@ assignments.scope_level  NOT NULL  IN (ORDER, SITE, LINE, OPERATION)
 | `ORDER` | NULL | NULL | NULL | toàn bộ PO |
 | `SITE` | **có** | NULL | NULL | toàn bộ một địa điểm |
 | `LINE` | **có** | **có** | NULL | toàn bộ một chuyền |
-| `OPERATION` | **có** | **có** | **có** | đúng một công đoạn |
+| `STYLE_OPERATION` | **có** | **có** | **có** | đúng một công đoạn của mã hàng |
+
+Tên `STYLE_OPERATION` (không phải `OPERATION`) là cố ý: nó nhắc ngay trong tên
+rằng công đoạn thuộc về **mã hàng**, không phải một danh mục toàn cục — đúng
+kết luận của Quyết định 2.
 
 Ràng buộc `CHECK` ép đúng bảng trên: ở mỗi cấp, cột bắt buộc phải có giá trị và
 cột dưới cấp phải NULL.
@@ -231,7 +239,7 @@ CASE a.scope_level
   WHEN 'ORDER'     THEN TRUE
   WHEN 'SITE'      THEN a.site_id = r.site_id
   WHEN 'LINE'      THEN a.line_id = r.line_id
-  WHEN 'OPERATION' THEN a.style_operation_id = r.style_operation_id
+  WHEN 'STYLE_OPERATION' THEN a.style_operation_id = r.style_operation_id
 END
 ```
 
@@ -243,6 +251,98 @@ Ba cột NULL không nói được điều đó.
 
 ---
 
+## Phần 4 · `sewing_lines.site_id` là TRẠNG THÁI CHUYỂN TIẾP
+
+Chỉ thị Mục 6 của Kiến trúc sư: *"site_id nullable chỉ là trạng thái chuyển
+tiếp. Mục tiêu cuối cùng là mọi sewing_line đều thuộc một production_site hợp
+lệ."*
+
+Ghi nhận, và đây là lý do không đặt `NOT NULL` ngay:
+
+```
+Muốn NOT NULL  →  phải có địa điểm để gán
+Muốn có địa điểm →  hoặc nghiệp vụ khai, hoặc hệ thống BỊA ra một cái
+```
+
+Bịa ra "Xưởng chính" là tạo dữ liệu giả mà mọi báo cáo về sau sẽ dựa vào — đúng
+thứ Điều XX cấm, và đúng thứ Quyết định 3 của ADR này loại bỏ.
+
+**Lộ trình siết lại:**
+
+```
+1. Nghiệp vụ khai địa điểm thật qua màn hình quản trị
+2. Gán từng chuyền vào địa điểm
+3. Khi truy vấn đối chiếu trả về 0:
+     ALTER TABLE sewing_lines ALTER COLUMN site_id SET NOT NULL;
+```
+
+Nợ này **không biến mất khỏi tầm mắt**: truy vấn đối chiếu cuối migration 028
+in ra số chuyền chưa gán mỗi lần chạy lại, với kỳ vọng ghi rõ
+*"3 lúc này · MỤC TIÊU 0"*.
+
+---
+
+## Phần 5 · Phạm vi phải MỞ RỘNG ĐƯỢC — Bundle · Machine · Worker
+
+Chỉ thị Mục 7: thiết kế Scope sao cho thêm được Bundle, Machine, Worker **mà
+không phải thay đổi mô hình cốt lõi**.
+
+### Hai cách, và vì sao chọn cách thứ nhất
+
+**Cách A — cột có kiểu, một cột mỗi cấp** *(chọn)*
+
+```
+site_id · line_id · style_operation_id   mỗi cột một KHOÁ NGOẠI THẬT
+scope_level tuyên bố cột nào có hiệu lực
+```
+
+**Cách B — một cột đa hình `scope_ref_id UUID`**
+
+Mọi khoá đều là UUID nên về mặt kỹ thuật chạy được. Thêm một cấp chỉ là thêm
+một giá trị enum, không đụng bảng.
+
+Nhưng **mất khoá ngoại**. Không gì chặn `scope_ref_id` trỏ vào một bó hàng đã
+xoá, hay vào một UUID không tồn tại. Và đây chính là lập luận tôi đã dùng để
+bác cột `legacy_id` đa hình trong Partner Domain — dùng lập luận đó ở một chỗ
+rồi bỏ nó ở chỗ khác là mâu thuẫn.
+
+### "Thay đổi mô hình cốt lõi" nghĩa là gì
+
+Thêm cấp `BUNDLE` với cách A cần đúng ba việc:
+
+```sql
+ALTER TABLE assignments ADD COLUMN bundle_id UUID REFERENCES cut_bundles(id);
+-- mở rộng CHECK của scope_level
+-- thêm một nhánh WHEN vào CASE của mos_assignment_covers()
+```
+
+Ba việc đó **cộng thêm**, không sửa gì:
+
+- Mọi dòng `assignments` đang có **vẫn hợp lệ** — không di trú dữ liệu.
+- Mọi policy RLS đang chạy **vẫn đúng** — `CASE` chỉ mọc thêm nhánh.
+- Chuỗi `Identity → Assignment → Scope → Permission → Action` **không đổi**.
+
+Mô hình cốt lõi là **chuỗi quyết định**, không phải danh sách cột. Danh sách
+cấp phạm vi mọc dài ra là chuyện dự kiến trước; chuỗi quyết định thì không được
+đổi. Cách A giữ đúng điều đó và giữ được toàn vẹn khoá ngoại.
+
+### Ba cấp tương lai — ghi trước để không phải nghĩ lại
+
+| Cấp | Trỏ vào | Ghi chú |
+|---|---|---|
+| `BUNDLE` | `cut_bundles(id)` | ⚠️ va với `assignment_bundles` — xem dưới |
+| `MACHINE` | *(chưa có bảng)* | không có `machines` trong lược đồ |
+| `WORKER` | `profiles(id)` | công nhân là người dùng nội bộ, không phải đối tác |
+
+⚠️ **`BUNDLE` cần một quyết định riêng khi tới lượt.** Thiết kế hiện tại đã có
+`assignment_bundles` (bảng nối nhiều-nhiều, một bó thuộc một Assignment đang
+hiệu lực). Một `scope_level = 'BUNDLE'` với **một** `bundle_id` là mô hình khác
+hẳn. Hai thứ không được cùng tồn tại mà không ai nói rõ cái nào thắng.
+
+Không giải ở đây — chưa cần, và giải trước khi có ca dùng thật là đoán mò.
+
+---
+
 ## Tóm tắt cho Migration 028
 
 | Việc | Quyết định |
@@ -251,7 +351,7 @@ Ba cột NULL không nói được điều đó.
 | Tên | `production_sites`, **không** `factories` |
 | `operations` | **KHÔNG tạo** — dùng `style_operations` đã có |
 | Dữ liệu mẫu | **Không sinh dòng nào**, kể cả `production_sites` |
-| `sewing_lines` | thêm `site_id` nullable — NULL = *chưa gán*, nghiệp vụ phải gán |
+| `sewing_lines` | thêm `site_id` nullable — **trạng thái chuyển tiếp**, xem Phần 4 |
 | `orders.factory_name` | **không đụng** |
 | `scope_level` | khai ở migration **029** cùng bảng `assignments` |
 
