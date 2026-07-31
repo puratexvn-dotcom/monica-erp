@@ -25,6 +25,9 @@ export type { Role };
 export const ALL_ROLES: readonly Role[] = [
   'superadmin', 'giamdoc', 'md', 'qa', 'totruongmay',
   'totruongcat', 'hoanthanh', 'kho', 'ketoan', 'subcon', 'buyer',
+  // Ba vai trò chuyên trách của kho (migration 017). Vai trò `kho` cũ GIỮ
+  // NGUYÊN là Quản lý Kho — mọi tài khoản đang có vẫn đăng nhập bình thường.
+  'khotruong', 'thukho', 'ketoanvattu',
 ] as const;
 
 export function isRole(v: unknown): v is Role {
@@ -43,6 +46,9 @@ export const ROLE_LABEL: Record<Role, string> = {
   ketoan: 'Kế toán',
   subcon: 'Xưởng gia công',
   buyer: 'Khách hàng (Buyer)',
+  khotruong: 'Tổ trưởng Kho',
+  thukho: 'Thủ kho',
+  ketoanvattu: 'Kế toán vật tư',
 };
 
 // ── MA TRẬN PHÂN QUYỀN ──────────────────────────────────────────────────────
@@ -66,6 +72,13 @@ export const MODULE_ACCESS: Record<Role, readonly string[]> = {
   ketoan: ['/ke-toan'],
   subcon: ['/subcon'],
   buyer: ['/buyer'],
+  // Ba vai trò kho cùng vào /kho; phân biệt việc ai được LÀM GÌ nằm ở tầng
+  // hành động (xem WH_PERMISSIONS bên dưới), không nằm ở quyền vào route.
+  // Chặn ở route thì tổ trưởng và thủ kho phải có hai màn hình khác nhau —
+  // vô lý vì họ đứng cạnh nhau xử lý cùng một lô hàng.
+  khotruong: ['/kho', '/xuat-hang'],
+  thukho: ['/kho'],
+  ketoanvattu: ['/kho', '/ke-toan'],
 };
 
 /** Trang đích ngay sau khi đăng nhập */
@@ -81,6 +94,9 @@ export const ROLE_HOME: Record<Role, string> = {
   ketoan: '/ke-toan',
   subcon: '/subcon',
   buyer: '/buyer',
+  khotruong: '/kho',
+  thukho: '/kho',
+  ketoanvattu: '/kho',
 };
 
 /**
@@ -123,4 +139,68 @@ export function allowedModules(role: Role | null | undefined): readonly string[]
   const allowed = MODULE_ACCESS[role];
   if (!allowed) return [];
   return allowed.includes('*') ? PROTECTED_PREFIXES : allowed;
+}
+
+// ============================================================================
+// QUYỀN THAO TÁC TRONG PHÂN HỆ KHO
+//
+// Vào được /kho là một chuyện, được BẤM NÚT nào lại là chuyện khác. Thủ kho
+// nhận hàng và soạn hàng hằng ngày nhưng không được tự điều chỉnh tồn kho —
+// đó là thao tác dễ bị lạm dụng nhất trong kho. Kế toán vật tư ngược lại:
+// xem và duyệt được, nhưng không đụng vào hàng thật.
+//
+// ⚠️ Đây là LỚP CHẶN THỨ HAI, không phải hàng rào duy nhất. Hàng rào thật vẫn
+// là RLS của cơ sở dữ liệu; kiểm ở đây để giao diện không mời người dùng bấm
+// vào thứ chắc chắn sẽ bị từ chối.
+// ============================================================================
+
+export const WH_ACTIONS = [
+  'receive',    // nhận hàng về kho
+  'inspect',    // chấm điểm QA
+  'putaway',    // cất vào vị trí
+  'reserve',    // giữ chỗ cho đơn hàng
+  'pick',       // soạn hàng
+  'issue',      // xuất kho
+  'transfer',   // chuyển kho
+  'adjust',     // điều chỉnh tồn
+  'count',      // kiểm kê
+  'scrap',      // huỷ / phế liệu
+  'valuate',    // định giá, khoá sổ
+] as const;
+export type WhAction = (typeof WH_ACTIONS)[number];
+
+export const WH_ACTION_LABEL: Record<WhAction, string> = {
+  receive: 'Nhận hàng',
+  inspect: 'Kiểm hàng QA',
+  putaway: 'Cất vào vị trí',
+  reserve: 'Giữ chỗ',
+  pick: 'Soạn hàng',
+  issue: 'Xuất kho',
+  transfer: 'Chuyển kho',
+  adjust: 'Điều chỉnh tồn',
+  count: 'Kiểm kê',
+  scrap: 'Huỷ / phế liệu',
+  valuate: 'Định giá tồn kho',
+};
+
+const ALL_WH: readonly WhAction[] = WH_ACTIONS;
+
+export const WH_PERMISSIONS: Partial<Record<Role, readonly WhAction[]>> = {
+  superadmin: ALL_WH,
+  kho: ALL_WH,
+  khotruong: ALL_WH,
+  // Thủ kho: làm mọi việc chân tay với hàng, KHÔNG được điều chỉnh tồn, huỷ
+  // hàng hay định giá — ba thao tác đổi số mà không đổi hàng thật.
+  thukho: ['receive', 'putaway', 'pick', 'issue', 'transfer', 'count'],
+  // QA chỉ chấm điểm, không đụng tới hàng
+  qa: ['inspect'],
+  // Kế toán vật tư: xem, đối chiếu kiểm kê, định giá. Không cấp phát hàng.
+  ketoanvattu: ['count', 'valuate'],
+  ketoan: ['valuate'],
+};
+
+/** Vai trò này có được làm thao tác kho đó không */
+export function canDoWh(role: Role | null | undefined, action: WhAction): boolean {
+  if (!role) return false;
+  return (WH_PERMISSIONS[role] ?? []).includes(action);
 }

@@ -4,7 +4,9 @@
 
 export type Role =
   | 'superadmin' | 'giamdoc' | 'md' | 'qa' | 'totruongmay'
-  | 'totruongcat' | 'hoanthanh' | 'kho' | 'ketoan' | 'subcon' | 'buyer';
+  | 'totruongcat' | 'hoanthanh' | 'kho' | 'ketoan' | 'subcon' | 'buyer'
+  // Ba vai trò chuyên trách của kho, thêm ở migration 017
+  | 'khotruong' | 'thukho' | 'ketoanvattu';
 
 export interface User {
   id: string;

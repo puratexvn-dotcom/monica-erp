@@ -1,24 +1,35 @@
-import { PageHeader } from '@/components/ui';
+import { listStock, listRolls } from './_services/stock.service';
 import { listMaterials, listTransactions, listPoOptions } from './wh-actions';
-import KhoClient from './kho-client';
+import WarehouseClient from './warehouse-client';
 
 // ============================================================================
-// PHÂN HỆ KHO NGUYÊN PHỤ LIỆU
+// TRUNG TÂM ĐIỀU HÀNH KHO VẬT TƯ
 //
-// Server Component nạp dữ liệu lần đầu; phần tương tác nằm ở ./kho-client.tsx.
+// ─── VÌ SAO VẪN LÀ /kho CHỨ KHÔNG PHẢI /warehouse ─────────────────────────
+// Trang chủ có đúng mười hai nút và vai trò `kho` đã được RBAC gán vào route
+// này. Đổi đường dẫn nghĩa là hoặc thành mười ba nút, hoặc để lại một phân hệ
+// chết — cả hai đều phá ràng buộc nền của dự án. Tên đường dẫn không quyết
+// định đẳng cấp của màn hình.
 //
-// ⚠️ KHÔNG truyền tham chiếu component (icon={...}) xuống client component:
-// hàm không serialize được qua ranh giới server/client và Next.js sẽ ném lỗi
-// lúc render. Vì vậy dải KPI nằm hẳn trong kho-client.tsx.
+// ─── VÌ SAO KHÔNG CÒN KHỐI TIÊU ĐỀ Ở ĐÂY ──────────────────────────────────
+// Tiêu đề đã chuyển lên thanh đầu trang (dashboard-topbar.tsx), nằm ngang hàng
+// với logo. Khối tiêu đề cũ chiếm gần 90px mà không mang thông tin nào cần cuộn
+// theo, trong khi ba cột điều hành phải nằm trong tầm nhìn đầu tiên.
+//
+// ─── DỮ LIỆU CŨ GIỮ NGUYÊN ────────────────────────────────────────────────
+// listMaterials / listTransactions / listPoOptions của màn hình cũ vẫn được
+// gọi và truyền xuống; hai form nhập/xuất cũ còn chạy nguyên vẹn ở tab tương
+// ứng. Không xoá thứ đang phục vụ người dùng để thay bằng thứ chưa xong.
 // ============================================================================
 
 export const dynamic = 'force-dynamic';
 
 export default async function WarehousePage() {
-  // Promise.allSettled thay vì Promise.all: một truy vấn ném lỗi không được
-  // phép làm sập cả trang và đẩy người dùng sang error boundary. Mỗi nhóm dữ
-  // liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
-  const [matRes, txRes, poRes] = await Promise.allSettled([
+  // allSettled: một truy vấn lỗi không được kéo cả trang sang error boundary.
+  // Mỗi nhóm dữ liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
+  const [stockRes, rollRes, matRes, txRes, poRes] = await Promise.allSettled([
+    listStock(),
+    listRolls(),
     listMaterials(),
     listTransactions(),
     listPoOptions(),
@@ -34,23 +45,26 @@ export default async function WarehousePage() {
     return { rows: [], error: `${label} lỗi: ${detail}` };
   };
 
-  const materials = pick(matRes, 'Đọc tồn kho');
+  const stock = pick(stockRes, 'Đọc bảng tồn kho');
+  const rolls = pick(rollRes, 'Đọc danh sách cuộn vải');
+  const materials = pick(matRes, 'Đọc danh mục vật tư');
   const tx = pick(txRes, 'Đọc lịch sử kho');
   const pos = pick(poRes, 'Đọc danh sách PO');
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <PageHeader
-        title="Quản Lý Kho Nguyên Phụ Liệu"
-        desc="Theo dõi tồn kho realtime, lập phiếu nhập vải/NPL và tra cứu lịch sử xuất nhập."
-      />
-
-      <KhoClient
+    // Phần chừa chỗ cho thanh điều hướng cố định đã làm ở app/layout.tsx
+    // (pb-20) — làm lại ở đây sẽ ra khoảng trắng gấp đôi ở cuối trang.
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
+      <WarehouseClient
+        initialStock={stock.rows}
+        initialStockError={stock.error}
+        initialRolls={rolls.rows}
+        initialRollError={rolls.error}
         initialMaterials={materials.rows}
-        initialTx={tx.rows}
-        poOptions={pos.rows}
         initialMatError={materials.error}
+        initialTx={tx.rows}
         initialTxError={tx.error}
+        poOptions={pos.rows}
         initialPoError={pos.error}
       />
     </div>

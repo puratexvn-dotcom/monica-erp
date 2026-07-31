@@ -43,7 +43,10 @@ const PAGE_IDENTITY: Record<string, PageIdentity> = {
     slogan: 'ĐÚNG · ĐỦ · ĐỀU • TẬN TÂM & TRÁCH NHIỆM',
   },
   '/orders': { title: 'Đơn hàng' },
-  '/kho': { title: 'Kho nguyên phụ liệu' },
+  '/kho': {
+    title: 'Warehouse Command Center',
+    slogan: 'ĐÚNG HÀNG · ĐÚNG LÔ · ĐÚNG CHỖ • KHÔNG ĐỂ ĐỨT CHUYỀN',
+  },
   '/qa': { title: 'Kiểm soát chất lượng' },
   '/admin': { title: 'Quản trị hệ thống' },
   '/buyer': { title: 'Thu mua' },

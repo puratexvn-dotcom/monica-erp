@@ -16,7 +16,22 @@ import OutboundFormDialog from './outbound-form-dialog';
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
 
+/**
+ * Màn hình kho CŨ, giữ nguyên vẹn.
+ *
+ * ─── VÌ SAO THÊM PROP `mode` ─────────────────────────────────────────────
+ * Trung tâm điều hành mới nhúng lại chính component này vào hai tab Nhập hàng
+ * và Xuất kho, thay vì viết lại hai form từ đầu. Hai form nhập/xuất ở đây đang
+ * phục vụ người dùng thật và đã chạy ổn định — viết lại chỉ để cho "mới" là
+ * đánh đổi thứ đang dùng được lấy thứ chưa kiểm chứng.
+ *
+ * `mode` không truyền (undefined) thì component chạy Y HỆT như trước: hiện đủ
+ * dải chỉ số, bảng tồn kho cũ và lịch sử. Truyền 'inbound'/'outbound' thì chỉ
+ * hiện phần liên quan tới luồng đó.
+ */
 export default function KhoClient({
+  mode,
+  onChanged,
   initialMaterials,
   initialTx,
   poOptions,
@@ -24,6 +39,10 @@ export default function KhoClient({
   initialTxError,
   initialPoError,
 }: {
+  /** undefined = màn hình đầy đủ như cũ; 'inbound'/'outbound' = nhúng vào tab */
+  mode?: 'inbound' | 'outbound';
+  /** Gọi sau khi ghi thành công, để trung tâm điều hành nạp lại số liệu */
+  onChanged?: () => void | Promise<void>;
   initialMaterials: MaterialRow[];
   initialTx: TxRow[];
   poOptions: PoOption[];
@@ -48,7 +67,11 @@ export default function KhoClient({
     setTx(t.rows);
     setMatError(m.error);
     setTxError(t.error);
-  }, []);
+    // Bảng tồn kho mới đọc từ stock_levels, không đọc materials.stock_qty — nên
+    // ghi xong phải báo lên trang cha để nó nạp lại, nếu không hai bảng sẽ hiện
+    // hai con số khác nhau trên cùng một màn hình.
+    await onChanged?.();
+  }, [onChanged]);
 
   const stats = useMemo(() => {
     const lowStock = materials.filter((m) => Number(m.stock_qty) <= Number(m.min_stock_qty));
@@ -101,6 +124,10 @@ export default function KhoClient({
         </div>
       )}
 
+      {/* Dải chỉ số và bảng tồn kho CŨ chỉ hiện ở màn hình đầy đủ. Khi nhúng
+          vào tab của trung tâm điều hành thì ba cột phía trên đã trả lời đúng
+          những câu đó rồi — hiện lại vừa lặp vừa dễ lệch số. */}
+      {mode === undefined && (
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={Boxes} label="Danh mục vật tư" value={nf.format(stats.codes)} sub="mã NPL đang quản lý" />
         <StatCard
@@ -126,9 +153,11 @@ export default function KhoClient({
           tone="amber"
         />
       </div>
+      )}
 
       {/* ── Cảnh báo tồn thấp: đưa lên trên vì đây là việc cần xử lý ngay ── */}
-      {stats.lowStock.length > 0 && (
+
+      {mode === undefined && stats.lowStock.length > 0 && (
         <Card className="mt-6" title={`Cần nhập bổ sung (${stats.lowStock.length})`} icon={TriangleAlert}>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left">
@@ -164,6 +193,7 @@ export default function KhoClient({
       )}
 
       {/* ── Tồn kho theo mã ─────────────────────────────────────────────── */}
+      {mode === undefined && (
       <Card className="mt-6" title={`Tồn kho hiện tại (${materials.length})`} icon={Layers}>
         {matError ? (
           <ErrorState message={matError} onRetry={() => void refresh()} />
@@ -209,9 +239,11 @@ export default function KhoClient({
           </div>
         )}
       </Card>
+      )}
 
       {/* ── Lịch sử xuất/nhập ───────────────────────────────────────────── */}
-      <Card className="mt-6">
+
+      <Card className={mode === undefined ? 'mt-6' : ''}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700">Lịch sử xuất / nhập kho</h2>
           <div className="flex items-center gap-2">
