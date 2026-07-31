@@ -20,6 +20,13 @@ import type {
 // biết máy chủ đã kết luận gì.
 // ============================================================================
 
+// ⚠️ TEN COT THAT, DA DO TREN CO SO DU LIEU DANG CHAY:
+//   materials -> material_code, name   (KHONG co material_name)
+//   customers -> customer_code, name   (KHONG co customer_name)
+// Ban dau toi doan theo mau `<bang>_name` va migration 020 bi chan ngay o
+// buoc tao view. Postgres goi y sua thanh `material_code` — nghe theo thi cau
+// truy van chay duoc nhung MAT HAN ten vat tu, tuc doi mot loi lo ra thanh mot
+// loi im lang. Ten cot phai do, khong duoc doan.
 interface RawRoll {
   id: string;
   roll_code: string;
@@ -28,7 +35,7 @@ interface RawRoll {
   width_m: number | null;
   qa_status: string;
   shade_lot: string | null;
-  materials: { material_code: string; material_name: string } | { material_code: string; material_name: string }[] | null;
+  materials: { material_code: string; name: string } | { material_code: string; name: string }[] | null;
   material_lots: { lot_no: string; shade_code: string | null } | { lot_no: string; shade_code: string | null }[] | null;
   v_bin_path: { full_path: string } | { full_path: string }[] | null;
 }
@@ -45,12 +52,12 @@ interface RawInspection {
   shade_variation: string | null;
   inspected_at: string | null;
   fabric_rolls: { roll_code: string } | { roll_code: string }[] | null;
-  materials: { material_name: string } | { material_name: string }[] | null;
+  materials: { name: string } | { name: string }[] | null;
 }
 
 interface RawCustomer {
   id: string;
-  customer_name: string | null;
+  name: string | null;
   customer_code: string | null;
   four_point_limit: number | null;
 }
@@ -74,7 +81,7 @@ export async function listRollsForInspection(): Promise<{ rows: RollForInspectio
       .from('fabric_rolls')
       .select(
         'id, roll_code, material_id, current_length_m, width_m, qa_status, shade_lot,' +
-          'materials(material_code, material_name),' +
+          'materials(material_code, name),' +
           'material_lots(lot_no, shade_code),' +
           'v_bin_path(full_path)',
       )
@@ -94,7 +101,7 @@ export async function listRollsForInspection(): Promise<{ rows: RollForInspectio
         rollCode: r.roll_code,
         materialId: r.material_id,
         materialCode: mat?.material_code ?? null,
-        materialName: mat?.material_name ?? null,
+        materialName: mat?.name ?? null,
         lotNo: lot?.lot_no ?? null,
         // Tông màu ở hai chỗ: bảng lô (mới) ưu tiên, thiếu thì lùi về cột cũ
         // trên chính cuộn. Không có cả hai thì để null để giao diện hiện rõ
@@ -122,7 +129,7 @@ export async function listInspections(): Promise<{ rows: InspectionRow[]; error:
       .select(
         'id, inspection_no, roll_id, total_points, inspected_area_sqyd, points_per_100sqyd,' +
           'acceptance_limit, result, shade_variation, inspected_at,' +
-          'fabric_rolls(roll_code), materials(material_name)',
+          'fabric_rolls(roll_code), materials(name)',
       )
       .order('inspected_at', { ascending: false })
       .limit(200),
@@ -135,7 +142,7 @@ export async function listInspections(): Promise<{ rows: InspectionRow[]; error:
       inspectionNo: r.inspection_no,
       rollId: r.roll_id,
       rollCode: one(r.fabric_rolls)?.roll_code ?? null,
-      materialName: one(r.materials)?.material_name ?? null,
+      materialName: one(r.materials)?.name ?? null,
       totalPoints: Number(r.total_points) || 0,
       areaSqYd: num(r.inspected_area_sqyd),
       pointsPer100SqYd: num(r.points_per_100sqyd),
@@ -161,8 +168,8 @@ export async function listCustomerLimits(): Promise<{ rows: CustomerLimit[]; err
   const res = await safeQuery<RawCustomer>('danh sách khách hàng', () =>
     sb
       .from('customers')
-      .select('id, customer_name, customer_code, four_point_limit')
-      .order('customer_name')
+      .select('id, name, customer_code, four_point_limit')
+      .order('name')
       .limit(500),
   );
   if (res.error) return { rows: [], error: res.error };
@@ -170,7 +177,7 @@ export async function listCustomerLimits(): Promise<{ rows: CustomerLimit[]; err
   return {
     rows: res.rows.map((c) => ({
       id: c.id,
-      name: c.customer_name ?? c.customer_code ?? '—',
+      name: c.name ?? c.customer_code ?? '—',
       fourPointLimit: num(c.four_point_limit),
     })),
     error: null,

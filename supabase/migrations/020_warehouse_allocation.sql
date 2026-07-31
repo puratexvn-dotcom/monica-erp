@@ -396,7 +396,9 @@ SELECT
   fr.roll_code,
   fr.material_id,
   m.material_code,
-  m.material_name,
+  -- Bang materials dung cot `name`, KHONG phai `material_name`. Dat bi danh
+  -- de ma nguon doc view khong phai nho su khac biet nay.
+  m.name AS material_name,
   fr.lot_id,
   ml.lot_no,
   COALESCE(ml.shade_code, fr.shade_lot) AS shade_code,
