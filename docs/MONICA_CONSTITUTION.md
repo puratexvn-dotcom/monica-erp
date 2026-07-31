@@ -489,3 +489,174 @@ Mục tiêu tối thượng: **dữ liệu đúng · ràng buộc đúng · modu
 
 Mọi đề xuất thêm bảng, thêm tầng, thêm khuôn mẫu phải trả lời được: hôm nay
 KHÔNG có nó thì hỏng chuyện gì?
+
+
+---
+
+# XXX. ĐỐI TÁC VẬN HÀNH BÊN NGOÀI
+
+> **MỨC ƯU TIÊN: TỐI CAO.** Điều này áp dụng cho MỌI phân hệ hiện tại và tương
+> lai. Phát hiện bất kỳ thiết kế nào vi phạm — dù đã chạy trên production —
+> phải **DỪNG LẠI VÀ BÁO CÁO** trước khi đi tiếp.
+
+## 1. Triết lý
+
+MONICA MOS **không** phân quyền theo màn hình.
+MONICA MOS **không** phân quyền chỉ theo vai trò.
+
+```
+Identity → Assignment → Resource Scope → Permission → Action
+```
+
+Vai trò chỉ là **nhóm quyền mặc định**. Quyền thật luôn được quyết bởi:
+
+> **"Monica đã giao việc gì cho người đó."**
+
+Chứ không phải *"người đó là ai."*
+
+## 2. Nhà thầu phụ là gì
+
+Nhà thầu phụ **không** phải nhân viên. **Không** phải khách hàng. **Không**
+phải nhà cung cấp.
+
+Họ là **ĐỐI TÁC VẬN HÀNH BÊN NGOÀI** — trực tiếp tham gia sản xuất, với hai
+trách nhiệm: **theo dõi tiến độ** và **báo cáo tiến độ**.
+
+Cấm thiết kế họ như người chỉ đọc. Cũng cấm thiết kế họ như nhân viên nội bộ.
+
+## 3. Hai kiểu phân quyền SAI
+
+```
+Role == subcon  →  cho xem tất cả      ✗ SAI
+Role == subcon  →  khoá tất cả          ✗ SAI
+```
+
+Đúng: **mỗi mẩu dữ liệu phải trả lời được** *"Monica có giao cái này cho nhà
+thầu đó không?"* — Không thì **DENY**. Có thì **ALLOW theo phạm vi**.
+
+## 4. Mô hình phân công
+
+Nhà thầu chỉ tồn tại khi có **Assignment**:
+
+```
+PO → Factory → Building → Floor → Line → Operation → Bundle → Quantity
+   → Subcon → Assignment
+```
+
+Đây mới là nguồn xác định quyền. **Không dùng vai trò.**
+
+## 5. Phạm vi tài nguyên
+
+Nhà thầu chỉ chạm được PO · Line · Operation · Bundle · Material · Cut Ticket ·
+Hourly Production · QA · Shipment · Document **nằm trong Assignment của chính
+họ**. Ngoài Assignment: tuyệt đối không.
+
+Không thấy PO khác · nhà máy khác · chuyền khác · khách hàng khác · lô hàng
+khác · vật tư khác.
+
+## 6. Họ có TRÁCH NHIỆM GHI, không chỉ đọc
+
+Nhà thầu **bắt buộc** cập nhật, theo Assignment: sản lượng theo giờ · trạng
+thái chuyền · trạng thái máy · dừng máy · kiểm giữa chuyền · AQL · lỗi · ảnh ·
+video · tiêu hao vật tư · tiến độ sản xuất · tiến độ xuất hàng.
+
+## 7. Báo cáo ngày là BẮT BUỘC
+
+Mỗi Assignment phải có **Daily Report**: ngày · kế hoạch · sản lượng · lỗi ·
+tái chế · dừng máy · sự cố · yêu cầu hỗ trợ · ghi chú.
+
+Chưa gửi thì Assignment phải hiện **`REPORT MISSING`** trên bảng điều khiển —
+Giám đốc, Merchandiser và QA đều nhìn thấy.
+
+## 8. Bộ máy phân quyền
+
+Quyền **không** dựa trên màn hình, mà dựa trên:
+
+```
+Principal → Assignment → Resource → Action
+```
+
+Ví dụ: `Subcon A → Assignment 102 → PO24001 → Line 5 → Hourly Log → WRITE`,
+nhưng `PO24002 → DENY`.
+
+## 9. Khách hàng khác nhà thầu
+
+| | Được làm |
+|---|---|
+| **Buyer** | Đọc · Duyệt · Bình luận · Tải về |
+| **Subcon** | Đọc · Tạo · Sửa · Tải lên · **Báo cáo** · Bình luận |
+
+Khách hàng **không** ghi sản lượng. Nhà thầu **bắt buộc** ghi sản lượng.
+
+## 10. Nhà thầu TUYỆT ĐỐI không được xem
+
+Hồ sơ tài chính · giá bán cho khách · giá vốn nội bộ · lợi nhuận · nhà thầu
+khác · nhà máy khác · danh sách nhân sự · lương · ghi chú chiến lược · bảng
+điều khiển quản trị · bảng điều khiển Giám đốc · phân tích AI nội bộ.
+
+## 11. Nhà thầu ĐƯỢC xem
+
+PO được giao · sơ đồ chuyền · công đoạn · bó bán thành phẩm · phiếu cắt · vật
+tư được cấp · QA **của chính họ** · lô hàng **của chính họ** · tài liệu **của
+chính họ** · tiến độ ngày · dòng thời gian sản xuất.
+
+## 12. JWT chỉ mang DANH TÍNH, không mang QUYỀN
+
+```
+Identity → Assignment → Permission Engine → Resource Scope
+```
+
+**Cấm viết cứng `subcon_id` trong bất kỳ logic nghiệp vụ nào.**
+
+## 13. API
+
+Mọi endpoint của nhà thầu phải xác định đủ: danh tính hiện tại → Assignment →
+quyền → tài nguyên → hành động.
+
+**Cấm truy vấn thẳng theo `subcon_id` mà bỏ qua Assignment.**
+
+## 14. Sáu câu hỏi bắt buộc trước khi hợp nhất
+
+Mọi tính năng đụng tới nhà thầu, phải tự trả lời:
+
+1. Nhà thầu có nhìn thấy dữ liệu **ngoài** Assignment không?
+2. Nhà thầu có **cập nhật được** dữ liệu trong Assignment của họ không?
+3. Nhà thầu có sửa được dữ liệu của Assignment **khác** không?
+4. Assignment kết thúc thì quyền có **tự mất** không?
+5. Báo cáo ngày có **bắt buộc** không?
+6. Giám đốc có thấy Assignment nào **chưa báo cáo** không?
+
+Bất kỳ câu nào chưa đạt: **KHÔNG ĐƯỢC HỢP NHẤT.**
+
+## 15. Nguyên tắc bất biến
+
+Nhà thầu không phải người dùng nội bộ, cũng không phải khách hàng. Monica chỉ
+giao cho họ **một phần công việc**. Vì vậy họ **chỉ thấy những gì Monica giao**,
+nhưng **chịu trách nhiệm cập nhật đầy đủ mọi dữ liệu phát sinh** trong phần
+việc đó.
+
+Mọi thiết kế UI, API, CSDL, RLS, RBAC, Service, Hook và logic nghiệp vụ đều
+phải tuân thủ tuyệt đối.
+
+---
+
+### ⚠️ GHI NHẬN NỢ KIẾN TRÚC — TÌNH TRẠNG NGÀY 31/07/2026
+
+Migration **025** hiện đang cài đặt đúng kiểu **`Role == subcon → khoá theo
+danh sách bảng`** — chính là kiểu SAI thứ hai ở mục 3.
+
+Nó được chấp nhận như một **biện pháp cầm máu**: trước đó nhà thầu đọc được
+`financial_records`, `profiles`, `prod_logs` và cả danh sách nhà thầu khác, và
+**ghi được** vào `financial_records`. Bịt lỗ trước, làm đúng sau.
+
+Phần còn thiếu để đạt Điều XXX:
+
+- **Chưa có bảng `assignments`** — không có gì nối người dùng → nhà thầu → PO.
+- **Chưa có Permission Engine** — quyền vẫn suy từ vai trò trong JWT.
+- **Chưa có Daily Report** và cảnh báo `REPORT MISSING`.
+- **Nhà thầu vẫn đọc được TOÀN BỘ bảng `orders`** (cố ý mở để module /subcon
+  chạy) — vi phạm mục 5 và mục 6.
+- **Nhà thầu chưa GHI được gì** — trái mục 6 và mục 9, họ đang bị thiết kế như
+  người chỉ đọc.
+
+Nợ này phải trả trong phase xây dựng Cổng Đối tác. Không được coi 025 là xong.
