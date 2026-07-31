@@ -28,7 +28,7 @@ export default function TopNavbar() {
     <>
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-3 sm:h-20 sm:gap-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-3 sm:h-20 sm:gap-4 sm:px-6 lg:px-8">
           {/* Logo — h-10/w-32 (mobile), h-14/w-52 (từ sm): đúng một nửa cỡ ở
               bản trước. Chiều cao thanh hạ theo (h-24/sm:h-32 -> h-16/sm:h-20),
               nếu giữ nguyên thanh cao thì logo nhỏ sẽ trôi giữa một dải trống
@@ -51,12 +51,11 @@ export default function TopNavbar() {
             />
           </Link>
 
-          {/* ── LỜI CHÚA ─────────────────────────────────────────────────
-              Chiếm phần giữa thanh, ép một dòng và cắt chữ nếu dài. Ẩn dưới
-              sm: trên màn 360px thì logo + 3 nút ngôn ngữ + chuông đã kín chỗ,
-              nhồi thêm câu Kinh Thánh vào sẽ cắt cụt tới mức không đọc nổi —
-              mà khối lớn giữa trang vẫn hiện đầy đủ cho mọi cỡ màn. */}
-          <HeaderVerse className="mx-3 hidden sm:block" />
+          {/* ── LỜI CHÚA — căn giữa TUYỆT ĐỐI theo thanh ────────────────
+              Nằm ngoài luồng flex nên không bị logo và cụm nút đẩy lệch. Chỉ
+              hiện từ lg trở lên: khối căn tuyệt đối không đẩy được ai ra, màn
+              hẹp hơn thì nó sẽ đè lên logo. */}
+          <HeaderVerse />
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitcher />

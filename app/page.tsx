@@ -17,7 +17,6 @@ import {
 
 import TopNavbar from './top-navbar';
 import { getHomeMetrics } from './home-metrics';
-import DailyVerses from '@/components/daily-verses';
 import { LOGO_TEXT_GRADIENT } from '@/lib/brand';
 
 // ============================================================================
@@ -152,10 +151,9 @@ export default async function HomePage() {
             Logo và chuông CHỈ nằm trên Top Navigation Bar. Trước đây khối
             HomeHeader lặp lại đúng hai thứ đó ở thân trang, gây rườm rà nên
             đã gỡ bỏ. ═══════════════════════════════════════════════════════ */}
-        {/* Lời Chúa: khối ĐẦU TIÊN của thân trang, nằm ngay dưới navbar và
-            trên chữ Welcome. Hiện cho MỌI người kể cả khách chưa đăng nhập —
-            nội dung này không phải dữ liệu nghiệp vụ nên không lọc theo vai trò. */}
-        <DailyVerses className="mb-10" />
+        {/* Lời Chúa đã chuyển hẳn lên thanh đầu trang (components/header-verse
+            .tsx). Khối lớn ở đây gỡ đi để trang chủ chỉ có MỘT chỗ hiện câu
+            Kinh Thánh, không lặp lại hai lần trên cùng một màn hình. */}
 
         <section className="mb-12 text-center">
 
