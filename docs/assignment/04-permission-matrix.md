@@ -182,7 +182,7 @@ Dữ liệu cấu hình, cùng loại `defect_catalog` (023) và `roles` (017).
 | 1 | Thấy dữ liệu ngoài Assignment? | `mos_assignment_covers()` trong `USING` của mọi bảng vận hành |
 | 2 | Cập nhật được dữ liệu Assignment của mình? | Ô `W` + trạng thái `ACCEPTED`/`IN_PROGRESS` |
 | 3 | Sửa được Assignment khác? | Cùng hàm đó, áp trong `WITH CHECK` |
-| 4 | Hết hạn thì quyền tự mất? | `[start_date, end_date]` tính **trong hàm**, không lưu cột |
+| 4 | Hết hạn thì quyền tự mất? | `[planned_start, planned_finish]` tính **trong hàm**, không lưu cột |
 | 5 | Daily Report bắt buộc? | Điều kiện chuyển `→ COMPLETED` (tài liệu 03) |
 | 6 | Giám đốc thấy ai chưa báo cáo? | `v_assignment_report_status` (tài liệu 06) |
 

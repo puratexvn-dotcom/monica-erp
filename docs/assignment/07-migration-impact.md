@@ -167,7 +167,7 @@ lúc đó đo được chi phí thuần của hàm, không lẫn với chi phí 
 |---|---|---|
 | 1 | Đối tác A không thấy dữ liệu của B | R4 |
 | 2 | Đối tác A không thấy **điều khoản thương mại** của B | R4 |
-| 3 | Hết `end_date` → quyền tắt | I-4 |
+| 3 | Hết `planned_finish` → quyền tắt | I-4 |
 | 4 | `CLOSED` → không ghi được | tài liệu 03 |
 | 5 | **Buyer không đi qua Assignment**, và không tạo được Assignment cho Buyer | I-8 · Quyết định 4 |
 | 6 | Nội bộ không mất quyền — mọi bảng × 14 vai trò | R1 |

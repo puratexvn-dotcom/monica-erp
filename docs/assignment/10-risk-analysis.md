@@ -152,7 +152,7 @@ kỳ vọng **bằng 0**. Đã có sẵn trong truy vấn đối chiếu của m
 Assignment đang `SUSPENDED`, hoặc ngày tương lai. Vài chục cảnh báo giả và
 không ai nhìn bảng nữa.
 
-**Cách chặn.** `LEAST(end_date, hôm_nay)` chặn ngày tương lai · `SUSPENDED`
+**Cách chặn.** `LEAST(planned_finish, hôm_nay)` chặn ngày tương lai · `SUSPENDED`
 không nằm trong danh sách trạng thái bị đòi báo cáo · múi giờ Việt Nam tường
 minh.
 

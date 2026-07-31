@@ -43,7 +43,7 @@ Giao việc là hành động **một phía**. Không có `REJECTED` thì đối
 lựa chọn: nhận việc mình không làm nổi, hoặc im lặng.
 
 Cả hai đều tệ, và **im lặng tệ hơn**: Assignment nằm ở `ISSUED` vô thời hạn,
-không ai biết là đang chờ hay đã hỏng, và tới ngày `start_date` thì mới vỡ lẽ
+không ai biết là đang chờ hay đã hỏng, và tới `planned_start` thì mới vỡ lẽ
 không có ai làm.
 
 `REJECTED` biến sự im lặng thành **một sự việc có mốc thời gian, có người, và
@@ -92,7 +92,7 @@ nghiệm thu chính mình.**
 
 ```
 ghi dữ liệu vận hành  ⟺  status ∈ {ACCEPTED, IN_PROGRESS}
-                          ∧ hôm_nay ∈ [start_date, end_date]
+                          ∧ hôm_nay ∈ [planned_start, planned_finish]
                           ∧ deleted_at IS NULL
 ```
 
@@ -124,12 +124,12 @@ lịch sử vẫn còn nguyên.
 
 | Chuyển | Bắt buộc |
 |---|---|
-| `→ ISSUED` | `partner_id` · `order_id` · `scope_level` · `assigned_qty` · `start_date` · `end_date` |
+| `→ ISSUED` | `partner_id` · `order_id` · `scope_level` · `assigned_qty` · `planned_start` · `planned_finish` · `owner_user_id` |
 | `→ ACCEPTED` | người thực hiện là **tài khoản của chính Partner đó** |
 | `→ REJECTED` | cùng điều kiện trên, cộng `reject_reason` ≥ 10 ký tự |
 | `→ IN_PROGRESS` | **service** chuyển khi nhận báo cáo ngày đầu tiên |
 | `→ SUSPENDED` | `suspend_reason` ≥ 10 ký tự |
-| `→ COMPLETED` | **không còn ngày nào `OVERDUE`** trong `[start_date, min(end_date, hôm_nay)]` |
+| `→ COMPLETED` | **không còn ngày nào `OVERDUE`** trong `[planned_start, min(planned_finish, hôm_nay)]` |
 | `→ CLOSED` | `close_reason` ≥ 10 ký tự, người thực hiện là **Monica** |
 | `→ CANCELLED` | `cancel_reason` ≥ 10 ký tự |
 
@@ -167,6 +167,14 @@ phải là lý do.
 ✅ Xung đột với migration 024 **đã xử lý** ở `026b`: trigger
 `shipment_release_cartons` (tự gỡ thùng) đổi thành `shipment_cancel_guard`
 (từ chối huỷ khi còn thùng). Kiểm chứng bằng `live-024`.
+
+### Cửa sổ quyền dùng KẾ HOẠCH, không dùng THỰC TẾ
+
+`planned_start`/`planned_finish` là khoảng **hai bên đã thoả thuận**.
+`actual_start`/`actual_finish` là thứ **đã xảy ra**.
+
+Lấy `actual_finish` làm mốc tắt quyền nghĩa là **đối tác tự quyết định khi nào
+quyền của mình hết** — chỉ cần chưa điền ngày hoàn thành thì quyền còn mãi.
 
 ⚠️ **KHÔNG** lưu `can_write`, `report_status`, `is_missing`, `delay_days`.
 Điều XXVIII.1 — chúng lệch ngay lúc nửa đêm trôi qua mà không ai chạy lại.

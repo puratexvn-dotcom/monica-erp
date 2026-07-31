@@ -91,8 +91,8 @@ SELECT
 FROM assignments a
 -- Sinh từng NGÀY trong khoảng hiệu lực, tới hôm nay là dừng
 CROSS JOIN LATERAL generate_series(
-  a.start_date,
-  LEAST(a.end_date, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE),
+  a.planned_start,
+  LEAST(a.planned_finish, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE),
   INTERVAL '1 day'
 ) AS d(day)
 LEFT JOIN assignment_daily_reports r
@@ -111,7 +111,7 @@ thiếu dòng này, phải vá ở Mục 7 của migration 024. Không lặp l�
 đến 7h sáng, ngày hôm qua sẽ chưa bị tính là thiếu báo cáo — đúng khung ca đêm
 của xưởng.
 
-**③ `LEAST(end_date, hôm_nay)`.** Không sinh ra ngày tương lai rồi bảo là
+**③ `LEAST(planned_finish, hôm_nay)`.** Không sinh ra ngày tương lai rồi bảo là
 thiếu. Assignment chạy tới 20/08 thì ngày 15/08 chưa thể "thiếu báo cáo".
 
 **④ `SUSPENDED` không có trong danh sách.** Tạm dừng vì hết vải thì không thể
@@ -140,7 +140,7 @@ công cụ.
 Assignment là mẫu số của mọi chỉ số đối tác:
 
 ```
-Tỉ lệ đúng hạn   =  Assignment CLOSED đúng end_date  /  tổng CLOSED
+Tỉ lệ đúng hạn   =  Assignment CLOSED đúng planned_finish  /  tổng CLOSED
 Tỉ lệ báo cáo    =  ngày có báo cáo  /  tổng ngày hiệu lực
 Hiệu suất        =  Σ output_qty  /  Σ target_qty
 Tỉ lệ lỗi        =  Σ defect_qty  /  Σ output_qty
@@ -160,7 +160,7 @@ nhưng **không đụng tới trong phạm vi này**: chúng thuộc miền khá
 | Thiếu báo cáo ngày | Partner lúc 20h · Monica lúc 8h hôm sau |
 | `→ SUSPENDED` | Partner |
 | `→ COMPLETED` | Monica |
-| Sắp tới `end_date` (còn 3 ngày) | cả hai |
+| Sắp tới `planned_finish` (còn 3 ngày) | cả hai |
 
 Dùng lại `notifications` (5 dòng, đã có). **Không** dựng hệ thống thông báo
 mới — Điều XXIX.

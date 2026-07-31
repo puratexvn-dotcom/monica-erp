@@ -1,12 +1,12 @@
 # 01 · ASSIGNMENT DOMAIN MODEL
 
-> **Bản 4** — Assignment là **Aggregate Root** của Manufacturing Execution.
-> Sửa theo mười nguyên tắc Kiến trúc ngày 01/08/2026.
+> **Bản 5** — Assignment là **Aggregate Root** của Manufacturing Execution.
 >
-> Thay đổi so với bản 3: Aggregate Root · trạng thái **REJECTED** ·
-> Daily Report là **Business Event** · Commercial Terms hỗ trợ **nhiều phương
-> thức tính giá** · Timeline là thành phần **mặc định** · `assignment_bundles`
-> là **quan hệ, không phải phạm vi**.
+> Thay đổi so với bản 4, theo sáu tinh chỉnh ngày 01/08/2026:
+> Daily Report theo **mô hình SỔ CÁI** (`parent_report_id`, không bao giờ
+> `UPDATE`) · giá tách **HAI LỚP** (loại hợp đồng ≠ cách tính đơn giá) ·
+> thêm `owner_user_id` · **planned/actual** thay cho một cặp ngày · `priority` ·
+> Timeline là **Business View**, giao diện không đọc thẳng `activity_log`.
 >
 > Quyết định địa điểm & công đoạn: [ADR-001](ADR-001-site-and-operation.md).
 
@@ -92,8 +92,15 @@ style_operation_id UUID → style_operations(id)
 assigned_qty       NUMERIC
 uom                VARCHAR
 
-start_date         DATE  BẮT BUỘC
-end_date           DATE  BẮT BUỘC
+owner_user_id      UUID → profiles(id)    người của Monica CHỊU TRÁCH NHIỆM
+priority           VARCHAR NOT NULL DEFAULT 'NORMAL'
+                   IN (LOW, NORMAL, HIGH, URGENT)
+
+-- ─── KẾ HOẠCH và THỰC TẾ, giữ CẢ HAI ─────────────────────────────
+planned_start      DATE  BẮT BUỘC
+planned_finish     DATE  BẮT BUỘC
+actual_start       DATE                   NULL = chưa bắt đầu
+actual_finish      DATE                   NULL = chưa xong
 
 status             VARCHAR NOT NULL   (tài liệu 03 — CHÍN trạng thái)
 
@@ -107,6 +114,45 @@ cancelled_at · cancelled_by · cancel_reason    (→ CANCELLED)
 updated_at · updated_by
 deleted_at · deleted_by
 ```
+
+#### `planned_*` và `actual_*` — vì sao phải giữ cả hai
+
+Bản 4 chỉ có `start_date`/`end_date`. Tinh chỉnh của Kiến trúc sư lộ ra rằng
+**một cặp ngày là không đủ**, và đây đúng là bài học `etd_date` của migration
+024:
+
+> Chỉ giữ một cặp thì lần cập nhật đầu tiên biến **kế hoạch** thành **thực tế**,
+> và xoá mất bằng chứng. Không còn gì để trả lời *"đối tác bắt đầu trễ mấy
+> ngày"* — mà đó là con số quyết định trách nhiệm khi hàng chậm.
+
+Hai loại trễ, tách riêng như `atd−etd` và `ata−eta` ở Trung tâm Xuất hàng:
+
+```
+actual_start  − planned_start    trễ KHỞI ĐỘNG   → đối tác vào việc muộn
+actual_finish − planned_finish   trễ HOÀN THÀNH  → làm chậm hơn cam kết
+```
+
+⚠️ **Cửa sổ quyền dùng `planned_*`, không dùng `actual_*`.** Khoảng hiệu lực là
+thứ HAI BÊN đã thoả thuận; `actual_*` là thứ đã xảy ra. Lấy `actual_finish` làm
+mốc tắt quyền nghĩa là đối tác tự quyết định khi nào quyền của mình hết.
+
+⚠️ **KHÔNG ràng buộc `actual_start ≥ planned_start`.** Bắt đầu sớm hơn kế hoạch
+là chuyện tốt, không phải lỗi dữ liệu. Bất thường được **báo** ở tầng Domain,
+không bị **chặn** ở Postgres — đúng lý lẽ đã dùng cho bốn mốc ETD/ATD/ETA/ATA.
+
+#### `owner_user_id` khác `assigned_by`
+
+| Cột | Trả lời |
+|---|---|
+| `assigned_by` | **ai bấm nút giao** — một sự kiện, xảy ra một lần |
+| `owner_user_id` | **ai đang chịu trách nhiệm** — một vai trò, đổi người được |
+
+Merchandiser lập Assignment rồi nghỉ thai sản; người khác tiếp quản. `assigned_by`
+phải giữ nguyên (lịch sử), `owner_user_id` phải đổi (hiện tại). Một cột không
+làm được cả hai.
+
+NULL ở đây đúng nghĩa **"chưa phân công người phụ trách"** — hợp lệ ở `DRAFT`,
+nhưng service chặn `→ ISSUED` khi còn trống.
 
 ⚠️ **Năm cặp mốc/người riêng biệt, không gộp.** Gộp thành `changed_at`/
 `changed_by` sẽ mất câu trả lời cho *"ai giao việc này"* ngay lần đổi trạng thái
@@ -153,26 +199,59 @@ khi huỷ Assignment nằm ở **tầng service**, không ở trigger (Điều X
 > **Nguyên tắc 3.** Báo cáo ngày không phải "một dòng dữ liệu" — nó là một
 > **sự việc đã xảy ra**.
 
+> **Mô hình SỔ CÁI** — Tinh chỉnh 1. Bảng này **chỉ được THÊM**. Không một
+> lệnh `UPDATE` nào, kể cả để đánh dấu "đã bị thay thế".
+
 ```
+id                UUID
 assignment_id · report_date
+parent_report_id  UUID → assignment_daily_reports(id)
+                  NULL = bản GỐC của ngày đó
+                  có   = bản ĐÍNH CHÍNH của bản cha
+correction_reason TEXT     bắt buộc khi parent_report_id có giá trị
+
 target_qty · output_qty · defect_qty · rework_qty · downtime_minutes
 issue_note · support_request · comment
 submitted_by · submitted_at
-revision_of  UUID → assignment_daily_reports(id)    ⚠️ sửa = SỰ KIỆN MỚI
-superseded_at · superseded_by
-UNIQUE (assignment_id, report_date) WHERE superseded_at IS NULL
+
+UNIQUE (assignment_id, report_date) WHERE parent_report_id IS NULL
+UNIQUE (parent_report_id)           WHERE parent_report_id IS NOT NULL
 ```
 
-**Sự kiện thì không sửa tại chỗ.** Báo sai sản lượng ngày 06/08 thì ghi một bản
-**đính chính** trỏ về bản cũ qua `revision_of`, và bản cũ bị đánh dấu
-`superseded_at`. Lịch sử giữ nguyên cả hai.
+**Bản 4 dùng `revision_of` + `superseded_at`. Sai ở chỗ:** đánh dấu
+`superseded_at` trên bản cũ **là một lệnh `UPDATE` lên sổ cái**. Một sổ cái mà
+có thể sửa dòng cũ thì không còn là sổ cái.
 
-Vì sao đáng làm: sản lượng ngày là căn cứ **thanh toán**. Cho phép sửa đè lên
-nghĩa là cho phép viết lại quá khứ mà không ai biết — cùng lý lẽ đã dùng cho
-`capa_logs` (023) và cho việc giữ cả `etd_date` lẫn `atd_date` (024).
+Mô hình mới không đụng một dòng nào đã ghi:
 
-⚠️ Chỉ mục duy nhất **có điều kiện** `WHERE superseded_at IS NULL`: một ngày chỉ
-có một bản **đang hiệu lực**, nhưng nhiều bản trong lịch sử.
+```
+06/08  bản gốc      output=800   parent=NULL
+06/08  đính chính   output=850   parent=<bản gốc>   lý do: "đếm sót 1 xe hàng"
+       ↑ bản ĐANG HIỆU LỰC là bản KHÔNG CÓ CON
+```
+
+**Hai chỉ mục duy nhất, mỗi cái chặn một kiểu hỏng:**
+
+| Chỉ mục | Chặn |
+|---|---|
+| `(assignment_id, report_date) WHERE parent IS NULL` | hai bản gốc cho cùng một ngày |
+| `(parent_report_id) WHERE parent IS NOT NULL` | hai bản đính chính **rẽ nhánh** từ cùng một cha |
+
+Cái thứ hai quan trọng không kém: nếu một bản cha có hai con, câu hỏi *"bản nào
+đang hiệu lực"* không còn câu trả lời. Chuỗi phải **tuyến tính**.
+
+**Bản đang hiệu lực** = bản không có con:
+
+```sql
+WHERE NOT EXISTS (SELECT 1 FROM assignment_daily_reports c
+                   WHERE c.parent_report_id = r.id)
+```
+
+⚠️ Trigger `BEFORE UPDATE` **từ chối mọi lệnh sửa** trên bảng này — đúng phạm vi
+Điều XXX mục 5 (trigger được REJECT, không được thay người dùng quyết định).
+
+Vì sao đáng làm: sản lượng ngày là căn cứ **thanh toán**. Cho sửa đè lên nghĩa
+là cho viết lại quá khứ mà không ai biết.
 
 #### Trạng thái hoàn thành — TÍNH, không lưu (Mục 9)
 
@@ -195,34 +274,63 @@ sáng và không ai nhìn nữa.
 > **Nguyên tắc 5.** Tách khỏi Assignment vì Assignment là miền **vận hành**;
 > và RLS trên `assignments` là đường đọc nóng nhất, không được chạm dữ liệu giá.
 
+> **HAI LỚP, KHÔNG PHẢI MỘT** — Tinh chỉnh 3.
+
+Bản 4 nhét cả hai khái niệm vào một enum `pricing_method`. Sai: **loại hợp đồng**
+và **cách tính đơn giá** là hai chiều độc lập.
+
+```
+contract_type   "quan hệ thương mại là gì"      CMT · CM · FOB · SERVICE · CONSIGNMENT
+rate_method     "một đồng được tính thế nào"    PER_UNIT · PER_OPERATION ·
+                                                PER_SAM_MINUTE · PER_KG · LUMP_SUM
+```
+
+Chúng tổ hợp tự do: một hợp đồng `CMT` có thể tính `PER_UNIT` **hoặc**
+`PER_SAM_MINUTE`; một hợp đồng `SERVICE` (giặt) thường tính `PER_KG` nhưng cũng
+có thể `LUMP_SUM`. Gộp thành một enum thì phải liệt kê **tích Descartes** —
+25 giá trị cho 10 khái niệm, và mỗi lần thêm một loại hợp đồng là thêm năm giá
+trị.
+
 ```
 assignment_id  UUID UNIQUE → assignments(id)
 contract_no    VARCHAR
 
-pricing_method VARCHAR NOT NULL
+contract_type  VARCHAR NOT NULL
+               IN (CMT, CM, FOB, SERVICE, CONSIGNMENT)
+rate_method    VARCHAR NOT NULL
                IN (PER_UNIT, PER_OPERATION, PER_SAM_MINUTE, PER_KG, LUMP_SUM)
-rate           NUMERIC        đơn giá theo phương thức trên
-lump_sum       NUMERIC        chỉ dùng cho LUMP_SUM
-currency       VARCHAR(3) NOT NULL
-               IN (VND, USD, EUR, CNY, JPY, KRW)
+
+rate           NUMERIC      đơn giá theo rate_method
+lump_sum       NUMERIC      CHỈ dùng khi rate_method = LUMP_SUM
+currency       VARCHAR(3) NOT NULL IN (VND, USD, EUR, CNY, JPY, KRW)
 payment_term   VARCHAR
 note           TEXT
 ```
 
-| Phương thức | `rate` là gì | Dùng khi |
-|---|---|---|
-| `PER_UNIT` | đồng / sản phẩm | gia công trọn gói (CM) |
-| `PER_OPERATION` | đồng / sản phẩm / công đoạn | giao đúng một công đoạn |
-| `PER_SAM_MINUTE` | đồng / phút định mức | trả theo `style_operations.sam_minutes` |
-| `PER_KG` | đồng / kg | giặt · nhuộm |
-| `LUMP_SUM` | *(không dùng)* | khoán trọn gói |
+| `contract_type` | Nghĩa |
+|---|---|
+| `CMT` | Cut–Make–Trim: Monica cấp toàn bộ nguyên phụ liệu |
+| `CM` | Cut–Make: không bao gồm phụ liệu |
+| `FOB` | đối tác tự lo nguyên liệu, giao thành phẩm |
+| `SERVICE` | dịch vụ đơn lẻ — in · thêu · giặt |
+| `CONSIGNMENT` | gia công trên hàng ký gửi |
 
-**`pricing_method` tuyên bố tường minh cột nào có hiệu lực** — cùng khuôn
-`scope_level`. `CHECK` ép: `LUMP_SUM` thì `lump_sum` bắt buộc và `rate` phải
-NULL; bốn phương thức còn lại thì ngược lại.
+| `rate_method` | `rate` là gì |
+|---|---|
+| `PER_UNIT` | đồng / sản phẩm |
+| `PER_OPERATION` | đồng / sản phẩm / công đoạn |
+| `PER_SAM_MINUTE` | đồng / phút định mức (`style_operations.sam_minutes`) |
+| `PER_KG` | đồng / kg |
+| `LUMP_SUM` | *(không dùng — xem `lump_sum`)* |
 
-Không dùng NULL để đoán phương thức. `rate` NULL không có nghĩa "khoán" — nó có
-nghĩa dữ liệu thiếu, và `CHECK` sẽ chặn.
+`CHECK` ép: `LUMP_SUM` thì `lump_sum` bắt buộc và `rate` phải NULL; bốn cách còn
+lại thì ngược lại. **Không dùng NULL để đoán phương thức** — `rate` NULL nghĩa
+là dữ liệu thiếu, và `CHECK` chặn.
+
+⚠️ **Năm loại hợp đồng suy từ nghiệp vụ ngành may, KHÔNG đo được từ dữ liệu**
+(`subcon_orders` 0 dòng, chỉ có một cột `unit_price` không nói loại hợp đồng).
+Nếu nhà máy thực tế chỉ dùng hai hoặc ba loại, **cắt bớt ngay bây giờ rẻ hơn**
+mang năm giá trị mà ba cái không ai chọn.
 
 ### 3.5 Timeline — VIEW, không phải bảng (Mục 10)
 
@@ -243,8 +351,69 @@ v_assignment_timeline  =  hợp của ba nguồn
 Ba nguồn, một view, **không nhân bản dữ liệu**. Điều XXVIII.1: Timeline là dữ
 liệu tính được từ sự kiện gốc, nên nó là view chứ không phải bảng.
 
+#### ⚠️ Giao diện KHÔNG BAO GIỜ đọc thẳng `activity_log` — Tinh chỉnh 2
+
+> `activity_log` là **nguồn**. `v_assignment_timeline` là **hợp đồng**.
+
+Hình dạng chuẩn hoá mà view cam kết, và là thứ duy nhất giao diện được thấy:
+
+```
+assignment_id · occurred_at · event_type · actor_id · actor_role
+title_key      khoá i18n — giao diện dịch, view không biết ngôn ngữ
+payload jsonb  số liệu kèm theo, đã chuẩn hoá
+```
+
+Ba lý do lớp trung gian này đáng có:
+
+**① `activity_log` là bảng DÙNG CHUNG.** Hôm nay 0 dòng, nhưng khi các phân hệ
+khác bắt đầu ghi vào, `changes` jsonb sẽ mang mười hình dạng khác nhau. Giao
+diện đọc thẳng nghĩa là giao diện phải biết cả mười.
+
+**② Ba nguồn có ba hình dạng khác nhau.** Báo cáo ngày không có `action`; liên
+kết bó không có `actor_role`. View là nơi duy nhất nên biết điều đó.
+
+**③ Đổi nguồn không được gãy giao diện.** Nếu mai này Timeline lấy thêm nguồn
+thứ tư — phiếu kiểm QA chẳng hạn — chỉ view đổi, không màn hình nào phải sửa.
+
+`title_key` chứ không phải câu chữ: Điều XXI, view không biết ngôn ngữ.
+
 ⚠️ `WITH (security_invoker = true)` **ngay từ lần tạo** — bảy view của
 017/020/022 đã rò rỉ thật vì thiếu dòng đó.
+
+### 3.6 Mười thành phần của Aggregate — cái nào ở 029, cái nào sau
+
+Kiến trúc sư vẽ Assignment có mười thành phần con. Bảng dưới đây nói rõ **cái
+nào là bảng mới, cái nào chỉ là một cột thêm vào bảng đã có, và cái nào chưa
+làm** — để không ai tưởng 029 phủ hết, và cũng không ai quên thứ đã hoãn.
+
+| Thành phần | Cách hiện thực | Ở đâu |
+|---|---|---|
+| **Commercial Terms** | bảng mới `assignment_commercial_terms` | **029** |
+| **Bundle Allocation** | bảng mới `assignment_bundles` | **029** |
+| **Daily Reports** | bảng mới `assignment_daily_reports` (sổ cái) | **029** |
+| **Timeline** | view `v_assignment_timeline` | **029** |
+| **Material Issue** | cột `assignment_id` trên `subcon_issue_logs` (đã có bảng) | **029** |
+| **QA Reports** | cột `assignment_id` trên `qa_audit_reports` (đã có bảng) | **029** |
+| **Attachments** | dùng lại `md_documents` với `entity_type='assignment'` | **029** — không bảng mới |
+| **Shipment** | cột `assignment_id` trên `shipments` (đã có bảng) | **029** |
+| **Issues** | ⏸ **hoãn** — xem dưới | sau |
+| **Settlement** | ⏸ **hoãn** — xem dưới | sau |
+
+**Vì sao hoãn `Issues`.** `assignment_daily_reports` đã có `issue_note` và
+`support_request`. Một bảng `assignment_issues` riêng chỉ đáng có khi sự cố cần
+**vòng đời riêng** — mở, giao người, theo dõi, đóng — tức là gần giống
+`capa_logs` đã có ở migration 023. Dựng trước khi biết nó khác `capa_logs` chỗ
+nào là đoán mò (Điều XXIX).
+
+**Vì sao hoãn `Settlement`.** Quyết toán cần cả sản lượng đã nghiệm thu **lẫn**
+điều khoản thương mại **lẫn** dữ liệu thanh toán ở `financial_records` — ba
+nguồn mà hai trong ba chưa chạy thật (0 dòng và 2 dòng mồ côi). Thiết kế quyết
+toán trước khi có một Assignment nào đóng sổ là thiết kế trên giả định.
+
+⚠️ **Bốn cột `assignment_id` thêm vào bảng đã có đều NULLABLE.** Dữ liệu cũ
+không thuộc Assignment nào và sẽ **mãi mãi** không thuộc — đó là sự thật lịch
+sử, không phải thiếu sót cần lấp. Ép `NOT NULL` là buộc bịa Assignment ngược cho
+quá khứ, đúng lỗi `etd_date DEFAULT CURRENT_DATE` của migration 024.
 
 ## 4. Bất biến
 
@@ -255,7 +424,7 @@ liệu tính được từ sự kiện gốc, nên nó là view chứ không ph�
 
 **I-3** · Quyền là **hàm của** Assignment, không phải thuộc tính của đối tác.
 
-**I-4** · Quyền có hạn dùng. Hết `end_date` hoặc `CLOSED` thì quyền **tự mất**.
+**I-4** · Quyền có hạn dùng. Hết `planned_finish` hoặc `CLOSED` thì quyền **tự mất**.
 
 **I-5** · Một bó thuộc tối đa một Assignment **đang hiệu lực**.
 
@@ -273,7 +442,7 @@ gắn bó, không sửa điều khoản trên Assignment đã `CLOSED` · `CANCE
 `REJECTED` hoặc đã xoá mềm. Kiểm ở service **và** ở CSDL.
 
 **I-10** *(mới)* · **Sự kiện không viết lại được.** Sửa báo cáo ngày là ghi bản
-mới trỏ `revision_of`, không `UPDATE` đè lên bản cũ.
+mới trỏ `parent_report_id`, không `UPDATE` đè lên bản cũ.
 
 ## 5. Buyer đi đường khác
 

@@ -52,7 +52,7 @@ hơn danh sách GHI. `DRAFT` và `CANCELLED` không có mặt — Assignment nh�
 tồn tại với đối tác, Assignment huỷ đã biến mất khỏi cổng của họ.
 
 Quyền GHI thêm hai điều kiện nữa: `status ∈ {ACCEPTED, IN_PROGRESS}` và
-`hôm_nay ∈ [start_date, end_date]`.
+`hôm_nay ∈ [planned_start, planned_finish]` — KẾ HOẠCH, không phải thực tế.
 
 ## 4. Phạm vi thu hẹp dần
 
