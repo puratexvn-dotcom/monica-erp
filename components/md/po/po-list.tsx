@@ -8,6 +8,9 @@ import { NoData, ErrorState } from '@/components/data-state';
 import { DataTable, tdCls, Metric, fmtDate, fmtNum, fmtMoney } from './tab-kit';
 import Po360Sheet from './po-360-sheet';
 import { PO_STATUS_LABEL, RISK_LEVEL_LABEL, ORDER_TYPE_LABEL, labelOf } from './labels';
+import PoPipeline, { Countdown, type FlowFilter } from './po-pipeline';
+import { stageOf, urgencyOf, vnTodayISO } from '@/lib/mos/po-flow';
+import { useLanguage } from '@/lib/i18n';
 import type { PoRow } from '@/schemas/md';
 
 // ============================================================================
@@ -30,9 +33,14 @@ function PoList({
   error: string | null;
   onRefresh: () => void | Promise<void>;
 }) {
+  const { t } = useLanguage();
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [open, setOpen] = useState<{ id: string; po: string } | null>(null);
+  // Hai chế độ xem. Mặc định GIỮ NGUYÊN 'list' — khách hàng đang dùng bản này,
+  // đổi mặc định là đổi thói quen của họ mà không hỏi.
+  const [view, setView] = useState<'list' | 'flow'>('list');
+  const [flowFilter, setFlowFilter] = useState<FlowFilter>(null);
 
   const stats = useMemo(
     () => ({
@@ -46,7 +54,12 @@ function PoList({
 
   const shown = useMemo(() => {
     const kw = q.trim().toLowerCase();
+    const today = vnTodayISO();
     return rows.filter((r) => {
+      // Bộ lọc dòng chảy CHỒNG LÊN bộ lọc cũ chứ không thay thế: người dùng
+      // quen dùng ba nút cũ vẫn bấm được như trước.
+      if (flowFilter?.kind === 'stage' && stageOf(r.status) !== flowFilter.value) return false;
+      if (flowFilter?.kind === 'urgency' && urgencyOf(r, today) !== flowFilter.value) return false;
       if (filter === 'late' && r.late_milestones === 0) return false;
       if (filter === 'risk' && r.risk_level !== 'HIGH' && r.risk_level !== 'CRITICAL') return false;
       if (!kw) return true;
@@ -54,7 +67,7 @@ function PoList({
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(kw));
     });
-  }, [rows, q, filter]);
+  }, [rows, q, filter, flowFilter]);
 
   if (error) return <ErrorState message={error} onRetry={() => void onRefresh()} />;
 
@@ -81,6 +94,28 @@ function PoList({
           tone={stats.risky > 0 ? 'amber' : 'emerald'}
         />
       </div>
+
+      {/* Nút chuyển chế độ xem. Bảng cũ và bộ lọc cũ KHÔNG bị đụng tới —
+          "Dòng chảy" chỉ thêm một lớp bày biện ở phía trên. */}
+      <div className="mb-3 flex gap-1 rounded-lg bg-slate-100 p-0.5" role="group">
+        {(['list', 'flow'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            aria-pressed={view === v}
+            className={`rounded-md px-3 py-1.5 text-xs font-bold transition ${
+              view === v ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            {v === 'list' ? t('md_view_list') : t('md_view_flow')}
+          </button>
+        ))}
+      </div>
+
+      {view === 'flow' && (
+        <PoPipeline rows={rows} filter={flowFilter} onFilter={setFlowFilter} />
+      )}
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="relative min-w-0 flex-1 sm:max-w-xs">
@@ -144,7 +179,13 @@ function PoList({
                     </span>
                   )}
                 </td>
-                <td className={tdCls}>{fmtDate(r.delivery_date)}</td>
+                {/* Ngày giao kèm ĐẾM NGƯỢC. Ngày tháng thô bắt người đọc tự trừ
+                    nhẩm trong đầu; con số "còn 5 ngày" là thứ quyết định hôm nay
+                    chạm vào đơn nào. Cùng một nguồn logic với dòng chảy phía trên. */}
+                <td className={tdCls}>
+                  <span className="block">{fmtDate(r.delivery_date)}</span>
+                  <Countdown deliveryDate={r.delivery_date} />
+                </td>
                 <td className={`${tdCls} text-xs text-slate-500`}>
                   {r.order_type ? labelOf(ORDER_TYPE_LABEL, r.order_type).split(' — ')[0] : '—'}
                 </td>

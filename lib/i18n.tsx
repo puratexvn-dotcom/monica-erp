@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 
 import { WAREHOUSE_DICT } from '@/lib/dictionaries/warehouse';
+import { MD_DICT } from '@/lib/dictionaries/md';
 
 export type Language = 'VN' | 'EN' | 'CN';
 
@@ -79,9 +80,9 @@ const core = {
 // trộn nên `t()` vẫn báo lỗi lúc BIÊN DỊCH nếu gõ sai tên khoá — thêm phân hệ
 // mới chỉ cần thêm một dòng ở cả ba ngôn ngữ, không phải sửa gì khác.
 const dictionary = {
-  VN: { ...core.VN, ...WAREHOUSE_DICT.VN },
-  EN: { ...core.EN, ...WAREHOUSE_DICT.EN },
-  CN: { ...core.CN, ...WAREHOUSE_DICT.CN },
+  VN: { ...core.VN, ...WAREHOUSE_DICT.VN, ...MD_DICT.VN },
+  EN: { ...core.EN, ...WAREHOUSE_DICT.EN, ...MD_DICT.EN },
+  CN: { ...core.CN, ...WAREHOUSE_DICT.CN, ...MD_DICT.CN },
 };
 
 export type DictionaryKey = keyof typeof dictionary.VN;
