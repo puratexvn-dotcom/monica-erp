@@ -60,6 +60,18 @@ export default function AppBottomNav({
   // Chưa đăng nhập thì Bàn làm việc chưa biết dẫn đi đâu -> đưa về /login
   const workbenchHref = role ? ROLE_HOME[role] : '/login';
   const onWorkbench = role ? pathname === ROLE_HOME[role] : false;
+
+  // ─── LỖI "BÀN LÀM VIỆC LÚC NÀO CŨNG XANH" — NGUYÊN NHÂN THẬT ─────────────
+  // Phép so đường dẫn ở trên VỐN ĐÃ khớp trọn vẹn, không phải khớp tiền tố, nên
+  // nó không hề sai. Cái sai là ba nút kia mở PANEL TRƯỢT chứ không đổi URL:
+  // bấm Chat khi đang đứng ở /md thì đường dẫn vẫn là /md, nên "Bàn làm việc"
+  // giữ nguyên màu xanh và Chat cũng xanh — HAI nút cùng sáng, người dùng không
+  // còn biết mình đang ở đâu.
+  //
+  // Trạng thái đang chọn phải phản ánh THỨ ĐANG HIỆN TRƯỚC MẮT, không phải
+  // riêng thanh địa chỉ. Panel mở đè lên trang thì chính panel mới là nơi người
+  // dùng đang đứng; Bàn làm việc lúc đó trả về xám như mọi nút khác.
+  const workbenchActive = onWorkbench && openSheet === null;
   const hidden = HIDE_ON.some((p) => pathname === p || pathname.startsWith(p + '/'));
 
   // Ẩn khi bàn phím ảo bật lên hoặc khi cuộn xuống; hiện lại khi cuộn lên.
@@ -149,12 +161,12 @@ export default function AppBottomNav({
             <Link
               href={workbenchHref}
               onClick={goWorkbench}
-              aria-current={onWorkbench ? 'page' : undefined}
-              className={`${btn} ${onWorkbench ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              aria-current={workbenchActive ? 'page' : undefined}
+              className={`${btn} ${workbenchActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <span className="relative">
                 <LayoutDashboard className={icon} aria-hidden="true" />
-                {onWorkbench && (
+                {workbenchActive && (
                   <span
                     className="absolute -top-2 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-blue-600"
                     aria-hidden="true"

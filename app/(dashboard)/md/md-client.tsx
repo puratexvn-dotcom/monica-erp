@@ -47,6 +47,7 @@ import type {
 import type {
   DocumentCenterRow, CommentCenterRow, ChangeCenterRow, RiskCenterRow,
 } from './_services/collaboration.service';
+import { GROUP_TONE } from '@/components/md/semantic-tone';
 import type { PoOption } from './md-types';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRowsClient, listStylesClient } from './_actions/md360.client';
@@ -454,9 +455,15 @@ export default function MdClient({
           Ba khu điều hành ở trên vẫn giữ đúng thứ tự ưu tiên nhờ vị trí, không
           cần phải giấu phần còn lại đi mới nổi bật được. */}
       <div ref={tabBarRef} className="-mx-1 mb-5 space-y-2 px-1 pt-1">
-        {GROUPS.map((g) => (
+        {GROUPS.map((g) => {
+          // Mỗi nhóm một sắc màu riêng — xem bảng GROUP_TONE và số đo tương phản
+          // ở components/md/semantic-tone.ts
+          const tone = GROUP_TONE[g];
+          return (
           <div key={g} className="flex items-center gap-2">
-            <span className="hidden w-24 shrink-0 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:block">
+            <span
+              className={`hidden w-24 shrink-0 text-right text-[10px] font-bold uppercase tracking-wider lg:block ${tone.label}`}
+            >
               {g}
             </span>
             <div
@@ -474,10 +481,11 @@ export default function MdClient({
                     role="tab"
                     aria-selected={on}
                     onClick={() => setTab(t.key)}
+                    // ring-inset thay cho border: viền vẽ vào PHÍA TRONG nên nút
+                    // không đổi kích thước giữa hai trạng thái, hàng tab không
+                    // nhích qua lại mỗi lần bấm.
                     className={`flex shrink-0 touch-manipulation select-none items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition active:scale-95 ${
-                      on
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/25'
-                        : 'border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600'
+                      on ? tone.active : tone.idle
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -486,7 +494,7 @@ export default function MdClient({
                     {n !== null && n > 0 && (
                       <span
                         className={`rounded-full px-1.5 text-[11px] font-bold tabular-nums ${
-                          on ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                          on ? tone.countActive : tone.countIdle
                         }`}
                       >
                         {n}
@@ -500,7 +508,8 @@ export default function MdClient({
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <Card>

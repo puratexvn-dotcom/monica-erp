@@ -92,3 +92,66 @@ export const BIZ_TONE: Record<BizDomain, BizStyle> = {
  *  dùng biết cả dòng là một mục tiêu bấm chứ không riêng chữ trong đó. */
 export const ROW_HOVER =
   'transition-colors hover:bg-slate-50 focus-within:bg-slate-50 cursor-pointer';
+
+// ============================================================================
+// SẮC MÀU CHO BA NHÓM TAB NGHIỆP VỤ
+//
+// Khác với BIZ_TONE ở trên (màu theo LOẠI DỮ LIỆU: nguyên phụ liệu, hàng mẫu…),
+// bảng dưới đây là màu theo GIAI ĐOẠN CÔNG VIỆC. Mười ba tab trước kia đều
+// viền xám nền trắng như nhau, nên muốn biết mình đang ở giai đoạn nào thì phải
+// đọc nhãn nhóm bên trái — mà nhãn đó lại ẩn dưới màn hình lớn.
+//
+//   🔵 Thương mại — xanh lam : giai đoạn CHƯA có đơn (khách, báo giá, giá vốn)
+//   🟢 Triển khai  — xanh ngọc: giai đoạn ĐÃ có đơn thật, đang chạy sản xuất
+//   🟣 Phối hợp    — tím     : việc làm cùng bộ phận khác, không nằm trên dòng
+//                              chảy sản xuất chính
+//
+// ─── TƯƠNG PHẢN ĐÃ ĐO (WCAG 2.1) ──────────────────────────────────────────
+// Nhãn tab là chữ 14px ĐẬM. Ngưỡng "chữ lớn" của WCAG là 18,66px đậm, nên cỡ
+// này KHÔNG được nới lỏng: vẫn phải đạt 4,5:1.
+//
+//   nghỉ   chữ 700 / nền 50 : lam 6,16 · ngọc 5,21 · tím 6,51  : 1
+//   rê chuột chữ 700 / nền 100: lam 5,49 · ngọc 4,84 · tím 5,92  : 1
+//   đang chọn  trắng / nền đậm : lam 5,17 · ngọc 5,48 · tím 5,38  : 1
+//
+// ⚠️ Nhóm Triển khai dùng emerald-700 cho trạng thái đang chọn, KHÔNG dùng
+// emerald-600 như hai nhóm kia: chữ trắng trên emerald-600 chỉ đạt 3,77:1 —
+// TRƯỢT chuẩn AA. Đây là cái bẫy cố hữu của dải xanh lá trong Tailwind, sắc độ
+// 600 của nó sáng hơn hẳn 600 của lam và tím.
+export type TabGroup = 'Thương mại' | 'Triển khai' | 'Phối hợp';
+
+export interface TabGroupStyle {
+  /** Nút ở trạng thái nghỉ */
+  idle: string;
+  /** Nút đang được chọn */
+  active: string;
+  /** Con số đếm bên trong nút, hai trạng thái */
+  countIdle: string;
+  countActive: string;
+  /** Nhãn tên nhóm ở lề trái */
+  label: string;
+}
+
+export const GROUP_TONE: Record<TabGroup, TabGroupStyle> = {
+  'Thương mại': {
+    idle: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 hover:bg-blue-100 hover:ring-blue-300',
+    active: 'bg-blue-600 text-white shadow-sm shadow-blue-600/30',
+    countIdle: 'bg-blue-100 text-blue-700',
+    countActive: 'bg-white/25 text-white',
+    label: 'text-blue-600',
+  },
+  'Triển khai': {
+    idle: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 hover:bg-emerald-100 hover:ring-emerald-300',
+    active: 'bg-emerald-700 text-white shadow-sm shadow-emerald-700/30',
+    countIdle: 'bg-emerald-100 text-emerald-700',
+    countActive: 'bg-white/25 text-white',
+    label: 'text-emerald-600',
+  },
+  'Phối hợp': {
+    idle: 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-200 hover:bg-purple-100 hover:ring-purple-300',
+    active: 'bg-purple-600 text-white shadow-sm shadow-purple-600/30',
+    countIdle: 'bg-purple-100 text-purple-700',
+    countActive: 'bg-white/25 text-white',
+    label: 'text-purple-600',
+  },
+};
