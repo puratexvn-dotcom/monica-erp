@@ -1,5 +1,12 @@
 # 01 · ASSIGNMENT DOMAIN MODEL
 
+> ⚠️ **MỘT PHẦN TÀI LIỆU NÀY ĐÃ BỊ THAY THẾ** bởi
+> [ADR-001](ADR-001-site-and-operation.md) (01/08/2026):
+> `factories` → **`production_sites`** · **KHÔNG** tạo bảng `operations`
+> (dùng `style_operations` đã có) · **NULL không bao giờ nghĩa là "tất cả"** —
+> phạm vi tuyên bố tường minh bằng `scope_level`.
+
+
 > **Bản 3** — sửa theo Quyết định Kiến trúc (tinh chỉnh) ngày 31/07/2026.
 > Thay đổi so với bản 2: **giá RỜI khỏi `assignments`**, sang bảng
 > `assignment_commercial_terms` · bất biến I-8 bảo vệ ở **ba tầng** · trigger

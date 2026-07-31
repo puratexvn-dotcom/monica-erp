@@ -1,5 +1,12 @@
 # 10 · RISK ANALYSIS
 
+> ⚠️ **MỘT PHẦN TÀI LIỆU NÀY ĐÃ BỊ THAY THẾ** bởi
+> [ADR-001](ADR-001-site-and-operation.md) (01/08/2026):
+> `factories` → **`production_sites`** · **KHÔNG** tạo bảng `operations`
+> (dùng `style_operations` đã có) · **NULL không bao giờ nghĩa là "tất cả"** —
+> phạm vi tuyên bố tường minh bằng `scope_level`.
+
+
 Xếp theo **thiệt hại × khả năng xảy ra**, không theo thứ tự thiết kế.
 
 ---

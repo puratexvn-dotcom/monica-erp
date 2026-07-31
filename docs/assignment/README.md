@@ -56,6 +56,12 @@ Sáu loại Đối tác Thực thi: `PRODUCTION_PARTNER` · `SERVICE_PARTNER` ·
 | 09 | [Folder Tree](09-folder-tree.md) | Tệp nào nằm ở đâu, ranh giới module |
 | 10 | [Risk Analysis](10-risk-analysis.md) | Cái gì có thể hỏng, và biết trước bằng cách nào |
 
+## Quyết định kiến trúc (ADR)
+
+| # | Tài liệu | Thay thế điều gì |
+|---|---|---|
+| 001 | [Địa điểm sản xuất & Công đoạn](ADR-001-site-and-operation.md) | `factories` → `production_sites` · KHÔNG tạo `operations` · `scope_level` thay cho quy ước "NULL = tất cả" |
+
 ## Nền tảng đo đạc
 
 Mọi con số trong bộ tài liệu này **đo trên cơ sở dữ liệu đang chạy** ngày

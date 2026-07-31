@@ -1,5 +1,12 @@
 # 05 · ASSIGNMENT RESOURCE MODEL
 
+> ⚠️ **MỘT PHẦN TÀI LIỆU NÀY ĐÃ BỊ THAY THẾ** bởi
+> [ADR-001](ADR-001-site-and-operation.md) (01/08/2026):
+> `factories` → **`production_sites`** · **KHÔNG** tạo bảng `operations`
+> (dùng `style_operations` đã có) · **NULL không bao giờ nghĩa là "tất cả"** —
+> phạm vi tuyên bố tường minh bằng `scope_level`.
+
+
 ## 1. Câu hỏi duy nhất
 
 > **"Tài nguyên X có nằm trong Assignment đang hiệu lực nào của đối tác này
