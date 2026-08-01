@@ -105,8 +105,11 @@ acl_rows AS (
          || CASE d.defaclobjtype WHEN 'f' THEN 'hàm' WHEN 'r' THEN 'bảng'
                                  WHEN 'S' THEN 'sequence' ELSE d.defaclobjtype::TEXT END AS doi_tuong,
          array_to_string(d.defaclacl, ', ') AS chi_tiet,
-         CASE WHEN d.defaclobjtype = 'f'
-                   AND array_to_string(d.defaclacl, ',') ILIKE '%anon=%'
+         -- ⚠️ Bản trước CHỈ soi `defaclobjtype = 'f'` (hàm), nên dòng
+         -- "supabase_admin tạo bảng · anon=arwdDxtm" được tô ✅ oan — trong khi
+         -- đó là quyền TOÀN PHẦN cấp cho người CHƯA ĐĂNG NHẬP trên mọi bảng
+         -- do vai ấy tạo. Bản này soi cả bảng lẫn sequence lẫn hàm.
+         CASE WHEN array_to_string(d.defaclacl, ',') ILIKE '%anon=%'
               THEN '⛔ còn cấp mặc định cho anon' ELSE '✅' END AS danh_gia
     FROM pg_default_acl d
     JOIN pg_namespace ns ON ns.oid = d.defaclnamespace
@@ -145,6 +148,16 @@ ket_luan AS (
                       OR NOT EXISTS (SELECT 1 FROM unnest(proconfig) x
                                       WHERE x LIKE 'search_path=%')) = 0
             THEN '✅' ELSE '⛔' END),
+      ('⭐ Vai còn cấp quyền MẶC ĐỊNH cho anon',
+       (SELECT COUNT(*)::TEXT FROM pg_default_acl d
+          JOIN pg_namespace ns ON ns.oid = d.defaclnamespace
+         WHERE ns.nspname = 'public'
+           AND array_to_string(d.defaclacl, ',') ILIKE '%anon=%'),
+       CASE WHEN (SELECT COUNT(*) FROM pg_default_acl d
+                    JOIN pg_namespace ns ON ns.oid = d.defaclnamespace
+                   WHERE ns.nspname = 'public'
+                     AND array_to_string(d.defaclacl, ',') ILIKE '%anon=%') = 0
+            THEN '✅' ELSE '⚠️ xem Mục 4 — đối tượng TẠO SAU sẽ hở' END),
       ('View/matview đã soi', (SELECT COUNT(*)::TEXT FROM v), 'ℹ️'),
       ('Hàm SECDEF đã soi',   (SELECT COUNT(*)::TEXT FROM f), 'ℹ️')
     ) AS k(doi_tuong, chi_tiet, danh_gia)

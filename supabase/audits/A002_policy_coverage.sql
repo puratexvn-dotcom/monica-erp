@@ -58,6 +58,22 @@ phu AS (
    CROSS JOIN (VALUES ('INSERT'), ('UPDATE'), ('DELETE')) AS l(lenh)
    WHERE b.relrowsecurity
 ),
+-- Trigger BEFORE UPDATE/DELETE mà thân hàm có `RAISE EXCEPTION` — tức là một
+-- hàng rào thật, chỉ nằm ở tầng khác `pg_policies`.
+tg AS (
+  SELECT c.relname AS tbl, t.tgname AS tg_name, p.proname AS fn,
+         CASE WHEN (t.tgtype & 16) > 0 AND (t.tgtype & 8) > 0 THEN 'UPDATE+DELETE'
+              WHEN (t.tgtype & 16) > 0 THEN 'UPDATE'
+              WHEN (t.tgtype &  8) > 0 THEN 'DELETE'
+              ELSE 'khác' END AS lenh
+    FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    JOIN pg_proc  p ON p.oid = t.tgfoid
+   WHERE NOT t.tgisinternal
+     AND c.relnamespace = 'public'::regnamespace
+     AND ((t.tgtype & 16) > 0 OR (t.tgtype & 8) > 0)   -- UPDATE hoặc DELETE
+     AND p.prosrc ILIKE '%RAISE EXCEPTION%'
+),
 -- ── 1. ⛔ BẢNG CHƯA BẬT RLS — policy viết kiểu gì cũng không chạy ──────────
 m1 AS (
   SELECT '1 · CHƯA BẬT RLS' AS muc, b.relname AS doi_tuong,
@@ -72,38 +88,79 @@ m1 AS (
     FROM bang b
    WHERE NOT b.relrowsecurity
 ),
--- ── 2. LỆNH GHI KHÔNG CÓ CANH GÁC ─────────────────────────────────────────
+-- ── 2. LỆNH GHI KHÔNG CÓ CANH GÁC Ở TẦNG POLICY ───────────────────────────
+--
+-- ⚠️ MỤC NÀY CHỈ NHÌN THẤY TẦNG POLICY. Nó KHÔNG nhìn thấy trigger.
+--
+-- Bản trước gắn ⛔ cho `assignment_daily_reports · UPDATE`. Đo lại bằng phiên
+-- thật: **cả nhà thầu lẫn Monica đều KHÔNG sửa được** — sổ cái chỉ-ghi-thêm
+-- được canh bằng TRIGGER, thứ nằm ngoài tầm nhìn của `pg_policies`.
+--
+-- Nên ở đây hạ xuống ⚠️ và nói rõ phải đối chiếu Mục 5. Gắn ⛔ cho một chỗ
+-- thực tế đang kín là **báo động giả** — và báo động giả lặp lại thì người ta
+-- bắt đầu bỏ qua cả báo động thật.
 m2 AS (
   SELECT '2 · GHI KHÔNG CANH GÁC' AS muc,
          p.relname || ' · ' || p.lenh AS doi_tuong,
-         'authenticated được cấp quyền, không policy nào nhắc tới người ngoài' AS chi_tiet,
-         '⛔ TRỐNG' AS danh_gia
+         'không policy nào nhắc tới người ngoài — ĐỐI CHIẾU Mục 5 (trigger)' AS chi_tiet,
+         CASE WHEN EXISTS (SELECT 1 FROM tg WHERE tg.tbl = p.relname)
+              THEN '⚠️ policy trống, nhưng CÓ trigger canh'
+              ELSE '⛔ TRỐNG cả policy lẫn trigger' END AS danh_gia
     FROM phu p
    WHERE p.duoc_cap AND NOT p.co_gac
 ),
--- ── 3. `subcon_denied` MẤT Ở ĐÂU ──────────────────────────────────────────
--- 025 cài nó lên MỌI bảng ngoài 7 bảng cho phép. Bảng nào hôm nay không còn
--- nó mà cũng không nằm trong 7 bảng đó ⇒ đã bị một migration sau GỠ ĐI.
+-- ── 5. CANH GÁC Ở TẦNG TRIGGER ────────────────────────────────────────────
+-- Bổ sung sau khi phát hiện Mục 2 báo động giả: có bảng được bảo vệ bằng
+-- trigger chứ không bằng policy. Bỏ qua tầng này thì bức tranh khuyết một nửa.
+m5 AS (
+  SELECT '5 · TRIGGER CANH' AS muc,
+         tg.tbl || ' · ' || tg.tg_name AS doi_tuong,
+         tg.lenh || ' · hàm ' || tg.fn AS chi_tiet,
+         '✅ có chặn ở tầng trigger' AS danh_gia
+    FROM tg
+),
+-- ── 3. BẢNG KHÔNG CÓ `subcon_denied` — CÓ CANH GÁC KHÁC KHÔNG? ────────────
+--
+-- ⚠️ BẢN 2 CỦA MỤC NÀY ĐÃ SỬA HAI KẾT LUẬN SAI CỦA BẢN TRƯỚC.
+--
+-- Bản trước gắn cờ ⛔ cho 9 bảng với lý do "đã bị GỠ bởi migration sau,
+-- KHÔNG THAY GÌ". Đo lại bằng phiên nhà thầu thật: **cả 9 đều kín**.
+-- Hai chỗ sai:
+--
+--   ① "đã bị GỠ" — SAI. Cả 9 bảng (`assignments`, `partners`,
+--      `production_sites`, `contract_types`…) sinh ra ở migration 027–030,
+--      tức SAU khi 025 chạy. Chưa từng có thì không thể gọi là bị gỡ.
+--      Vắng mặt vì SINH SAU khác hẳn vắng mặt vì BỊ GỠ.
+--
+--   ② "KHÔNG THAY GÌ" — SAI. Phép kiểm chỉ đếm policy RESTRICTIVE, trong khi
+--      027–030 canh bằng policy PERMISSIVE có sẵn vế `mos_is_external()`.
+--      Thiếu RESTRICTIVE **không** đồng nghĩa với không có hàng rào.
+--
+-- Câu hỏi đúng không phải "có `subcon_denied` không" mà là **"có hàng rào nào
+-- biết tới người ngoài không"** — bất kể loại policy. Bản này hỏi đúng câu đó.
 m3 AS (
-  SELECT '3 · subcon_denied' AS muc, b.relname AS doi_tuong,
+  SELECT '3 · KHÔNG subcon_denied' AS muc, b.relname AS doi_tuong,
          CASE WHEN b.relname = ANY (ARRAY['subcontractors','subcon_orders',
                 'subcon_issue_logs','subcon_receipt_logs','cut_bundles',
                 'cut_tickets','orders'])
               THEN '025 CỐ Ý cho phép'
-              ELSE 'đã bị GỠ bởi migration sau' END
-         || ' · restrictive còn lại: '
-         || COALESCE((SELECT string_agg(DISTINCT g.policyname, ', ')
+              ELSE 'không có subcon_denied (sinh sau 025, hoặc đã bị gỡ)' END
+         || ' · canh gác hiện có: '
+         || COALESCE((SELECT string_agg(DISTINCT g.policyname || '(' || g.permissive || ')', ', ')
                         FROM canh_gac g
-                       WHERE g.tablename = b.relname AND g.permissive = 'RESTRICTIVE'),
-                     '(không có)')                          AS chi_tiet,
-         CASE WHEN b.relname = ANY (ARRAY['subcontractors','subcon_orders',
+                       WHERE g.tablename = b.relname
+                         AND (g.permissive = 'RESTRICTIVE'
+                           OR g.bieu_thuc ~ 'mos_is_(external|subcon|buyer)|mos_partner|mos_can_')),
+                     '(KHÔNG CÓ)')                          AS chi_tiet,
+         CASE WHEN NOT EXISTS (SELECT 1 FROM canh_gac g
+                                WHERE g.tablename = b.relname
+                                  AND (g.permissive = 'RESTRICTIVE'
+                                    OR g.bieu_thuc ~ 'mos_is_(external|subcon|buyer)|mos_partner|mos_can_'))
+                   THEN '⛔ KHÔNG CÓ HÀNG RÀO NÀO'
+              WHEN b.relname = ANY (ARRAY['subcontractors','subcon_orders',
                 'subcon_issue_logs','subcon_receipt_logs','cut_bundles',
                 'cut_tickets','orders']) THEN '⚠️ theo thiết kế 025'
-              WHEN NOT EXISTS (SELECT 1 FROM canh_gac g
-                                WHERE g.tablename = b.relname
-                                  AND g.permissive = 'RESTRICTIVE')
-                   THEN '⛔ GỠ RỒI, KHÔNG THAY GÌ'
-              ELSE '⚠️ gỡ rồi nhưng có thay thế' END        AS danh_gia
+              ELSE '✅ có canh gác khác' END                 AS danh_gia
     FROM bang b
    WHERE b.relrowsecurity
      AND NOT EXISTS (SELECT 1 FROM canh_gac g
@@ -127,10 +184,20 @@ m0 AS (
           AND (co_ins OR co_upd OR co_del)),
        CASE WHEN (SELECT COUNT(*) FROM bang WHERE NOT relrowsecurity
                     AND (co_ins OR co_upd OR co_del)) = 0 THEN '✅' ELSE '⛔' END),
-      ('⭐ Lệnh GHI không có canh gác',
-       (SELECT COUNT(*)::TEXT FROM phu WHERE duoc_cap AND NOT co_gac),
-       CASE WHEN (SELECT COUNT(*) FROM phu WHERE duoc_cap AND NOT co_gac) = 0
-            THEN '✅' ELSE '⚠️ xem Mục 2 — lộ trình 031' END),
+      ('⭐ Lệnh GHI trống CẢ policy LẪN trigger',
+       (SELECT COUNT(*)::TEXT FROM phu p
+         WHERE p.duoc_cap AND NOT p.co_gac
+           AND NOT EXISTS (SELECT 1 FROM tg WHERE tg.tbl = p.relname)),
+       CASE WHEN (SELECT COUNT(*) FROM phu p
+                   WHERE p.duoc_cap AND NOT p.co_gac
+                     AND NOT EXISTS (SELECT 1 FROM tg WHERE tg.tbl = p.relname)) = 0
+            THEN '✅' ELSE '⛔ xem Mục 2' END),
+      ('Lệnh GHI trống policy nhưng CÓ trigger canh',
+       (SELECT COUNT(*)::TEXT FROM phu p
+         WHERE p.duoc_cap AND NOT p.co_gac
+           AND EXISTS (SELECT 1 FROM tg WHERE tg.tbl = p.relname)), 'ℹ️'),
+      ('Trigger chặn UPDATE/DELETE đang có',
+       (SELECT COUNT(*)::TEXT FROM tg), 'ℹ️'),
       ('⭐ 12 policy của 031a còn nguyên',
        (SELECT COUNT(*)::TEXT FROM canh_gac
          WHERE policyname LIKE 'p031a_ext_no_%' AND permissive = 'RESTRICTIVE'),
@@ -143,7 +210,7 @@ m0 AS (
        CASE WHEN (SELECT COUNT(*) FROM canh_gac
                    WHERE policyname LIKE 'p031a_ext_no_%'
                      AND cmd IN ('SELECT','ALL')) = 0 THEN '✅' ELSE '⛔' END),
-      ('subcon_denied bị GỠ mà không thay gì',
+      ('⭐ Bảng KHÔNG có hàng rào nào biết tới người ngoài',
        (SELECT COUNT(*)::TEXT FROM m3 WHERE danh_gia LIKE '⛔%'),
        CASE WHEN (SELECT COUNT(*) FROM m3 WHERE danh_gia LIKE '⛔%') = 0
             THEN '✅' ELSE '⛔' END),
@@ -153,7 +220,8 @@ m0 AS (
 )
 SELECT muc, doi_tuong, chi_tiet, danh_gia
 FROM (SELECT * FROM m0 UNION ALL SELECT * FROM m1 UNION ALL SELECT * FROM m2
-      UNION ALL SELECT * FROM m3 UNION ALL SELECT * FROM m4) z
+      UNION ALL SELECT * FROM m3 UNION ALL SELECT * FROM m4
+      UNION ALL SELECT * FROM m5) z
 ORDER BY muc,
          CASE WHEN danh_gia LIKE '⛔%' THEN 0 WHEN danh_gia LIKE '⚠️%' THEN 1 ELSE 2 END,
          doi_tuong;

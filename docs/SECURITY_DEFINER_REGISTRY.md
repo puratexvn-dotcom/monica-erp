@@ -151,4 +151,29 @@ chối** vào bài kiểm hồi quy của migration đó.
 
 | ngày | việc |
 |---|---|
-| 02/08/2026 | Lập sổ. A001 phát hiện 13/14 hàm `anon` gọi được, 2 hàm ghi. `038` chạy → đo lại **0/14**. `031a` hồi quy lại **35/35** — không vai nội bộ nào bị vạ lây. `038b` chờ chạy. |
+| 02/08/2026 | Lập sổ. A001 phát hiện 13/14 hàm `anon` gọi được, 2 hàm ghi. `038` chạy → đo lại **0/14**. `031a` hồi quy lại **35/35** — không vai nội bộ nào bị vạ lây. |
+| 02/08/2026 | `038b` chạy. A001 bản 2 xác nhận: **19/19 hàm `anon` bị chặn · 19/19 ghim `search_path` · 11/11 view `invoker` · 0 view cho `anon` đọc.** |
+
+## 6. RỦI RO CÒN LẠI — CHƯA ĐÓNG ĐƯỢC
+
+A001 bản 2 Mục 4 cho thấy `038b` mới đóng **một nửa**:
+
+| vai tạo | loại | mặc định cho `anon` | |
+|---|---|---|---|
+| `postgres` | hàm · bảng · sequence | không có | ✅ đã đóng bởi 038b |
+| **`supabase_admin`** | **hàm** | `anon=X` | ⛔ |
+| **`supabase_admin`** | **bảng** | `anon=arwdDxtm` | ⛔ **toàn quyền** |
+
+`ALTER DEFAULT PRIVILEGES` chỉ áp cho đối tượng do **một vai cụ thể** tạo.
+`038b` chạy dưới `postgres` nên chỉ đổi mặc định của `postgres`.
+
+⚠️ Dòng **bảng** đáng lo hơn dòng hàm: `arwdDxtm` là **toàn quyền**, cấp cho
+người **chưa đăng nhập**, trên mọi bảng do vai ấy tạo trong `public`.
+
+**Mức độ thật hiện nay: thấp** — 102/102 bảng đã bật RLS, và đo bằng phiên
+`anon` thật cho thấy bị chặn ở cả 25 bảng đã kiểm. Nhưng đây là **rủi ro của
+tương lai**: một bảng mới do hạ tầng tạo ra mà quên bật RLS sẽ hở ngay.
+
+`038c` **thử** đóng, và sẽ **báo thẳng** nếu `postgres` không đủ quyền — đó là
+kết quả hợp lệ, không phải lỗi cần giấu. Khi đó lớp phòng vệ còn lại là
+**A001 chạy mỗi vòng** (Hiến pháp V.4).
