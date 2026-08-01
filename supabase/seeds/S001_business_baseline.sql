@@ -359,20 +359,25 @@ JOIN public.partners p ON p.subcontractor_id = s.id AND p.partner_code = 'SUB-GI
 JOIN public.orders o   ON o.po_number = 'SEED-PO-0001'
 WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-ORPHAN');
 
-INSERT INTO public.subcon_orders (subcon_order_no, vendor_id, order_id,
-                                  process_type, assignment_id,
-                                  total_sent_qty, unit_price, issued_date)
--- ④ CHÉO — nhà cung cấp là GIAT nhưng phần việc thuộc XƯỞNG MAY SC1.
--- Dòng này cố ý LỆCH giữa "chủ theo vendor" và "chủ theo assignment". Nó tồn
--- tại để trả lời một câu chưa ai trả lời: policy sẽ khoanh theo ĐƯỜNG NÀO?
--- Nếu hai đường cho kết quả khác nhau thì thiết kế còn mơ hồ, và phải chốt.
-SELECT 'SEED-SO-CROSS', s.id, o.id, 'GIAT', a.id, 100, 4500, now()
-FROM public.subcontractors s
-JOIN public.partners g   ON g.subcontractor_id = s.id AND g.partner_code = 'SUB-GIAT-02'
-JOIN public.orders o     ON o.po_number = 'SEED-PO-0001'
-JOIN public.partners sc1 ON sc1.partner_code = 'SC1' AND sc1.deleted_at IS NULL
-JOIN public.assignments a ON a.partner_id = sc1.id AND a.order_id = o.id AND a.deleted_at IS NULL
-WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-CROSS');
+-- ④ ⚠️ DÒNG "CHÉO" ĐÃ BỊ GỠ KHỎI DỮ LIỆU NỀN — 02/08/2026
+--
+-- Bản trước gieo `SEED-SO-CROSS`: nhà cung cấp là GIAT nhưng phần việc thuộc
+-- xưởng may SC1. Tôi gieo nó để dò xem policy sẽ khoanh theo đường nào.
+--
+-- Quyết định của Kiến trúc sư trưởng:
+--
+--     "Assignment là Aggregate Root DUY NHẤT cho Permission, Scope và
+--      Ownership. `vendor_id` chỉ là Business Attribute.
+--      Bổ sung bất biến I-11. **Dữ liệu vi phạm bất biến không được phép tồn
+--      tại để kiểm thử RLS.**"
+--
+-- Câu hỏi đúng không phải *"policy xử sự ra sao với một dòng có hai chủ"* mà
+-- là *"vì sao một dòng có hai chủ tồn tại được"*. Tôi đã hỏi sai câu.
+--
+-- Dòng đó chuyển thành **bài kiểm Domain Integrity**: `live-suite` THỬ TẠO nó
+-- và CHỜ BỊ TỪ CHỐI bởi trigger I-11 (migration `040`).
+--
+-- Migration `040` gỡ dòng cũ nếu còn sót. Ở đây chỉ không gieo lại nữa.
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 13. PHIẾU XUẤT / PHIẾU THU HỒI — 🔴 ĐANG BỊ CHẶN BỞI MỘT KHIẾM KHUYẾT THẬT
@@ -594,8 +599,15 @@ FROM (VALUES
   ('⭐ Phần việc',
    (SELECT COUNT(*)::TEXT FROM public.assignments WHERE deleted_at IS NULL), '3'),
   -- ── PHẦN B · kịch bản phân quyền ────────────────────────────────────────
-  ('B · Đơn gia công (4 kịch bản)',
-   (SELECT COUNT(*)::TEXT FROM public.subcon_orders), '4'),
+  -- 3 chứ không phải 4: dòng "chéo" đã chuyển sang bài kiểm Domain Integrity.
+  ('B · Đơn gia công (3 kịch bản)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_orders), '3'),
+  ('B · ⭐ KHÔNG còn dòng vi phạm I-11',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_orders so
+     JOIN public.assignments a ON a.id = so.assignment_id
+     JOIN public.partners p    ON p.id = a.partner_id
+    WHERE so.assignment_id IS NOT NULL
+      AND (p.subcontractor_id IS NULL OR p.subcontractor_id <> so.vendor_id)), '0'),
   ('B · ...trong đó MỒ CÔI (assignment_id NULL)',
    (SELECT COUNT(*)::TEXT FROM public.subcon_orders WHERE assignment_id IS NULL), '1'),
   ('B · ...hai mức GIÁ khác nhau',

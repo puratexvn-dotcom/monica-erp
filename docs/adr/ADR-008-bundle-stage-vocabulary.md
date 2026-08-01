@@ -9,6 +9,48 @@
 
 ---
 
+## 0. TUYÊN BỐ NỀN TẢNG — GHI THEO QUYẾT ĐỊNH 02/08/2026
+
+> **Assignment là Aggregate Root DUY NHẤT cho Permission, Scope và Ownership.**
+> Nó là **Security Boundary duy nhất** của toàn bộ External Collaboration.
+> — Kiến trúc sư trưởng
+
+### Hệ quả bắt buộc
+
+**① Mọi RLS của cộng tác bên ngoài phân quyền theo `assignment_id`.**
+Không theo `vendor_id`, không theo `partner_id` rời rạc, không theo vai trò.
+
+**② `vendor_id` chỉ là Business Attribute, KHÔNG phải ranh giới phân quyền.**
+Nó mô tả *ai làm việc đó*, không quyết định *ai được nhìn thấy nó*.
+
+**③ Bất biến I-11 · Commercial Ownership Integrity.**
+`subcon_orders.vendor_id` **phải khớp** với `Assignment.partner_id`. Không khớp
+thì **từ chối ở CẢ tầng Domain LẪN tầng CSDL**.
+
+### Vì sao điều này quan trọng hơn nó thoạt nghe
+
+Trước quyết định này, `subcon_orders` có **hai đường sở hữu song song**:
+`vendor_id` và `assignment_id`. Hai đường có thể trỏ về **hai chủ khác nhau** —
+và dòng `SEED-SO-CROSS` là bằng chứng: nhà cung cấp là GIAT, phần việc thuộc
+xưởng may SC1.
+
+Khi một tài nguyên có hai chủ, **không policy nào viết đúng được** — mọi lựa
+chọn đều để lộ cho một bên nào đó. Quyết định này gỡ sự mơ hồ tận gốc: **một
+tài nguyên, một chủ, một ranh giới.**
+
+### Hệ quả với `SEED-SO-CROSS`
+
+> *"Dữ liệu vi phạm bất biến không được phép tồn tại để kiểm thử RLS."*
+
+Dòng đó **chuyển từ bài kiểm RLS sang bài kiểm Domain Integrity**: nó không
+còn nằm trong dữ liệu nền; thay vào đó bài kiểm **thử tạo nó và chờ bị từ chối**.
+
+Tôi ghi nhận đây là một sửa lỗi tư duy của chính tôi: tôi đã gieo một dòng
+**vi phạm bất biến** để dò xem policy xử sự ra sao. Câu hỏi đúng không phải
+*"policy khoanh theo đường nào"* mà là *"vì sao dòng đó tồn tại được"*.
+
+---
+
 ## 1. CONTEXT — BỐI CẢNH
 
 ### 1.1 Sự việc
