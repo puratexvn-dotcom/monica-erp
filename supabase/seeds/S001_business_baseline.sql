@@ -35,12 +35,20 @@
 --    thật. Không dùng dummy." → nối vào `KHZBY` / ZIBUYU đang có trong hệ
 --    thống, không bịa khách mới.
 --
--- ④ ⚠️ MỘT DÒNG KHÔNG XOÁ ĐƯỢC. `assignment_daily_reports` là SỔ CÁI
+-- ⑤ ⚠️ TỆP NÀY CÓ **PHẦN B** (bổ sung 02/08/2026) — kịch bản phân quyền:
+--    Ownership · Cross Assignment · Soft Delete · Append-only · Orphan · Giá.
+--    Phần B gieo ba bảng `subcon_*` đang rỗng, cộng một chuỗi đính chính sổ
+--    cái. Chạy lại tệp này trên cơ sở dữ liệu đã có Phần A là AN TOÀN — mọi
+--    câu đều có `WHERE NOT EXISTS`, nên nó chỉ thêm đúng phần còn thiếu.
+--
+-- ④ ⚠️ HAI DÒNG KHÔNG XOÁ ĐƯỢC. `assignment_daily_reports` là SỔ CÁI
 --    CHỈ-GHI-THÊM: trigger chặn cả `UPDATE` lẫn `DELETE`, KHÔNG có ngoại lệ
---    cho `service_role` (đúng chỉ thị Migration 029). Dòng báo cáo ngày mà
---    tệp này ghi ra sẽ NẰM LẠI VĨNH VIỄN. Gỡ nó đòi một Maintenance Script
---    như M001/M002. Đây là chủ ý — sổ cái phải có dữ liệu thì bài kiểm mới
---    có nghĩa — nhưng nó là CỬA MỘT CHIỀU và tôi nói rõ trước khi Ngài chạy.
+--    cho `service_role` (đúng chỉ thị Migration 029). Hai dòng báo cáo ngày mà
+--    tệp này ghi ra — một GỐC (Phần A) và một ĐÍNH CHÍNH (Phần B, Mục 15) —
+--    sẽ NẰM LẠI VĨNH VIỄN. Gỡ chúng đòi một Maintenance Script như M001/M002.
+--    Đây là chủ ý: sổ cái phải có một chuỗi cha→con thật thì logic "dòng hiện
+--    hành = dòng không có con" mới kiểm được. Nhưng nó là CỬA MỘT CHIỀU và
+--    tôi nói rõ trước khi Ngài chạy.
 --
 -- CHẠY: dán toàn bộ vào SQL Editor. Mục cuối in bảng đối chiếu.
 -- ============================================================================
@@ -271,6 +279,210 @@ LEFT JOIN public.assignments a
 WHERE o.po_number = 'SEED-PO-0001'
   AND NOT EXISTS (SELECT 1 FROM public.shipments WHERE shipment_no = 'SEED-SHIP-01');
 
+-- ════════════════════════════════════════════════════════════════════════════
+-- PHẦN B · KỊCH BẢN PHÂN QUYỀN — bổ sung 02/08/2026
+-- ════════════════════════════════════════════════════════════════════════════
+--
+-- Ba bảng `subcon_*` đang RỖNG, nên mọi kết luận về chúng đều vô nghĩa
+-- (Hiến pháp V.1). Phần B gieo đủ **sáu kịch bản** để phép đo phân biệt được
+-- đúng với sai:
+--
+--   ① Ownership        — dòng của MÌNH và dòng của NHÀ THẦU KHÁC
+--   ② Cross Assignment — dòng nối tới phần việc của ĐỐI TÁC KHÁC
+--   ③ Soft Delete      — dòng đã xoá mềm, phải VÔ HÌNH khi đọc
+--   ④ Append-only      — chuỗi đính chính cha→con trên sổ cái
+--   ⑤ Orphan          — dòng `assignment_id IS NULL` (dữ liệu có trước 029)
+--   ⑥ Giá             — `unit_price` khác nhau giữa hai nhà thầu
+--
+-- ⚠️ VÌ SAO ⑤ QUAN TRỌNG NHẤT: dòng mồ côi không thuộc phần việc nào và sẽ
+-- MÃI MÃI không thuộc. Policy khoanh theo `assignment_id` sẽ cho ra `NULL` với
+-- chúng — tức KHÔNG cho qua. Đó là hành vi đúng, nhưng phải có dòng thật để
+-- chứng minh, chứ không được suy luận.
+--
+-- ⚠️ VÌ SAO ⑥ QUAN TRỌNG: Điều XXX — nhà thầu **❌ không thấy giá của người
+-- khác**. Hai đơn gia công có `unit_price` KHÁC NHAU thì phép đo mới bắt được
+-- rò rỉ; nếu cùng giá thì thấy nhầm cũng không ai biết.
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 11. PHẦN VIỆC CHO NHÀ THẦU DỊCH VỤ THỨ HAI
+-- ────────────────────────────────────────────────────────────────────────────
+-- Có HAI nhà thầu dịch vụ cùng có phần việc thì mới kiểm được Ownership.
+-- Một cái thì "thấy 0" và "thấy đúng của mình" trông giống hệt nhau.
+INSERT INTO public.assignments (partner_id, order_id, scope_level,
+                                assigned_qty, uom, priority, planned_start,
+                                planned_finish, status, request_id)
+SELECT p.id, o.id, 'ORDER',
+       1200, 'PCS', 'NORMAL', CURRENT_DATE + 10,
+       CURRENT_DATE + 16, 'IN_PROGRESS', gen_random_uuid()
+FROM public.partners p
+JOIN public.orders o ON o.po_number = 'SEED-PO-0001'
+WHERE p.partner_code = 'SUB-IN-01' AND p.deleted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM public.assignments a
+                   WHERE a.order_id = o.id AND a.partner_id = p.id
+                     AND a.deleted_at IS NULL);
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 12. ĐƠN GIA CÔNG — BỐN DÒNG, BỐN KỊCH BẢN
+-- ────────────────────────────────────────────────────────────────────────────
+-- `subcon_orders.vendor_id` trỏ `subcontractors`, nên CHỈ nhà thầu DỊCH VỤ mới
+-- có đơn gia công. Xưởng may (PRODUCTION_PARTNER) không có — đó là sự thật của
+-- mô hình, không phải thiếu sót của dữ liệu nền.
+INSERT INTO public.subcon_orders (subcon_order_no, vendor_id, order_id,
+                                  process_type, assignment_id,
+                                  total_sent_qty, unit_price, issued_date)
+-- ① thuộc SUB-GIAT-02 · giá 4500
+SELECT 'SEED-SO-GIAT', s.id, o.id, 'GIAT', a.id, 600, 4500, now()
+FROM public.subcontractors s
+JOIN public.partners p  ON p.subcontractor_id = s.id AND p.partner_code = 'SUB-GIAT-02'
+JOIN public.orders o    ON o.po_number = 'SEED-PO-0001'
+JOIN public.assignments a ON a.partner_id = p.id AND a.order_id = o.id AND a.deleted_at IS NULL
+WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-GIAT');
+
+INSERT INTO public.subcon_orders (subcon_order_no, vendor_id, order_id,
+                                  process_type, assignment_id,
+                                  total_sent_qty, unit_price, issued_date)
+-- ② thuộc SUB-IN-01 · giá 7800 — KHÁC ① để bắt được rò rỉ giá
+SELECT 'SEED-SO-IN', s.id, o.id, 'IN_THEU', a.id, 600, 7800, now()
+FROM public.subcontractors s
+JOIN public.partners p  ON p.subcontractor_id = s.id AND p.partner_code = 'SUB-IN-01'
+JOIN public.orders o    ON o.po_number = 'SEED-PO-0001'
+JOIN public.assignments a ON a.partner_id = p.id AND a.order_id = o.id AND a.deleted_at IS NULL
+WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-IN');
+
+INSERT INTO public.subcon_orders (subcon_order_no, vendor_id, order_id,
+                                  process_type, assignment_id,
+                                  total_sent_qty, unit_price, issued_date)
+-- ③ MỒ CÔI — `assignment_id` NULL, mô phỏng dữ liệu có trước migration 029
+SELECT 'SEED-SO-ORPHAN', s.id, o.id, 'GIAT', NULL, 200, 4500, now()
+FROM public.subcontractors s
+JOIN public.partners p ON p.subcontractor_id = s.id AND p.partner_code = 'SUB-GIAT-02'
+JOIN public.orders o   ON o.po_number = 'SEED-PO-0001'
+WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-ORPHAN');
+
+INSERT INTO public.subcon_orders (subcon_order_no, vendor_id, order_id,
+                                  process_type, assignment_id,
+                                  total_sent_qty, unit_price, issued_date)
+-- ④ CHÉO — nhà cung cấp là GIAT nhưng phần việc thuộc XƯỞNG MAY SC1.
+-- Dòng này cố ý LỆCH giữa "chủ theo vendor" và "chủ theo assignment". Nó tồn
+-- tại để trả lời một câu chưa ai trả lời: policy sẽ khoanh theo ĐƯỜNG NÀO?
+-- Nếu hai đường cho kết quả khác nhau thì thiết kế còn mơ hồ, và phải chốt.
+SELECT 'SEED-SO-CROSS', s.id, o.id, 'GIAT', a.id, 100, 4500, now()
+FROM public.subcontractors s
+JOIN public.partners g   ON g.subcontractor_id = s.id AND g.partner_code = 'SUB-GIAT-02'
+JOIN public.orders o     ON o.po_number = 'SEED-PO-0001'
+JOIN public.partners sc1 ON sc1.partner_code = 'SC1' AND sc1.deleted_at IS NULL
+JOIN public.assignments a ON a.partner_id = sc1.id AND a.order_id = o.id AND a.deleted_at IS NULL
+WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-CROSS');
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 13. PHIẾU XUẤT / PHIẾU THU HỒI
+-- ────────────────────────────────────────────────────────────────────────────
+-- Mỗi bảng một dòng CÓ phần việc và một dòng MỒ CÔI.
+INSERT INTO public.subcon_issue_logs (subcon_order_id, bundle_id, quantity_sent,
+                                      assignment_id, sent_at, notes)
+SELECT so.id, b.id, 60, so.assignment_id, now(),
+       'Dữ liệu nền S001 phần B — phiếu xuất thuộc phần việc của SUB-GIAT-02.'
+FROM public.subcon_orders so
+CROSS JOIN public.cut_bundles b
+WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
+  AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
+                   WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
+
+INSERT INTO public.subcon_issue_logs (subcon_order_id, bundle_id, quantity_sent,
+                                      assignment_id, sent_at, notes)
+SELECT so.id, b.id, 20, NULL, now(),
+       'Dữ liệu nền S001 phần B — phiếu xuất MỒ CÔI, không thuộc phần việc nào.'
+FROM public.subcon_orders so
+CROSS JOIN public.cut_bundles b
+WHERE so.subcon_order_no = 'SEED-SO-ORPHAN' AND b.bundle_code = 'SEED-BD-01'
+  AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
+                   WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
+
+INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
+                                        quantity_defect, is_chargeable,
+                                        assignment_id, received_at, defect_reason)
+SELECT so.id, b.id, 57, 3, TRUE, so.assignment_id, now(),
+       'Dữ liệu nền S001 phần B — 3 chiếc loang màu sau giặt.'
+FROM public.subcon_orders so
+CROSS JOIN public.cut_bundles b
+WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
+  AND NOT EXISTS (SELECT 1 FROM public.subcon_receipt_logs r
+                   WHERE r.subcon_order_id = so.id AND r.bundle_id = b.id);
+
+INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
+                                        quantity_defect, is_chargeable,
+                                        assignment_id, received_at, defect_reason)
+SELECT so.id, b.id, 20, 0, FALSE, NULL, now(),
+       'Dữ liệu nền S001 phần B — phiếu thu hồi MỒ CÔI.'
+FROM public.subcon_orders so
+CROSS JOIN public.cut_bundles b
+WHERE so.subcon_order_no = 'SEED-SO-ORPHAN' AND b.bundle_code = 'SEED-BD-01'
+  AND NOT EXISTS (SELECT 1 FROM public.subcon_receipt_logs r
+                   WHERE r.subcon_order_id = so.id AND r.bundle_id = b.id);
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 14. XOÁ MỀM — DÒNG PHẢI VÔ HÌNH KHI ĐỌC, NHƯNG VẪN NẰM TRONG BẢNG
+-- ────────────────────────────────────────────────────────────────────────────
+-- ADR-005 Split Policy: SELECT lọc `deleted_at`, UPDATE thì không, DELETE cấm.
+-- Không có dòng đã xoá mềm thì không đo được vế thứ nhất.
+--
+-- ⚠️ `assignment_commercial_terms` giữ GIÁ. Hai dòng dưới đây là điều khoản
+-- của phần việc SC1: một CÒN HIỆU LỰC, một ĐÃ XOÁ MỀM.
+INSERT INTO public.assignment_commercial_terms (assignment_id, unit_price, currency, uom)
+SELECT a.id, 12500, 'VND', 'PCS'
+FROM public.assignments a
+JOIN public.partners p ON p.id = a.partner_id AND p.partner_code = 'SC1'
+JOIN public.orders o   ON o.id = a.order_id AND o.po_number = 'SEED-PO-0001'
+WHERE a.deleted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM public.assignment_commercial_terms t
+                   WHERE t.assignment_id = a.id AND t.deleted_at IS NULL);
+
+-- Dòng thứ hai rồi xoá mềm ngay. Chỉ mục duy nhất một phần
+-- `uq_act_assignment_active` chỉ cấm TRÙNG khi còn hiệu lực, nên phải xoá mềm
+-- dòng này TRƯỚC khi nó va vào dòng trên — làm gọn trong một câu `WITH`.
+WITH moi AS (
+  INSERT INTO public.assignment_commercial_terms (assignment_id, unit_price, currency, uom)
+  SELECT a.id, 9900, 'VND', 'PCS'
+  FROM public.assignments a
+  JOIN public.partners p ON p.id = a.partner_id AND p.partner_code = 'SUB-GIAT-02'
+  JOIN public.orders o   ON o.id = a.order_id AND o.po_number = 'SEED-PO-0001'
+  WHERE a.deleted_at IS NULL
+    AND NOT EXISTS (SELECT 1 FROM public.assignment_commercial_terms t
+                     WHERE t.assignment_id = a.id)
+  RETURNING id
+)
+UPDATE public.assignment_commercial_terms t
+   SET deleted_at = now()
+  FROM moi
+ WHERE t.id = moi.id;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 15. ⚠️ SỔ CÁI — CHUỖI ĐÍNH CHÍNH. CỬA MỘT CHIỀU, ĐỌC KỸ TRƯỚC KHI CHẠY.
+-- ────────────────────────────────────────────────────────────────────────────
+-- Sổ cái chỉ-ghi-thêm: sửa một báo cáo nghĩa là GHI THÊM một dòng con trỏ về
+-- dòng cha qua `parent_report_id`. "Dòng hiện hành" = dòng KHÔNG có con.
+--
+-- Không có chuỗi cha→con thì logic ấy chưa từng được kiểm trên dữ liệu thật.
+--
+-- ⚠️ Dòng này KHÔNG XOÁ ĐƯỢC, KHÔNG SỬA ĐƯỢC — kể cả bằng `service_role`.
+-- Sau khi chạy, sổ cái sẽ có 2 dòng và vĩnh viễn là 2.
+INSERT INTO public.assignment_daily_reports (assignment_id, report_date,
+                                             parent_report_id, correction_reason,
+                                             target_qty, output_qty, defect_qty,
+                                             rework_qty, downtime_minutes,
+                                             comment, submitted_at, request_id)
+SELECT r.assignment_id, r.report_date,
+       r.id, 'Đếm lại cuối ca: sót 4 chiếc chưa vào sổ.',
+       r.target_qty, 58, r.defect_qty,
+       r.rework_qty, r.downtime_minutes,
+       'Dữ liệu nền S001 phần B — dòng ĐÍNH CHÍNH. Dòng cha vẫn còn, và phải '
+       || 'KHÔNG được coi là hiện hành nữa.',
+       now(), gen_random_uuid()
+FROM public.assignment_daily_reports r
+WHERE r.parent_report_id IS NULL
+  AND NOT EXISTS (SELECT 1 FROM public.assignment_daily_reports c
+                   WHERE c.parent_report_id = r.id);
+
 -- ────────────────────────────────────────────────────────────────────────────
 -- 10. ĐỐI CHIẾU
 -- ────────────────────────────────────────────────────────────────────────────
@@ -298,7 +510,30 @@ FROM (VALUES
   ('Bó nền',
    (SELECT COUNT(*)::TEXT FROM public.cut_bundles WHERE bundle_code = 'SEED-BD-01'), '1'),
   ('⭐ Phần việc',
-   (SELECT COUNT(*)::TEXT FROM public.assignments WHERE deleted_at IS NULL), '2'),
+   (SELECT COUNT(*)::TEXT FROM public.assignments WHERE deleted_at IS NULL), '3'),
+  -- ── PHẦN B · kịch bản phân quyền ────────────────────────────────────────
+  ('B · Đơn gia công (4 kịch bản)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_orders), '4'),
+  ('B · ...trong đó MỒ CÔI (assignment_id NULL)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_orders WHERE assignment_id IS NULL), '1'),
+  ('B · ...hai mức GIÁ khác nhau',
+   (SELECT COUNT(DISTINCT unit_price)::TEXT FROM public.subcon_orders), '2'),
+  ('B · Phiếu xuất (1 có việc + 1 mồ côi)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_issue_logs), '2'),
+  ('B · Phiếu thu hồi (1 có việc + 1 mồ côi)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_receipt_logs), '2'),
+  ('B · Điều khoản CÒN hiệu lực',
+   (SELECT COUNT(*)::TEXT FROM public.assignment_commercial_terms
+     WHERE deleted_at IS NULL), '1'),
+  ('B · ⭐ Điều khoản ĐÃ XOÁ MỀM',
+   (SELECT COUNT(*)::TEXT FROM public.assignment_commercial_terms
+     WHERE deleted_at IS NOT NULL), '1'),
+  ('B · ⚠️ Sổ cái sau đính chính (KHÔNG XOÁ ĐƯỢC)',
+   (SELECT COUNT(*)::TEXT FROM public.assignment_daily_reports), '2'),
+  ('B · ...dòng HIỆN HÀNH (không có con)',
+   (SELECT COUNT(*)::TEXT FROM public.assignment_daily_reports r
+     WHERE NOT EXISTS (SELECT 1 FROM public.assignment_daily_reports c
+                        WHERE c.parent_report_id = r.id)), '1'),
   ('Phần việc gắn bó',
    (SELECT COUNT(*)::TEXT FROM public.assignment_bundles), '1'),
   ('⚠️ Sổ cái (KHÔNG XOÁ ĐƯỢC)',
