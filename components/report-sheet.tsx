@@ -12,6 +12,7 @@ import { ProgressBar, Badge } from '@/components/ui';
 import { ROLE_LABEL, type Role } from '@/lib/rbac';
 import { exportNodeAsPng } from '@/lib/export-image';
 import { APP_NAME } from '@/lib/brand';
+import { MUI_GIO, ngayVN } from '@/lib/time';
 
 // Recharts nặng gần 100 kB — chỉ tải khi người dùng thật sự mở tab Giám đốc,
 // không nhét vào gói chung của mọi trang chỉ vì thanh điều hướng có nút Báo cáo.
@@ -81,13 +82,12 @@ export default function ReportSheet({
     }
   }, [open, view, dept]);
 
-  const vnNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
-  const dateLabel = vnNow.toLocaleDateString('vi-VN', {
+  const dateLabel = new Date().toLocaleDateString('vi-VN', {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-    timeZone: 'UTC', // đã bù 7 giờ ở trên
+    timeZone: MUI_GIO,
   });
 
   async function exportImage() {
@@ -99,7 +99,7 @@ export default function ReportSheet({
 
     setExporting(true);
     try {
-      const stamp = vnNow.toISOString().slice(0, 10);
+      const stamp = ngayVN();
       const res = await exportNodeAsPng(node, `bao-cao-${role ?? 'chung'}-${stamp}.png`);
       if (res.ok) {
         toast.success(res.openedInTab ? 'Ảnh đã mở ở tab mới' : 'Đã lưu ảnh báo cáo', {

@@ -136,6 +136,26 @@ export async function saveSizeBreakdown(input: unknown): Promise<ActionResult> {
 
   // Xoá rồi ghi lại toàn bộ: bảng màu×size luôn được sửa cả cụm, so từng ô để
   // biết thêm/sửa/xoá phức tạp hơn nhiều mà không được lợi gì.
+  //
+  // ⚠️ NHƯNG XOÁ VÀ GHI LÀ HAI CÂU LỆNH RIÊNG, KHÔNG CÙNG MỘT GIAO DỊCH.
+  // Bản trước xoá xong mới ghi. Câu ghi hỏng — mạng đứt, RLS chặn, ràng buộc
+  // đổ — là **MẤT SẠCH** bảng cỡ/màu của đơn đó, không đường khôi phục.
+  //
+  // Ở đây CHỤP TRƯỚC, và nếu câu ghi hỏng thì GHI LẠI BẢN CHỤP. Cửa sổ mất
+  // dữ liệu thu từ "toàn phần, vĩnh viễn" xuống "chỉ khi cả câu ghi lẫn câu
+  // khôi phục cùng hỏng" — và trường hợp đó được báo bằng một thông điệp nói
+  // thẳng là dữ liệu đã mất, thay vì im lặng.
+  //
+  // ⚠️ Đây là phương án BÙ TRỪ, không phải giao dịch thật. Cách đúng là một
+  // RPC làm cả hai trong MỘT câu lệnh. Đã ghi vào Technical Debt (TD-01) —
+  // không làm ở đây vì nó cần migration, mà migration thì phải có người chạy;
+  // bản vá này phải có tác dụng NGAY, không chờ ai.
+  const { data: banChup, error: snapErr } = await g.supabase
+    .from('order_size_breakdown')
+    .select('color_code, size_code, quantity')
+    .eq('order_id', v.order_id);
+  if (snapErr) return { ok: false, message: friendlyDbError('snapshotBreakdown', snapErr) };
+
   const { error: delErr } = await g.supabase
     .from('order_size_breakdown')
     .delete()
@@ -150,7 +170,24 @@ export async function saveSizeBreakdown(input: unknown): Promise<ActionResult> {
       quantity: r.quantity,
     })),
   );
-  if (error) return { ok: false, message: friendlyDbError('saveBreakdown', error) };
+  if (error) {
+    // Khôi phục theo bản chụp. Không dùng chuỗi viết cứng — Điều XXXI mức ②.
+    if (banChup && banChup.length > 0) {
+      const { error: restoreErr } = await g.supabase.from('order_size_breakdown').insert(
+        banChup.map((r) => ({ ...r, order_id: v.order_id })),
+      );
+      if (restoreErr) {
+        return {
+          ok: false,
+          message:
+            'Lưu thất bại VÀ khôi phục cũng thất bại — bảng cỡ/màu của đơn này ' +
+            'hiện đang TRỐNG. Vui lòng nhập lại ngay và báo quản trị hệ thống. ' +
+            `(${friendlyDbError('restoreBreakdown', restoreErr)})`,
+        };
+      }
+    }
+    return { ok: false, message: friendlyDbError('saveBreakdown', error) };
+  }
 
   revalidatePath(PATH);
   const total = v.rows.reduce((s, r) => s + r.quantity, 0);

@@ -8,6 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "node tests/run.mjs",
+    "test:arch": "node tests/run.mjs --arch-only",
+    "test:security": "node tests/security/rls-external.test.mjs && node tests/security/anon-and-buyer.test.mjs",
+    "test:regression": "node tests/regression/seed-integrity.test.mjs",
+    "bench": "node tests/performance/rls-overhead.bench.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test",
     "manuals": "node scripts/build-manuals.mjs",
     "predev": "node scripts/build-manuals.mjs",
     "prebuild": "node scripts/build-manuals.mjs"

@@ -1,4 +1,5 @@
 // ============================================================================
+import { ngayVN } from '@/lib/time';
 // DÒNG CHẢY ĐƠN HÀNG — LOGIC THUẦN
 //
 // Không phụ thuộc React, không đọc cơ sở dữ liệu. Đặt ở lib/mos vì cổng khách
@@ -59,7 +60,7 @@ export interface FlowFacts {
  * mọi phép đếm ngược sẽ lệch một ngày với người đang đứng ở chuyền.
  */
 export function vnTodayISO(now: number = Date.now()): string {
-  return new Date(now + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return ngayVN(new Date(now));
 }
 
 /**

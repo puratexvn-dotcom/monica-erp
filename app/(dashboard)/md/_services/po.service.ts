@@ -12,6 +12,7 @@ import {
   type CommentRow,
   type DocumentRow,
 } from '@/schemas/md';
+import { ngayVN } from '@/lib/time';
 
 // ============================================================================
 // ĐỌC DỮ LIỆU ĐƠN HÀNG + GÓI DỮ LIỆU CHO MÀN HÌNH PO 360°
@@ -80,7 +81,7 @@ export async function listPoRows(): Promise<{ rows: PoRow[]; error: string | nul
 
   // Đếm mốc TRỄ THỰC TẾ: quá ngày kế hoạch mà chưa có ngày thực tế thì tính là
   // trễ, không cần chờ ai vào bấm đổi trạng thái.
-  const today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+  const today = ngayVN();
   const lateBy = new Map<string, number>();
   for (const m of msRes.rows) {
     if (m.status === 'SKIPPED' || m.actual_date) continue;

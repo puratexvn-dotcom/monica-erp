@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ngayVN } from '@/lib/time';
 
 // ============================================================================
 // LƯỢC ĐỒ KHO NGUYÊN PHỤ LIỆU
@@ -51,7 +52,7 @@ export const TX_LABEL: Record<TxType, string> = { IN: 'Nhập kho', OUT: 'Xuất
 
 /** Hôm nay theo giờ Việt Nam. Máy chủ chạy UTC nên không dùng giờ máy chủ. */
 export function vnToday(): string {
-  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return ngayVN();
 }
 
 /**

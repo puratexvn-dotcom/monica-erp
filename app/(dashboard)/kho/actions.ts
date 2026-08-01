@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { motBanGhi, type Embed } from '@/lib/embed';
 
 export interface Material {
   id: string
@@ -61,11 +62,14 @@ export async function getWarehouseTransactions(): Promise<Transaction[]> {
     return []
   }
 
-  return data.map((item: any) => ({
+  type DongNhatKy = Record<string, unknown> & {
+    materials: Embed<{ material_code: string; name: string }>
+  }
+  return (data as DongNhatKy[]).map((item) => ({
     ...item,
-    material_code: item.materials?.material_code || 'N/A',
-    material_name: item.materials?.name || 'N/A',
-  })) as Transaction[]
+    material_code: motBanGhi(item.materials)?.material_code || 'N/A',
+    material_name: motBanGhi(item.materials)?.name || 'N/A',
+  })) as unknown as Transaction[]
 }
 
 /**

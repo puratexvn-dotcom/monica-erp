@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ngayVN } from '@/lib/time';
 
 // ============================================================================
 // LƯỢC ĐỒ DÙNG CHUNG CHO PHÂN HỆ MERCHANDISER
@@ -11,7 +12,7 @@ import { z } from 'zod';
 /** Ngày hôm nay theo giờ Việt Nam. Vercel chạy UTC nên không quy đổi thì
  *  "hôm nay" nhảy sang ngày mới lúc 7 giờ sáng giờ Việt Nam. */
 export function vnToday(): string {
-  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return ngayVN();
 }
 
 /** Chuỗi YYYY-MM-DD có phải ngày thật không (chặn 2026-02-31). */

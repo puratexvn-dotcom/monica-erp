@@ -1,4 +1,5 @@
 // ============================================================================
+import { MUI_GIO } from '@/lib/time';
 // LỜI CHÚA HÔM NAY — Tin Mừng, đổi mỗi ngày lúc 04:00 giờ Việt Nam
 //
 // ─── VÌ SAO KHÔNG DÙNG Math.random() ─────────────────────────────────────
@@ -73,12 +74,12 @@ function verseDayNumber(): number {
 
 /** Ngày thật theo giờ Việt Nam, để hiển thị cho người đọc */
 function vnDateLabel(): string {
-  return new Date(Date.now() + 7 * 60 * 60 * 1000).toLocaleDateString('vi-VN', {
+  return new Date().toLocaleDateString('vi-VN', {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-    timeZone: 'UTC', // đã cộng bù 7 giờ ở trên, không cộng thêm lần nữa
+    timeZone: MUI_GIO,
   });
 }
 

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { motBanGhi, type Embed } from '@/lib/embed';
 
 export interface SewingLine {
   id: string
@@ -67,12 +68,16 @@ export async function getSewingDashboardData() {
     .order('created_at', { ascending: false })
     .limit(30)
 
-  const hourlyLogs: HourlyLog[] = (rawLogs || []).map((item: any) => ({
+  type DongSanLuong = Record<string, unknown> & {
+    sewing_lines: Embed<{ line_name: string }>
+    orders: Embed<{ po_number: string; style_code: string }>
+  }
+  const hourlyLogs: HourlyLog[] = ((rawLogs || []) as DongSanLuong[]).map((item) => ({
     ...item,
-    line_name: item.sewing_lines?.line_name || 'Chuyền N/A',
-    po_number: item.orders?.po_number || 'N/A',
-    style_code: item.orders?.style_code || 'N/A',
-  }))
+    line_name: motBanGhi(item.sewing_lines)?.line_name || 'Chuyền N/A',
+    po_number: motBanGhi(item.orders)?.po_number || 'N/A',
+    style_code: motBanGhi(item.orders)?.style_code || 'N/A',
+  })) as unknown as HourlyLog[]
 
   // 4. Nhật ký gãy kim gần đây
   const { data: rawNeedleLogs } = await supabase
@@ -84,10 +89,11 @@ export async function getSewingDashboardData() {
     .order('created_at', { ascending: false })
     .limit(10)
 
-  const needleLogs: NeedleBreakLog[] = (rawNeedleLogs || []).map((item: any) => ({
+  type DongGayKim = Record<string, unknown> & { sewing_lines: Embed<{ line_name: string }> }
+  const needleLogs: NeedleBreakLog[] = ((rawNeedleLogs || []) as DongGayKim[]).map((item) => ({
     ...item,
-    line_name: item.sewing_lines?.line_name || 'Chuyền N/A',
-  }))
+    line_name: motBanGhi(item.sewing_lines)?.line_name || 'Chuyền N/A',
+  })) as unknown as NeedleBreakLog[]
 
   return {
     lines: lines || [],

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ngayVN } from '@/lib/time';
 
 // ============================================================================
 // LƯỢC ĐỒ ĐƠN HÀNG (PO)
@@ -34,7 +35,7 @@ export const PO_STATUS_LABEL: Record<PoStatus, string> = {
 /** Ngày hôm nay theo giờ Việt Nam, dạng YYYY-MM-DD.
  *  Máy chủ chạy UTC nên không được dùng giờ máy chủ để chốt "hôm nay". */
 export function vnToday(): string {
-  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return ngayVN();
 }
 
 /**

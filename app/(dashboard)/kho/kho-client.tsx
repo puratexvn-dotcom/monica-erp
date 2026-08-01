@@ -13,6 +13,7 @@ import { CATEGORY_LABEL, type MaterialCategory, type MaterialRow, type PoOption,
 import TxTable from './tx-table';
 import InboundFormDialog from './inbound-form-dialog';
 import OutboundFormDialog from './outbound-form-dialog';
+import { laHomNayVN } from '@/lib/time';
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
 
@@ -75,16 +76,13 @@ export default function KhoClient({
 
   const stats = useMemo(() => {
     const lowStock = materials.filter((m) => Number(m.stock_qty) <= Number(m.min_stock_qty));
-    const vnToday = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
     const inToday = tx.filter(
       (t) =>
-        t.transaction_type.toUpperCase() === 'IN' &&
-        new Date(new Date(t.created_at).getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10) === vnToday,
+        t.transaction_type.toUpperCase() === 'IN' && laHomNayVN(t.created_at),
     );
     const outToday = tx.filter(
       (t) =>
-        t.transaction_type.toUpperCase() === 'OUT' &&
-        new Date(new Date(t.created_at).getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10) === vnToday,
+        t.transaction_type.toUpperCase() === 'OUT' && laHomNayVN(t.created_at),
     );
     return { codes: materials.length, lowStock, inToday: inToday.length, outToday: outToday.length };
   }, [materials, tx]);

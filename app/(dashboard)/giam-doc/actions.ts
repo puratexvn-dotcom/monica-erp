@@ -15,9 +15,12 @@ export interface DashboardMetrics {
   qaDefectRate: string
   totalQaInspected: number
   totalQaDefects: number
-  activeNeedleAlerts: any[]
-  qaAlertLines: any[]
-  wipBottleneckPOs: any[]
+  // Ba danh sách drill-down. Kiểu viết ra tường minh thay vì `any[]`: đây là
+  // HỢP ĐỒNG với màn hình giám đốc, nên đọc kiểu phải biết được màn hình hiện
+  // cột nào mà không cần mở phần tính toán ở dưới.
+  activeNeedleAlerts: { line_name: string; operator: string; machine: string; date: string }[]
+  qaAlertLines: { line_name: string; inspected: number; defects: number; rate: string }[]
+  wipBottleneckPOs: { po_number: string; cut: number; sewn: number; wip: number }[]
 }
 
 /**

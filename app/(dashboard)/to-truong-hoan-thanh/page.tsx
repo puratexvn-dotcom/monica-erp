@@ -13,12 +13,16 @@ export default function FinishingDashboard() {
   const [isOpModalOpen, setIsOpModalOpen] = useState(false);
 
   // Mock Data
+  // ⚠️ `as const` thay cho `as any` ở chỗ gọi: nó khiến TypeScript suy ra
+  // `tab` là bốn chuỗi cụ thể chứ không phải `string`, nên `setActiveTab`
+  // nhận thẳng. Thêm một tab mới mà quên khai báo trong `useState` sẽ hỏng
+  // ở đây — đúng chỗ cần hỏng.
   const kpis = [
     { title: t('thread_trimming'), value: '4,520', unit: 'Pcs', color: 'from-amber-400 to-amber-600', icon: <Scissors className="w-6 h-6 text-white"/>, tab: 'trimming' },
     { title: t('pressing'), value: '3,800', unit: 'Pcs', color: 'from-teal-400 to-teal-600', icon: <Shirt className="w-6 h-6 text-white"/>, tab: 'pressing' },
     { title: t('packing'), value: '3,500', unit: 'Pcs', color: 'from-cyan-400 to-cyan-600', icon: <Package className="w-6 h-6 text-white"/>, tab: 'packing' },
     { title: t('aql_inspection'), value: '98.5', unit: '% Pass', color: 'from-rose-400 to-rose-600', icon: <CheckSquare className="w-6 h-6 text-white"/>, tab: 'aql' },
-  ];
+  ] as const;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -45,7 +49,7 @@ export default function FinishingDashboard() {
         {/* KPI Cards (Gradient, High Contrast) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {kpis.map((kpi, idx) => (
-            <div key={idx} onClick={() => setActiveTab(kpi.tab as any)} className={`p-6 rounded-2xl shadow-lg bg-gradient-to-br ${kpi.color} cursor-pointer transform transition-all hover:-translate-y-1 hover:shadow-xl`}>
+            <div key={idx} onClick={() => setActiveTab(kpi.tab)} className={`p-6 rounded-2xl shadow-lg bg-gradient-to-br ${kpi.color} cursor-pointer transform transition-all hover:-translate-y-1 hover:shadow-xl`}>
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">{kpi.icon}</div>
                 {activeTab === kpi.tab && <span className="flex w-3 h-3 bg-white rounded-full animate-pulse"></span>}

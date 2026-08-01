@@ -1,3 +1,24 @@
+-- ############################################################################
+-- ⛔ BẢN NHÁP CHƯA HOÀN CHỈNH — ĐÃ BỊ CHẠY NHẦM MỘT LẦN. TUYỆT ĐỐI KHÔNG CHẠY.
+--
+-- Tệp này từng được thực thi ngoài dự kiến và là nguồn gốc TRỰC TIẾP của một
+-- lỗ hổng bảo mật thật:
+--
+--   Nó GỠ `subcon_denied` khỏi `qa_audit_reports` (dòng ~150) rồi chỉ thay
+--   policy cho SELECT và INSERT — **quên hẳn UPDATE**. Bảng rơi trở lại dưới
+--   quyền policy PERMISSIVE có sẵn, và nhà thầu SỬA ĐƯỢC KẾT QUẢ KIỂM HÀNG
+--   của chính mình.
+--
+--   Lỗ hổng tồn tại nhiều ngày, không ai biết, cho tới khi Migration 031a đo
+--   lại bằng phiên đăng nhập thật.
+--
+-- ⚠️ BÀI HỌC ĐÃ GHI VÀO PLAYBOOK: gỡ một hàng rào RESTRICTIVE trước khi dựng
+-- xong hàng rào thay thế thì **trong khoảng giữa không có hàng rào nào**.
+--
+-- Phần việc của tệp này đã được làm lại tử tế ở: 031a · 031b · 031c · 031c2 ·
+-- 031c3. Giữ lại đây làm tư liệu điều tra, KHÔNG phải để dùng.
+-- ############################################################################
+
 -- ============================================================================
 -- MONICA MOS — 031 · RLS THEO ASSIGNMENT   ⚠️ BẢN NHÁP — CHƯA ĐƯỢC CHẠY
 --

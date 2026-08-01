@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { motBanGhi, type Embed } from '@/lib/embed';
 
 export interface QADefect {
   id: string
@@ -45,11 +46,14 @@ export async function getQAReports(): Promise<QAReport[]> {
     return []
   }
 
-  return data.map((item: any) => ({
+  type DongQA = Record<string, unknown> & {
+    orders: Embed<{ po_number: string; style_code: string }>
+  }
+  return (data as DongQA[]).map((item) => ({
     ...item,
-    po_number: item.orders?.po_number || 'N/A',
-    style_code: item.orders?.style_code || 'N/A',
-  })) as QAReport[]
+    po_number: motBanGhi(item.orders)?.po_number || 'N/A',
+    style_code: motBanGhi(item.orders)?.style_code || 'N/A',
+  })) as unknown as QAReport[]
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { motBanGhi, danhSach, type Embed } from '@/lib/embed';
 
 /** Lấy dữ liệu cho cả 2 Tab: Tiến độ QC và Đóng Thùng */
 export async function getFinishingAndPackingData() {
@@ -25,8 +26,19 @@ export async function getFinishingAndPackingData() {
     .order('created_at', { ascending: false })
 
   // Xử lý logic tính toán
-  const bundles = (rawBundles || []).map((b: any) => {
-    const logs = b.finishing_logs || []
+  type DongNhatKyHoanThanh = {
+    trimming_qty: number | null; ironing_qty: number | null
+    final_qc_passed_qty: number | null; final_qc_defect_qty: number | null
+  }
+  type DongBo = Record<string, unknown> & {
+    id: string; bundle_code: string; color_code: string; size_code: string
+    quantity: number; current_stage: string
+    cut_tickets: Embed<{ orders: Embed<{ id: string; po_number: string; total_quantity: number }> }>
+    finishing_logs: Embed<DongNhatKyHoanThanh>
+  }
+  const bundles = ((rawBundles || []) as DongBo[]).map((b) => {
+    const logs = danhSach(b.finishing_logs)
+    const don = motBanGhi(motBanGhi(b.cut_tickets)?.orders)
     return {
       id: b.id,
       bundle_code: b.bundle_code,
@@ -34,13 +46,13 @@ export async function getFinishingAndPackingData() {
       size_code: b.size_code,
       quantity: b.quantity,
       current_stage: b.current_stage,
-      order_id: b.cut_tickets?.orders?.id,
-      po_number: b.cut_tickets?.orders?.po_number || 'N/A',
-      po_total_qty: b.cut_tickets?.orders?.total_quantity || 0,
-      trimming_qty: logs.reduce((sum: number, l: any) => sum + (l.trimming_qty || 0), 0),
-      ironing_qty: logs.reduce((sum: number, l: any) => sum + (l.ironing_qty || 0), 0),
-      final_qc_passed_qty: logs.reduce((sum: number, l: any) => sum + (l.final_qc_passed_qty || 0), 0),
-      final_qc_defect_qty: logs.reduce((sum: number, l: any) => sum + (l.final_qc_defect_qty || 0), 0),
+      order_id: don?.id,
+      po_number: don?.po_number || 'N/A',
+      po_total_qty: don?.total_quantity || 0,
+      trimming_qty: logs.reduce((s, l) => s + (l.trimming_qty || 0), 0),
+      ironing_qty: logs.reduce((s, l) => s + (l.ironing_qty || 0), 0),
+      final_qc_passed_qty: logs.reduce((s, l) => s + (l.final_qc_passed_qty || 0), 0),
+      final_qc_defect_qty: logs.reduce((s, l) => s + (l.final_qc_defect_qty || 0), 0),
     }
   })
 
@@ -70,7 +82,7 @@ export async function createFinishingLog(formData: FormData) {
   if (!bundle) return { error: 'Không tìm thấy Bundle!' }
 
   const { error } = await supabase.from('finishing_logs').insert([{
-    bundle_id, order_id: (bundle.cut_tickets as any)?.order_id,
+    bundle_id, order_id: motBanGhi(bundle.cut_tickets as Embed<{ order_id: string }>)?.order_id,
     trimming_qty, ironing_qty, final_qc_passed_qty, final_qc_defect_qty, notes
   }])
 
@@ -91,8 +103,11 @@ export async function createCarton(formData: FormData) {
 
   if (bundle?.current_stage !== 'FINISHING') return { error: 'Bundle chưa qua Final QC!' }
 
-  const order_id = (bundle.cut_tickets as any)?.order_id
-  const po_number = (bundle.cut_tickets as any)?.orders?.po_number
+  const ve = motBanGhi(
+    bundle.cut_tickets as Embed<{ order_id: string; orders: Embed<{ po_number: string }> }>,
+  )
+  const order_id = ve?.order_id
+  const po_number = motBanGhi(ve?.orders)?.po_number
   const carton_code = `CTN-${po_number}-${bundle.color_code}-${bundle.size_code}-${Math.floor(1000 + Math.random() * 9000)}`
 
   const { error } = await supabase.from('cartons').insert([{

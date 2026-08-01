@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { isRole } from '@/lib/rbac';
+import { ngayVN } from '@/lib/time';
 
 // ============================================================================
 // UPLOAD ẢNH BẰNG CHỨNG LÊN SUPABASE STORAGE
@@ -104,7 +105,7 @@ export async function uploadEvidence(formData: FormData): Promise<UploadResult> 
   const folder =
     typeof folderRaw === 'string' && /^[a-z0-9-]{1,32}$/.test(folderRaw) ? folderRaw : 'misc';
 
-  const vnDate = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const vnDate = ngayVN();
   const ext = EXT_BY_MIME[raw.type] ?? 'jpg';
   const path = `${folder}/${user.id}/${vnDate}/${crypto.randomUUID()}.${ext}`;
 

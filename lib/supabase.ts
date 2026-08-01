@@ -128,15 +128,19 @@ export async function updateRow(table: TableName, id: string, patch: Record<stri
   }
 }
 
-/** Xóa theo id. */
-export async function deleteRow(table: TableName, id: string): Promise<boolean> {
-  try {
-    const { error } = await getSupabase().from(table).delete().eq('id', id);
-    return !error;
-  } catch {
-    return false;
-  }
-}
+// ⚠️ `deleteRow()` ĐÃ ĐƯỢC GỠ — 03/08/2026, Enterprise Architecture Audit P0-8.
+//
+// Nó xoá CỨNG bất kỳ bảng nào theo id, NUỐT LỖI và trả về `boolean`. Ba điều
+// sai cùng lúc:
+//   ① Hiến pháp cấm Hard-Delete với dữ liệu nghiệp vụ — phải dùng `deleted_at`.
+//   ② Nuốt lỗi: gọi xong không biết đã xoá hay đã hỏng.
+//   ③ Nằm trong thư viện DÙNG CHUNG, tức đúng tầm với của mọi người viết sau.
+//
+// Lúc gỡ, hàm này KHÔNG CÓ AI GỌI — nên gỡ không làm hỏng gì. Đó cũng chính là
+// lý do phải gỡ ngay: một khẩu súng đã lên đạn mà chưa ai cầm thì rẻ để cất đi.
+//
+// Cần xoá dữ liệu nghiệp vụ? Dùng xoá mềm (`deleted_at`, `deleted_by`), hoặc
+// một RPC `SECURITY DEFINER` có kiểm soát như `mos_soft_delete_commercial_term`.
 
 /** Realtime: gọi cb khi bất kỳ bảng nào thay đổi. Trả về hàm hủy đăng ký. */
 export function subscribeTables(tables: TableName[], cb: () => void): () => void {

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { motBanGhi, type Embed } from '@/lib/embed';
 
 export interface CutBundle {
   id: string
@@ -54,11 +55,14 @@ export async function getCutTickets(): Promise<CutTicket[]> {
     return []
   }
 
-  return data.map((item: any) => ({
+  type DongPhieuCat = Record<string, unknown> & {
+    orders: Embed<{ po_number: string; style_code: string }>
+  }
+  return (data as DongPhieuCat[]).map((item) => ({
     ...item,
-    po_number: item.orders?.po_number || 'N/A',
-    style_code: item.orders?.style_code || 'N/A',
-  })) as CutTicket[]
+    po_number: motBanGhi(item.orders)?.po_number || 'N/A',
+    style_code: motBanGhi(item.orders)?.style_code || 'N/A',
+  })) as unknown as CutTicket[]
 }
 
 /**

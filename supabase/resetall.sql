@@ -1,3 +1,27 @@
+-- ############################################################################
+-- ⛔ TỆP NÀY ĐÃ LỖI THỜI — KHÔNG DÙNG ĐỂ DỰNG LẠI CƠ SỞ DỮ LIỆU
+--
+-- Sửa lần cuối 27/07/2026. Từ đó tới nay đã có **26 migration** chạy thêm
+-- (015 → 040), trong đó có:
+--
+--   018 · 025 · 030 · 031a/b/c/c2/c3   toàn bộ phân quyền RLS
+--   029                                 Assignment Domain + sổ cái chỉ-ghi-thêm
+--   034                                 kiểm soát tương tranh (version)
+--   036                                 xoá mềm
+--   038 · 038b                          khoá hàm SECURITY DEFINER khỏi `anon`
+--   040                                 bất biến I-11
+--
+-- Chạy tệp này sẽ dựng lại một lược đồ **KHÔNG CÒN TỒN TẠI**: không RLS, không
+-- bất biến, không sổ cái. Đó là một sự cố bảo mật, không phải một thao tác dựng
+-- lại môi trường.
+--
+-- ✅ NGUỒN SỰ THẬT DUY NHẤT LÀ `supabase/migrations/` — chạy theo thứ tự số.
+-- ✅ Dữ liệu nền: `supabase/seeds/S001_business_baseline.sql`.
+--
+-- Giữ lại tệp này làm tư liệu lịch sử. Đánh dấu bởi Enterprise Architecture
+-- Audit 03/08/2026 (P1-5 · Schema Drift).
+-- ############################################################################
+
 -- ============================================================================
 -- MONICA GARMENT ERP — RESET-ALL: Xóa bảng cũ sai cấu trúc → Tạo lại → Seed demo
 -- Dán TOÀN BỘ file này vào SQL Editor và bấm Run MỘT LẦN duy nhất.

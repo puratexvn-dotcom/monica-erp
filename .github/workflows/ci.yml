@@ -1,0 +1,90 @@
+# ============================================================================
+# CI — MONICA MOS
+#
+# ─── VÌ SAO TỆP NÀY TỒN TẠI ─────────────────────────────────────────────────
+#
+# Trước 03/08/2026 dự án KHÔNG có CI, KHÔNG có bài kiểm nào trong kho mã. Toàn
+# bộ bằng chứng an toàn của RLS nằm trong một thư mục tạm trên máy một người.
+# Enterprise Architecture Audit xếp việc đó là P0 — không phải vì bài kiểm sai,
+# mà vì **không ai khác chạy lại được**.
+#
+# ─── HAI TẦNG ───────────────────────────────────────────────────────────────
+#
+#   kiem-tra-tinh   KHÔNG cần bí mật. Chạy trên MỌI push và MỌI pull request.
+#                   Đây là hàng rào thường trực: kiểu, lint, kiến trúc.
+#
+#   kiem-tra-song   CẦN kết nối cơ sở dữ liệu. Chỉ chạy khi kho có Secrets.
+#                   ⚠️ Nó ĐỌC và GHI dữ liệu tạm trên CSDL thật, nên KHÔNG
+#                   chạy tự động trên pull request từ fork.
+#
+# ⚠️ Bài kiểm thiếu bí mật sẽ TỰ TUYÊN BỐ BỎ QUA và thoát 0. "Bỏ qua" KHÁC
+# "đạt" — đọc kỹ log, đừng đọc mỗi màu xanh.
+# ============================================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Đẩy liên tiếp thì huỷ lượt chạy cũ — không xếp hàng vô ích.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kiem-tra-tinh:
+    name: Kiểm tra tĩnh (kiểu · lint · kiến trúc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Cài phụ thuộc
+        run: npm ci
+
+      - name: Kiểm kiểu (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Bài kiểm kiến trúc không chạm CSDL: guardrail `any`, cấm Hard-Delete,
+      # chiều phụ thuộc, số ma thuật múi giờ, God Object, tài liệu bắt buộc.
+      - name: Kiểm kiến trúc
+        run: npm run test:arch
+
+  kiem-tra-song:
+    name: Kiểm tra sống (phân quyền trên CSDL thật)
+    runs-on: ubuntu-latest
+    # Chỉ chạy khi nhánh nằm trong CHÍNH kho này — fork không có Secrets, và
+    # cũng không nên có.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Toàn vẹn dữ liệu nền
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run test:regression
+
+      - name: Phân quyền người dùng bên ngoài
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run test:security

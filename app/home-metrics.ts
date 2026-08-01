@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { isRole } from '@/lib/rbac';
 import type { Role } from '@/types/erp';
+import { ngayVN } from '@/lib/time';
 
 // ============================================================================
 // NẠP SỐ LIỆU THẬT CHO TRANG CHỦ (KPI + nhãn trạng thái trên thẻ)
@@ -39,12 +40,8 @@ import type { Role } from '@/types/erp';
 /** Dấu hiển thị khi không có số liệu — không bao giờ thay bằng 0 */
 export const DASH = '—';
 
-const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
-
 /** Ngày hiện tại theo giờ Việt Nam, dạng 'YYYY-MM-DD' (khớp cột kiểu DATE) */
-function vnToday(): string {
-  return new Date(Date.now() + VN_OFFSET_MS).toISOString().slice(0, 10);
-}
+const vnToday = ngayVN;
 
 /** Mốc nửa đêm giờ Việt Nam, quy về ISO UTC (khớp cột kiểu TIMESTAMPTZ) */
 function vnStartOfTodayUtc(): string {
@@ -56,7 +53,7 @@ function vnDaysAgoUtc(days: number): string {
 }
 
 function vnDatePlus(days: number): string {
-  return new Date(Date.now() + VN_OFFSET_MS + days * 24 * 60 * 60 * 1000)
+  return new Date(new Date(`${ngayVN()}T00:00:00+07:00`).getTime() + days * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
 }
