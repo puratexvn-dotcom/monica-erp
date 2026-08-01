@@ -508,26 +508,35 @@ WHERE a.deleted_at IS NULL
   AND NOT EXISTS (SELECT 1 FROM public.assignment_commercial_terms t
                    WHERE t.assignment_id = a.id AND t.deleted_at IS NULL);
 
--- Dòng thứ hai rồi xoá mềm ngay. Chỉ mục duy nhất một phần
--- `uq_act_assignment_active` chỉ cấm TRÙNG khi còn hiệu lực, nên phải xoá mềm
--- dòng này TRƯỚC khi nó va vào dòng trên — làm gọn trong một câu `WITH`.
-WITH moi AS (
-  INSERT INTO public.assignment_commercial_terms (assignment_id, rate_method, rate,
-                                                  currency, note)
-  SELECT a.id, 'PER_KG', 9900,
-         'VND', 'Dữ liệu nền S001 phần B — điều khoản ĐÃ XOÁ MỀM, phải VÔ HÌNH khi đọc.'
-  FROM public.assignments a
-  JOIN public.partners p ON p.id = a.partner_id AND p.partner_code = 'SUB-GIAT-02'
-  JOIN public.orders o   ON o.id = a.order_id AND o.po_number = 'SEED-PO-0001'
-  WHERE a.deleted_at IS NULL
-    AND NOT EXISTS (SELECT 1 FROM public.assignment_commercial_terms t
-                     WHERE t.assignment_id = a.id)
-  RETURNING id
-)
-UPDATE public.assignment_commercial_terms t
+-- Dòng thứ hai, rồi xoá mềm nó ở MỘT CÂU LỆNH RIÊNG.
+--
+-- ⚠️ BẢN TRƯỚC GỘP CẢ HAI VÀO MỘT CÂU `WITH ... INSERT ... RETURNING` rồi
+-- `UPDATE ... FROM moi`. Nó CHẠY KHÔNG LỖI nhưng KHÔNG XOÁ MỀM GÌ CẢ — bảng
+-- đối chiếu bắt được: "còn hiệu lực 2, chờ 1" và "đã xoá mềm 0, chờ 1".
+--
+-- Lý do: trong PostgreSQL, mọi nhánh của một câu lệnh dùng CHUNG MỘT ẢNH CHỤP
+-- dữ liệu. Câu `UPDATE` ở ngoài KHÔNG NHÌN THẤY dòng mà CTE vừa chèn, nên
+-- `t.id = moi.id` không khớp dòng nào. Không lỗi, không tác dụng.
+--
+-- Đây đúng loại hỏng nguy hiểm nhất: **im lặng**. Nếu bảng đối chiếu chỉ đếm
+-- tổng số dòng thay vì tách "còn hiệu lực" / "đã xoá mềm", nó đã báo xanh.
+INSERT INTO public.assignment_commercial_terms (assignment_id, rate_method, rate,
+                                                currency, note)
+SELECT a.id, 'PER_KG', 9900,
+       'VND', 'Dữ liệu nền S001 phần B — điều khoản ĐÃ XOÁ MỀM, phải VÔ HÌNH khi đọc.'
+FROM public.assignments a
+JOIN public.partners p ON p.id = a.partner_id AND p.partner_code = 'SUB-GIAT-02'
+JOIN public.orders o   ON o.id = a.order_id AND o.po_number = 'SEED-PO-0001'
+WHERE a.deleted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM public.assignment_commercial_terms t
+                   WHERE t.assignment_id = a.id);
+
+-- Câu riêng — giờ dòng trên đã hiện hữu và `UPDATE` nhìn thấy nó.
+-- Nhận diện bằng `note`, không bằng `id`: tệp này phải chạy lại được nhiều lần.
+UPDATE public.assignment_commercial_terms
    SET deleted_at = now()
-  FROM moi
- WHERE t.id = moi.id;
+ WHERE note LIKE 'Dữ liệu nền S001 phần B — điều khoản ĐÃ XOÁ MỀM%'
+   AND deleted_at IS NULL;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 15. ⚠️ SỔ CÁI — CHUỖI ĐÍNH CHÍNH. CỬA MỘT CHIỀU, ĐỌC KỸ TRƯỚC KHI CHẠY.
