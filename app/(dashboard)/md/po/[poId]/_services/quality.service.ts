@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { guard, safeQuery } from '../../../_services/guard';
+import { pickTranslation, type TranslatedText } from '@/lib/mos/value-objects/translated-text';
 import { canViewCapa, canViewQaDetail } from './po-rbac';
 import {
   buildHeatMap, type HeatMap,
@@ -133,7 +134,13 @@ interface RawQa {
   aql_status: string | null;
   capa_note: string | null;
   created_at: string | null;
-  defect_catalog: { name_vi: string } | { name_vi: string }[] | null;
+  // ⚠️ 035b: đọc qua `name_translations` (JSONB) thay cho `name_vi`.
+  // Cột `name_vi` VẪN CÒN trong CSDL cho tới 035c, nên bước này hoàn tác được
+  // bằng cách trả riêng tệp này về cũ — không cần đụng migration.
+  defect_catalog:
+    | { code: string; name_translations: TranslatedText | null }
+    | { code: string; name_translations: TranslatedText | null }[]
+    | null;
 }
 
 interface RawCapa {
@@ -174,7 +181,7 @@ function embedded<T>(v: T | T[] | null | undefined): T | null {
 const QA_COLS =
   'id, inspection_type, lot_size, sample_size, checked_qty, qty_defect,' +
   'ac_number, re_number, defect_type, defect_class, defect_code, defect_location,' +
-  'aql_status, capa_note, created_at, defect_catalog(name_vi)';
+  'aql_status, capa_note, created_at, defect_catalog(code, name_translations)';
 
 const CAPA_COLS =
   'id, capa_no, defect_label, defect_location, severity, root_cause, action,' +
@@ -241,7 +248,18 @@ export async function getQualityCenter(poId: string): Promise<QualityResult> {
       reNumber: re,
       defectCode: r.defect_code,
       // Ưu tiên tên danh mục; chữ tự do cũ chỉ là dự phòng cho dòng chưa gán mã.
-      defectLabel: cat?.name_vi ?? r.defect_type ?? '—',
+      //
+      // ⚠️ Chốt cứng `'vi'` ở đây là CÓ CHỦ Ý, không phải bỏ sót. Trung tâm Chất
+      // lượng là màn hình NỘI BỘ tiếng Việt, và máy chủ KHÔNG biết ngôn ngữ
+      // phiên — `Language` là trạng thái của trình duyệt. Truyền ngôn ngữ qua
+      // mọi Server Action chỉ để đổi một nhãn là cái giá không đáng, và quên một
+      // chỗ là một màn hình hiện sai tiếng.
+      //
+      // Khi Trung tâm Chất lượng cần đa ngôn ngữ thật, DTO sẽ mang cả bản đồ
+      // dịch và tầng vẽ tự chọn — đúng cách `ContractTypeDTO` đang làm.
+      defectLabel: cat
+        ? pickTranslation(cat.name_translations, 'vi', cat.code)
+        : r.defect_type ?? '—',
       defectClass: r.defect_class,
       defectLocation: r.defect_location,
       aql: readAqlStatus(r.aql_status),

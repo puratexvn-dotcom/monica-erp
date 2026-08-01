@@ -6,6 +6,7 @@ import type {
   ListResult,
   PartnerOptionDTO,
 } from '@/lib/mos/contracts/assignment.contract';
+import type { TranslatedText } from '@/lib/mos/value-objects/translated-text';
 
 // ============================================================================
 // ĐỐI TÁC KHẢ DỤNG ĐỂ GIAO VIỆC
@@ -90,14 +91,15 @@ export async function listContractTypes(): Promise<ListResult<ContractTypeDTO>> 
   if (!g.supabase) return { rows: [], error: g.error };
   const sb = g.supabase;
 
+  // ⚠️ 035b: đọc `name_translations` (JSONB). Cột `name_vi`/`name_en` vẫn còn
+  // trong CSDL cho tới 035c — bước này hoàn tác được mà không đụng migration.
   const { rows, error } = await safeQuery<{
     code: string;
-    name_vi: string;
-    name_en: string | null;
+    name_translations: TranslatedText | null;
   }>('danh mục loại hợp đồng', () =>
     sb
       .from('contract_types')
-      .select('code, name_vi, name_en')
+      .select('code, name_translations')
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
   );
@@ -105,7 +107,10 @@ export async function listContractTypes(): Promise<ListResult<ContractTypeDTO>> 
   if (error) return { rows: [], error };
 
   return {
-    rows: rows.map((r) => ({ code: r.code, nameVi: r.name_vi, nameEn: r.name_en })),
+    // ⚠️ KHÔNG chọn ngôn ngữ ở đây. Trả cả bản đồ để tầng vẽ tự chọn theo phiên
+    // — Hiến pháp Điều IX. `?? {}` phòng dòng cũ chưa backfill; ràng buộc của
+    // 035a đã chặn ca đó, nhưng đọc phòng thủ không tốn gì.
+    rows: rows.map((r) => ({ code: r.code, name: r.name_translations ?? {} })),
     error: null,
   };
 }

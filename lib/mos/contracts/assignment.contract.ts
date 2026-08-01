@@ -4,6 +4,7 @@ import type {
   ScopeLevel,
 } from '../domain/assignment';
 import type { AssignmentProgress } from '../calculators/assignment-progress.calculator';
+import type { TranslatedText } from '../value-objects/translated-text';
 import type { ReportStatus, ReportStatusResult } from '../calculators/report-status.calculator';
 
 // ============================================================================
@@ -175,8 +176,18 @@ export interface PartnerOptionDTO {
 
 export interface ContractTypeDTO {
   code: string;
-  nameVi: string;
-  nameEn: string | null;
+  /**
+   * **Cả bản đồ dịch**, không phải một chuỗi đã chốt sẵn.
+   *
+   * ⚠️ Hiến pháp Điều IX: *"Frontend chịu trách nhiệm dịch thuật."* Máy chủ
+   * KHÔNG biết người dùng đang xem tiếng gì — `Language` là trạng thái của
+   * trình duyệt. Chốt sẵn một chuỗi ở service nghĩa là mọi phiên đều nhận cùng
+   * một tiếng, bất kể họ chọn gì.
+   *
+   * Tầng vẽ gọi `pickTranslation(name, lang, code)`. Hàm đó **không bao giờ**
+   * trả chuỗi rỗng — cùng lắm là chính `code`.
+   */
+  name: TranslatedText;
 }
 
 // ── THIẾU BÁO CÁO ───────────────────────────────────────────────────────────
