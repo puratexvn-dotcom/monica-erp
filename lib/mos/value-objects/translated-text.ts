@@ -19,7 +19,14 @@
 // object chứ không phải một chuỗi đã chốt sẵn.
 // ============================================================================
 
-import type { Language } from '@/lib/i18n';
+// ⚠️ CỐ Ý KHÔNG nhập khẩu `Language` từ `@/lib/i18n`.
+//
+// Value object thuần KHÔNG được phụ thuộc vào module cung cấp ngữ cảnh React —
+// đó là coupling ngược chiều (Hiến pháp Điều XII). Nó cũng làm tệp này không
+// biên dịch độc lập được, và bài kiểm hợp đồng đã đỏ vì đúng lý do đó.
+//
+// `Language` là `'VN' | 'EN' | 'CN'` — một kiểu con của `string`. Nhận `string`
+// thì mọi `Language` vẫn truyền vào được, mà chiều phụ thuộc thì đúng.
 
 /**
  * Bản đồ dịch của một mục danh mục.
@@ -60,7 +67,7 @@ export const TRANSLATION_KEYS = ['vi', 'en', 'cn'] as const;
  */
 export function pickTranslation(
   t: TranslatedText | null | undefined,
-  lang: Language | string,
+  lang: string,
   fallbackCode: string,
 ): string {
   const map = t ?? {};
