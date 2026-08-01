@@ -234,7 +234,7 @@ export async function getShipmentCenter(poId: string): Promise<ShipmentResult> {
  * Câu nhận xét cho người điều hành.
  *
  * Ở service chứ không ở component: câu chữ là việc của giao diện, nhưng QUYẾT
- * ĐỊNH "có đáng cảnh báo không" là nghiệp vụ (Điều VII, bài học Phase 2).
+ * ĐỊNH "có đáng cảnh báo không" là nghiệp vụ (Playbook Điều VII, bài học Phase 2).
  */
 function buildInsights(
   sum: ShipSummary,

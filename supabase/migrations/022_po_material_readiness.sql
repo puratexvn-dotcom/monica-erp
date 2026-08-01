@@ -15,7 +15,7 @@
 --
 -- ─── VIEW CHỈ GỘP SỐ, KHÔNG GIỮ LUẬT NGHIỆP VỤ ───────────────────────────
 -- View trả về CON SỐ THÔ. Luật "thế nào là Sẵn sàng" nằm ở material.service.ts
--- — Điều VII, và để luật đó kiểm thử được mà không cần cơ sở dữ liệu.
+-- — Playbook Điều VII, và để luật đó kiểm thử được mà không cần cơ sở dữ liệu.
 --
 -- ─── VÌ SAO ĐI QUA style_bom CHỨ KHÔNG PHẢI bom ──────────────────────────
 -- Bảng `bom` KHÔNG có material_id, chỉ có item_name là chữ tự do — không nối

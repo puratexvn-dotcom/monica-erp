@@ -52,7 +52,7 @@ export interface ExecutiveOverview {
   head: PoTwinHeader;
   /** Tỷ lệ dòng NPL đã sẵn sàng, %. null = chưa có định mức.
    *  Tính Ở ĐÂY chứ không ở giao diện — bản đầu tôi để phép chia này trong
-   *  component và đó đúng là thứ Điều VII cấm. */
+   *  component và đó đúng là thứ Playbook Điều VII cấm. */
   materialReadyPct: number | null;
   /** Số việc đang chờ khách (mẫu chờ duyệt + yêu cầu thay đổi chưa đóng) */
   buyerPending: number;

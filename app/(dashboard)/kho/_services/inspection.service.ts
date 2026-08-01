@@ -195,7 +195,7 @@ export interface SaveResult {
 /**
  * Ghi một phiếu kiểm.
  *
- * Quy đổi về mét ngay tại đây (Điều VII: nghiệp vụ không nằm ở giao diện), rồi
+ * Quy đổi về mét ngay tại đây (Playbook Điều VII: nghiệp vụ không nằm ở giao diện), rồi
  * để trigger tính diện tích, chọn ngưỡng theo khách và kết luận đạt/trượt.
  */
 export async function createInspection(v: InspectionFormValues): Promise<SaveResult> {

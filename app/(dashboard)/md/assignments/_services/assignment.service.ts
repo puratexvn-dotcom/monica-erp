@@ -467,7 +467,7 @@ export async function transitionAssignment(
 // ── AUDIT ───────────────────────────────────────────────────────────────────
 
 /**
- * Điều XI: 100% audit, không ngoại lệ.
+ * Playbook Điều XI: 100% audit, không ngoại lệ.
  *
  * ⚠️ Ghi nhật ký hỏng KHÔNG được làm hỏng nghiệp vụ đã thành công. Phần việc đã
  * chuyển trạng thái rồi; ném lỗi ở đây sẽ khiến người dùng bấm lại và tạo ra

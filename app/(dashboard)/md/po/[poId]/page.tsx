@@ -15,7 +15,7 @@ import PoCommandClient from './po-command-client';
 //   • Trưởng phòng dán link PO vào Chat, người nhận mở đúng đơn đó
 //   • Nút Back của trình duyệt hoạt động đúng
 //   • Buyer nhận link, mở ra thấy đúng đơn của mình (RLS chặn sẵn từ 018)
-// Nhét vào một lớp phủ không có URL là mất cả ba — mà cả ba đều phục vụ Điều II:
+// Nhét vào một lớp phủ không có URL là mất cả ba — mà cả ba đều phục vụ Playbook Điều II:
 // giảm Email/Zalo.
 //
 // ─── HAI TẦNG CHẶN QUYỀN ─────────────────────────────────────────────────

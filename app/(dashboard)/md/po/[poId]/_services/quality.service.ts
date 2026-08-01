@@ -332,7 +332,7 @@ export async function getQualityCenter(poId: string): Promise<QualityResult> {
  * Câu nhận xét cho người điều hành.
  *
  * ─── VÌ SAO Ở SERVICE CHỨ KHÔNG Ở COMPONENT ──────────────────────────────
- * Điều VII và bài học Phase 2: hai phép tính từng lọt vào component và phải gỡ
+ * Playbook Điều VII và bài học Phase 2: hai phép tính từng lọt vào component và phải gỡ
  * ra. Câu chữ hiển thị là việc của giao diện, nhưng QUYẾT ĐỊNH "có đáng cảnh
  * báo không" là nghiệp vụ. Ở đây trả về khoá i18n kèm số, giao diện chỉ ghép.
  */
