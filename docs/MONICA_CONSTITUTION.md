@@ -152,7 +152,7 @@ Hệ thống thiết kế theo tư duy **Modular Monolith**. Sự cố phải đ
 |---|---|---|
 | **MONICA_CONSTITUTION.md** *(tệp này)* | 12 nguyên tắc tối cao | **luôn thắng** |
 | [ENGINEERING_PLAYBOOK.md](ENGINEERING_PLAYBOOK.md) | 34 quy tắc kỹ thuật chi tiết | phải sửa theo Hiến pháp |
-| `DOMAIN_GLOSSARY.md` | từ vựng nghiệp vụ | ⏳ **chưa dựng** |
+| [DOMAIN_GLOSSARY.md](DOMAIN_GLOSSARY.md) | từ vựng nghiệp vụ | bổ sung, không ghi đè |
 | [docs/adr/](adr/) | quyết định kiến trúc, **bất biến** | bổ sung, không ghi đè |
 
 ⚠️ **Hai tài liệu cùng dùng số La Mã I–XII.** Khi trích dẫn **phải nói rõ nguồn**:
@@ -178,11 +178,13 @@ defect_catalog.name_vi · name_en     (migration 023)
 Điều IX nói rõ: *"Database CHỈ lưu Business Code. Không lưu text đa ngôn ngữ
 trong DB."* Hai bảng trên lưu **cả bản dịch**.
 
-⚠️ Cả hai là **danh mục do nghiệp vụ tự khai qua giao diện**, không phải hằng số
-hệ thống — nên bản dịch **không thể** nằm trong tệp từ điển của frontend như
-`asg_status_*`. Giải pháp đúng cần một ADR: bảng dịch tách riêng
-(`<catalog>_i18n`), hay một ngoại lệ có giới hạn cho master data người dùng
-khai. **Chưa quyết.**
+⚠️ Cả hai là **danh mục do nghiệp vụ tự khai qua giao diện** — **User-Defined
+Master Data (UDMD)**, một hạng dữ liệu riêng, không phải System Enum. Frontend
+**không thể** dịch một mã lỗi mà người vận hành sẽ tạo ra ngày mai.
+
+→ **Quyết định:** [ADR-005](adr/ADR-005-udmd-i18n-and-soft-delete.md) — UDMD dùng
+một cột `JSONB` duy nhất, triển khai theo Expand → Migrate → Contract.
+**CHỜO PHÊ DUYỆT.**
 
 ### B.2 — Vi phạm Điều VIII · không có đường xoá mềm
 
@@ -208,12 +210,12 @@ dòng điều khoản thương mại ghi sai **không có đường nào để g
 | **Điều IX · đơn vị đo** | `assignment_daily_reports.output_qty` không có cột đơn vị riêng, kế thừa `uom` của Assignment cha. Trong phạm vi một aggregate là chấp nhận được — nhưng cần chốt. |
 | **Điều X · Performance Budget** | Đo được: mọi truy vấn **177–228 ms**, trong ngưỡng CRUD < 300 ms. Nhưng riêng vòng mạng tới Supabase đã ~180 ms — biên còn lại rất mỏng, và bảng hiện gần như rỗng. |
 | **Điều XI · ADR-004** | Last-Write-Wins vẫn đang hiệu lực. Chặn việc mở quyền GHI cho Portal đối tác. |
-| `DOMAIN_GLOSSARY.md` | Hiến pháp viện dẫn nhưng tài liệu **chưa tồn tại**. |
+| `DOMAIN_GLOSSARY.md` | ✅ đã dựng — phạm vi ba trụ cột. Mở rộng sang Kho · Kế toán · Cắt · Hoàn thành khi tới lượt. |
 
-> **B.1 và B.2 phải giải bằng ADR trước khi mở Portal đối tác.**
+> **B.1 và B.2 đã có [ADR-005](adr/ADR-005-udmd-i18n-and-soft-delete.md) — CHỜO PHÊ DUYỆT.**
 > Điều IV cấm viết SQL trước khi ADR được xác nhận.
 
 ---
 
 *Bất kỳ quy tắc kỹ thuật chi tiết nào khác được quy định tại*
-*`DOMAIN_GLOSSARY.md` và* [*ENGINEERING_PLAYBOOK.md*](ENGINEERING_PLAYBOOK.md)*.*
+*[DOMAIN_GLOSSARY.md](DOMAIN_GLOSSARY.md) và* [*ENGINEERING_PLAYBOOK.md*](ENGINEERING_PLAYBOOK.md)*.*
