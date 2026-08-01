@@ -12,8 +12,9 @@ Bắt buộc từ Migration 029 trở đi cho mọi thay đổi Domain Model ho�
 | [ADR-001](../assignment/ADR-001-site-and-operation.md) | Địa điểm sản xuất & Công đoạn | `028` | Đã phê duyệt |
 | [ADR-002](ADR-002-assignment-domain.md) | Assignment Domain | `029` | Đã phê duyệt *(with Required Changes)* |
 | [ADR-003](ADR-003-request-id.md) | Request ID — chuẩn nền tảng chống lập chứng từ hai lần | `029c` → `033` | Đã phê duyệt |
-| [ADR-004](ADR-004-concurrency-control.md) | Concurrency Control — thay Last-Write-Wins | `034` | ⏳ **Chờ phê duyệt** · **chặn Portal đối tác ghi** |
-| [ADR-005](ADR-005-udmd-i18n-and-soft-delete.md) | Đa ngôn ngữ cho UDMD (JSONB) · xoá mềm cho điều khoản thương mại | `035a/b/c` · `036` | ⏳ **Chờ phê duyệt** — giải Mục B.1 và B.2 của Hiến pháp |
+| [ADR-004](ADR-004-concurrency-control.md) | Concurrency Control — thay Last-Write-Wins | `034` | Đã phê duyệt · đã chạy |
+| [ADR-005](ADR-005-udmd-i18n-and-soft-delete.md) | Đa ngôn ngữ cho UDMD (JSONB) · xoá mềm cho điều khoản thương mại | `035a/b/c` · `036` · `036b` | Đã phê duyệt · đã chạy |
+| [ADR-006](ADR-006-permission-engine.md) | Permission Engine — phân quyền theo Assignment | `030` → `031` | ⏳ **Chờ phê duyệt** · **031 = điểm không quay lại** |
 
 ⚠️ ADR-001 nằm ở [`docs/assignment/`](../assignment/) vì viết trước khi thư mục
 này tồn tại. **Không di chuyển** — đường dẫn cũ đã nằm trong lịch sử git và trong
