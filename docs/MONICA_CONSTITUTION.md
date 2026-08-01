@@ -48,6 +48,35 @@ Mỗi Business Capability chỉ có **MỘT Source of Truth (Nguồn Sự thật
 - **Không lưu dữ liệu có thể tính toán được.** Nếu cần tổng hợp, **BẮT BUỘC**
   dùng SQL View, Materialized View hoặc Service.
 
+### III.1 — MIGRATION KHÔNG ĐƯỢC TỰ SUY DIỄN DỮ LIỆU NGHIỆP VỤ *(ban hành 01/08/2026)*
+
+> **Migration không được tự suy diễn dữ liệu nghiệp vụ. Khi không chắc chắn,
+> giữ `NULL` còn tốt hơn ghi sai dữ liệu.** — Kiến trúc sư trưởng
+
+`NULL` là một **phát biểu trung thực**: "chưa ai xác định". Một giá trị đoán mò
+là một **phát biểu sai** — và tệ hơn `NULL` ở chỗ nó **không còn phân biệt được
+với sự thật**. Sau đó không ai biết dòng nào do người xác nhận, dòng nào do một
+câu `UPDATE ... WHERE` suy ra.
+
+**Ca điển hình đã gặp:** ba đơn hàng lịch sử có `orders.customer_id IS NULL`
+trong khi `customer_name` là chuỗi tự do (`'ZIBUYU'`, `'Adidas Global'`).
+Khớp chuỗi rồi gán `customer_id` **nghe rất hợp lý** — và đó chính là chỗ nguy
+hiểm: `'ZIBUYU'` khớp được, nhưng `'Adidas Global'` và `'Uniqlo Casual'` không
+có khách hàng tương ứng, và không ai biết chúng là khách thật hay tên nháp.
+Migration mà đoán thì gắn dữ liệu tài chính vào sai pháp nhân.
+
+**Ba hệ quả bắt buộc:**
+
+1. Migration chỉ được **thêm cột / đổi kiểu / thêm ràng buộc**. Việc **điền
+   nội dung nghiệp vụ** cho dòng lịch sử là của **con người**, qua giao diện,
+   **có Audit Trail**.
+2. Dữ liệu chưa xác định thì **giữ `NULL`**, và phần mềm phải **chạy đúng** khi
+   gặp `NULL` — không sập, không im lặng hiển thị sai.
+3. Ràng buộc `NOT NULL` cho dữ liệu **mới** không được áp ngược lên dữ liệu
+   **cũ**. Dùng ràng buộc theo mốc thời gian, không dùng lệnh vá hàng loạt.
+
+Chiến lược đối soát chi tiết: **ADR-007 · Data Reconciliation**.
+
 ## IV. ARCHITECTURE DECISION RECORD (ADR)
 
 Mọi thay đổi Domain/Architecture **BẮT BUỘC** phải có ADR, gồm 6 phần:

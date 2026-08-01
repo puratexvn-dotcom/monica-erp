@@ -58,55 +58,78 @@ Thà để trống còn hơn ghi một con số không đáng tin.
 
 ---
 
-## 2. MA TRẬN ĐỌC (`SELECT`) — ĐO 01/08/2026, TRƯỚC KHI GIEO S001
+## 2. MA TRẬN ĐỌC (`SELECT`) — ĐO 01/08/2026 **SAU KHI GIEO S001**
 
-Đo bằng phiên đăng nhập thật. `Subcon(+)` = đã có `partner_accounts` **và** một
-phần việc đang hiệu lực. `Subcon(−)` = có vai nhưng chưa được giao gì.
+Đo bằng phiên đăng nhập thật, mọi bảng chính **đã có dữ liệu** nên số 0 giờ mới
+là kết luận (Điều V.1). Ba cột nhà thầu là chủ ý:
 
-| bảng | dòng | Super | Monica | Buyer | Subcon(−) | Subcon(+) | Suppl. | Forw. |
+| cột | nghĩa |
+|---|---|
+| `Sub(−)` | có vai `subcon`, **không** có `partner_accounts` |
+| `Sub SC2` | **có** tài khoản đối tác, **không** được giao phần việc nào |
+| `Sub SC1` | **có** tài khoản đối tác **và** một phần việc đang hiệu lực |
+
+Ba cột đó khác nhau ở đâu thì **ở đó mới có phân quyền theo tài nguyên**.
+
+| bảng | dòng | anon | Buyer | Sub(−) | Sub SC2 | Sub SC1 | Monica | Super |
 |---|---:|---|---|---|---|---|---|---|
-| **`assignments`** | 0→ | ✅ | ✅ | ⛔ | ⛔ | ✅ **chỉ của mình** | ⚪ | ⚪ |
-| `assignment_bundles` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `assignment_daily_reports` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
+| **`orders`** | 4 | ⛔ | ✅ **1** | 🔴 **4** | 🔴 **4** | 🔴 **4** | ✅ 4 | ✅ 4 |
+| `order_items` | 3 | ⛔ | 🟡 **0** | ⛔ | ⛔ | ⛔ | ✅ 3 | ✅ 3 |
+| `customers` | 1 | ⛔ | ✅ **1** | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `styles` | 1 | ⛔ | ✅ **1** | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| **`assignments`** | 2 | ⛔ | ⛔ | ⛔ | ⛔ | ✅ **1 — chỉ của mình** | ✅ 2 | ✅ 2 |
+| `assignment_bundles` | 1 | ⛔ | ⛔ | ⛔ | ⛔ | 🟡 **0** | ✅ | ✅ |
+| `assignment_daily_reports` | 1 | ⛔ | ⛔ | ⛔ | ⛔ | ✅ **1 — của mình** | ✅ | ✅ |
 | `assignment_commercial_terms` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| **`orders`** | 3 | ✅ | ✅ | ✅ *(theo `customer_id`)* | 🔴 **3/3** | 🔴 **3/3** | ⚪ | ⚪ |
-| `order_items` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `customers` | 1 | ✅ | ✅ | ✅ **chỉ mình** | ⛔ | ⛔ | ⚪ | ⚪ |
-| `styles` | 0 | ⚪ | ⚪ | ✅ *(đo bằng dữ liệu tạm)* | ⚪ | ⚪ | ⚪ | ⚪ |
-| **`subcontractors`** | 2 | ✅ | ✅ | ⛔ | 🔴 **2/2** | 🔴 **2/2** | ⚪ | ⚪ |
-| **`cut_bundles`** | 2 | ✅ | ✅ | · | 🔴 **2/2** | 🔴 **2/2** | ⚪ | ⚪ |
-| **`cut_tickets`** | 1 | ✅ | ✅ | · | 🔴 **1/1** | 🔴 **1/1** | ⚪ | ⚪ |
-| `cut_ticket_rolls` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| **`sewing_lines`** | 3 | ✅ | ✅ | · | 🟡 **0/3** | 🟡 **0/3** | ⚪ | ⚪ |
-| `hourly_production_logs` | 1 | ✅ | ✅ | · | 🔴 **1/1** | 🔴 **1/1** | ⚪ | ⚪ |
-| `daily_production_logs` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `qa_audit_reports` | 2 | ✅ | ✅ | · | 🔴 **2/2** | 🔴 **2/2** | ⚪ | ⚪ |
-| `qa_logs` | 10 | ✅ | ✅ | · | ⛔ | ⛔ | ⚪ | ⚪ |
-| `qa_defects` | 3 | ✅ | ✅ | · | ⛔ | ⛔ | ⚪ | ⚪ |
-| `capa_logs` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `shipments` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `shipment_cartons` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `inventory` | 7 | ✅ | ✅ | ⛔ | ⛔ | ⛔ | ⚪ | ⚪ |
-| `stock_levels` | 4 | ✅ | ✅ | ⛔ | ⛔ | ⛔ | ⚪ | ⚪ |
-| `stock_movements` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `financial_records` | 2 | ✅ | ✅ | ⛔ | ⛔ | ⛔ | ⚪ | ⚪ |
-| `subcon_orders` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `profiles` | 13 | ✅ | ✅ | ⛔ | ⛔ | ⛔ | ⚪ | ⚪ |
-| `partners` | 5 | ✅ | ✅ | ⛔ | ⛔ | ⛔ | ⚪ | ⚪ |
-| `partner_accounts` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| `partner_permissions` | 21 | ✅ | ✅ | ⛔ | ⛔ | ⛔ | ⚪ | ⚪ |
+| **`subcontractors`** | 2 | ⛔ | ⛔ | 🔴 **2** | 🔴 **2** | 🔴 **2** | ✅ | ✅ |
+| **`cut_tickets`** | 2 | ⛔ | ⛔ | 🔴 **2** | 🔴 **2** | 🔴 **2** | ✅ | ✅ |
+| **`cut_bundles`** | 3 | ⛔ | ⛔ | 🔴 **3** | 🔴 **3** | 🔴 **3** | ✅ | ✅ |
+| **`sewing_lines`** | 4 | ⛔ | ⛔ | 🟡 **0** | 🟡 **0** | 🟡 **0** | ✅ | ✅ |
+| `production_sites` | 1 | ⛔ | ⛔ | 🟡 **0** | 🟡 **0** | 🟡 **0** | ✅ | ✅ |
+| `hourly_production_logs` | 1 | ⛔ | ⛔ | 🔴 **1** | 🔴 **1** | 🔴 **1** | ✅ | ✅ |
+| **`qa_audit_reports`** | 3 | ⛔ | ✅ **1** | 🔴 **3** | 🔴 **3** | 🔴 **3** | ✅ | ✅ |
+| `qa_logs` | 10 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `qa_defects` | 3 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `shipments` | 1 | ⛔ | ✅ **1** | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `inventory` | 7 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `stock_levels` | 4 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `financial_records` | 2 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `profiles` | 19 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `partners` | 6 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `partner_accounts` | 2 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
+| `partner_permissions` | 21 | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ✅ | ✅ |
 
-### Hai điều bảng trên nói to nhất
+> `anon` bị chặn ở **cả 25 bảng** — chưa đăng nhập thì không đọc được gì.
 
-**① `assignments` là dòng DUY NHẤT có `Subcon(−)` khác `Subcon(+)`.**
-Mọi dòng khác, hai cột giống hệt nhau — nghĩa là 29/30 bảng vẫn phân quyền
-theo **VAI TRÒ**, không theo **TÀI NGUYÊN ĐƯỢC GIAO**. Đây chính là khoảng
-cách mà Migration 031 phải lấp.
+### Bốn điều bảng trên nói to nhất
 
-**② `sewing_lines` là ô `🟡` duy nhất — lỗ hổng NGƯỢC CHIỀU.**
-Không phải "thấy quá nhiều" mà là "không thấy gì", trong khi Line Map là thứ
-nhà thầu **bắt buộc** phải xem. *"Không được vì bảo mật mà biến Subcon thành
-người mù."*
+**① `assignments` + `assignment_daily_reports` là HAI dòng DUY NHẤT có
+`Sub SC1` khác `Sub SC2`.** Đúng 2/25 bảng phân quyền theo **tài nguyên**.
+23 bảng còn lại vẫn theo **vai trò** — `Sub(−)`, kẻ **chưa có tài khoản đối
+tác nào**, vẫn thấy đủ 4 đơn hàng và 3 bó. Đây là khoảng cách 031 phải lấp.
+
+**② Ba ô `🟡` là lỗ hổng NGƯỢC CHIỀU — nhà thầu bị mù.**
+`sewing_lines` 0/4 · `production_sites` 0/1 · `assignment_bundles` 0/1.
+Nhà thầu **không xem được Line Map, không xem được địa điểm của chính mình,
+không xem được bó thuộc phần việc của chính mình** — trong khi đó là những thứ
+họ bắt buộc phải thấy để làm việc. *"Không được vì bảo mật mà biến Subcon
+thành người mù."*
+
+**③ Buyer không thấy `order_items` của chính đơn mình (0/3).**
+Thấy đơn nhưng không thấy chi tiết cỡ/màu. Cần Kiến trúc sư xác nhận đây là
+chủ ý hay thiếu sót.
+
+**④ Buyer đo đúng ở mọi chỗ còn lại** — `orders` 1/4, `customers` 1/1,
+`styles` 1/1, `shipments` 1/1, `qa_audit_reports` 1/3. Xem Mục 2.1.
+
+### 2.1 ⚠️ Vì sao Buyer thấy `orders` 1/4 chứ không phải 1/1
+
+Ba đơn còn lại có `customer_id IS NULL` (dữ liệu lịch sử). Buyer **không** thấy
+chúng — nhưng đó là vì `NULL = <giá trị>` cho ra `NULL`, **không** vì RLS nhận
+ra chúng thuộc khách khác. Kết quả đúng, lý do thì là **fail-closed**.
+
+Chiến lược xử lý: **ADR-007 · Data Reconciliation**. Nguyên tắc gốc đã lên
+Hiến pháp **III.1**: *Migration không được tự suy diễn dữ liệu nghiệp vụ.*
 
 ---
 
@@ -116,19 +139,47 @@ người mù."*
 `authenticated` và `anon` trên 8 bảng nghiệp vụ. Với dữ liệu nghiệp vụ, đường
 xoá đúng là **xoá mềm** (`deleted_at`), không phải `DELETE`.
 
-| bảng | lệnh | Buyer | Subcon(+) | ghi chú |
-|---|---|---|---|---|
-| `orders` | `INSERT` | ⛔ *(đo lại, hợp lệ)* | 🔴 **CHO** | 🔴 nhà thầu tạo được đơn hàng |
-| `orders` | `UPDATE` | ⛔ *(đo lại, hợp lệ)* | 🔴 **CHO** | 🔴 sửa được **số lượng · ngày giao · đơn giá** |
-| `cut_bundles` | `INSERT`/`UPDATE` | · | 🔴 **CHO** | |
-| `cut_tickets` | `INSERT`/`UPDATE` | · | 🔴 **CHO** | |
-| `assignments` | mọi lệnh | ⛔ | ⛔ | `026` chỉ cho nhà thầu **từ chối**, không cho sửa |
-| `assignment_daily_reports` | `INSERT` | ⛔ | ✅ **đúng ý đồ** | nhà thầu **có trách nhiệm ghi** |
-| `assignment_daily_reports` | `UPDATE`/`DELETE` | ⛔ | ⛔ | sổ cái chỉ-ghi-thêm, **không ngoại lệ cho `service_role`** |
-| mọi bảng khác | mọi lệnh | · | · | ⚠️ **đã huỷ kết luận cũ** — xem cảnh báo Mục 0 |
+Đo 01/08/2026 sau khi gieo S001, bằng **bản ghi hợp lệ và đầy đủ** (K-2), dọn
+ngay nếu lọt. `UPDATE` chỉ chạm dòng `SEED-*`, có chụp giá trị trước và khôi
+phục theo bản chụp — **không chạm một dòng thật nào**.
 
-> 🔴 **Ba dòng đỏ đầu bảng là lỗ hổng bảo mật P0.** Chúng là lý do Migration
-> `031a` (cấm ghi) phải chạy **trước** mọi chặng khác của 031.
+| bảng · lệnh | Buyer | Sub SC2 *(không có phần việc)* | Sub SC1 *(có phần việc)* |
+|---|---|---|---|
+| **`orders` · `INSERT`** | ⛔ | 🔴 **TẠO ĐƯỢC** | 🔴 **TẠO ĐƯỢC** |
+| **`orders` · `UPDATE total_quantity`** | ⛔ | 🔴 **SỬA ĐƯỢC** | 🔴 **SỬA ĐƯỢC** |
+| **`cut_tickets` · `INSERT`** | ⛔ | 🔴 **TẠO ĐƯỢC** | 🔴 **TẠO ĐƯỢC** |
+| **`cut_bundles` · `INSERT`** | ⛔ | 🔴 **TẠO ĐƯỢC** | 🔴 **TẠO ĐƯỢC** |
+| **`cut_bundles` · `UPDATE quantity`** | ⛔ | 🔴 **SỬA ĐƯỢC** | 🔴 **SỬA ĐƯỢC** |
+| **`qa_audit_reports` · `INSERT`** | ⛔ | 🔴 **TẠO ĐƯỢC** | 🔴 **TẠO ĐƯỢC** |
+| **`qa_audit_reports` · `UPDATE defect_qty`** | ⛔ | 🔴 **SỬA ĐƯỢC** | 🔴 **SỬA ĐƯỢC** |
+| `styles` · `INSERT` | ⛔ | ⛔ | ⛔ |
+| `subcontractors` · `INSERT` | ⛔ | ⛔ | ⛔ |
+| `sewing_lines` · `INSERT` / `UPDATE` | ⛔ | ⛔ | ⛔ |
+| `shipments` · `INSERT` / `UPDATE status` | ⛔ | ⛔ | ⛔ |
+| `assignments` · `INSERT` / `UPDATE priority` | ⛔ | ⛔ | ⛔ |
+| `assignment_daily_reports` · `INSERT` | ⛔ | — | ✅ **đúng ý đồ** — nhà thầu **có trách nhiệm ghi** |
+| `assignment_daily_reports` · `UPDATE`/`DELETE` | ⛔ | ⛔ | ⛔ sổ cái chỉ-ghi-thêm, **không ngoại lệ cho `service_role`** |
+
+### 🔴 14 LỖ HỔNG GHI — VÀ HAI ĐIỀU LÀM NÓ NẶNG HƠN DỰ TÍNH
+
+**① `Sub SC2` GHI ĐƯỢC Y HỆT `Sub SC1`.**
+Một nhà thầu **không được giao bất kỳ phần việc nào** vẫn sửa được số lượng
+đơn hàng. Quyền ghi hiện **hoàn toàn theo VAI TRÒ**, không dính dáng gì tới
+tài nguyên được giao.
+
+**② `qa_audit_reports` — nhà thầu SỬA ĐƯỢC KẾT QUẢ KIỂM HÀNG.**
+Đây là phát hiện mới, **không** có trong bản phân tích trước (bản đó chỉ soi
+`orders`/`cut_*`). Nhà thầu tự hạ `defect_qty` của chính mình xuống 0 là **xoá
+dấu vết lỗi chất lượng**. Về hậu quả nghiệp vụ, cái này ngang hoặc nặng hơn
+việc sửa `orders`: sửa đơn hàng thì Merchandiser còn đối chiếu ra, sửa kết quả
+kiểm thì **không còn gì để đối chiếu**.
+
+> Cả 14 lỗ hổng đều là lý do `031a` (cấm ghi) phải chạy **trước** mọi chặng
+> khác của 031.
+
+**Đã kiểm chặn đúng:** `styles`, `subcontractors`, `sewing_lines`, `shipments`,
+`assignments` — nhà thầu không tạo, không sửa. Migration `026` giữ đúng lời
+hứa: nhà thầu chỉ **từ chối** được phần việc, không sửa được nó.
 
 ---
 
@@ -137,27 +188,44 @@ xoá đúng là **xoá mềm** (`deleted_at`), không phải `DELETE`.
 View thiếu `security_invoker = true` chạy bằng quyền **người sở hữu**
 (`postgres`), tức **vượt mặt toàn bộ RLS**. Đó là cửa sau hoàn chỉnh.
 
-Đo hành vi 01/08/2026 (so số dòng `service_role` với số dòng vai bị chặn):
+Đo hành vi **sau khi gieo S001** (so số dòng `service_role` với vai bị chặn):
 
-| view | admin | buyer | subcon | kết luận |
-|---|---:|---:|---:|---|
-| `v_bin_path` | 3 | 0 | 0 | ✅ invoker bật, không rò |
-| `v_material_roll_trace` | 2 | 0 | 0 | ✅ invoker bật, không rò |
-| `v_shade_board` | 2 | 0 | 0 | ✅ invoker bật, không rò |
-| `v_po_shipment_readiness` | 4 | **1** | **4** | ⛔ invoker bật *(buyer bị lọc)* nhưng **rò cho subcon** |
-| `vw_cut_ticket_summary` | 1 | 0 | **1** | ⛔ invoker bật nhưng **rò cho subcon** |
-| `v_assignment_report_status` | 0 | 0 | 0 | ⚪ view rỗng |
-| `v_assignment_timeline` | 0 | 0 | 0 | ⚪ view rỗng |
-| `v_inspection_score` | 0 | 0 | 0 | ⚪ view rỗng |
-| `v_order_risk` | 0 | 0 | 0 | ⚪ view rỗng |
-| `v_po_material_readiness` | 0 | 0 | 0 | ⚪ view rỗng |
-| `v_po_shipments` | 0 | 0 | 0 | ⚪ view rỗng |
+| view | admin | buyer | Sub SC1 | anon | kết luận |
+|---|---:|---:|---:|---|---|
+| **`v_assignment_report_status`** | 6 | 0 | **6** | ⛔ | ⛔ **rò cho nhà thầu** |
+| **`v_po_shipment_readiness`** | 6 | 1 | **6** | ⛔ | ⛔ **rò cho nhà thầu** |
+| **`vw_cut_ticket_summary`** | 4 | 0 | **4** | ⛔ | ⛔ **rò cho nhà thầu** |
+| `v_assignment_timeline` | 2 | 0 | **1** | ⛔ | ✅ **khoanh đúng theo phần việc** |
+| `v_bin_path` | 3 | 0 | 0 | ⛔ | ✅ |
+| `v_material_roll_trace` | 2 | 0 | 0 | ⛔ | ✅ |
+| `v_shade_board` | 2 | 0 | 0 | ⛔ | ✅ |
+| `v_po_shipments` | 1 | 1 | 0 | ⛔ | ✅ *(xem cảnh báo dưới)* |
+| `v_inspection_score` | 0 | 0 | 0 | ⛔ | ⚪ vẫn rỗng |
+| `v_order_risk` | 0 | 0 | 0 | ⛔ | ⚪ vẫn rỗng |
+| `v_po_material_readiness` | 0 | 0 | 0 | ⛔ | ⚪ vẫn rỗng |
 
-**Hai view rò không phải lỗi của view.** Chúng đọc `orders` / `cut_tickets`, mà
-RLS của hai bảng đó đang cho nhà thầu xem tất. Thu hẹp bảng gốc ở `031d`/`031e`
-sẽ tự bịt cả hai — **miễn là cờ `security_invoker` còn bật**.
+**⭐ `v_assignment_timeline` là bằng chứng mẫu mực:** admin 2, nhà thầu **1** —
+view khoanh đúng theo phần việc được giao. Đây là hình mẫu 031 cần nhân rộng.
 
-**6/11 view rỗng ⇒ phép đo hành vi không thay được việc đọc cờ.** Chạy
+**Ba view rò không phải lỗi của view.** Chúng đọc `orders` / `cut_tickets` /
+`assignments`, mà RLS bảng gốc đang cho nhà thầu xem tất. Thu hẹp bảng gốc ở
+`031d`/`031e` sẽ tự bịt — **miễn là cờ `security_invoker` còn bật**.
+
+> ### ⚠️ MỘT KẾT LUẬN SAI CỦA CHÍNH BÀI ĐO — `v_po_shipments`
+>
+> Luật xét tự động của tôi là *"vai bị chặn thấy **bằng** admin ⇒ rò"*. Với
+> `v_po_shipments` (admin 1, buyer 1) nó tô đỏ và báo **"rò cho buyer"**.
+>
+> **Sai.** Dòng duy nhất của view đó là lô hàng `SEED-SHIP-01`, thuộc đơn
+> `SEED-PO-0001`, mà đơn đó **chính là của khách hàng buyer đang đăng nhập**.
+> Buyer thấy 1/1 vì cả tập dữ liệu **vốn là của họ**.
+>
+> Bài học: `thấy = tổng` **không đồng nghĩa** với rò khi tổng nhỏ. Phải hỏi
+> *"dòng đó có đúng là của họ không"*, chứ không phải *"họ thấy mấy dòng"*.
+> Đây đúng là cái bẫy Điều V.1 nói tới, ở dạng khác: **tập dữ liệu quá nhỏ
+> thì phép đếm không phân biệt được đúng với sai.**
+
+**3/11 view vẫn rỗng ⇒ phép đo hành vi không thay được việc đọc cờ.** Chạy
 [`supabase/audits/A001_view_security.sql`](../supabase/audits/A001_view_security.sql)
 — tệp chỉ-đọc, ném lỗi nếu có view hở.
 
@@ -180,4 +248,5 @@ theo lược đồ** — nên A001 liệt kê **động**.
 | ngày | việc | ai |
 |---|---|---|
 | 01/08/2026 | Lập bảng. Đo 30 bảng × 5 vai + 11 view. Buyer đo bằng khách hàng thật (21/21 đạt). | Claude |
-| | *Chờ:* chạy `S001` → đo lại toàn bộ ô `⚪`; chạy `A001` → chốt Mục 4 | |
+| 01/08/2026 | `S001` đã chạy (16/16 đối chiếu đạt). **Đo lại toàn bộ:** 25 bảng × 7 vai · 15 phép GHI · 11 view. Phát hiện **14 lỗ hổng GHI**, trong đó `qa_audit_reports` là **mới**. Ghi nhận một kết luận sai của chính bài đo (`v_po_shipments`). | Claude |
+| | *Còn chờ:* kết quả `A001` để chốt cờ `security_invoker` của 3 view vẫn rỗng | |
