@@ -771,6 +771,42 @@ Mức ① không phụ thuộc trí nhớ.
 **Một bài kiểm tự làm bẩn cơ sở dữ liệu thì tệ hơn không có bài kiểm** — nó vừa
 không chứng minh được gì, vừa để lại thiệt hại.
 
+### Phụ lục XXXI-A — hai quy tắc bổ sung, ban hành 01/08/2026
+
+> *Văn bản Điều XXXI ở trên giữ nguyên vẹn. Phần này là bổ sung, không sửa đổi.*
+
+Hai quy tắc dưới đây sinh ra từ hai sự cố có thật trong cùng một ngày, và cùng
+một gốc: **dùng thao tác GHI để trả lời một câu hỏi về CẤU HÌNH.**
+
+**K-1 · Bảng chỉ-ghi-thêm kiểm bằng LƯỢC ĐỒ, không bằng GHI THỬ.**
+
+> *"Append-only tables must be verified by schema inspection, never by
+> destructive test writes."* — Chief Architect
+
+Sự cố: để xác nhận trigger chặn `UPDATE`/`DELETE` trên sổ cái đã được gắn lại,
+tôi ghi một dòng sổ cái rồi thử xoá. Lệnh xoá bị chặn — **đúng như thiết kế** —
+nên dòng đó kẹt lại vĩnh viễn, và phải viết Maintenance Script `M002` để dọn.
+Trớ trêu: bài kiểm thất bại **chính vì** thứ nó kiểm đang hoạt động đúng.
+
+Phép kiểm đúng là đọc `pg_trigger`. `M001` đã chứng minh y hệt như vậy trước đó.
+
+**K-2 · KHÔNG đo quyền GHI bằng cách GHI.**
+
+Sự cố: để đo ai ghi được bảng nào, tôi gửi `INSERT {}` — thiếu mọi cột bắt buộc
+— rồi đọc mã lỗi (`42501` = RLS chặn · `23xxx` = RLS cho qua, ràng buộc chặn).
+Kỹ thuật này dựa vào giả định ngầm: **mọi bảng đều có ràng buộc chặn lại.**
+
+Bốn bảng có mọi cột nullable. Ở đó `INSERT {}` **thành công** — sinh 8 dòng rác,
+gồm cả `financial_records` và `qa_logs`. Đã dọn, số dòng đối chiếu về nguyên
+trạng, nhưng thiệt hại là có thật.
+
+Phép kiểm đúng: đọc `pg_policies`, hoặc chạy trong giao dịch kết thúc bằng
+`ROLLBACK`.
+
+⚠️ **Điểm chung của cả hai:** tôi hỏi một câu về **cấu hình** (trigger còn
+không · policy cho ai ghi) bằng một thao tác lên **dữ liệu**. Câu hỏi về cấu
+hình phải hỏi cấu hình.
+
 ---
 
 ## XXXII. DANH MỤC NGHIỆM THU TRƯỚC KHI HỢP NHẤT
