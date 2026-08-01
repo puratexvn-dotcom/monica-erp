@@ -375,50 +375,106 @@ JOIN public.assignments a ON a.partner_id = sc1.id AND a.order_id = o.id AND a.d
 WHERE NOT EXISTS (SELECT 1 FROM public.subcon_orders WHERE subcon_order_no = 'SEED-SO-CROSS');
 
 -- ────────────────────────────────────────────────────────────────────────────
--- 13. PHIẾU XUẤT / PHIẾU THU HỒI
+-- 13. PHIẾU XUẤT / PHIẾU THU HỒI — 🔴 ĐANG BỊ CHẶN BỞI MỘT KHIẾM KHUYẾT THẬT
 -- ────────────────────────────────────────────────────────────────────────────
--- Mỗi bảng một dòng CÓ phần việc và một dòng MỒ CÔI.
-INSERT INTO public.subcon_issue_logs (subcon_order_id, bundle_id, quantity_sent,
-                                      assignment_id, sent_at, notes)
-SELECT so.id, b.id, 60, so.assignment_id, now(),
-       'Dữ liệu nền S001 phần B — phiếu xuất thuộc phần việc của SUB-GIAT-02.'
-FROM public.subcon_orders so
-CROSS JOIN public.cut_bundles b
-WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
-  AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
-                   WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
+-- Lần chạy đầu của Phần B đổ ở đúng chỗ này:
+--
+--     ERROR 22P02: invalid input value for enum bundle_stage_enum:
+--                  "OUTSIDE_PROCESSING"
+--     CONTEXT: PL/pgSQL function fn_process_subcon_issue() line 4
+--
+-- KHÔNG phải lỗi của dữ liệu nền. `007b` định nghĩa enum bốn giá trị
+-- (CUT · SEWING · FINISHING · PACKED), còn `009` viết trigger gán
+-- `OUTSIDE_PROCESSING` (dòng 84) và `SEWING_READY` (dòng 125) — hai giá trị
+-- **chưa từng tồn tại**. Mã nguồn `/subcon` còn dùng thêm `CUT_PASSED`.
+--
+-- ⇒ `INSERT` vào hai bảng này là BẤT KHẢ THI kể từ migration `009`.
+--    Toàn bộ luồng xuất–nhận gia công chưa từng chạy được.
+--
+-- ⚠️ Và không ai phát hiện suốt từ đó tới nay, vì hai bảng RỖNG. Bảng rỗng thì
+-- không ai audit; không ai audit thì không ai chạm vào lỗi khiến bảng rỗng.
+-- **Bảng rỗng vì hỏng, và không bị phát hiện vì rỗng.** Đây là ca điển hình
+-- nhất của Hiến pháp V.1.
+--
+-- Xử lý: **ADR-008** — từ vựng vòng đời bó. Chờ Kiến trúc sư chốt.
+--
+-- ─── VÌ SAO MỤC NÀY TỰ BỎ QUA THAY VÌ ĐỔ CẢ TỆP ───────────────────────────
+-- Đổ cả tệp thì Phần A và 90% Phần B cũng không vào được, và công việc dừng
+-- hẳn để chờ một quyết định Domain. Nên mục này KIỂM enum trước:
+--   · có đủ giá trị  → gieo bình thường
+--   · thiếu          → BỎ QUA và **RAISE WARNING nói rõ đã bỏ qua cái gì**
+--
+-- ⚠️ Bỏ qua trong IM LẶNG mới là điều cấm. Bỏ qua mà LA LÊN thì được — người
+-- đọc vẫn biết dữ liệu nền còn khuyết chỗ nào, và bảng đối chiếu cuối tệp vẫn
+-- ghi số thật chứ không ghi số mong muốn.
+DO $$
+DECLARE
+  co_enum BOOLEAN;
+  n_issue INT := 0;
+  n_recv  INT := 0;
+BEGIN
+  SELECT COUNT(*) = 2 INTO co_enum
+    FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+   WHERE t.typname = 'bundle_stage_enum'
+     AND e.enumlabel IN ('OUTSIDE_PROCESSING', 'SEWING_READY');
 
-INSERT INTO public.subcon_issue_logs (subcon_order_id, bundle_id, quantity_sent,
-                                      assignment_id, sent_at, notes)
-SELECT so.id, b.id, 20, NULL, now(),
-       'Dữ liệu nền S001 phần B — phiếu xuất MỒ CÔI, không thuộc phần việc nào.'
-FROM public.subcon_orders so
-CROSS JOIN public.cut_bundles b
-WHERE so.subcon_order_no = 'SEED-SO-ORPHAN' AND b.bundle_code = 'SEED-BD-01'
-  AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
-                   WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
+  IF NOT co_enum THEN
+    RAISE WARNING '🔴 BỎ QUA Mục 13 — `bundle_stage_enum` thiếu OUTSIDE_PROCESSING '
+                  'và/hoặc SEWING_READY.';
+    RAISE WARNING '   `subcon_issue_logs` và `subcon_receipt_logs` VẪN RỖNG, nên '
+                  'chưa đo được quyền trên chúng (Hiến pháp V.1).';
+    RAISE WARNING '   Không phải lỗi của S001 — xem docs/adr/ADR-008. Chạy 039 rồi '
+                  'chạy lại tệp này thì phần còn thiếu sẽ tự vào.';
+    RETURN;
+  END IF;
 
-INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
-                                        quantity_defect, is_chargeable,
-                                        assignment_id, received_at, defect_reason)
-SELECT so.id, b.id, 57, 3, TRUE, so.assignment_id, now(),
-       'Dữ liệu nền S001 phần B — 3 chiếc loang màu sau giặt.'
-FROM public.subcon_orders so
-CROSS JOIN public.cut_bundles b
-WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
-  AND NOT EXISTS (SELECT 1 FROM public.subcon_receipt_logs r
-                   WHERE r.subcon_order_id = so.id AND r.bundle_id = b.id);
+  -- Mỗi bảng một dòng CÓ phần việc và một dòng MỒ CÔI.
+  INSERT INTO public.subcon_issue_logs (subcon_order_id, bundle_id, quantity_sent,
+                                        assignment_id, sent_at, notes)
+  SELECT so.id, b.id, 60, so.assignment_id, now(),
+         'Dữ liệu nền S001 phần B — phiếu xuất thuộc phần việc của SUB-GIAT-02.'
+  FROM public.subcon_orders so
+  CROSS JOIN public.cut_bundles b
+  WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
+    AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
+                     WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
+  GET DIAGNOSTICS n_issue = ROW_COUNT;
 
-INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
-                                        quantity_defect, is_chargeable,
-                                        assignment_id, received_at, defect_reason)
-SELECT so.id, b.id, 20, 0, FALSE, NULL, now(),
-       'Dữ liệu nền S001 phần B — phiếu thu hồi MỒ CÔI.'
-FROM public.subcon_orders so
-CROSS JOIN public.cut_bundles b
-WHERE so.subcon_order_no = 'SEED-SO-ORPHAN' AND b.bundle_code = 'SEED-BD-01'
-  AND NOT EXISTS (SELECT 1 FROM public.subcon_receipt_logs r
-                   WHERE r.subcon_order_id = so.id AND r.bundle_id = b.id);
+  INSERT INTO public.subcon_issue_logs (subcon_order_id, bundle_id, quantity_sent,
+                                        assignment_id, sent_at, notes)
+  SELECT so.id, b.id, 20, NULL, now(),
+         'Dữ liệu nền S001 phần B — phiếu xuất MỒ CÔI, không thuộc phần việc nào.'
+  FROM public.subcon_orders so
+  CROSS JOIN public.cut_bundles b
+  WHERE so.subcon_order_no = 'SEED-SO-ORPHAN' AND b.bundle_code = 'SEED-BD-01'
+    AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
+                     WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
+
+  INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
+                                          quantity_defect, is_chargeable,
+                                          assignment_id, received_at, defect_reason)
+  SELECT so.id, b.id, 57, 3, TRUE, so.assignment_id, now(),
+         'Dữ liệu nền S001 phần B — 3 chiếc loang màu sau giặt.'
+  FROM public.subcon_orders so
+  CROSS JOIN public.cut_bundles b
+  WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
+    AND NOT EXISTS (SELECT 1 FROM public.subcon_receipt_logs r
+                     WHERE r.subcon_order_id = so.id AND r.bundle_id = b.id);
+  GET DIAGNOSTICS n_recv = ROW_COUNT;
+
+  INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
+                                          quantity_defect, is_chargeable,
+                                          assignment_id, received_at, defect_reason)
+  SELECT so.id, b.id, 20, 0, FALSE, NULL, now(),
+         'Dữ liệu nền S001 phần B — phiếu thu hồi MỒ CÔI.'
+  FROM public.subcon_orders so
+  CROSS JOIN public.cut_bundles b
+  WHERE so.subcon_order_no = 'SEED-SO-ORPHAN' AND b.bundle_code = 'SEED-BD-01'
+    AND NOT EXISTS (SELECT 1 FROM public.subcon_receipt_logs r
+                     WHERE r.subcon_order_id = so.id AND r.bundle_id = b.id);
+
+  RAISE NOTICE '✅ Mục 13 đã gieo — phiếu xuất %, phiếu thu hồi %.', n_issue, n_recv;
+END $$;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 14. XOÁ MỀM — DÒNG PHẢI VÔ HÌNH KHI ĐỌC, NHƯNG VẪN NẰM TRONG BẢNG
@@ -518,10 +574,25 @@ FROM (VALUES
    (SELECT COUNT(*)::TEXT FROM public.subcon_orders WHERE assignment_id IS NULL), '1'),
   ('B · ...hai mức GIÁ khác nhau',
    (SELECT COUNT(DISTINCT unit_price)::TEXT FROM public.subcon_orders), '2'),
-  ('B · Phiếu xuất (1 có việc + 1 mồ côi)',
-   (SELECT COUNT(*)::TEXT FROM public.subcon_issue_logs), '2'),
-  ('B · Phiếu thu hồi (1 có việc + 1 mồ côi)',
-   (SELECT COUNT(*)::TEXT FROM public.subcon_receipt_logs), '2'),
+  -- 🔴 Hai dòng này CHỜ ADR-008. Kỳ vọng viết theo TRẠNG THÁI THẬT của enum,
+  -- không viết cứng '2' — vì viết cứng thì lúc bị chặn nó báo ⛔ và người đọc
+  -- tưởng S001 hỏng, trong khi thứ hỏng là `bundle_stage_enum`.
+  ('B · 🔴 Phiếu xuất (chờ ADR-008)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_issue_logs),
+   (SELECT CASE WHEN COUNT(*) = 2 THEN '2' ELSE '0' END::TEXT
+      FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+     WHERE t.typname = 'bundle_stage_enum'
+       AND e.enumlabel IN ('OUTSIDE_PROCESSING', 'SEWING_READY'))),
+  ('B · 🔴 Phiếu thu hồi (chờ ADR-008)',
+   (SELECT COUNT(*)::TEXT FROM public.subcon_receipt_logs),
+   (SELECT CASE WHEN COUNT(*) = 2 THEN '2' ELSE '0' END::TEXT
+      FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+     WHERE t.typname = 'bundle_stage_enum'
+       AND e.enumlabel IN ('OUTSIDE_PROCESSING', 'SEWING_READY'))),
+  ('B · ⚠️ bundle_stage_enum có đủ từ vựng chưa',
+   (SELECT COUNT(*)::TEXT FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+     WHERE t.typname = 'bundle_stage_enum'
+       AND e.enumlabel IN ('OUTSIDE_PROCESSING', 'SEWING_READY')), '2'),
   ('B · Điều khoản CÒN hiệu lực',
    (SELECT COUNT(*)::TEXT FROM public.assignment_commercial_terms
      WHERE deleted_at IS NULL), '1'),
@@ -536,8 +607,8 @@ FROM (VALUES
                         WHERE c.parent_report_id = r.id)), '1'),
   ('Phần việc gắn bó',
    (SELECT COUNT(*)::TEXT FROM public.assignment_bundles), '1'),
-  ('⚠️ Sổ cái (KHÔNG XOÁ ĐƯỢC)',
-   (SELECT COUNT(*)::TEXT FROM public.assignment_daily_reports), '1'),
+  -- ⚠️ Dòng cũ ở đây chờ '1' — sai từ khi Phần B thêm dòng đính chính. Mục
+  -- "B · Sổ cái sau đính chính" ở trên đã thay nó bằng kỳ vọng đúng là 2.
   ('Kiểm QA gắn phần việc',
    (SELECT COUNT(*)::TEXT FROM public.qa_audit_reports WHERE assignment_id IS NOT NULL), '1'),
   ('Lô hàng',
