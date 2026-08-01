@@ -194,6 +194,45 @@ Chuẩn hoá dữ liệu cho nền tảng đa quốc gia:
 Không một thiết kế nào được khoá cứng tương lai. Mọi Domain Model đều phải có
 khả năng tiến hoá.
 
+### XI.1 — 🔒 SECURITY FREEZE *(có hiệu lực 02/08/2026)*
+
+> **Không mở thêm Domain hoặc Module mới cho đến khi hoàn tất 031 và xác nhận
+> Buyer Portal cùng Subcon Portal đạt chuẩn bảo mật.** — Kiến trúc sư trưởng
+
+**Vì sao:** đo ngày 01/08/2026 cho thấy **23/25 bảng vẫn phân quyền theo VAI
+TRÒ**, và có **14 lỗ hổng GHI** — nhà thầu chưa được giao việc nào vẫn sửa được
+đơn hàng và kết quả kiểm hàng. Mở thêm phân hệ lúc này là **nhân bản lỗ hổng
+sang phạm vi rộng hơn**: mỗi bảng mới lại là một bảng nữa phải rà.
+
+#### Trong thời gian đóng băng
+
+| ✅ ĐƯỢC làm | ⛔ KHÔNG được làm |
+|---|---|
+| Chạy các chặng của 031 | Thêm Domain mới |
+| Sửa lỗi bảo mật đã đo được | Thêm Module / phân hệ mới |
+| Viết bài kiểm, tài liệu, audit | Thêm bảng nghiệp vụ mới |
+| Sửa lỗi làm gãy vận hành | Thêm màn hình cho vai trò **ngoài** |
+| Dữ liệu nền phục vụ kiểm thử | Mở thêm quyền cho vai trò ngoài *ngoài* lộ trình 031 |
+
+#### Điều kiện gỡ đóng băng — phải đủ **cả bốn**
+
+1. `031a` → `031g` chạy xong, **mỗi chặng có một vòng Regression riêng**.
+2. `docs/RLS_COVERAGE_MATRIX.md` **không còn ô `⚪`** ở các bảng đã có dữ liệu.
+3. `A001` và `A002` đều **ĐẠT**.
+4. Kiến trúc sư trưởng **xác nhận bằng văn bản**.
+
+#### Chu trình bắt buộc của 031 — không được bỏ vòng nào
+
+```
+031a → Regression → A002 → 031b → Regression → 031c → Regression
+     → 031d → Regression → 031e → Regression → 031f → 031g
+```
+
+> Bỏ một vòng Regression là tự nguyện mất khả năng biết chặng nào gây ra hỏng
+> hóc. Sự cố `qa_audit_reports` — bản nháp 031 gỡ hàng rào rồi không dựng lại
+> đủ — **đã tồn tại nhiều ngày mà không ai biết**, chính vì chặng đó chạy mà
+> không có vòng kiểm nào theo sau.
+
 - Ưu tiên: `Backward Compatible` → `Forward Compatible` → `Extensible`.
 - Mọi **Breaking Change** **BẮT BUỘC** phải có: ADR + Migration Plan +
   Rollback Plan.
