@@ -160,6 +160,32 @@ phục theo bản chụp — **không chạm một dòng thật nào**.
 | `assignment_daily_reports` · `INSERT` | ⛔ | — | ✅ **đúng ý đồ** — nhà thầu **có trách nhiệm ghi** |
 | `assignment_daily_reports` · `UPDATE`/`DELETE` | ⛔ | ⛔ | ⛔ sổ cái chỉ-ghi-thêm, **không ngoại lệ cho `service_role`** |
 
+> ## 🔴 02/08/2026 — `subcon_orders` RÒ RỈ GIÁ GIỮA HAI NHÀ THẦU CẠNH TRANH
+>
+> Phát hiện ngay khi `S001` Phần B gieo dữ liệu vào bảng vốn **rỗng**.
+>
+> | vai | thấy | |
+> |---|---|---|
+> | `SUB-GIAT-02` | **4/4** — cả đơn của IN-01, cả đơn mồ côi | 🔴 |
+> | `SUB-IN-01` | **4/4** — cả đơn của GIAT | 🔴 |
+> | `SC1` *(xưởng may)* | **4/4** — dù không có hồ sơ nhà thầu-dịch-vụ nào | 🔴 |
+> | Buyer | 0/4 | ✅ |
+> | Monica | 4/4 | ✅ |
+>
+> **Hệ quả nghiêm trọng nhất: `unit_price`.** GIAT đọc được đơn giá **7800**
+> của IN-01, và ngược lại. Hai nhà thầu **cạnh tranh cùng một công đoạn** đọc
+> được giá của nhau — Điều XXX: *"❌ không thấy giá của người khác"*.
+>
+> **Nguyên nhân:** `subcon_orders` nằm trong **danh sách cho phép của 025** nên
+> không có `subcon_denied`; và `026` chỉ thêm ba policy RESTRICTIVE cho **GHI**
+> (`subcon_no_insert/update/delete_assignment`). **Quyền ĐỌC chưa từng bị
+> thu hẹp.**
+>
+> ⚠️ **Và nó vô hình cho tới hôm nay vì bảng rỗng** — cùng một vòng tròn với
+> sự cố `bundle_stage_enum`. Đây là lần thứ hai trong một ngày.
+>
+> → Cần một chặng riêng trước `031d`. Chưa viết SQL, chờ phê duyệt.
+
 > ## ✅ 02/08/2026 — `031b` ĐÃ CHẠY. NHÀ THẦU HẾT MÙ, BUYER THẤY CHI TIẾT ĐƠN.
 >
 > Hồi quy `live-031b`: **20 đạt · 0 hỏng**.
