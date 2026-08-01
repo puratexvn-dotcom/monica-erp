@@ -1,146 +1,197 @@
 -- ============================================================================
--- A001 · KIỂM AN NINH VIEW — Quyết định ⑦ của Kiến trúc sư trưởng
+-- A001 · KIỂM AN NINH VIEW & HÀM SECURITY DEFINER — Quyết định ⑦
 --
--- "Không kiểm thủ công. Mỗi lần migration. Kiểm pg_views · security_invoker ·
---  security_barrier · RLS."
+-- "Không kiểm thủ công. Mỗi lần migration." — Kiến trúc sư trưởng
+-- Hiến pháp V.4: A001 là bài kiểm hồi quy BẮT BUỘC mỗi vòng phát triển.
 --
--- ⚠️ ĐÂY LÀ TỆP CHỈ-ĐỌC. Không `CREATE`, không `ALTER`, không `INSERT`,
--- không `UPDATE`, không `DELETE`. Chạy bao nhiêu lần cũng không đổi gì.
--- Chạy được cả trên môi trường thật giữa giờ làm việc.
+-- ⚠️ ĐÂY LÀ TỆP CHỈ-ĐỌC. Không CREATE, ALTER, INSERT, UPDATE, DELETE.
 --
--- VÌ SAO CẦN: Migration 024 Mục 7 đã bật `security_invoker` — nhưng bằng một
--- DANH SÁCH VIẾT CỨNG 7 tên view, và bỏ qua trong im lặng thứ không tìm thấy:
+-- ─── BẢN 2 — VÌ SAO PHẢI VIẾT LẠI ─────────────────────────────────────────
 --
---     FOREACH v IN ARRAY ARRAY['v_po_material_readiness', ...]
---       IF EXISTS (...) THEN ALTER VIEW ...
---       ELSE RAISE NOTICE 'Bỏ qua %: view không tồn tại.'
+-- Bản 1 chia làm bốn câu `SELECT` riêng. SQL Editor của Supabase **chỉ hiển
+-- thị kết quả của câu SELECT CUỐI CÙNG**, nên Mục 1 và Mục 2 chạy xong rồi
+-- biến mất — ba lần chạy liền, người đọc chỉ thấy được đúng Mục 3.
 --
--- Danh sách viết cứng không tự lớn lên theo lược đồ. Bài kiểm này liệt kê
--- ĐỘNG toàn bộ view trong `public`, nên view sinh sau vẫn bị soi.
+-- Đó là lỗi thiết kế của bài kiểm, không phải lỗi người chạy. Một bài kiểm mà
+-- kết quả không đến được mắt người đọc thì bằng không.
 --
--- CÁCH ĐỌC KẾT QUẢ: chạy cả tệp. Mục 4 là cổng PASS/FAIL — nó NÉM LỖI nếu có
--- view hở. Mục 1–3 là bằng chứng chi tiết để đọc dù cổng có xanh.
+-- Bản này gộp TẤT CẢ vào MỘT tập kết quả duy nhất bằng `UNION ALL`.
+-- Cột `muc` cho biết dòng thuộc phần nào.
+--
+-- ─── CÁCH ĐỌC ─────────────────────────────────────────────────────────────
+--   Cột `danh_gia`:  ✅ đạt   ·   ⛔ HỎNG — phải xử lý   ·   ⚠️ cần để mắt
+--   Dòng `muc = '0 · KẾT LUẬN'` là tóm tắt. Đọc dòng đó trước.
 -- ============================================================================
 
--- ────────────────────────────────────────────────────────────────────────────
--- 1. TOÀN BỘ VIEW TRONG `public` — CỜ AN NINH VÀ NGƯỜI SỞ HỮU
--- ────────────────────────────────────────────────────────────────────────────
--- `security_invoker = true`  → view chạy bằng quyền NGƯỜI GỌI. RLS của họ áp
---                              dụng. Đây là thứ ta cần.
--- thiếu / = false            → view chạy bằng quyền NGƯỜI SỞ HỮU (thường là
---                              `postgres`, kẻ vượt mặt mọi RLS). ⛔ CỬA SAU.
--- `security_barrier = true`  → chặn rò rỉ qua toán tử "rẻ nhưng nhiều chuyện".
---                              Tốn hiệu năng, chỉ cần cho view trên bảng nhạy cảm.
-SELECT
-  c.relname                                                       AS view_name,
-  pg_get_userbyid(c.relowner)                                     AS owner,
-  COALESCE(array_to_string(c.reloptions, ', '), '(không có)')      AS reloptions,
-  CASE WHEN COALESCE(array_to_string(c.reloptions, ','), '')
-            ILIKE '%security_invoker=true%'
-       THEN '✅ invoker' ELSE '⛔ DEFINER — CỬA SAU' END           AS invoker,
-  CASE WHEN COALESCE(array_to_string(c.reloptions, ','), '')
-            ILIKE '%security_barrier=true%'
-       THEN '🛡 barrier' ELSE '—' END                              AS barrier,
-  CASE WHEN has_table_privilege('authenticated', c.oid, 'SELECT')
-       THEN 'authenticated ĐỌC ĐƯỢC' ELSE '—' END                 AS grant_auth,
-  CASE WHEN has_table_privilege('anon', c.oid, 'SELECT')
-       THEN '⛔ anon ĐỌC ĐƯỢC' ELSE '—' END                        AS grant_anon
-FROM pg_class c
-WHERE c.relnamespace = 'public'::regnamespace
-  AND c.relkind IN ('v', 'm')          -- 'm' = materialized view, cũng phải soi
-ORDER BY invoker DESC, c.relname;
+WITH
+-- ── 1. VIEW: cờ an ninh ────────────────────────────────────────────────────
+-- `security_invoker = true` → view chạy bằng quyền NGƯỜI GỌI, RLS của họ áp
+-- dụng. Thiếu cờ → chạy bằng quyền NGƯỜI SỞ HỮU (`postgres`), vượt mặt RLS.
+v AS (
+  SELECT c.relname, c.oid,
+         COALESCE(array_to_string(c.reloptions, ','), '') AS opts
+    FROM pg_class c
+   WHERE c.relnamespace = 'public'::regnamespace
+     AND c.relkind IN ('v', 'm')
+),
+v_rows AS (
+  SELECT '1 · VIEW' AS muc,
+         v.relname  AS doi_tuong,
+         CASE WHEN v.opts ILIKE '%security_invoker=true%'
+              THEN 'invoker' ELSE 'DEFINER' END
+         || CASE WHEN v.opts ILIKE '%security_barrier=true%' THEN ' + barrier' ELSE '' END
+         || CASE WHEN has_table_privilege('anon', v.oid, 'SELECT')
+                 THEN ' · anon ĐỌC ĐƯỢC' ELSE '' END        AS chi_tiet,
+         CASE WHEN v.opts NOT ILIKE '%security_invoker=true%'
+                   THEN '⛔ CỬA SAU — vượt mặt RLS'
+              WHEN has_table_privilege('anon', v.oid, 'SELECT')
+                   THEN '⛔ anon đọc được'
+              ELSE '✅' END                                  AS danh_gia
+    FROM v
+),
+-- ── 2. VIEW đọc bảng nào, bảng đó có RLS không ─────────────────────────────
+-- View `security_invoker` mà đọc bảng KHÔNG bật RLS thì vẫn hở: cờ đúng nhưng
+-- phía dưới chẳng có gì chặn.
+v_dep AS (
+  SELECT DISTINCT vv.relname AS view_name, t.relname AS tbl, t.relrowsecurity
+    FROM pg_depend d
+    JOIN pg_rewrite r ON r.oid = d.objid AND r.rulename = '_RETURN'
+    JOIN pg_class vv  ON vv.oid = r.ev_class AND vv.relkind IN ('v','m')
+    JOIN pg_class t   ON t.oid = d.refobjid AND t.relkind = 'r'
+   WHERE vv.relnamespace = 'public'::regnamespace
+     AND t.relnamespace  = 'public'::regnamespace
+     AND d.classid = 'pg_rewrite'::regclass AND d.deptype = 'n'
+),
+v_dep_rows AS (
+  SELECT '2 · VIEW→BẢNG' AS muc,
+         view_name || ' → ' || tbl AS doi_tuong,
+         CASE WHEN relrowsecurity THEN 'bảng gốc có RLS'
+              ELSE 'bảng gốc KHÔNG có RLS' END AS chi_tiet,
+         CASE WHEN relrowsecurity THEN '✅' ELSE '⛔ view đọc bảng không RLS' END AS danh_gia
+    FROM v_dep
+   WHERE NOT relrowsecurity          -- chỉ liệt kê chỗ CÓ VẤN ĐỀ, tránh nhiễu
+),
+-- ── 3. HÀM SECURITY DEFINER ────────────────────────────────────────────────
+-- Mỗi hàm loại này là một lỗ khoét có chủ ý xuyên qua RLS (Hiến pháp V.3).
+-- Sổ đăng ký: docs/SECURITY_DEFINER_REGISTRY.md
+f AS (
+  SELECT p.oid, p.proname, p.proconfig,
+         pg_get_function_identity_arguments(p.oid) AS args
+    FROM pg_proc p
+   WHERE p.pronamespace = 'public'::regnamespace AND p.prosecdef
+),
+f_rows AS (
+  SELECT '3 · HÀM SECDEF' AS muc,
+         f.proname || '(' || f.args || ')' AS doi_tuong,
+         CASE WHEN f.proconfig IS NULL
+                   OR NOT EXISTS (SELECT 1 FROM unnest(f.proconfig) x
+                                   WHERE x LIKE 'search_path=%')
+              THEN 'KHÔNG ghim search_path' ELSE 'search_path đã ghim' END
+         || CASE WHEN has_function_privilege('anon', f.oid, 'EXECUTE')
+                 THEN ' · ⛔ anon GỌI ĐƯỢC' ELSE ' · anon bị chặn' END AS chi_tiet,
+         CASE WHEN has_function_privilege('anon', f.oid, 'EXECUTE')
+                   THEN '⛔ anon gọi được'
+              WHEN f.proconfig IS NULL
+                   OR NOT EXISTS (SELECT 1 FROM unnest(f.proconfig) x
+                                   WHERE x LIKE 'search_path=%')
+                   THEN '⛔ chưa ghim search_path'
+              ELSE '✅' END AS danh_gia
+    FROM f
+),
+-- ── 4. QUYỀN MẶC ĐỊNH — nguồn gốc sự cố 038 ────────────────────────────────
+acl_rows AS (
+  SELECT '4 · MẶC ĐỊNH' AS muc,
+         pg_get_userbyid(d.defaclrole) || ' tạo '
+         || CASE d.defaclobjtype WHEN 'f' THEN 'hàm' WHEN 'r' THEN 'bảng'
+                                 WHEN 'S' THEN 'sequence' ELSE d.defaclobjtype::TEXT END AS doi_tuong,
+         array_to_string(d.defaclacl, ', ') AS chi_tiet,
+         CASE WHEN d.defaclobjtype = 'f'
+                   AND array_to_string(d.defaclacl, ',') ILIKE '%anon=%'
+              THEN '⛔ còn cấp mặc định cho anon' ELSE '✅' END AS danh_gia
+    FROM pg_default_acl d
+    JOIN pg_namespace ns ON ns.oid = d.defaclnamespace
+   WHERE ns.nspname = 'public'
+),
+tat_ca AS (
+  SELECT * FROM v_rows
+  UNION ALL SELECT * FROM v_dep_rows
+  UNION ALL SELECT * FROM f_rows
+  UNION ALL SELECT * FROM acl_rows
+),
+-- ── 0. KẾT LUẬN — đọc dòng này trước ───────────────────────────────────────
+ket_luan AS (
+  SELECT '0 · KẾT LUẬN' AS muc, k.doi_tuong, k.chi_tiet, k.danh_gia
+    FROM (VALUES
+      ('View thiếu security_invoker',
+       (SELECT COUNT(*)::TEXT FROM v WHERE opts NOT ILIKE '%security_invoker=true%')
+         || ' / ' || (SELECT COUNT(*)::TEXT FROM v),
+       CASE WHEN (SELECT COUNT(*) FROM v WHERE opts NOT ILIKE '%security_invoker=true%') = 0
+            THEN '✅' ELSE '⛔ CÓ CỬA SAU' END),
+      ('View cho anon đọc',
+       (SELECT COUNT(*)::TEXT FROM v WHERE has_table_privilege('anon', oid, 'SELECT')),
+       CASE WHEN (SELECT COUNT(*) FROM v WHERE has_table_privilege('anon', oid, 'SELECT')) = 0
+            THEN '✅' ELSE '⛔' END),
+      ('⭐ Hàm SECDEF mà anon gọi được',
+       (SELECT COUNT(*)::TEXT FROM f WHERE has_function_privilege('anon', oid, 'EXECUTE'))
+         || ' / ' || (SELECT COUNT(*)::TEXT FROM f),
+       CASE WHEN (SELECT COUNT(*) FROM f WHERE has_function_privilege('anon', oid, 'EXECUTE')) = 0
+            THEN '✅' ELSE '⛔ LỖ HỔNG NGHIÊM TRỌNG' END),
+      ('Hàm SECDEF chưa ghim search_path',
+       (SELECT COUNT(*)::TEXT FROM f
+         WHERE proconfig IS NULL
+            OR NOT EXISTS (SELECT 1 FROM unnest(proconfig) x WHERE x LIKE 'search_path=%')),
+       CASE WHEN (SELECT COUNT(*) FROM f
+                   WHERE proconfig IS NULL
+                      OR NOT EXISTS (SELECT 1 FROM unnest(proconfig) x
+                                      WHERE x LIKE 'search_path=%')) = 0
+            THEN '✅' ELSE '⛔' END),
+      ('View/matview đã soi', (SELECT COUNT(*)::TEXT FROM v), 'ℹ️'),
+      ('Hàm SECDEF đã soi',   (SELECT COUNT(*)::TEXT FROM f), 'ℹ️')
+    ) AS k(doi_tuong, chi_tiet, danh_gia)
+)
+SELECT muc, doi_tuong, chi_tiet, danh_gia
+FROM (SELECT * FROM ket_luan UNION ALL SELECT * FROM tat_ca) z
+ORDER BY muc,
+         CASE WHEN danh_gia LIKE '⛔%' THEN 0 WHEN danh_gia LIKE '⚠️%' THEN 1 ELSE 2 END,
+         doi_tuong;
 
 -- ────────────────────────────────────────────────────────────────────────────
--- 2. VIEW ĐỌC BẢNG NÀO — VÀ BẢNG ĐÓ CÓ BẬT RLS KHÔNG
+-- ⛔ CỔNG PASS/FAIL — NÉM LỖI, KHÔNG CHỈ IN RA
 -- ────────────────────────────────────────────────────────────────────────────
--- Một view `security_invoker` đọc bảng KHÔNG bật RLS thì vẫn hở: cờ đúng
--- nhưng phía dưới chẳng có gì chặn. Phải soi cả hai đầu.
---
--- `relforcerowsecurity` quan trọng riêng: không có nó thì CHỦ SỞ HỮU bảng
--- vẫn vượt mặt RLS của chính bảng mình.
-SELECT
-  v.relname                                                       AS view_name,
-  t.relname                                                       AS reads_table,
-  CASE WHEN t.relrowsecurity      THEN '✅' ELSE '⛔ KHÔNG BẬT RLS' END AS rls,
-  CASE WHEN t.relforcerowsecurity THEN '✅' ELSE '⚠️ chủ sở hữu vượt mặt' END AS force_rls,
-  (SELECT COUNT(*) FROM pg_policies p
-    WHERE p.schemaname = 'public' AND p.tablename = t.relname)     AS so_policy
-FROM pg_depend d
-JOIN pg_rewrite r ON r.oid = d.objid AND r.rulename = '_RETURN'
-JOIN pg_class   v ON v.oid = r.ev_class AND v.relkind IN ('v', 'm')
-JOIN pg_class   t ON t.oid = d.refobjid AND t.relkind = 'r'
-WHERE v.relnamespace = 'public'::regnamespace
-  AND t.relnamespace = 'public'::regnamespace
-  AND d.classid = 'pg_rewrite'::regclass
-  AND d.deptype = 'n'
-GROUP BY v.relname, t.relname, t.relrowsecurity, t.relforcerowsecurity
-ORDER BY rls, v.relname, t.relname;
-
--- ────────────────────────────────────────────────────────────────────────────
--- 3. HÀM SECURITY DEFINER — CÙNG MỘT LOẠI CỬA SAU
--- ────────────────────────────────────────────────────────────────────────────
--- View không phải đường vòng duy nhất. Một hàm `SECURITY DEFINER` mà
--- `authenticated` gọi được, lại không ghim `search_path`, là chỗ leo thang
--- quyền kinh điển.
-SELECT
-  p.proname                                                       AS func_name,
-  pg_get_function_identity_arguments(p.oid)                       AS args,
-  pg_get_userbyid(p.proowner)                                     AS owner,
-  CASE WHEN p.proconfig IS NULL
-            OR NOT EXISTS (SELECT 1 FROM unnest(p.proconfig) x
-                            WHERE x LIKE 'search_path=%')
-       THEN '⛔ KHÔNG GHIM search_path' ELSE '✅ đã ghim' END      AS search_path,
-  CASE WHEN has_function_privilege('anon', p.oid, 'EXECUTE')
-       THEN '⛔ anon GỌI ĐƯỢC' ELSE '—' END                        AS grant_anon,
-  CASE WHEN has_function_privilege('authenticated', p.oid, 'EXECUTE')
-       THEN 'authenticated' ELSE '—' END                          AS grant_auth
-FROM pg_proc p
-WHERE p.pronamespace = 'public'::regnamespace
-  AND p.prosecdef                                    -- CHỈ hàm SECURITY DEFINER
-ORDER BY search_path DESC, p.proname;
-
--- ────────────────────────────────────────────────────────────────────────────
--- 4. ⛔ CỔNG PASS/FAIL — NÉM LỖI NẾU CÓ VIEW HỞ
--- ────────────────────────────────────────────────────────────────────────────
--- Đây là phần biến tệp này từ "báo cáo để người đọc" thành "cổng chặn".
 -- Báo cáo thì người ta lướt qua. Cổng thì không.
 DO $$
-DECLARE
-  v_ho    TEXT[];
-  v_anon  TEXT[];
-  v_tong  INT;
+DECLARE v_view INT; v_anon_view INT; v_fn INT; v_path INT;
 BEGIN
-  SELECT COUNT(*) INTO v_tong
-    FROM pg_class c
-   WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('v', 'm');
+  SELECT COUNT(*) INTO v_view FROM pg_class
+   WHERE relnamespace = 'public'::regnamespace AND relkind IN ('v','m')
+     AND COALESCE(array_to_string(reloptions, ','), '') NOT ILIKE '%security_invoker=true%';
 
-  SELECT array_agg(c.relname ORDER BY c.relname) INTO v_ho
-    FROM pg_class c
-   WHERE c.relnamespace = 'public'::regnamespace
-     AND c.relkind IN ('v', 'm')
-     AND COALESCE(array_to_string(c.reloptions, ','), '')
-         NOT ILIKE '%security_invoker=true%';
+  SELECT COUNT(*) INTO v_anon_view FROM pg_class
+   WHERE relnamespace = 'public'::regnamespace AND relkind IN ('v','m')
+     AND has_table_privilege('anon', oid, 'SELECT');
 
-  SELECT array_agg(c.relname ORDER BY c.relname) INTO v_anon
-    FROM pg_class c
-   WHERE c.relnamespace = 'public'::regnamespace
-     AND c.relkind IN ('v', 'm')
-     AND has_table_privilege('anon', c.oid, 'SELECT');
+  SELECT COUNT(*) INTO v_fn FROM pg_proc
+   WHERE pronamespace = 'public'::regnamespace AND prosecdef
+     AND has_function_privilege('anon', oid, 'EXECUTE');
 
-  RAISE NOTICE 'Soi % view/matview trong public.', v_tong;
+  SELECT COUNT(*) INTO v_path FROM pg_proc
+   WHERE pronamespace = 'public'::regnamespace AND prosecdef
+     AND (proconfig IS NULL
+          OR NOT EXISTS (SELECT 1 FROM unnest(proconfig) x WHERE x LIKE 'search_path=%'));
 
-  IF v_anon IS NOT NULL THEN
-    RAISE WARNING '⛔ % view CHO anon ĐỌC (chưa đăng nhập đã xem được): %',
-      array_length(v_anon, 1), array_to_string(v_anon, ', ');
+  IF v_view > 0 THEN
+    RAISE EXCEPTION 'A001 HỎNG — % view KHÔNG bật security_invoker (vượt mặt RLS).', v_view;
+  END IF;
+  IF v_anon_view > 0 THEN
+    RAISE EXCEPTION 'A001 HỎNG — % view CHO anon ĐỌC.', v_anon_view;
+  END IF;
+  IF v_fn > 0 THEN
+    RAISE EXCEPTION 'A001 HỎNG — % hàm SECURITY DEFINER mà anon GỌI ĐƯỢC. '
+                    'Xem docs/SECURITY_DEFINER_REGISTRY.md.', v_fn;
+  END IF;
+  IF v_path > 0 THEN
+    RAISE EXCEPTION 'A001 HỎNG — % hàm SECURITY DEFINER chưa ghim search_path.', v_path;
   END IF;
 
-  IF v_ho IS NOT NULL THEN
-    RAISE EXCEPTION
-      E'⛔ A001 HỎNG — % / % view KHÔNG bật security_invoker:\n     %\n'
-      '     Các view này chạy bằng quyền NGƯỜI SỞ HỮU và VƯỢT MẶT RLS.\n'
-      '     Sửa: ALTER VIEW public.<ten> SET (security_invoker = true);',
-      array_length(v_ho, 1), v_tong, array_to_string(v_ho, E',\n     ');
-  END IF;
-
-  RAISE NOTICE '✅ A001 ĐẠT — cả % view đều bật security_invoker.', v_tong;
+  RAISE NOTICE '✅ A001 ĐẠT.';
 END $$;
