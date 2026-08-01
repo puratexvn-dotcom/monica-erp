@@ -160,6 +160,38 @@ phục theo bản chụp — **không chạm một dòng thật nào**.
 | `assignment_daily_reports` · `INSERT` | ⛔ | — | ✅ **đúng ý đồ** — nhà thầu **có trách nhiệm ghi** |
 | `assignment_daily_reports` · `UPDATE`/`DELETE` | ⛔ | ⛔ | ⛔ sổ cái chỉ-ghi-thêm, **không ngoại lệ cho `service_role`** |
 
+> ## ✅ 02/08/2026 — `031b` ĐÃ CHẠY. NHÀ THẦU HẾT MÙ, BUYER THẤY CHI TIẾT ĐƠN.
+>
+> Hồi quy `live-031b`: **20 đạt · 0 hỏng**.
+>
+> | | trước | sau |
+> |---|---|---|
+> | `sewing_lines` · nhà thầu **có** phần việc | 0/4 🟡 | **1/4** ✅ đúng chuyền được giao |
+> | `sewing_lines` · nhà thầu **không** phần việc | 0/4 | **0/4** ✅ |
+> | `assignment_bundles` · nhà thầu | 0/1 🟡 | **1/1** ✅ |
+> | `order_items` · Buyer | 0/3 🟡 | **3/3** ✅ chỉ đọc |
+>
+> **`sewing_lines` là bảng thứ ba trong hệ thống phân quyền theo TÀI NGUYÊN**
+> (sau `assignments` và `assignment_daily_reports`) — SC1 thấy 1, SC2 thấy 0.
+>
+> Mở đọc **không** mở nhầm ghi: nhà thầu không sửa được chính chuyền họ nhìn
+> thấy; Buyer không sửa được số lượng đặt hàng. `production_sites` **không**
+> được mở — chỉ thị nói rõ *"Không phải Site"*.
+>
+> ### ⚠️ Một phép kiểm của `031b` báo ⛔ — và nó sai, không phải 031b sai
+>
+> Mục *"mọi bảng còn policy tên `buyer_scope%`/`buyer_denied`"* trả về **12**
+> thay vì 0. Đã **quét 113 quan hệ bằng phiên Buyer thật** trước khi kết luận:
+> **không một bảng nào ngoài phạm vi bị lộ**.
+>
+> 12 bảng đó sinh ra ở migration 019–030, tức **sau khi 018 chạy**. Vòng lặp
+> của 018 là **ảnh chụp một thời điểm** — đúng cùng khuyết tật với danh sách
+> viết cứng của 024 và 025. Chúng được canh bằng `*_internal_only`
+> (`NOT mos_is_external()`), tên khác quy ước nhưng **chặn chặt hơn**.
+>
+> → Quy ước đặt tên của 018 Mục 7d **đã lỗi thời**. Bất biến thật là mục
+> *"Bảng KHÔNG có hàng rào nào biết tới người ngoài = 0"* của **A002**.
+
 > ## ✅ 02/08/2026 — `031a` ĐÃ CHẠY. CẢ 14 LỖ HỔNG GHI ĐÃ ĐÓNG.
 >
 > Hồi quy `live-031a`: **35 đạt · 0 hỏng**. Bảng dưới đây giữ lại **nguyên
@@ -265,7 +297,10 @@ theo lược đồ** — nên A001 liệt kê **động**.
 | 01/08/2026 | Lập bảng. Đo 30 bảng × 5 vai + 11 view. Buyer đo bằng khách hàng thật (21/21 đạt). | Claude |
 | 01/08/2026 | `S001` đã chạy (16/16 đối chiếu đạt). **Đo lại toàn bộ:** 25 bảng × 7 vai · 15 phép GHI · 11 view. Phát hiện **14 lỗ hổng GHI**, trong đó `qa_audit_reports` là **mới**. Ghi nhận một kết luận sai của chính bài đo (`v_po_shipments`). | Claude |
 | 02/08/2026 | `A001` chạy — Kiến trúc sư xác nhận. `031a` chạy — đối chiếu **8/8**. Hồi quy `live-031a` **35/35**. **14/14 lỗ hổng GHI đã đóng, người nội bộ không bị vạ lây.** Viết `A002 · Policy Coverage`. | Claude |
-| | *Còn chờ:* chạy `A002` → rồi mới sang `031b` (Line Map + `order_items` cho Buyer) | |
+| 02/08/2026 | **A001 phát hiện `anon` gọi được 13/14 hàm `SECURITY DEFINER`, gồm 2 hàm GHI.** `038` + `038b` chạy → **0/14**. `038c` không đủ quyền đổi mặc định của `supabase_admin` — rủi ro tồn đọng, đã ghi ở `SECURITY_DEFINER_REGISTRY.md` Mục 6. | Claude |
+| 02/08/2026 | A001 + A002 gộp **một tập kết quả**: trước đó SQL Editor chỉ hiện `SELECT` cuối, nên Mục 1–3 chưa từng tới mắt ai. Sửa **ba kết luận sai** của chính hai bài kiểm. | Claude |
+| 02/08/2026 | **`031b` chạy · hồi quy 20/20.** Nhà thầu hết mù; Buyer thấy `order_items` 3/3. Quét 113 quan hệ bằng phiên Buyer thật: **0 rò rỉ**. | Claude |
+| | *Còn chờ:* `031c` — thu hẹp `subcontractors` (hết thấy nhà thầu khác) | |
 
 > ⚠️ **Một lỗi của chính bài hồi quy, ghi lại để không lặp:** bản đầu của
 > `live-031a` viết cứng số dòng chờ (`orders = 4`…), trong khi chính nó vừa

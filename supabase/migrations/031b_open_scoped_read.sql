@@ -239,13 +239,40 @@ FROM (VALUES
    (SELECT COUNT(*)::TEXT FROM pg_policies
      WHERE schemaname = 'public' AND tablename = 'order_items'
        AND policyname = 'subcon_denied'), '1'),
-  ('⭐ Phép tự kiểm của 018 vẫn xanh — mọi bảng còn buyer_scope%/buyer_denied',
+  -- ⚠️ PHÉP KIỂM NÀY ĐÃ ĐƯỢC SỬA SAU KHI CHẠY THẬT. Bản đầu hỏi:
+  --   "mọi bảng còn policy tên buyer_scope%/buyer_denied không?"  → 12, chờ 0.
+  --
+  -- 12 KHÔNG phải do 031b. 031b chỉ đổi TÊN trên `order_items`, từ
+  -- `buyer_denied` sang `buyer_scope_by_order` — mà cả hai đều khớp mẫu.
+  --
+  -- 12 bảng ấy sinh ra ở migration 019–030, tức SAU khi 018 chạy. Vòng lặp
+  -- của 018 là ảnh chụp MỘT THỜI ĐIỂM, không tự lớn lên theo lược đồ — đúng
+  -- cùng một khuyết tật với danh sách viết cứng của 024 và 025.
+  --
+  -- ĐÃ ĐO TRƯỚC KHI SỬA, không phải sửa cho xanh: quét 113 quan hệ bằng phiên
+  -- Buyer THẬT ⇒ **không một bảng nào ngoài phạm vi bị lộ**. Buyer thấy đúng
+  -- orders 1/4 · order_items 3/3 · customers 1/1 · styles 1/1 · shipments 1/1
+  -- · qa_audit_reports 1/3 · buyer_accounts 1/1. 12 bảng kia được canh bằng
+  -- policy `*_internal_only` (`NOT mos_is_external()`), tên khác quy ước của
+  -- 018 nhưng CHẶN CHẶT HƠN — nó chặn cả buyer lẫn nhà thầu.
+  --
+  -- Nên câu hỏi đúng không phải "tên có đúng quy ước không" mà là **"có hàng
+  -- rào nào biết tới người ngoài không"**. Tên chỉ là tên.
+  ('⭐ Bảng KHÔNG có hàng rào nào biết tới người ngoài',
+   (SELECT COUNT(*)::TEXT FROM pg_tables p
+     WHERE p.schemaname = 'public'
+       AND NOT EXISTS (SELECT 1 FROM pg_policies g
+                        WHERE g.schemaname = 'public' AND g.tablename = p.tablename
+                          AND (g.permissive = 'RESTRICTIVE'
+                            OR (COALESCE(g.qual,'') || ' ' || COALESCE(g.with_check,''))
+                               ~ 'mos_is_(external|subcon|buyer)|mos_partner|mos_can_'))), '0'),
+  ('ℹ️ Bảng sinh sau 018, không mang tên buyer_scope%/buyer_denied',
    (SELECT COUNT(*)::TEXT FROM pg_tables p
      WHERE p.schemaname = 'public'
        AND NOT EXISTS (SELECT 1 FROM pg_policies g
                         WHERE g.schemaname = 'public' AND g.tablename = p.tablename
                           AND (g.policyname LIKE 'buyer_scope%'
-                            OR g.policyname = 'buyer_denied'))), '0'),
+                            OR g.policyname = 'buyer_denied'))), '12'),
   ('⭐ 031a còn nguyên 12 policy',
    (SELECT COUNT(*)::TEXT FROM pg_policies
      WHERE schemaname = 'public' AND policyname LIKE 'p031a_ext_no_%'
