@@ -450,11 +450,16 @@ BEGIN
     AND NOT EXISTS (SELECT 1 FROM public.subcon_issue_logs l
                      WHERE l.subcon_order_id = so.id AND l.bundle_id = b.id);
 
+  -- ⚠️ `chk_defect_requires_evidence` (009 dòng 68): `quantity_defect > 0` thì
+  -- BẮT BUỘC phải có `defect_evidence_urls` khác rỗng. Ràng buộc đúng — không
+  -- được quy lỗi cho nhà thầu mà không có ảnh chứng minh.
   INSERT INTO public.subcon_receipt_logs (subcon_order_id, bundle_id, quantity_good,
                                           quantity_defect, is_chargeable,
-                                          assignment_id, received_at, defect_reason)
+                                          assignment_id, received_at, defect_reason,
+                                          defect_evidence_urls)
   SELECT so.id, b.id, 57, 3, TRUE, so.assignment_id, now(),
-         'Dữ liệu nền S001 phần B — 3 chiếc loang màu sau giặt.'
+         'Dữ liệu nền S001 phần B — 3 chiếc loang màu sau giặt.',
+         ARRAY['seed/S001/loang-mau-01.jpg']
   FROM public.subcon_orders so
   CROSS JOIN public.cut_bundles b
   WHERE so.subcon_order_no = 'SEED-SO-GIAT' AND b.bundle_code = 'SEED-BD-01'
@@ -484,8 +489,18 @@ END $$;
 --
 -- ⚠️ `assignment_commercial_terms` giữ GIÁ. Hai dòng dưới đây là điều khoản
 -- của phần việc SC1: một CÒN HIỆU LỰC, một ĐÃ XOÁ MỀM.
-INSERT INTO public.assignment_commercial_terms (assignment_id, unit_price, currency, uom)
-SELECT a.id, 12500, 'VND', 'PCS'
+-- ⚠️ Cột ĐÚNG là `rate_method` + `rate` (hoặc `lump_sum`), KHÔNG phải
+-- `unit_price`/`uom`. Bản trước tôi ĐOÁN tên cột và nhận `42703`. Đọc lược đồ
+-- vẫn rẻ hơn đoán — đây là lần thứ hai trong cùng tệp này (lần đầu: ba giá trị
+-- `status` sai ở Phần A).
+--
+-- `act_rate_shape` (029 dòng 273): LUMP_SUM thì phải có `lump_sum` và `rate`
+-- rỗng; mọi phương thức khác thì ngược lại. Không được điền cả hai.
+INSERT INTO public.assignment_commercial_terms (assignment_id, rate_method, rate,
+                                                currency, payment_term, note)
+SELECT a.id, 'PER_UNIT', 12500,
+       'VND', 'Thanh toán sau nghiệm thu 15 ngày',
+       'Dữ liệu nền S001 phần B — điều khoản CÒN HIỆU LỰC.'
 FROM public.assignments a
 JOIN public.partners p ON p.id = a.partner_id AND p.partner_code = 'SC1'
 JOIN public.orders o   ON o.id = a.order_id AND o.po_number = 'SEED-PO-0001'
@@ -497,8 +512,10 @@ WHERE a.deleted_at IS NULL
 -- `uq_act_assignment_active` chỉ cấm TRÙNG khi còn hiệu lực, nên phải xoá mềm
 -- dòng này TRƯỚC khi nó va vào dòng trên — làm gọn trong một câu `WITH`.
 WITH moi AS (
-  INSERT INTO public.assignment_commercial_terms (assignment_id, unit_price, currency, uom)
-  SELECT a.id, 9900, 'VND', 'PCS'
+  INSERT INTO public.assignment_commercial_terms (assignment_id, rate_method, rate,
+                                                  currency, note)
+  SELECT a.id, 'PER_KG', 9900,
+         'VND', 'Dữ liệu nền S001 phần B — điều khoản ĐÃ XOÁ MỀM, phải VÔ HÌNH khi đọc.'
   FROM public.assignments a
   JOIN public.partners p ON p.id = a.partner_id AND p.partner_code = 'SUB-GIAT-02'
   JOIN public.orders o   ON o.id = a.order_id AND o.po_number = 'SEED-PO-0001'
