@@ -121,6 +121,45 @@ Ba lần đã dính đúng lỗi này:
 Bảng nào vẫn rỗng sau khi gieo thì phải được **liệt kê tên trong báo cáo**,
 kèm chữ "chưa đo được" — không được im lặng cho qua.
 
+### V.3 — `SECURITY DEFINER` PHẢI CÓ SỔ VÀ CÓ BÀI KIỂM *(ban hành 02/08/2026)*
+
+> **Mọi `SECURITY DEFINER` function phải có tài liệu, lý do tồn tại, ADR liên
+> quan và bài kiểm thử hồi quy trước khi được merge.** — Kiến trúc sư trưởng
+
+Mỗi hàm `SECURITY DEFINER` là **một lỗ khoét có chủ ý xuyên qua hàng rào phân
+quyền** — nó chạy dưới quyền `postgres`, kẻ vượt mặt mọi RLS. Lỗ khoét có chủ
+ý thì chấp nhận được; lỗ khoét **không ai nhớ vì sao có** thì không.
+
+Sáu mục bắt buộc và sổ đăng ký 19 hàm hiện có: xem
+[`SECURITY_DEFINER_REGISTRY.md`](SECURITY_DEFINER_REGISTRY.md).
+
+**Vì sao "ý thức bảo mật" không đủ để thay điều khoản này:** sự cố 02/08/2026
+— người chưa đăng nhập gọi được 13/14 hàm, trong đó 2 hàm ghi — xảy ra dù
+**cả bốn migration liên quan đều đã viết `REVOKE`**. Không ai quên. Chúng chỉ
+`REVOKE` **sai đích** (`FROM PUBLIC` trong khi grant nằm thẳng ở `anon`) hoặc
+bị lần `CREATE OR REPLACE` sau nạp quyền mặc định về.
+
+Điều thiếu suốt bốn năm migration không phải sự cẩn thận, mà là **một phép thử
+chứng minh cửa đã đóng**.
+
+### V.4 — `A001` LÀ BÀI KIỂM HỒI QUY BẮT BUỘC *(ban hành 02/08/2026)*
+
+[`A001_view_security.sql`](../supabase/audits/A001_view_security.sql) phải chạy
+trong **mọi vòng phát triển**, không chỉ khi đụng tới view.
+
+Nó là **lớp canh cửa** duy nhất bắt được hàm mới do vai **khác** tạo ra —
+`ALTER DEFAULT PRIVILEGES` chỉ áp cho đối tượng do **một vai cụ thể** tạo, nên
+`038b` không che hết được.
+
+| lớp | tệp | vai trò |
+|---|---|---|
+| Đóng cửa | `038_revoke_anon_execute.sql` | 19 hàm đang có |
+| Đổi ổ khoá | `038b_default_privileges_hardening.sql` | hàm tạo sau |
+| **Canh cửa** | **`A001` Mục 3** | **mọi vòng** |
+
+Không lớp nào thay được lớp nào: chỉ 038 thì hàm mới hở · chỉ 038b thì 19 hàm
+cũ hở · thiếu A001 thì hàm do extension tạo vẫn lọt.
+
 ### V.2 — HỎI CÂU VỀ CẤU HÌNH BẰNG CÁCH ĐỌC CẤU HÌNH *(bổ sung 01/08/2026)*
 
 Chi tiết ở [Điều XXXI phụ lục A](ENGINEERING_PLAYBOOK.md) của Playbook. Tóm tắt:
