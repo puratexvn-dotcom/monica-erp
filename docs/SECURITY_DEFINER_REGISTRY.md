@@ -74,6 +74,7 @@ Trạng thái đo ngày 02/08/2026, **sau** migration 038.
 | `mos_partner_can()` | 030 | đọc `partner_permissions` — bảng đối tác bị chặn | ADR-006 | ✅ |
 | `mos_can_read_assignment()` | 030 | ghép `assignments` + quyền; nền của phân quyền theo tài nguyên | ADR-006 | ✅ |
 | `mos_can_write_assignment()` | 030 | như trên, cho đường ghi | ADR-006 | ✅ |
+| `mos_partner_subcontractor_id()` | **031c2** | bắc cầu `partner_accounts → partners → subcontractor_id`. **`partners` đóng với chính đối tác**, nên policy truy vấn thẳng vào đó luôn ra rỗng — xem Playbook **K-3**. | ADR-006 | ✅ |
 
 > **Vì sao cả nhóm này buộc phải `SECURITY DEFINER`:** chúng được gọi **bên
 > trong policy RLS**. Nếu chúng chịu RLS thì việc đánh giá policy sẽ lại cần

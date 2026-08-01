@@ -807,6 +807,45 @@ Phép kiểm đúng: đọc `pg_policies`, hoặc chạy trong giao dịch kết
 không · policy cho ai ghi) bằng một thao tác lên **dữ liệu**. Câu hỏi về cấu
 hình phải hỏi cấu hình.
 
+### K-3 · Policy KHÔNG được truy vấn bảng mà chính người gọi không đọc được
+
+> Ban hành 02/08/2026, sau sự cố `031c`.
+
+Truy vấn con bên trong một RLS policy **vẫn chịu RLS**, và được đánh giá dưới
+quyền **người gọi**.
+
+`031c` viết policy cho `subcontractors`:
+
+```sql
+EXISTS (SELECT 1 FROM partners p WHERE p.id = mos_partner_id() ...)
+```
+
+Nhưng `partners` có `partners_internal_only` — **nhà thầu đọc ra 0 dòng**. Nên
+`EXISTS(...)` **luôn SAI**. Policy trông như một phép **khoanh vùng**, chạy ra
+một phép **chặn phẳng**. Nhà thầu mất luôn hồ sơ của chính mình.
+
+**Cách sửa:** bắc cầu qua bảng đóng bằng hàm `SECURITY DEFINER` không tham số
+(`mos_partner_subcontractor_id()`), rồi **so cột** thay vì truy vấn con. Vừa
+đúng, vừa nhanh hơn — hàm không tham số gọi một lần cho cả câu lệnh.
+
+**Cách kiểm để không lọt:** phép thử phải có **ít nhất một vai CHỜ THẤY > 0**.
+
+`live-031c` bắt được lỗi chỉ vì nó dùng **hai loại đối tác**:
+
+| vai | chờ | nếu policy chặn phẳng |
+|---|---|---|
+| `PRODUCTION_PARTNER` | 0 | 0 → **vẫn xanh, lọt lỗi** |
+| `SERVICE_PARTNER` | **1** | 0 → ⛔ **bắt được** |
+
+Bài kiểm chỉ gồm những vai **chờ 0** không phân biệt được *"khoanh đúng"* với
+*"chặn hết"*. Đây cùng một họ với Điều V.1 — **tập dữ liệu hoặc tập vai quá
+hẹp thì phép đếm không phân biệt được đúng với sai.**
+
+⚠️ **Hệ quả cần theo dõi:** policy nào bắc cầu qua bảng **mở** thì chạy đúng,
+nhưng **phụ thuộc ngầm** vào policy đọc của bảng ấy. `p031b_line_scoped_read`
+truy vấn `assignments` — siết `assignments` chặt hơn sẽ làm Line Map tối đi mà
+không ai đụng tới `sewing_lines`.
+
 ---
 
 ## XXXII. DANH MỤC NGHIỆM THU TRƯỚC KHI HỢP NHẤT
