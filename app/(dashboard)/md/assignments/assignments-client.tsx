@@ -50,8 +50,16 @@ export default function AssignmentsClient() {
   const actions = useMemo(() => detail.data?.allowedTransitions ?? [], [detail.data]);
 
   async function runTransition(reason: string | null) {
-    if (!openId || !target) return;
-    const res = await transition.run({ assignmentId: openId, to: target, reason });
+    // ⚠️ Phải có CẢ `detail.data` — phiên bản lấy từ chính bản ghi vừa đọc, không
+    // phải từ một biến đếm nào khác. Đó là cả điểm của OCC: gửi lại đúng thứ đã
+    // đọc, để cơ sở dữ liệu biết mình đang nhìn dữ liệu của lúc nào.
+    if (!openId || !target || !detail.data) return;
+    const res = await transition.run({
+      assignmentId: openId,
+      to: target,
+      version: detail.data.version,
+      reason,
+    });
     if (res.ok) setTarget(null);
   }
 

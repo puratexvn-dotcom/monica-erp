@@ -75,7 +75,7 @@ function internalActor(userId: string): Actor {
 // "more than one relationship" — đúng cái bẫy đã dính ở Phase 5. Phải chỉ đích
 // danh cột: `owner:owner_user_id(...)`.
 const SELECT_LIST = `
-  id, assignment_no, status, priority, scope_level,
+  id, assignment_no, version, status, priority, scope_level,
   partner_id, order_id, site_id, line_id, style_operation_id,
   assigned_qty, uom, owner_user_id,
   planned_start, planned_finish, actual_start, actual_finish,
@@ -100,6 +100,7 @@ interface RawJoin {
 type RawAssignment = AssignmentCore & {
   assigned_qty: number | null;
   uom: string | null;
+  version: number;
 } & { [K in keyof RawJoin]: RawJoin[K] | RawJoin[K][] };
 
 /**
@@ -130,6 +131,7 @@ function toRow(r: RawAssignment): AssignmentSummaryDTO {
 
   return {
     id: r.id,
+    version: r.version,
     assignmentNo: r.assignment_no,
     status: r.status,
     priority: r.priority,
@@ -388,6 +390,7 @@ const STAMP: Partial<Record<AssignmentStatus, { at: string; by: string; reason?:
 export async function transitionAssignment(
   assignmentId: string,
   to: string,
+  expectedVersion: number,
   reason?: string | null,
 ): Promise<MutationResult> {
   const g = await guard();
@@ -409,13 +412,13 @@ export async function transitionAssignment(
     return { ok: false, id: null, error: 'assignment_err_partner_decides' };
   }
 
-  const { rows } = await safeQuery<AssignmentCore & { assigned_qty: number | null }>(
+  const { rows } = await safeQuery<AssignmentCore & { assigned_qty: number | null; version: number }>(
     'phần việc',
     () =>
       g.supabase
         .from('assignments')
         .select(
-          'id, assignment_no, partner_id, order_id, scope_level, site_id, line_id, style_operation_id, status, priority, assigned_qty, planned_start, planned_finish, actual_start, actual_finish, owner_user_id, deleted_at',
+          'id, assignment_no, version, partner_id, order_id, scope_level, site_id, line_id, style_operation_id, status, priority, assigned_qty, planned_start, planned_finish, actual_start, actual_finish, owner_user_id, deleted_at',
         )
         .eq('id', assignmentId)
         .limit(1),
@@ -441,7 +444,14 @@ export async function transitionAssignment(
   const verdict = canTransition(current, to, reason, { overdueCount });
   if (!verdict.ok) return { ok: false, id: null, error: verdict.code };
 
-  const patch: Record<string, unknown> = { status: to };
+  // ⚠️ GỬI LẠI PHIÊN BẢN ĐÃ ĐỌC — đây là mảnh giữ cho OCC có tác dụng.
+  //
+  // Trigger `mos_bump_version` so `NEW.version` với `OLD.version`; lệch nghĩa là
+  // ai đó đã ghi đè trong khoảng giữa, và lệnh bị từ chối với `P0409`.
+  //
+  // Bỏ dòng này thì mọi thứ vẫn "chạy" — không lỗi, version vẫn tăng — nhưng
+  // ghi đè quay lại y như trước. Migration 034 sẽ thành một cột trang trí.
+  const patch: Record<string, unknown> = { status: to, version: expectedVersion };
   const stamp = STAMP[to];
   if (stamp) {
     patch[stamp.at] = new Date().toISOString();

@@ -65,6 +65,16 @@ export function friendlyDbError(where: string, e: { message: string; code?: stri
   logDbError(where, e);
   const m = e.message.toLowerCase();
 
+  // ⚠️ P0409 — XUNG ĐỘT GHI ĐÈ (Optimistic Concurrency Control, ADR-004).
+  //
+  // Mã tự đặt, KHÔNG phải 40001: rất nhiều thư viện coi 40001 là "thử lại được"
+  // và tự chạy lại lệnh — mà ở đây thử lại là SAI, lệnh cũ mang dữ liệu đã cũ.
+  //
+  // Câu trả lời phải kèm LỐI RA. Báo xung đột mà không nói làm gì tiếp là đẩy
+  // người dùng vào ngõ cụt.
+  if (e.code === 'P0409') {
+    return 'Bản ghi đã được người khác sửa trong lúc bạn đang thao tác. Hãy tải lại rồi thử lại.';
+  }
   if (e.code === '23505' || m.includes('duplicate key')) {
     return 'Mã này đã tồn tại. Vui lòng dùng mã khác.';
   }

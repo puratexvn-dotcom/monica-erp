@@ -64,6 +64,18 @@ export interface MutationResult {
 
 export interface AssignmentSummaryDTO {
   id: string;
+  /**
+   * **Phiên bản lạc quan** — ADR-004, migration 034.
+   *
+   * ⚠️ Máy khách KHÔNG diễn giải con số này. Nó chỉ **mang đi rồi mang về**:
+   * đọc ra ở đây, gửi lại khi sửa. Cơ sở dữ liệu so sánh và từ chối nếu đã cũ.
+   *
+   * ⚠️ Quên gửi lại là **MẤT BẢO VỆ TRONG IM LẶNG**: lệnh ghi vẫn thành công,
+   * `version` vẫn tăng, và ghi đè vẫn xảy ra y như trước. SQL không ép được —
+   * `plpgsql` không biết cột nào có trong danh sách `SET`. Hợp đồng này do mã
+   * nguồn giữ, và có phép kiểm canh.
+   */
+  version: number;
   /** Số nghiệp vụ đọc được: `ASG-CC01-2026-00042`. Đây là thứ người ta gọi qua điện thoại. */
   assignmentNo: string;
   status: AssignmentStatus;
@@ -303,6 +315,13 @@ export interface CreateAssignmentDTO {
 export interface TransitionAssignmentDTO {
   assignmentId: string;
   to: string;
+  /**
+   * Phiên bản đã đọc. **BẮT BUỘC**, không tuỳ chọn.
+   *
+   * Để tuỳ chọn thì một màn hình quên truyền vẫn biên dịch sạch, và mất bảo vệ
+   * trong im lặng — cùng lý lẽ với `requestId` của ADR-003.
+   */
+  version: number;
   /** Bắt buộc ≥ 10 ký tự với REJECTED · SUSPENDED · CLOSED · CANCELLED. */
   reason?: string | null;
 }

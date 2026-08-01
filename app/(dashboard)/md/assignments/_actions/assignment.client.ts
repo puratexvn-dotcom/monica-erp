@@ -72,7 +72,7 @@ export async function createAssignmentClient(
 export async function transitionAssignmentClient(
   input: TransitionAssignmentDTO,
 ): Promise<MutationResult> {
-  return transitionAssignment(input.assignmentId, input.to, input.reason);
+  return transitionAssignment(input.assignmentId, input.to, input.version, input.reason);
 }
 
 export async function listExecutionPartnersClient(): Promise<ListResult<PartnerOptionDTO>> {

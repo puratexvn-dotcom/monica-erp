@@ -168,7 +168,7 @@ Hiến pháp vFinal ban hành **sau** khi Phase 029 đã commit (`89e45fb`). Rà
 mã đang chạy phát hiện **hai vi phạm thật**. Ghi ở đây để không ai tưởng hệ
 thống đã tuân thủ toàn phần.
 
-### B.1 — Vi phạm Điều IX · text đa ngôn ngữ trong Database
+### B.1 — ✅ ĐÃ ĐÓNG · Điều IX · text đa ngôn ngữ trong Database
 
 ```
 contract_types.name_vi · name_en     (migration 029)
@@ -182,11 +182,20 @@ trong DB."* Hai bảng trên lưu **cả bản dịch**.
 Master Data (UDMD)**, một hạng dữ liệu riêng, không phải System Enum. Frontend
 **không thể** dịch một mã lỗi mà người vận hành sẽ tạo ra ngày mai.
 
-→ **Quyết định:** [ADR-005](adr/ADR-005-udmd-i18n-and-soft-delete.md) — UDMD dùng
-một cột `JSONB` duy nhất, triển khai theo Expand → Migrate → Contract.
-**CHỜO PHÊ DUYỆT.**
+→ **Đã giải** — [ADR-005](adr/ADR-005-udmd-i18n-and-soft-delete.md), migration
+`035a` → `035b` → `035c`:
 
-### B.2 — Vi phạm Điều VIII · không có đường xoá mềm
+- Một cột **`name_translations JSONB`** thay hai cột cứng. Thêm ngôn ngữ thứ tư
+  **không cần migration** (Điều XI · Forward Compatible).
+- Triển khai **Expand → Migrate → Contract**, vì `quality.service.ts` thuộc phân
+  hệ đang chạy thật — cột và mã đọc cột phải đi cùng nhau.
+- Chuỗi dự phòng `phiên → vi → en → khoá đầu có chữ → chính code` **không bao
+  giờ trả ô trống** (Playbook Điều XX).
+- Trigger **chuẩn hoá** gỡ khoá rỗng, vì PostgreSQL cấm subquery trong `CHECK`.
+
+**Nghiệm thu:** 20/20 mã lỗi di trú không lệch một dòng · `live-023` toàn đạt.
+
+### B.2 — ✅ ĐÃ ĐÓNG · Điều VIII · không có đường xoá mềm
 
 ```
 assignment_commercial_terms          thiếu deleted_at / deleted_by
@@ -195,6 +204,25 @@ assignment_commercial_terms          thiếu deleted_at / deleted_by
 Migration 029b đã **thu hồi quyền `DELETE`** khỏi mọi vai trò. Cộng lại: một
 dòng điều khoản thương mại ghi sai **không có đường nào để gỡ** — không xoá cứng
 được, cũng không xoá mềm được.
+
+→ **Đã giải** — migration `036` + `036b`:
+
+- `deleted_at` · `deleted_by`, kèm **chỉ mục duy nhất MỘT PHẦN**
+  (`WHERE deleted_at IS NULL`). Giữ chỉ mục toàn phần thì ngõ cụt chỉ **đổi
+  chỗ**: xoá mềm xong vẫn không lập được điều khoản mới.
+- **Split Policy** giữ Defense-in-Depth: `SELECT` lọc `deleted_at` · `UPDATE`
+  **không** lọc (giữ đường khôi phục) · `DELETE` không policy.
+- ⚠️ **Split Policy va chạm với PostgREST.** PostgREST bọc mọi `PATCH` trong CTE
+  có `RETURNING` **bất kể header `Prefer`**, nên policy `SELECT` được áp lên
+  **dòng MỚI** — mà dòng vừa xoá mềm theo định nghĩa không còn thoả
+  `deleted_at IS NULL`. Đo được: chỉ `deleted_at` bị chặn; `rate`, `note`,
+  `deleted_by` đều đi qua.
+- → Xoá mềm và khôi phục đi qua hàm **`SECURITY DEFINER`** (`036b`). Đổi lại
+  được một thứ tốt hơn: xoá mềm thành **thao tác có tên**, không phải một lần
+  ghi cột thô.
+
+**Nghiệm thu:** `live-035c-036` 23/23, kể cả phép thử *"`UPDATE` thẳng
+`deleted_at` VẪN bị chặn"* — canh cho Defense-in-Depth không bị gỡ về sau.
 
 ✅ **KHÔNG phải vi phạm** — hai bảng sau cố ý không có `deleted_at`:
 
@@ -209,11 +237,16 @@ dòng điều khoản thương mại ghi sai **không có đường nào để g
 |---|---|
 | **Điều IX · đơn vị đo** | `assignment_daily_reports.output_qty` không có cột đơn vị riêng, kế thừa `uom` của Assignment cha. Trong phạm vi một aggregate là chấp nhận được — nhưng cần chốt. |
 | **Điều X · Performance Budget** | Đo được: mọi truy vấn **177–228 ms**, trong ngưỡng CRUD < 300 ms. Nhưng riêng vòng mạng tới Supabase đã ~180 ms — biên còn lại rất mỏng, và bảng hiện gần như rỗng. |
-| **Điều XI · ADR-004** | Last-Write-Wins vẫn đang hiệu lực. Chặn việc mở quyền GHI cho Portal đối tác. |
+| **Điều XI · ADR-004** | ✅ đã phê duyệt · ⏳ migration `034`. **Chặn `031`** cho tới khi xong. |
 | `DOMAIN_GLOSSARY.md` | ✅ đã dựng — phạm vi ba trụ cột. Mở rộng sang Kho · Kế toán · Cắt · Hoàn thành khi tới lượt. |
 
-> **B.1 và B.2 đã có [ADR-005](adr/ADR-005-udmd-i18n-and-soft-delete.md) — CHỜO PHÊ DUYỆT.**
-> Điều IV cấm viết SQL trước khi ADR được xác nhận.
+> **B.1 và B.2 ĐÃ ĐÓNG** — ADR-005 phê duyệt 01/08/2026; migration 035a·b·c ·
+> 036 · 036b đã chạy và nghiệm thu.
+>
+> ⚠️ **Còn lại một chốt chặn:** [ADR-004](adr/ADR-004-concurrency-control.md)
+> (đã phê duyệt) — migration `034` **phải chạy trước `031`**. Cho tới lúc đó,
+> Last-Write-Wins vẫn đang hiệu lực và **Portal đối tác KHÔNG được mở quyền
+> GHI**.
 
 ---
 
