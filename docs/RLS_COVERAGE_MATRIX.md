@@ -160,7 +160,22 @@ phục theo bản chụp — **không chạm một dòng thật nào**.
 | `assignment_daily_reports` · `INSERT` | ⛔ | — | ✅ **đúng ý đồ** — nhà thầu **có trách nhiệm ghi** |
 | `assignment_daily_reports` · `UPDATE`/`DELETE` | ⛔ | ⛔ | ⛔ sổ cái chỉ-ghi-thêm, **không ngoại lệ cho `service_role`** |
 
-### 🔴 14 LỖ HỔNG GHI — VÀ HAI ĐIỀU LÀM NÓ NẶNG HƠN DỰ TÍNH
+> ## ✅ 02/08/2026 — `031a` ĐÃ CHẠY. CẢ 14 LỖ HỔNG GHI ĐÃ ĐÓNG.
+>
+> Hồi quy `live-031a`: **35 đạt · 0 hỏng**. Bảng dưới đây giữ lại **nguyên
+> trạng trước khi vá** để làm bằng chứng lịch sử.
+>
+> | | sau 031a |
+> |---|---|
+> | Nhà thầu `INSERT`/`UPDATE`/`DELETE` 4 bảng lõi | ⛔ chặn — 12/12 phép thử |
+> | Buyer `INSERT`/`UPDATE` 4 bảng lõi | ⛔ chặn — 8/8 |
+> | **Người nội bộ (Monica)** | ✅ **không bị vạ lây** — 8/8 vẫn ghi được |
+> | Nhà thầu **vẫn đọc** 4 bảng | ✅ bằng đúng `service_role` |
+> | Nhà thầu **vẫn ghi** sản lượng theo giờ | ✅ |
+>
+> Gốc của lỗ hổng: xem `supabase/migrations/031a_block_external_write.sql`.
+
+### 🔴 14 LỖ HỔNG GHI *(nguyên trạng trước 031a)* — HAI ĐIỀU LÀM NÓ NẶNG HƠN DỰ TÍNH
 
 **① `Sub SC2` GHI ĐƯỢC Y HỆT `Sub SC1`.**
 Một nhà thầu **không được giao bất kỳ phần việc nào** vẫn sửa được số lượng
@@ -249,4 +264,12 @@ theo lược đồ** — nên A001 liệt kê **động**.
 |---|---|---|
 | 01/08/2026 | Lập bảng. Đo 30 bảng × 5 vai + 11 view. Buyer đo bằng khách hàng thật (21/21 đạt). | Claude |
 | 01/08/2026 | `S001` đã chạy (16/16 đối chiếu đạt). **Đo lại toàn bộ:** 25 bảng × 7 vai · 15 phép GHI · 11 view. Phát hiện **14 lỗ hổng GHI**, trong đó `qa_audit_reports` là **mới**. Ghi nhận một kết luận sai của chính bài đo (`v_po_shipments`). | Claude |
-| | *Còn chờ:* kết quả `A001` để chốt cờ `security_invoker` của 3 view vẫn rỗng | |
+| 02/08/2026 | `A001` chạy — Kiến trúc sư xác nhận. `031a` chạy — đối chiếu **8/8**. Hồi quy `live-031a` **35/35**. **14/14 lỗ hổng GHI đã đóng, người nội bộ không bị vạ lây.** Viết `A002 · Policy Coverage`. | Claude |
+| | *Còn chờ:* chạy `A002` → rồi mới sang `031b` (Line Map + `order_items` cho Buyer) | |
+
+> ⚠️ **Một lỗi của chính bài hồi quy, ghi lại để không lặp:** bản đầu của
+> `live-031a` viết cứng số dòng chờ (`orders = 4`…), trong khi chính nó vừa
+> tạo 4 dòng tạm cho phép thử `DELETE` → báo **5 lỗi GIẢ**. Sửa bằng cách dọn
+> dòng tạm ngay sau mỗi phép thử, và đối chiếu với **số dòng `service_role`
+> thấy** thay vì hằng số. Đây là lần thứ hai số viết cứng gây báo động giả
+> (lần đầu: `live-024` với "2 đơn hàng").
