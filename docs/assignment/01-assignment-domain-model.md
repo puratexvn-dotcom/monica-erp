@@ -97,8 +97,8 @@ priority           VARCHAR NOT NULL DEFAULT 'NORMAL'
                    IN (LOW, NORMAL, HIGH, URGENT)
 
 -- ─── KẾ HOẠCH và THỰC TẾ, giữ CẢ HAI ─────────────────────────────
-planned_start      DATE  BẮT BUỘC
-planned_finish     DATE  BẮT BUỘC
+planned_start      DATE  nullable ở CSDL · BẮT BUỘC khi → ISSUED
+planned_finish     DATE  nullable ở CSDL · BẮT BUỘC khi → ISSUED
 actual_start       DATE                   NULL = chưa bắt đầu
 actual_finish      DATE                   NULL = chưa xong
 
@@ -135,6 +135,25 @@ actual_finish − planned_finish   trễ HOÀN THÀNH  → làm chậm hơn cam 
 ⚠️ **Cửa sổ quyền dùng `planned_*`, không dùng `actual_*`.** Khoảng hiệu lực là
 thứ HAI BÊN đã thoả thuận; `actual_*` là thứ đã xảy ra. Lấy `actual_finish` làm
 mốc tắt quyền nghĩa là đối tác tự quyết định khi nào quyền của mình hết.
+
+#### Hai ngày kế hoạch nullable ở CSDL, bắt buộc ở Service
+
+Lúc soạn `DRAFT` chưa biết ngày. Ép `NOT NULL` nghĩa là không lưu nháp được, và
+người dùng sẽ điền ngày giả để đi tiếp — đúng lỗi `etd_date DEFAULT CURRENT_DATE`
+của migration 024.
+
+CSDL giữ **BẤT BIẾN DỮ LIỆU**, Service giữ **QUY TRÌNH**:
+
+```
+CSDL     assignments_planned_order   finish >= start  (khoan dung với NULL)
+         assignments_actual_order    finish >= start  (khoan dung với NULL)
+Service  → ISSUED đòi đủ cả hai ngày, kèm thông báo người dùng đọc hiểu
+```
+
+Khoan dung với **TRỐNG**, nghiêm khắc với **NGƯỢC**: `finish < start` không phải
+dữ liệu chưa xong — nó là dữ liệu **sai**, và nó làm mọi phép tính trễ hạn ra số
+âm. Mục 9 của tài liệu 03 đặt điều kiện chuyển trạng thái ở Service; ràng buộc
+thứ tự ngày là bất biến dữ liệu nên nằm ở CSDL.
 
 ⚠️ **KHÔNG ràng buộc `actual_start ≥ planned_start`.** Bắt đầu sớm hơn kế hoạch
 là chuyện tốt, không phải lỗi dữ liệu. Bất thường được **báo** ở tầng Domain,
@@ -394,7 +413,7 @@ làm** — để không ai tưởng 029 phủ hết, và cũng không ai quên t
 | **Timeline** | view `v_assignment_timeline` | **029** |
 | **Material Issue** | cột `assignment_id` trên `subcon_issue_logs` (đã có bảng) | **029** |
 | **QA Reports** | cột `assignment_id` trên `qa_audit_reports` (đã có bảng) | **029** |
-| **Attachments** | dùng lại `md_documents` với `entity_type='assignment'` | **029** — không bảng mới |
+| **Attachments** | dùng lại `md_documents` — nhưng `entity_type` chưa nhận `ASSIGNMENT` | ⏸ **hoãn** — xem dưới |
 | **Shipment** | cột `assignment_id` trên `shipments` (đã có bảng) | **029** |
 | **Issues** | ⏸ **hoãn** — xem dưới | sau |
 | **Settlement** | ⏸ **hoãn** — xem dưới | sau |
@@ -405,12 +424,26 @@ làm** — để không ai tưởng 029 phủ hết, và cũng không ai quên t
 `capa_logs` đã có ở migration 023. Dựng trước khi biết nó khác `capa_logs` chỗ
 nào là đoán mò (Điều XXIX).
 
+**Vì sao hoãn `Attachments`.** Đo được: `md_documents` **và** `md_comments`
+cùng mang ràng buộc của migration 016 —
+`CHECK (entity_type IN ('STYLE','ORDER','COSTING','INQUIRY','CUSTOMER','SAMPLE','MILESTONE'))`
+— không có `ASSIGNMENT`. Quyết định 6 ưu tiên chuyển sang Master Data thay vì
+nới CHECK cứng, nhưng việc đó đổi ràng buộc trên **hai bảng dùng chung của /md**
+và kéo theo một hệ quả có thật: mã lỗi đổi từ 23514 sang 23503, mà
+`friendlyDbError` đang dịch 23503 thành *"Dữ liệu đang được tham chiếu ở nơi
+khác"* — một câu sai hẳn cho ca này.
+
+Đính kèm tài liệu **không chặn** Assignment Domain: chưa có màn hình nào để tải
+tệp lên cho tới sau bước 031. Gộp một cuộc đổi ràng buộc trên hai bảng dùng
+chung vào 029 là trộn hai rủi ro không liên quan — tách thành migration riêng,
+làm cùng lúc dựng màn hình Assignment.
+
 **Vì sao hoãn `Settlement`.** Quyết toán cần cả sản lượng đã nghiệm thu **lẫn**
 điều khoản thương mại **lẫn** dữ liệu thanh toán ở `financial_records` — ba
 nguồn mà hai trong ba chưa chạy thật (0 dòng và 2 dòng mồ côi). Thiết kế quyết
 toán trước khi có một Assignment nào đóng sổ là thiết kế trên giả định.
 
-⚠️ **Bốn cột `assignment_id` thêm vào bảng đã có đều NULLABLE.** Dữ liệu cũ
+⚠️ **Sáu cột `assignment_id` thêm vào bảng đã có đều NULLABLE.** Dữ liệu cũ
 không thuộc Assignment nào và sẽ **mãi mãi** không thuộc — đó là sự thật lịch
 sử, không phải thiếu sót cần lấp. Ép `NOT NULL` là buộc bịa Assignment ngược cho
 quá khứ, đúng lỗi `etd_date DEFAULT CURRENT_DATE` của migration 024.

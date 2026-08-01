@@ -359,6 +359,121 @@ const VN = {
   po_sh_no_docs: '{0} lô đã rời cảng mà thiếu chứng từ.',
   po_sh_flagged: '{0} lô có dữ liệu bất thường cần rà soát.',
   po_sh_etd_soon: 'Còn {0} ngày tới ngày tàu chạy mà vẫn còn {1} thùng chưa xếp lô.',
+
+  // ─── PHẦN VIỆC (Assignment) ─────────────────────────────────────────────
+  asg_title: 'Phần việc giao đối tác',
+  asg_subtitle: 'Giao việc · theo dõi · nghiệm thu',
+  asg_new: 'Lập phần việc',
+  asg_empty: 'Chưa có phần việc nào',
+  asg_empty_sub: 'Bấm “Lập phần việc” để giao việc đầu tiên cho đối tác.',
+
+  // Trạng thái — khớp từng chữ với ràng buộc assignments_status_valid
+  asg_status_DRAFT: 'Bản nháp',
+  asg_status_ISSUED: 'Đã giao',
+  asg_status_ACCEPTED: 'Đã nhận việc',
+  asg_status_REJECTED: 'Đối tác từ chối',
+  asg_status_IN_PROGRESS: 'Đang chạy',
+  asg_status_SUSPENDED: 'Tạm dừng',
+  asg_status_COMPLETED: 'Báo đã xong',
+  asg_status_CLOSED: 'Đã nghiệm thu',
+  asg_status_CANCELLED: 'Đã huỷ',
+
+  // Độ ưu tiên
+  asg_prio_LOW: 'Thấp',
+  asg_prio_NORMAL: 'Bình thường',
+  asg_prio_HIGH: 'Cao',
+  asg_prio_URGENT: 'Rất gấp',
+
+  // Phạm vi — NULL không bao giờ nghĩa là “tất cả”
+  asg_scope_ORDER: 'Cả đơn hàng',
+  asg_scope_SITE: 'Một địa điểm',
+  asg_scope_LINE: 'Một chuyền',
+  asg_scope_STYLE_OPERATION: 'Một công đoạn',
+
+  // Trạng thái báo cáo ngày
+  asg_rep_COMPLETE: 'Đã báo đủ',
+  asg_rep_PARTIAL: 'Báo thiếu số',
+  asg_rep_OVERDUE: 'Trễ báo cáo',
+  asg_rep_NOT_STARTED: 'Chưa tới hạn',
+
+  // Cột bảng
+  asg_col_no: 'Số phần việc',
+  asg_col_partner: 'Đối tác',
+  asg_col_po: 'Đơn hàng',
+  asg_col_scope: 'Phạm vi',
+  asg_col_qty: 'Số lượng giao',
+  asg_col_plan: 'Kế hoạch',
+  asg_col_owner: 'Người phụ trách',
+  asg_col_status: 'Trạng thái',
+
+  // Thiếu báo cáo
+  asg_overdue_title: 'Phần việc trễ báo cáo',
+  asg_overdue_days: '{0} ngày trễ',
+  asg_overdue_since: 'Trễ từ {0}',
+  asg_no_overdue: 'Không có phần việc nào trễ báo cáo',
+
+  // Tiến độ
+  asg_prog_output: 'Sản lượng',
+  asg_prog_target: 'Chỉ tiêu',
+  asg_prog_defect: 'Tỉ lệ lỗi',
+  asg_prog_days: 'Ngày đã báo',
+  asg_prog_none: 'Chưa có báo cáo nào',
+
+  // Hành động
+  asg_act_ISSUED: 'Giao việc',
+  asg_act_IN_PROGRESS: 'Mở lại',
+  asg_act_SUSPENDED: 'Tạm dừng',
+  asg_act_COMPLETED: 'Báo đã xong',
+  asg_act_CLOSED: 'Nghiệm thu',
+  asg_act_CANCELLED: 'Huỷ phần việc',
+  asg_reason_label: 'Lý do',
+  asg_reason_hint: 'Tối thiểu 10 ký tự — lý do một chữ không phải là lý do.',
+  asg_confirm: 'Xác nhận',
+  asg_cancel_btn: 'Đóng',
+  asg_saving: 'Đang lưu…',
+
+  // Biểu mẫu lập phần việc
+  asg_f_partner: 'Giao cho đối tác',
+  asg_f_order: 'Đơn hàng',
+  asg_f_scope: 'Phạm vi giao',
+  asg_f_qty: 'Số lượng giao',
+  asg_f_uom: 'Đơn vị',
+  asg_f_owner: 'Người phụ trách',
+  asg_f_priority: 'Độ ưu tiên',
+  asg_f_start: 'Bắt đầu (kế hoạch)',
+  asg_f_finish: 'Kết thúc (kế hoạch)',
+  asg_f_dates_hint: 'Để trống được khi còn là bản nháp. Bắt buộc trước khi giao việc.',
+  asg_partner_empty: 'Chưa có đối tác nào đủ điều kiện nhận việc',
+  asg_ct_empty: 'Chưa khai loại hợp đồng nào. Hãy khai danh mục trước khi ghi điều khoản.',
+
+  // Thông báo lỗi — khoá do policies/ và permission/ trả về
+  assignment_err_deleted: 'Phần việc đã bị xoá.',
+  assignment_err_terminal: 'Phần việc đã chốt sổ. Hãy lập phần việc mới.',
+  assignment_err_transition: 'Không chuyển sang trạng thái đó được từ đây.',
+  assignment_err_status_invalid: 'Trạng thái không hợp lệ.',
+  assignment_err_reason_too_short: 'Lý do phải có ít nhất 10 ký tự.',
+  assignment_err_issue_missing: 'Còn thiếu thông tin bắt buộc trước khi giao việc.',
+  assignment_err_window_invalid: 'Khoảng ngày kế hoạch không hợp lệ.',
+  assignment_err_scope_missing: 'Phạm vi còn thiếu thông tin.',
+  assignment_err_scope_extra: 'Phạm vi thừa thông tin so với cấp đã chọn.',
+  assignment_err_scope_level_invalid: 'Cấp phạm vi không hợp lệ.',
+  assignment_err_reports_missing: 'Còn ngày chưa báo cáo — không báo xong được.',
+  assignment_err_completion_unchecked: 'Chưa kiểm được số ngày thiếu báo cáo.',
+  assignment_err_partner_decides: 'Chỉ đối tác mới được nhận hoặc từ chối việc.',
+  assignment_err_internal_only: 'Chỉ người nội bộ mới thao tác được.',
+  assignment_err_not_yours: 'Phần việc này không thuộc về bạn.',
+  assignment_err_not_visible_yet: 'Phần việc chưa được giao cho bạn.',
+  assignment_err_write_status: 'Trạng thái hiện tại không cho ghi dữ liệu.',
+  assignment_err_no_window: 'Chưa có khoảng ngày kế hoạch.',
+  assignment_err_window_closed: 'Ngoài khoảng ngày kế hoạch — quyền ghi đã tắt.',
+  assignment_err_decide_status: 'Phần việc không ở trạng thái chờ nhận việc.',
+
+  asg_scope_need_site: 'Chưa khai địa điểm sản xuất nào — cấp này tạm chưa dùng được.',
+  asg_scope_need_line_site: 'Chưa chuyền nào được gắn địa điểm — cấp này tạm chưa dùng được.',
+  asg_order_empty: 'Chưa có đơn hàng nào để giao việc',
+  asg_created: 'Đã lập phần việc {0}',
+  asg_form_title: 'Lập phần việc mới',
+
 };
 
 export type MdKey = keyof typeof VN;
@@ -697,6 +812,121 @@ const EN: Record<MdKey, string> = {
   po_sh_no_docs: '{0} departed shipments are missing documents.',
   po_sh_flagged: '{0} shipments have anomalies to review.',
   po_sh_etd_soon: '{0} days to departure with {1} cartons still not loaded.',
+
+  // ─── PHẦN VIỆC (Assignment) ─────────────────────────────────────────────
+  asg_title: 'Assignments',
+  asg_subtitle: 'Assign · track · close out',
+  asg_new: 'New assignment',
+  asg_empty: 'No assignments yet',
+  asg_empty_sub: 'Use “New assignment” to hand the first job to a partner.',
+
+  // Trạng thái — khớp từng chữ với ràng buộc assignments_status_valid
+  asg_status_DRAFT: 'Draft',
+  asg_status_ISSUED: 'Issued',
+  asg_status_ACCEPTED: 'Accepted',
+  asg_status_REJECTED: 'Rejected',
+  asg_status_IN_PROGRESS: 'In progress',
+  asg_status_SUSPENDED: 'Suspended',
+  asg_status_COMPLETED: 'Completed',
+  asg_status_CLOSED: 'Closed',
+  asg_status_CANCELLED: 'Cancelled',
+
+  // Độ ưu tiên
+  asg_prio_LOW: 'Low',
+  asg_prio_NORMAL: 'Normal',
+  asg_prio_HIGH: 'High',
+  asg_prio_URGENT: 'Urgent',
+
+  // Phạm vi — NULL không bao giờ nghĩa là “tất cả”
+  asg_scope_ORDER: 'Whole order',
+  asg_scope_SITE: 'One site',
+  asg_scope_LINE: 'One line',
+  asg_scope_STYLE_OPERATION: 'One operation',
+
+  // Trạng thái báo cáo ngày
+  asg_rep_COMPLETE: 'Complete',
+  asg_rep_PARTIAL: 'Partial',
+  asg_rep_OVERDUE: 'Overdue',
+  asg_rep_NOT_STARTED: 'Not due yet',
+
+  // Cột bảng
+  asg_col_no: 'Assignment no.',
+  asg_col_partner: 'Partner',
+  asg_col_po: 'Order',
+  asg_col_scope: 'Scope',
+  asg_col_qty: 'Assigned qty',
+  asg_col_plan: 'Planned',
+  asg_col_owner: 'Owner',
+  asg_col_status: 'Status',
+
+  // Thiếu báo cáo
+  asg_overdue_title: 'Missing daily reports',
+  asg_overdue_days: '{0} days overdue',
+  asg_overdue_since: 'Oldest gap {0}',
+  asg_no_overdue: 'No missing reports',
+
+  // Tiến độ
+  asg_prog_output: 'Output',
+  asg_prog_target: 'Target',
+  asg_prog_defect: 'Defect rate',
+  asg_prog_days: 'Days reported',
+  asg_prog_none: 'No reports yet',
+
+  // Hành động
+  asg_act_ISSUED: 'Issue',
+  asg_act_IN_PROGRESS: 'Reopen',
+  asg_act_SUSPENDED: 'Suspend',
+  asg_act_COMPLETED: 'Mark completed',
+  asg_act_CLOSED: 'Close out',
+  asg_act_CANCELLED: 'Cancel',
+  asg_reason_label: 'Reason',
+  asg_reason_hint: 'At least 10 characters — a one-word reason is not a reason.',
+  asg_confirm: 'Confirm',
+  asg_cancel_btn: 'Close',
+  asg_saving: 'Saving…',
+
+  // Biểu mẫu lập phần việc
+  asg_f_partner: 'Partner',
+  asg_f_order: 'Order',
+  asg_f_scope: 'Scope',
+  asg_f_qty: 'Assigned quantity',
+  asg_f_uom: 'Unit',
+  asg_f_owner: 'Owner',
+  asg_f_priority: 'Priority',
+  asg_f_start: 'Planned start',
+  asg_f_finish: 'Planned finish',
+  asg_f_dates_hint: 'May stay empty while draft. Required before issuing.',
+  asg_partner_empty: 'No eligible execution partners',
+  asg_ct_empty: 'No contract types declared yet. Please set up the catalogue first.',
+
+  // Thông báo lỗi — khoá do policies/ và permission/ trả về
+  assignment_err_deleted: 'This assignment was deleted.',
+  assignment_err_terminal: 'This assignment is closed. Create a new one instead.',
+  assignment_err_transition: 'That transition is not allowed from here.',
+  assignment_err_status_invalid: 'Invalid status.',
+  assignment_err_reason_too_short: 'Reason must be at least 10 characters.',
+  assignment_err_issue_missing: 'Required fields are missing before issuing.',
+  assignment_err_window_invalid: 'Planned date range is invalid.',
+  assignment_err_scope_missing: 'Scope is incomplete.',
+  assignment_err_scope_extra: 'Scope has fields beyond the selected level.',
+  assignment_err_scope_level_invalid: 'Invalid scope level.',
+  assignment_err_reports_missing: 'Some days are still unreported — cannot complete.',
+  assignment_err_completion_unchecked: 'Could not verify missing reports.',
+  assignment_err_partner_decides: 'Only the partner may accept or reject.',
+  assignment_err_internal_only: 'Internal users only.',
+  assignment_err_not_yours: 'This assignment is not yours.',
+  assignment_err_not_visible_yet: 'This assignment has not been issued to you.',
+  assignment_err_write_status: 'Current status does not allow writing.',
+  assignment_err_no_window: 'No planned window.',
+  assignment_err_window_closed: 'Outside the planned window — write access is closed.',
+  assignment_err_decide_status: 'Assignment is not awaiting a decision.',
+
+  asg_scope_need_site: 'No production site declared yet — this level is unavailable.',
+  asg_scope_need_line_site: 'No sewing line is linked to a site yet — this level is unavailable.',
+  asg_order_empty: 'No orders available',
+  asg_created: 'Assignment {0} created',
+  asg_form_title: 'New assignment',
+
 };
 
 const CN: Record<MdKey, string> = {
@@ -1033,6 +1263,121 @@ const CN: Record<MdKey, string> = {
   po_sh_no_docs: '{0} 个已开船批次缺少单证。',
   po_sh_flagged: '{0} 个批次数据异常，需要复核。',
   po_sh_etd_soon: '距开船仅 {0} 天，仍有 {1} 箱未装运。',
+
+  // ─── PHẦN VIỆC (Assignment) ─────────────────────────────────────────────
+  asg_title: '外发工作',
+  asg_subtitle: '分配 · 跟踪 · 验收',
+  asg_new: '新建工作',
+  asg_empty: '暂无工作',
+  asg_empty_sub: '点击“新建工作”将首个任务分配给合作方。',
+
+  // Trạng thái — khớp từng chữ với ràng buộc assignments_status_valid
+  asg_status_DRAFT: '草稿',
+  asg_status_ISSUED: '已下发',
+  asg_status_ACCEPTED: '已接单',
+  asg_status_REJECTED: '已拒绝',
+  asg_status_IN_PROGRESS: '进行中',
+  asg_status_SUSPENDED: '暂停',
+  asg_status_COMPLETED: '已报完工',
+  asg_status_CLOSED: '已验收',
+  asg_status_CANCELLED: '已取消',
+
+  // Độ ưu tiên
+  asg_prio_LOW: '低',
+  asg_prio_NORMAL: '普通',
+  asg_prio_HIGH: '高',
+  asg_prio_URGENT: '紧急',
+
+  // Phạm vi — NULL không bao giờ nghĩa là “tất cả”
+  asg_scope_ORDER: '整张订单',
+  asg_scope_SITE: '单个厂区',
+  asg_scope_LINE: '单条产线',
+  asg_scope_STYLE_OPERATION: '单个工序',
+
+  // Trạng thái báo cáo ngày
+  asg_rep_COMPLETE: '已完整上报',
+  asg_rep_PARTIAL: '上报不完整',
+  asg_rep_OVERDUE: '逾期未报',
+  asg_rep_NOT_STARTED: '未到期',
+
+  // Cột bảng
+  asg_col_no: '工作编号',
+  asg_col_partner: '合作方',
+  asg_col_po: '订单',
+  asg_col_scope: '范围',
+  asg_col_qty: '分配数量',
+  asg_col_plan: '计划',
+  asg_col_owner: '负责人',
+  asg_col_status: '状态',
+
+  // Thiếu báo cáo
+  asg_overdue_title: '缺少日报',
+  asg_overdue_days: '逾期 {0} 天',
+  asg_overdue_since: '自 {0} 起',
+  asg_no_overdue: '没有缺报',
+
+  // Tiến độ
+  asg_prog_output: '产量',
+  asg_prog_target: '目标',
+  asg_prog_defect: '不良率',
+  asg_prog_days: '已报天数',
+  asg_prog_none: '尚无报告',
+
+  // Hành động
+  asg_act_ISSUED: '下发',
+  asg_act_IN_PROGRESS: '重新开启',
+  asg_act_SUSPENDED: '暂停',
+  asg_act_COMPLETED: '报完工',
+  asg_act_CLOSED: '验收',
+  asg_act_CANCELLED: '取消',
+  asg_reason_label: '原因',
+  asg_reason_hint: '至少 10 个字符 — 一个字不算理由。',
+  asg_confirm: '确认',
+  asg_cancel_btn: '关闭',
+  asg_saving: '保存中…',
+
+  // Biểu mẫu lập phần việc
+  asg_f_partner: '合作方',
+  asg_f_order: '订单',
+  asg_f_scope: '分配范围',
+  asg_f_qty: '分配数量',
+  asg_f_uom: '单位',
+  asg_f_owner: '负责人',
+  asg_f_priority: '优先级',
+  asg_f_start: '计划开始',
+  asg_f_finish: '计划完成',
+  asg_f_dates_hint: '草稿阶段可留空，下发前必须填写。',
+  asg_partner_empty: '没有符合条件的合作方',
+  asg_ct_empty: '尚未维护合同类型，请先建立目录。',
+
+  // Thông báo lỗi — khoá do policies/ và permission/ trả về
+  assignment_err_deleted: '该工作已被删除。',
+  assignment_err_terminal: '该工作已结案，请另建新工作。',
+  assignment_err_transition: '无法从当前状态转换。',
+  assignment_err_status_invalid: '状态无效。',
+  assignment_err_reason_too_short: '原因至少需 10 个字符。',
+  assignment_err_issue_missing: '下发前仍缺少必填信息。',
+  assignment_err_window_invalid: '计划日期区间无效。',
+  assignment_err_scope_missing: '范围信息不完整。',
+  assignment_err_scope_extra: '范围超出所选层级。',
+  assignment_err_scope_level_invalid: '范围层级无效。',
+  assignment_err_reports_missing: '仍有未上报的日期，无法报完工。',
+  assignment_err_completion_unchecked: '无法确认缺报天数。',
+  assignment_err_partner_decides: '仅合作方可接受或拒绝。',
+  assignment_err_internal_only: '仅限内部人员操作。',
+  assignment_err_not_yours: '该工作不属于您。',
+  assignment_err_not_visible_yet: '该工作尚未下发给您。',
+  assignment_err_write_status: '当前状态不允许写入。',
+  assignment_err_no_window: '尚无计划区间。',
+  assignment_err_window_closed: '已超出计划区间，写入权限关闭。',
+  assignment_err_decide_status: '该工作不处于待接单状态。',
+
+  asg_scope_need_site: '尚未维护生产地点，该层级暂不可用。',
+  asg_scope_need_line_site: '尚无产线绑定地点，该层级暂不可用。',
+  asg_order_empty: '没有可分配的订单',
+  asg_created: '已创建工作 {0}',
+  asg_form_title: '新建工作',
+
 };
 
 export const MD_DICT = { VN, EN, CN } as const;

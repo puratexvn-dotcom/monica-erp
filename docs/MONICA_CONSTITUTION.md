@@ -718,3 +718,163 @@ Mọi migration, trước khi commit, phải tự kiểm đủ **mười hai** m
 
 **Chỉ khi TOÀN BỘ đều đạt mới được commit.** Một mục chưa đạt là dừng lại và
 báo cáo, không phải ghi chú "sẽ làm sau".
+
+---
+
+# XXXIII. ARCHITECTURE DECISION RECORD (ADR)
+
+> Ban hành cùng lúc với phê duyệt Migration 029. Áp dụng **từ 029 trở đi**.
+
+## 1. Khi nào bắt buộc
+
+Mọi Migration làm thay đổi **Domain Model** hoặc **Architecture** đều **BẮT BUỘC**
+có một ADR.
+
+ADR **không phải tài liệu hành chính.** Nó ghi lại **lý do** của quyết định kiến
+trúc, để cả con người và AI hiểu được bối cảnh khi đọc lại sau này.
+
+> **SQL mô tả HỆ THỐNG ĐÃ THAY ĐỔI NHƯ THẾ NÀO.**
+> **ADR mô tả VÌ SAO HỆ THỐNG PHẢI THAY ĐỔI.**
+
+Nếu chỉ còn SQL mà không còn ADR, thì sau vài năm cả con người và AI đều khó
+hiểu được ý đồ kiến trúc ban đầu.
+
+## 2. Sáu mục tối thiểu
+
+Mỗi ADR dài khoảng **1–2 trang**, gồm:
+
+| Mục | Nội dung |
+|---|---|
+| **1. Context** | Vì sao cần thay đổi · vấn đề hiện tại · **bằng chứng hoặc dữ liệu thực tế** |
+| **2. Decision** | Quyết định được chọn · phạm vi áp dụng |
+| **3. Alternatives Considered** | Những phương án đã cân nhắc · **vì sao không chọn** |
+| **4. Consequences** | Lợi ích · đánh đổi · Technical Debt (nếu có) |
+| **5. Rollback Impact** | Quay lui ảnh hưởng gì · có cần Migration bù không |
+| **6. References** | Hiến pháp · Migration · ADR liên quan |
+
+Mục **Context** phải mang **số liệu đo được**, không phải nhận định. "Bảng này ít
+dùng" là nhận định; "bảng này 0 dòng" là bằng chứng.
+
+Mục **Alternatives** là mục dễ bỏ nhất và **có giá trị nhất**: nó là thứ duy nhất
+trả lời được câu hỏi *"sao không làm cách kia?"* mà người đọc sau chắc chắn sẽ hỏi.
+
+## 3. Thứ tự chuẩn — không được đảo
+
+```
+Architecture Review
+      ↓
+    ADR                    ← phải PHÊ DUYỆT xong ở đây
+      ↓
+Migration Design Review
+      ↓
+Impact Analysis
+      ↓
+SQL Migration              ← chỉ được bắt đầu sau khi ADR duyệt
+      ↓
+Regression → Performance → Security → Snapshot → Commit
+```
+
+> **KHÔNG viết SQL trước khi ADR được phê duyệt.**
+
+## 4. Definition of Done
+
+ADR là **tài liệu chính thức của MONICA MOS** và là **một phần của Definition of
+Done** đối với mọi Migration thay đổi Domain. Migration không có ADR là Migration
+**chưa xong**, dù SQL đã chạy và mọi bài kiểm đã xanh.
+
+## 5. Nơi lưu
+
+```
+docs/adr/README.md                        mục lục
+docs/adr/ADR-NNN-<ten-ngan>.md            đánh số liên tục, không tái sử dụng số
+```
+
+ADR **không bao giờ bị xoá hay sửa lịch sử.** Một quyết định bị thay thế thì viết
+ADR mới và đánh dấu ADR cũ là *Superseded by ADR-NNN* — vì lý do của một quyết
+định sai vẫn là thông tin có giá trị.
+
+## 6. Nợ chuyển tiếp đã ghi nhận
+
+⚠️ **ADR-002 (Migration 029) được viết SAU SQL.** Chính sách này ban hành cùng
+lúc với quyết định phê duyệt 029, nên 029 là **trường hợp chuyển tiếp duy nhất**.
+Từ **030 trở đi** không có ngoại lệ.
+
+---
+
+# XXXIV. REQUEST ID — CHỐNG LẬP CHỨNG TỪ HAI LẦN
+
+> Ban hành cùng migration 029c. Thiết kế đầy đủ: [ADR-003](adr/ADR-003-request-id.md).
+
+## 1. Luật
+
+> **Mọi bảng chứng từ nghiệp vụ CÓ THỂ LẬP MỚI đều phải có cột `request_id UUID`
+> kèm chỉ mục duy nhất toàn phần. Không có ngoại lệ.**
+> **Bảng chứng từ mới thiếu nó là bảng CHƯA HOÀN THÀNH.**
+
+Áp dụng cho: PO · Assignment · Shipment · Settlement · QA Approval ·
+Supplier Receipt · Payment — và mọi chứng từ của Buyer Portal, Subcon Portal,
+Sales, HR, CRM, AI về sau.
+
+## 2. Vì sao
+
+Số nghiệp vụ sinh từ dãy số cơ sở dữ liệu. **Hai lần `INSERT` = hai chứng từ
+thật, không thu hồi được, và KHÔNG ngoại lệ nào nổ ra.** Đây là lỗi im lặng
+tuyệt đối: hệ thống chỉ đơn giản có hai phần việc giống hệt nhau.
+
+`retry: 0` ở tầng ứng dụng chỉ chặn được **một** trong bốn đường gửi trùng.
+Ba đường còn lại — bấm hai lần, trình duyệt gửi lại, hai tab — chỉ cơ sở dữ
+liệu chặn được.
+
+⚠️ Với **tác nhân AI**, thử lại là **hành vi bình thường của nó**, không phải
+tai nạn. Khi Monica có tự động hoá, `request_id` chuyển từ lưới an toàn thành
+**điều kiện hoạt động**.
+
+## 3. Bốn thứ KHÔNG được nhầm lẫn
+
+```
+request_id  ≠  HTTP Request ID  ≠  Trace ID  ≠  Correlation ID
+```
+
+| | `request_id` | HTTP Request ID | Trace ID | Correlation ID |
+|---|---|---|---|---|
+| Định danh | **ý định lập chứng từ** | một lượt HTTP | chuỗi lời gọi | tiến trình |
+| Ai sinh | trình duyệt, lúc **mở biểu mẫu** | hạ tầng | tầng truy vết | phía khởi tạo |
+| **Gửi lại** | ⭐ **GIỮ NGUYÊN** | **ĐỔI** | **ĐỔI** | giữ nguyên |
+| Sống ở đâu | **cột CSDL, vĩnh viễn** | nhật ký | hệ truy vết | nhật ký |
+
+> **Phép thử một câu:** *bấm Gửi hai lần thì hai lần đó có cùng giá trị này
+> không?* Không → **đã điền nhầm**, và bảo vệ đã mất trong im lặng.
+
+## 4. Definition of Done
+
+```
+CREATE TABLE chứng từ mới  →  BẮT BUỘC gọi mos_add_request_id()
+Create*DTO mới             →  BẮT BUỘC có trường requestId (không tuỳ chọn)
+Service tạo mới            →  BẮT BUỘC bắt 23505 và TRẢ VỀ DÒNG CŨ với ok:true
+Biểu mẫu mới               →  BẮT BUỘC sinh khoá lúc MỞ, không lúc BẤM
+Bài kiểm sống              →  gửi HAI LẦN cùng khoá ⇒ đúng MỘT dòng
+```
+
+⚠️ Để `23505` nổi lên là **phản tác dụng**: người dùng thấy *"Mã này đã tồn
+tại"* cho một thao tác **đã thành công**, tưởng là hỏng, rồi bấm lại với khoá
+mới — tạo ra đúng bản trùng mà cả cơ chế sinh ra để chặn.
+
+## 5. Thứ nó KHÔNG giải quyết
+
+- **Hai người khác nhau** cùng lập một chứng từ giống nhau — hai khoá khác nhau,
+  hợp lệ về kỹ thuật. Đó là bài toán *khoá nghiệp vụ*.
+- **Ghi đè đồng thời** — bài toán *xung đột*, xem
+  [ADR-004](adr/ADR-004-concurrency-control.md).
+- **Thao tác lặp có chủ ý** — biểu mẫu sinh khoá mới sau mỗi lần thành công,
+  nên việc này vẫn chạy bình thường, đúng như phải thế.
+
+## 6. Triển khai theo giai đoạn — KHÔNG Big Bang
+
+| Giai đoạn | Bảng |
+|---|---|
+| **029c** ✅ | `assignments` · `assignment_daily_reports` |
+| **033** ⏳ | `shipments` · `orders` · `qa_logs` · `capa_logs` · `subcon_orders` · `subcon_receipt_logs` · `financial_records` |
+
+⚠️ Chia giai đoạn là **yêu cầu về tính đúng đắn**, không phải để đỡ việc: cột và
+nhánh bắt `23505` phải đi cùng nhau. Thêm cột vào một bảng mà service chưa biết
+bắt lỗi là làm hỏng một phân hệ đang chạy.

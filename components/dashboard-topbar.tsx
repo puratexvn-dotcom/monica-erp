@@ -40,6 +40,13 @@ interface PageIdentity {
 }
 
 const PAGE_IDENTITY: Record<string, PageIdentity> = {
+  // ⚠️ PHẢI đứng TRƯỚC '/md'. `identityOf` duyệt theo thứ tự khai báo và trả về
+  // mục khớp ĐẦU TIÊN — đặt sau thì '/md/assignments' khớp '/md' và không bao
+  // giờ tới được dòng này.
+  '/md/assignments': {
+    title: 'Phần việc giao đối tác',
+    slogan: 'GIAO RÕ · THEO SÁT · NGHIỆM THU ĐÚNG',
+  },
   '/md': {
     title: 'Merchandiser Command Center',
     slogan: 'ĐÚNG · ĐỦ · ĐỀU • TẬN TÂM & TRÁCH NHIỆM',

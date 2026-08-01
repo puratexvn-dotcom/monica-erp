@@ -86,8 +86,15 @@ SELECT
   a.assignment_no,
   a.partner_id,
   a.order_id,
-  d.day               AS report_date,
-  (r.id IS NULL)      AS is_missing
+  d.day::DATE         AS report_date,
+  CASE
+    WHEN r.id IS NOT NULL AND r.output_qty IS NOT NULL
+                          AND r.target_qty IS NOT NULL  THEN 'COMPLETE'
+    WHEN r.id IS NOT NULL                               THEN 'PARTIAL'
+    WHEN d.day::DATE < (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE
+                                                        THEN 'OVERDUE'
+    ELSE 'NOT_STARTED'
+  END                 AS report_status
 FROM assignments a
 -- Sinh từng NGÀY trong khoảng hiệu lực, tới hôm nay là dừng
 CROSS JOIN LATERAL generate_series(
@@ -95,8 +102,11 @@ CROSS JOIN LATERAL generate_series(
   LEAST(a.planned_finish, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE),
   INTERVAL '1 day'
 ) AS d(day)
+-- Bản ĐANG HIỆU LỰC là bản KHÔNG CÓ CON
 LEFT JOIN assignment_daily_reports r
        ON r.assignment_id = a.id AND r.report_date = d.day::DATE
+      AND NOT EXISTS (SELECT 1 FROM assignment_daily_reports c
+                       WHERE c.parent_report_id = r.id)
 WHERE a.deleted_at IS NULL
   AND a.status IN ('ACCEPTED', 'IN_PROGRESS', 'COMPLETED');
 ```
@@ -118,7 +128,16 @@ thiếu. Assignment chạy tới 20/08 thì ngày 15/08 chưa thể "thiếu bá
 đòi báo cáo sản lượng. Đưa nó vào là sinh ra hàng loạt cảnh báo giả — và cảnh
 báo giả làm người ta ngừng nhìn bảng cảnh báo.
 
-**Không có cột `is_missing` nào được lưu.** Điều XXVIII.1.
+**Không có cột nào được lưu.** Điều XXVIII.1.
+
+**Bốn giá trị chứ không phải một cờ đúng/sai.** `NOT_STARTED` khác `OVERDUE`
+— *"chưa tới hạn"* khác *"đã trễ"*. Gộp lại thì bảng điều khiển đỏ rực mỗi
+sáng và không ai nhìn nữa. `PARTIAL` tách riêng vì một phiếu thiếu sản lượng
+không phải phiếu đã nộp.
+
+**`NOT EXISTS` là cách đọc sổ cái.** Bản đang hiệu lực của một ngày là bản
+**không có bản đính chính nào trỏ về**. Thiếu mệnh đề này thì một ngày đã đính
+chính sẽ trả hai dòng — và con số sản lượng bị đếm đôi.
 
 ## 4. Chảy vào bảng điều khiển
 
