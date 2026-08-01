@@ -65,6 +65,42 @@ Tuyệt đối không một bài kiểm thử nào được phép dùng lệnh `
 - Kiểm thử phá huỷ **BẮT BUỘC** phải tạo dữ liệu tạm → Test → Rollback/Xoá.
 - Snapshot chỉ là **lớp phòng vệ cuối cùng**, không phải chiến lược kiểm thử.
 
+### V.1 — KHÔNG ĐƯỢC AUDIT BẰNG BẢNG RỖNG *(bổ sung 01/08/2026)*
+
+> **Audit chỉ có giá trị khi có dữ liệu thật, hoặc có seed chuẩn. Không được
+> kết luận `PASS` chỉ vì `0 dòng`.** — Kiến trúc sư trưởng
+
+Trên một bảng rỗng, hai câu trả lời hoàn toàn khác nhau trông giống hệt nhau:
+
+| thấy | có thể nghĩa là | hoặc nghĩa là |
+|---|---|---|
+| `0 dòng` | ✅ RLS đang chặn đúng | ⛔ chẳng có gì để mà thấy |
+
+Bài đo không phân biệt được hai thứ đó thì **không đo được gì**. Ghi `⚪ không
+kết luận được`, không được ghi `✅`.
+
+Ba lần đã dính đúng lỗi này:
+
+| Lần | Đã báo | Sự thật |
+|---|---|---|
+| Ma trận bảo mật v1 | "nhà thầu bị chặn 5/5 bảng" | cả 5 bảng đều rỗng — chưa đo gì |
+| Buyer, Bước 1 của 031 | "Buyer thấy 0 ở mọi bảng" | tài khoản chưa nối `buyer_accounts` |
+| Soi 11 view | — | 6/11 view rỗng, phép đo hành vi vô hiệu |
+
+**Hệ quả bắt buộc:** trước mỗi đợt Audit, chạy dữ liệu nền
+[`supabase/seeds/S001_business_baseline.sql`](../supabase/seeds/S001_business_baseline.sql).
+Bảng nào vẫn rỗng sau khi gieo thì phải được **liệt kê tên trong báo cáo**,
+kèm chữ "chưa đo được" — không được im lặng cho qua.
+
+### V.2 — HỎI CÂU VỀ CẤU HÌNH BẰNG CÁCH ĐỌC CẤU HÌNH *(bổ sung 01/08/2026)*
+
+Chi tiết ở [Điều XXXI phụ lục A](ENGINEERING_PLAYBOOK.md) của Playbook. Tóm tắt:
+
+- **K-1** · Bảng chỉ-ghi-thêm kiểm bằng **lược đồ** (`pg_trigger`), không bằng
+  ghi thử — ghi thử rồi không xoá được là **cửa một chiều**.
+- **K-2** · Không đo quyền **GHI** bằng cách **GHI**. Đọc `pg_policies`, hoặc
+  chạy trong giao dịch kết thúc bằng `ROLLBACK`.
+
 ## VI. ENGINEERING CONSTITUTION
 
 Mọi Migration chỉ được Commit khi vượt qua bộ kiểm duyệt **12 bước**:
