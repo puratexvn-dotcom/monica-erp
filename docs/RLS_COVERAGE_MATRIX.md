@@ -81,7 +81,7 @@ Ba cột đó khác nhau ở đâu thì **ở đó mới có phân quyền theo 
 | `assignment_bundles` | 1 | ⛔ | ⛔ | ⛔ | ⛔ | 🟡 **0** | ✅ | ✅ |
 | `assignment_daily_reports` | 1 | ⛔ | ⛔ | ⛔ | ⛔ | ✅ **1 — của mình** | ✅ | ✅ |
 | `assignment_commercial_terms` | 0 | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ | ⚪ |
-| **`subcontractors`** | 2 | ⛔ | ⛔ | 🔴 **2** | 🔴 **2** | 🔴 **2** | ✅ | ✅ |
+| **`subcontractors`** | 2 | ⛔ | ⛔ | ~~🔴 2~~ ✅ **0** | ~~🔴 2~~ ✅ **0** | ~~🔴 2~~ ✅ **0** *(SC1 không có cầu nối)* · **1** với `SERVICE_PARTNER` | ✅ | ✅ |
 | **`cut_tickets`** | 2 | ⛔ | ⛔ | 🔴 **2** | 🔴 **2** | 🔴 **2** | ✅ | ✅ |
 | **`cut_bundles`** | 3 | ⛔ | ⛔ | 🔴 **3** | 🔴 **3** | 🔴 **3** | ✅ | ✅ |
 | **`sewing_lines`** | 4 | ⛔ | ⛔ | 🟡 **0** | 🟡 **0** | 🟡 **0** | ✅ | ✅ |
@@ -300,7 +300,23 @@ theo lược đồ** — nên A001 liệt kê **động**.
 | 02/08/2026 | **A001 phát hiện `anon` gọi được 13/14 hàm `SECURITY DEFINER`, gồm 2 hàm GHI.** `038` + `038b` chạy → **0/14**. `038c` không đủ quyền đổi mặc định của `supabase_admin` — rủi ro tồn đọng, đã ghi ở `SECURITY_DEFINER_REGISTRY.md` Mục 6. | Claude |
 | 02/08/2026 | A001 + A002 gộp **một tập kết quả**: trước đó SQL Editor chỉ hiện `SELECT` cuối, nên Mục 1–3 chưa từng tới mắt ai. Sửa **ba kết luận sai** của chính hai bài kiểm. | Claude |
 | 02/08/2026 | **`031b` chạy · hồi quy 20/20.** Nhà thầu hết mù; Buyer thấy `order_items` 3/3. Quét 113 quan hệ bằng phiên Buyer thật: **0 rò rỉ**. | Claude |
-| | *Còn chờ:* `031c` — thu hẹp `subcontractors` (hết thấy nhà thầu khác) | |
+| 02/08/2026 | **`031c` + `031c2` chạy · hồi quy 13/13.** Nhà thầu hết thấy nhà thầu khác. Bản `031c` đầu **chặn phẳng thay vì khoanh vùng** — policy truy vấn `partners`, bảng mà chính đối tác không đọc được. Vá bằng hàm bắc cầu `SECURITY DEFINER`. → **Playbook K-3**. | Claude |
+| | *Còn chờ:* mở rộng `S001` cho 3 bảng `subcon_*` đang rỗng → rồi `031d` | |
+
+> ### 🔑 K-3 — bài học đắt nhất của chặng 031c
+>
+> **Truy vấn con bên trong một RLS policy vẫn chịu RLS**, đánh giá dưới quyền
+> người gọi. Policy bắc cầu qua `partners` (đóng với đối tác) ⇒ `EXISTS` luôn
+> sai ⇒ **chặn phẳng đội lốt khoanh vùng**.
+>
+> Và bài kiểm **suýt không bắt được**: nếu chỉ dùng `PRODUCTION_PARTNER` (vốn
+> chờ 0) thì chặn-phẳng cũng ra 0 và vẫn xanh. Nó bị bắt **chỉ vì** có một vai
+> **chờ thấy > 0**.
+>
+> ⚠️ **`031b` đang phụ thuộc ngầm vào policy đọc của `assignments`.** Chặng nào
+> siết `assignments` chặt hơn sẽ làm Line Map tối đi mà không ai đụng tới
+> `sewing_lines`. Phải đo lại `sewing_lines` sau **mọi** thay đổi trên
+> `assignments`.
 
 > ⚠️ **Một lỗi của chính bài hồi quy, ghi lại để không lặp:** bản đầu của
 > `live-031a` viết cứng số dòng chờ (`orders = 4`…), trong khi chính nó vừa
