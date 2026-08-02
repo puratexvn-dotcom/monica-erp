@@ -45,16 +45,18 @@ function ModuleCard({ mod }: { mod: ModuleItem }) {
         </span>
       )}
 
+      {/* Ô icon là mỏ neo thị giác — người vận hành nhận ra phân hệ bằng MÀU và
+          HÌNH trước khi kịp đọc chữ. Vì vậy nó to hơn hẳn phần chữ. */}
       <span
-        className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105 sm:mb-4 sm:h-14 sm:w-14 ${mod.tile}`}
+        className={`mb-3.5 flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105 sm:mb-4 sm:h-16 sm:w-16 ${mod.tile}`}
       >
-        <Icon className="h-5 w-5 sm:h-7 sm:w-7" strokeWidth={1.8} aria-hidden="true" />
+        <Icon className="h-6 w-6 sm:h-8 sm:w-8" strokeWidth={1.8} aria-hidden="true" />
       </span>
 
-      <h2 className="text-[13px] font-bold leading-snug tracking-tight text-slate-900 sm:text-[15px]">
+      <h2 className="text-sm font-bold leading-snug tracking-tight text-slate-900 sm:text-base">
         {mod.name}
       </h2>
-      <p className="mt-1 text-[11px] font-medium leading-snug text-slate-500 sm:text-xs">
+      <p className="mt-1 text-xs font-medium leading-snug text-slate-500">
         {mod.desc}
       </p>
     </>
@@ -62,8 +64,12 @@ function ModuleCard({ mod }: { mod: ModuleItem }) {
 
   // rounded-3xl + ring-inset: bo tròn mềm, viền vẽ vào PHÍA TRONG nên thẻ không
   // đổi kích thước giữa hai trạng thái — hàng thẻ không nhích khi rê chuột.
+  //
+  // ⚠️ Chiều cao tối thiểu 9,5rem (152px) ở màn hẹp: người vận hành xưởng bấm
+  // bằng ngón tay, nhiều khi đeo găng. 44px là ngưỡng tối thiểu của WCAG; một
+  // thẻ điều hướng chính đáng được rộng hơn nhiều lần ngưỡng đó.
   const base =
-    'group relative flex min-h-[8.5rem] flex-col rounded-3xl bg-white p-4 text-left ring-1 ring-inset ring-slate-200/80 sm:min-h-[10.5rem] sm:p-5';
+    'group relative flex min-h-[9.5rem] flex-col rounded-3xl bg-white p-5 text-left ring-1 ring-inset ring-slate-200/80 sm:min-h-[11.5rem] sm:p-6';
 
   if (!mod.href) {
     // Chưa có route ⇒ không bọc <Link>: bấm vào sẽ là 404. Vẫn giữ nguyên màu
@@ -75,10 +81,12 @@ function ModuleCard({ mod }: { mod: ModuleItem }) {
     );
   }
 
+  // Vòng focus mang MÀU CỦA CHÍNH PHÂN HỆ, không phải một màu chung: người đi
+  // bằng bàn phím cũng nhận diện được mình đang ở đâu, y như người dùng chuột.
   return (
     <Link
       href={mod.href}
-      className={`${base} shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:translate-y-0 active:scale-[0.98] ${mod.ring}`}
+      className={`${base} shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0 active:scale-[0.98] ${mod.ring} ${mod.focus}`}
     >
       {inner}
     </Link>

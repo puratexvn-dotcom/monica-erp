@@ -1,32 +1,35 @@
 import {
-  LayoutDashboard, Briefcase, Package, Factory, ShieldCheck, Ship, Users,
-  Building2, Truck, Handshake, CalendarRange, PieChart, History,
-  Sparkles, FileText, Settings,
+  LayoutDashboard, Handshake, Briefcase, CalendarRange, Factory, ShieldCheck,
+  Package, Ship, Users, Wallet, IdCard, PieChart, MessagesSquare, Sparkles,
+  FileText, SlidersHorizontal,
   type LucideIcon,
 } from 'lucide-react';
 
 // ============================================================================
 // SỔ ĐĂNG KÝ PHÂN HỆ — MONICA ONE APP LAUNCHER
 //
-// ĐÚNG 16 phân hệ. Không thiếu, không thừa, KHÔNG chia nhóm.
+// ĐÚNG 16 mục, đúng tên hiến định. Không bịa, không giữ tên cũ.
 //
-// ─── VÌ SAO THẺ TRẮNG + Ô ICON MÀU, KHÔNG PHẢI KHỐI MÀU ĐẶC ──────────────
-// Bản trước dùng thẻ nền màu đặc kín. Đó chính là ngôn ngữ thị giác của
-// dashboard ERP đời cũ — mười sáu khối màu bão hoà cạnh nhau đọc ra "phần mềm
-// quản trị nội bộ", không phải "nền tảng SaaS cao cấp".
+//   1–11  Business Workspace   — Hiến pháp §16.2
+//   12–16 Global / Platform Service — §29 · §30 · §31 · §33 · §34
 //
-// Notion · Linear · Microsoft 365 · Google Workspace đều làm ngược lại: nền
-// thẻ trung tính, MÀU dồn vào một ô icon nhỏ. Màu vẫn là thứ nhận diện phân
-// hệ ngay lập tức, nhưng mắt không bị mười sáu mảng màu đánh cùng lúc.
+// ⚠️ ĐIỂM CẦN BOARD PHÊ DUYỆT: §13.3 nói trang chủ trình bày **Business
+// Workspace** làm mô hình điều hướng chính, và §17.3 nói *"Global Services
+// shall not become Business Workspaces."* Năm mục 12–16 là Global/Platform
+// Service, nay xuất hiện như thẻ trên trang chủ. Hiển thị chúng như **lối vào**
+// không biến chúng **thành** Workspace, nhưng ranh giới này chưa được Hiến pháp
+// nói rõ. Đã báo cáo để Board quyết.
 //
-// ─── BETA, KHÔNG PHẢI "SẮP RA MẮT" ───────────────────────────────────────
-// Bảy phân hệ chưa có route mang huy hiệu `Beta` nhỏ ở góc trên phải. KHÔNG
-// làm xám, KHÔNG icon khoá, KHÔNG chữ "Coming Soon" — thẻ trông đầy đủ y hệt
-// các phân hệ khác.
+// ─── VÌ SAO THẺ TRẮNG + Ô ICON MÀU ───────────────────────────────────────
+// Mười sáu khối màu bão hoà cạnh nhau đọc ra "phần mềm quản trị nội bộ". Dồn
+// màu vào một ô icon bo tròn: vẫn nhận diện tức thì, mắt không bị đánh cùng lúc.
+// Đúng ngôn ngữ của Notion · Linear · Microsoft 365.
 //
-// ⚠️ Chúng vẫn KHÔNG bọc <Link>: chưa có route thì bấm vào là 404. Một huy
-// hiệu Beta nói thật rằng phần này đang dựng, còn một cú 404 thì phá vỡ niềm
-// tin vào toàn bộ hệ thống.
+// ─── MỖI PHÂN HỆ MỘT DẢI MÀU RIÊNG ───────────────────────────────────────
+// 16 dải Tailwind khác nhau, không dải nào dùng hai lần. Mỗi mục có bốn thứ
+// khớp nhau: nền ô icon · màu chữ icon · viền khi rê chuột · vòng khi focus.
+// AI Assistant là mục DUY NHẤT được dùng dải chuyển sắc — nó khác loại với
+// mười lăm mục còn lại.
 //
 // ⚠️ TAILWIND JIT: mọi class màu phải là chuỗi NGUYÊN VẸN. Không ghép động
 // `bg-${x}-50` — dev vẫn hiện màu nhờ cache, production mất sạch màu.
@@ -39,94 +42,114 @@ export interface ModuleItem {
   href: string | null;
   icon: LucideIcon;
   beta: boolean;
-  /** Ô icon: nền nhạt + chữ đậm cùng dải màu — đây là thứ nhận diện phân hệ */
+  /** Ô icon: nền nhạt + chữ đậm cùng dải màu */
   tile: string;
-  /** Viền sáng lên khi rê chuột, cùng dải màu với ô icon */
+  /** Viền sáng lên khi rê chuột */
   ring: string;
+  /** Vòng focus bàn phím — cùng dải màu, để lối đi bằng Tab cũng có nhận diện */
+  focus: string;
 }
 
 export const MODULES: ModuleItem[] = [
+  // ─── BUSINESS WORKSPACES (§16.2) ──────────────────────────────────────────
   {
-    name: 'Dashboard', desc: 'Tổng quan điều hành toàn nhà máy',
+    name: 'Executive Center', desc: 'Điều hành tổng quan và phê duyệt toàn nhà máy',
     href: '/giam-doc', icon: LayoutDashboard, beta: false,
-    tile: 'bg-slate-100 text-slate-700', ring: 'hover:ring-slate-300',
+    tile: 'bg-indigo-100 text-indigo-700',
+    ring: 'hover:ring-indigo-300', focus: 'focus-visible:ring-indigo-500',
   },
   {
-    name: 'Merchandising', desc: 'Khách hàng, đơn hàng, mã hàng và giao hàng',
+    name: 'Commercial', desc: 'Khách hàng, báo giá, hợp đồng và đơn đặt hàng',
+    href: '/buyer', icon: Handshake, beta: false,
+    tile: 'bg-orange-100 text-orange-700',
+    ring: 'hover:ring-orange-300', focus: 'focus-visible:ring-orange-500',
+  },
+  {
+    name: 'Merchandising', desc: 'Mã hàng, định mức, chiết tính và điều phối đơn',
     href: '/md', icon: Briefcase, beta: false,
-    tile: 'bg-red-50 text-red-600', ring: 'hover:ring-red-200',
+    tile: 'bg-red-100 text-red-700',
+    ring: 'hover:ring-red-300', focus: 'focus-visible:ring-red-500',
   },
   {
-    name: 'Warehouse', desc: 'Nhập xuất, kiểm kê và tồn kho nguyên phụ liệu',
-    href: '/kho', icon: Package, beta: false,
-    tile: 'bg-green-50 text-green-600', ring: 'hover:ring-green-200',
-  },
-  {
-    name: 'Production', desc: 'Chuyền may, tổ cắt và sản lượng theo giờ',
-    href: '/to-truong-may', icon: Factory, beta: false,
-    tile: 'bg-blue-50 text-blue-600', ring: 'hover:ring-blue-200',
-  },
-  {
-    name: 'Quality', desc: 'Kiểm soát chất lượng và xử lý hàng lỗi',
-    href: '/qa', icon: ShieldCheck, beta: false,
-    tile: 'bg-teal-50 text-teal-600', ring: 'hover:ring-teal-200',
-  },
-  {
-    name: 'Shipment', desc: 'Kho thành phẩm, đóng container và lô xuất',
-    href: '/xuat-hang', icon: Ship, beta: false,
-    tile: 'bg-emerald-50 text-emerald-600', ring: 'hover:ring-emerald-200',
-  },
-  {
-    name: 'Subcontract', desc: 'Xưởng gia công ngoài và báo cáo tiến độ',
-    href: '/subcon', icon: Users, beta: false,
-    tile: 'bg-violet-50 text-violet-600', ring: 'hover:ring-violet-200',
-  },
-  {
-    name: 'Customer', desc: 'Cổng khách hàng, đơn hàng và chứng từ',
-    href: '/buyer', icon: Building2, beta: false,
-    tile: 'bg-orange-50 text-orange-600', ring: 'hover:ring-orange-200',
-  },
-  {
-    name: 'Supplier', desc: 'Nhà cung cấp, đánh giá và đơn đặt mua',
-    href: null, icon: Truck, beta: true,
-    tile: 'bg-indigo-50 text-indigo-600', ring: 'hover:ring-indigo-200',
-  },
-  {
-    name: 'CRM', desc: 'Cơ hội, báo giá và chăm sóc khách hàng',
-    href: null, icon: Handshake, beta: true,
-    tile: 'bg-cyan-50 text-cyan-600', ring: 'hover:ring-cyan-200',
-  },
-  {
-    name: 'Planning', desc: 'Lịch sản xuất, năng lực chuyền và mốc giao',
+    name: 'Planning', desc: 'Kế hoạch sản xuất, năng lực chuyền và mốc giao hàng',
     href: null, icon: CalendarRange, beta: true,
-    tile: 'bg-gray-100 text-gray-600', ring: 'hover:ring-gray-300',
+    tile: 'bg-teal-100 text-teal-700',
+    ring: 'hover:ring-teal-300', focus: 'focus-visible:ring-teal-500',
   },
   {
-    name: 'Reports', desc: 'Báo cáo vận hành và xuất dữ liệu',
+    name: 'Production', desc: 'Tổ cắt, chuyền may, hoàn thành và sản lượng theo giờ',
+    href: '/to-truong-may', icon: Factory, beta: false,
+    tile: 'bg-blue-100 text-blue-700',
+    ring: 'hover:ring-blue-300', focus: 'focus-visible:ring-blue-500',
+  },
+  {
+    name: 'Quality', desc: 'Kiểm hàng, AQL 2.5, lỗi và hành động khắc phục',
+    href: '/qa', icon: ShieldCheck, beta: false,
+    tile: 'bg-emerald-100 text-emerald-700',
+    ring: 'hover:ring-emerald-300', focus: 'focus-visible:ring-emerald-500',
+  },
+  {
+    name: 'Warehouse', desc: 'Nhập, xuất, kiểm kê và tồn kho nguyên phụ liệu',
+    href: '/kho', icon: Package, beta: false,
+    tile: 'bg-green-100 text-green-700',
+    ring: 'hover:ring-green-300', focus: 'focus-visible:ring-green-500',
+  },
+  {
+    name: 'Shipment', desc: 'Đóng thùng, container, chứng từ và giao hàng',
+    href: '/xuat-hang', icon: Ship, beta: false,
+    tile: 'bg-cyan-100 text-cyan-700',
+    ring: 'hover:ring-cyan-300', focus: 'focus-visible:ring-cyan-500',
+  },
+  {
+    name: 'Subcontract', desc: 'Xưởng gia công ngoài và báo cáo tiến độ ngày',
+    href: '/subcon', icon: Users, beta: false,
+    tile: 'bg-purple-100 text-purple-700',
+    ring: 'hover:ring-purple-300', focus: 'focus-visible:ring-purple-500',
+  },
+  {
+    // "Gold" trong bảng màu Board = dải amber của Tailwind.
+    name: 'Finance', desc: 'Công nợ, thanh toán, giá thành và đối soát',
+    href: '/ke-toan', icon: Wallet, beta: false,
+    tile: 'bg-amber-100 text-amber-800',
+    ring: 'hover:ring-amber-300', focus: 'focus-visible:ring-amber-500',
+  },
+  {
+    name: 'Human Resources', desc: 'Nhân sự, chấm công, năng lực và đào tạo',
+    href: null, icon: IdCard, beta: true,
+    tile: 'bg-rose-100 text-rose-700',
+    ring: 'hover:ring-rose-300', focus: 'focus-visible:ring-rose-500',
+  },
+
+  // ─── GLOBAL / PLATFORM SERVICES (§29 · §30 · §31 · §33 · §34) ────────────
+  {
+    name: 'Business Reporting', desc: 'Báo cáo một chạm, luôn kèm bằng chứng gốc',
     href: null, icon: PieChart, beta: true,
-    tile: 'bg-slate-100 text-slate-500', ring: 'hover:ring-slate-300',
+    tile: 'bg-slate-200 text-slate-700',
+    ring: 'hover:ring-slate-400', focus: 'focus-visible:ring-slate-500',
   },
   {
-    name: 'Audit Center', desc: 'Nhật ký thao tác và truy vết vận hành',
-    href: null, icon: History, beta: true,
-    tile: 'bg-neutral-200 text-neutral-700', ring: 'hover:ring-neutral-400',
+    name: 'Business Communication', desc: 'Trao đổi gắn với đơn hàng, lưu vĩnh viễn',
+    href: null, icon: MessagesSquare, beta: true,
+    tile: 'bg-sky-100 text-sky-700',
+    ring: 'hover:ring-sky-300', focus: 'focus-visible:ring-sky-500',
   },
   {
-    // Dải chuyển sắc tím → xanh: phân hệ duy nhất dùng gradient, cố ý — nó là
-    // thứ khác loại với mười lăm phân hệ nghiệp vụ còn lại.
-    name: 'AI Center', desc: 'Trợ lý phân tích và gợi ý theo dữ liệu thật',
+    // Mục DUY NHẤT dùng dải chuyển sắc — nó khác loại với 15 mục còn lại.
+    name: 'AI Assistant', desc: 'Trợ lý hiểu ngữ cảnh công việc đang làm',
     href: null, icon: Sparkles, beta: true,
-    tile: 'bg-gradient-to-br from-violet-100 to-blue-100 text-violet-600',
-    ring: 'hover:ring-violet-200',
+    tile: 'bg-gradient-to-br from-purple-200 to-blue-200 text-purple-800',
+    ring: 'hover:ring-purple-300', focus: 'focus-visible:ring-purple-500',
   },
   {
-    name: 'Documents', desc: 'Tài liệu kỹ thuật, chứng từ và phiên bản',
+    name: 'Documents', desc: 'Tech pack, chứng từ và quản lý phiên bản',
     href: null, icon: FileText, beta: true,
-    tile: 'bg-neutral-100 text-neutral-600', ring: 'hover:ring-neutral-300',
+    tile: 'bg-gray-200 text-gray-700',
+    ring: 'hover:ring-gray-400', focus: 'focus-visible:ring-gray-500',
   },
   {
-    name: 'Administration', desc: 'Tài khoản, phân quyền và cấu hình hệ thống',
-    href: '/admin', icon: Settings, beta: false,
-    tile: 'bg-fuchsia-50 text-fuchsia-600', ring: 'hover:ring-fuchsia-200',
+    name: 'Platform Services', desc: 'Tài khoản, phân quyền, ngôn ngữ và cấu hình',
+    href: '/admin', icon: SlidersHorizontal, beta: false,
+    tile: 'bg-violet-100 text-violet-700',
+    ring: 'hover:ring-violet-300', focus: 'focus-visible:ring-violet-500',
   },
 ];

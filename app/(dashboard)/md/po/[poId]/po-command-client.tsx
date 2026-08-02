@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 
 import PoCommandShell, { SliceComingSoon } from '@/components/md/po-command/po-command-shell';
+import OrderContextRail from '@/components/md/po-command/order-context-rail';
 import TabExecutive from '@/components/md/po-command/tabs/tab-executive';
 // ⚠️ NẠP TRỄ, KHÔNG import thẳng.
 //
@@ -121,8 +122,18 @@ export default function PoCommandClient({
   // effect nạp dữ liệu trong khung sẽ chạy lại vô tận.
   const load = useCallback(() => getPoTwinHeaderClient(poId), [poId]);
 
+  // ⚠️ Bố cục hai cột dựng Ở ĐÂY, không dựng trong `PoCommandShell`.
+  //
+  // Khung là component dùng chung KHÔNG BIẾT NGHIỆP VỤ (Điều XIX). "Ngữ cảnh
+  // đơn hàng" là khái niệm của riêng PO, nên nó thuộc về tầng adapter này.
+  // Nhét rail vào khung sẽ buộc mọi màn hình dùng khung phải mang theo nó.
+  //
+  // Lưới: một cột ở màn hẹp (rail xuống dưới lát cắt), hai cột từ `lg`.
+  // `min-w-0` trên cột trái là bắt buộc — thiếu nó, một bảng rộng bên trong
+  // lát cắt sẽ đẩy cả lưới giãn ra và trang cuộn ngang.
   const renderSlice = useCallback((view: PoView, head: PoTwinHeader, revision: number) => {
     void head; // Lát cắt tự nạp phần dữ liệu riêng qua service của nó
+    const slice = (() => {
     switch (view) {
       case 'executive':
         return <TabExecutive poId={poId} revision={revision} initial={initialExecutive} />;
@@ -139,6 +150,14 @@ export default function PoCommandClient({
       default:
         return <SliceComingSoon view={view} />;
     }
+    })();
+
+    return (
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+        <div className="min-w-0">{slice}</div>
+        <OrderContextRail />
+      </div>
+    );
   }, [poId, initialExecutive]);
 
   return (

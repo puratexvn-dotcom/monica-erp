@@ -1,15 +1,19 @@
 import Image from 'next/image';
-import { ShieldCheck, Lock, Factory, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+import { ShieldCheck, Layers, FileCheck2, AlertTriangle, ArrowLeft } from 'lucide-react';
 
-import { LOGO_SRC, LOGO_ALT, APP_NAME_FULL } from '@/lib/brand';
+import { LOGO_SRC, LOGO_ALT, APP_NAME } from '@/lib/brand';
 import LoginForm from './form';
 
 export const dynamic = 'force-dynamic';
 
+// Ba trụ cột hiến định, nói bằng ngôn ngữ khách hàng chứ không bằng ngôn ngữ
+// kỹ thuật: một nền tảng (§7) · phân quyền theo Workspace (§10) · bằng chứng
+// và truy vết (§8). Đúng ba thứ phân biệt MONICA ONE với một ERP thông thường.
 const HIGHLIGHTS = [
-  { icon: Factory, text: 'Toàn tuyến sản xuất trên một nền tảng dữ liệu' },
-  { icon: ShieldCheck, text: 'Phân quyền chặt theo từng bộ phận' },
-  { icon: Lock, text: 'Bắt buộc đổi mật khẩu ở lần đăng nhập đầu' },
+  { icon: Layers, text: 'Một nền tảng vận hành hợp nhất cho toàn doanh nghiệp' },
+  { icon: ShieldCheck, text: 'Không gian làm việc theo vai trò, phân quyền chặt' },
+  { icon: FileCheck2, text: 'Mọi thao tác đều có bằng chứng và truy vết đầy đủ' },
 ];
 
 export default async function LoginPage({
@@ -59,23 +63,25 @@ export default async function LoginPage({
               />
             </div>
 
-            <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
-              Hệ thống quản trị sản xuất
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-blue-600">
+              Business Operating System
             </p>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-5xl">
-              Chào mừng trở lại với <span className="text-blue-600">MONICA&nbsp;ONE</span>
+            <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 xl:text-5xl">
+              Chào mừng trở lại.
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
-              Đăng nhập bằng tài khoản công ty để vào phân hệ làm việc của bộ phận bạn.
+              Đăng nhập bằng tài khoản công ty để vào không gian làm việc được cấp quyền của bạn.
             </p>
 
-            <ul className="mt-9 space-y-4">
+            <ul className="mt-10 space-y-3.5">
               {HIGHLIGHTS.map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-center gap-3.5">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/70 text-blue-600 shadow-sm backdrop-blur">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
+                <li key={text} className="flex items-start gap-3.5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-white/80 text-blue-600 shadow-sm backdrop-blur">
+                    <Icon className="h-5 w-5" strokeWidth={1.9} aria-hidden="true" />
                   </span>
-                  <span className="text-base font-semibold text-slate-700">{text}</span>
+                  <span className="pt-2 text-[15px] font-semibold leading-snug text-slate-700">
+                    {text}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -96,10 +102,12 @@ export default async function LoginPage({
                 />
               </div>
 
-              <div className="mb-8">
-                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Đăng nhập</h2>
-                <p className="mt-2 text-base text-slate-500">
-                  Vui lòng dùng tài khoản do Quản trị hệ thống cấp.
+              <div className="mb-7">
+                <h2 className="text-[26px] font-extrabold leading-tight tracking-tight text-slate-900">
+                  Đăng nhập
+                </h2>
+                <p className="mt-2 text-[15px] leading-relaxed text-slate-500">
+                  Dùng tài khoản công ty do Quản trị hệ thống cấp.
                 </p>
               </div>
 
@@ -115,19 +123,32 @@ export default async function LoginPage({
 
               <LoginForm next={next} />
 
-              <p className="mt-7 border-t border-slate-200 pt-5 text-center text-sm leading-relaxed text-slate-500">
+              {/* ── Lối về trang chủ ─────────────────────────────────────
+                  Nút phụ, viền nhạt, không cạnh tranh với nút Đăng nhập. Đặt
+                  ngay dưới biểu mẫu vì đó là nơi mắt dừng lại sau khi đọc xong
+                  form. Cao 44px và có vòng focus riêng — đi bằng Tab tới đây
+                  vẫn thấy rõ mình đang ở đâu. */}
+              <Link
+                href="/"
+                className="mt-6 flex min-h-[44px] w-full touch-manipulation items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/70 px-4 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:scale-[0.98]"
+              >
+                <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Về trang chủ
+              </Link>
+
+              <p className="mt-6 border-t border-slate-200 pt-5 text-center text-[13px] leading-relaxed text-slate-500">
                 Quên mật khẩu hoặc chưa có tài khoản? Liên hệ Quản trị hệ thống —{' '}
                 <a
                   href="tel:0908779585"
                   className="font-bold text-blue-600 underline-offset-4 transition hover:underline"
                 >
-                  0908779585
+                  0908 779 585
                 </a>
               </p>
             </div>
 
-            <p className="mt-6 text-center text-sm font-medium text-slate-500">
-              Bản quyền © Joseph · {APP_NAME_FULL}
+            <p className="mt-6 text-center text-[13px] font-medium text-slate-400">
+              © 2026 {APP_NAME} · Bản quyền thuộc Joseph
             </p>
           </section>
         </div>
