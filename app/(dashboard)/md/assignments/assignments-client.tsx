@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { ClipboardList, Plus, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, ClipboardList, Plus, RefreshCw } from 'lucide-react';
 
 import { Card, btnPrimary, btnGhost } from '@/components/ui';
 import { AssignmentTable } from '@/components/mos/assignment/assignment-table';
@@ -67,14 +68,28 @@ export default function AssignmentsClient() {
     <div className="space-y-4">
       {/* ─── THANH HÀNH ĐỘNG ─────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => setFormOpen(true)}
-          className={`${btnPrimary} min-h-[44px] touch-manipulation`}
-        >
-          <Plus className="h-4 w-4" />
-          {t('asg_new')}
-        </button>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {/* ⚠️ Đường QUAY LẠI. Trước bản vá này màn hình không có lối ra nào về
+              bàn làm việc — vào rồi chỉ thoát được bằng nút back của trình duyệt.
+              Dùng đúng kiểu nút của `po-header.tsx` để hai màn hình con của /md
+              hành xử giống nhau. */}
+          <Link
+            href="/md"
+            aria-label="Quay lại Bàn làm việc Merchandiser"
+            className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-blue-300 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setFormOpen(true)}
+            className={`${btnPrimary} min-h-[44px] touch-manipulation`}
+          >
+            <Plus className="h-4 w-4" />
+            {t('asg_new')}
+          </button>
+        </div>
 
         <button
           type="button"

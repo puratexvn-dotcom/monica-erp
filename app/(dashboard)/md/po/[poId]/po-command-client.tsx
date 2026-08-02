@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 
 import PoCommandShell, { SliceComingSoon } from '@/components/md/po-command/po-command-shell';
@@ -61,6 +61,33 @@ import type { ExecutiveOverview } from './_services/executive.service';
 // và realtime không phải đụng lại.
 // ============================================================================
 
+// ============================================================================
+// LÁT CẮT ĐÃ DỰNG XONG — DANH SÁCH TRẮNG
+//
+// `PO_VIEWS` khai TÁM lát cắt và `po-rbac` cấp cả tám cho Merchandiser, nhưng
+// `renderSlice` bên dưới mới dựng NĂM. Ba lát cắt còn lại — `buyer`,
+// `activity`, `finance` — rơi vào nhánh `default` và hiện khung "🚧 sắp có".
+//
+// ─── VÌ SAO LỌC ĐI THAY VÌ ĐỂ NGƯỜI DÙNG BẤM VÀO RỒI THẤY "SẮP CÓ" ───────
+// Một trung tâm điều hành có tám tab mà ba tab là công trường thì người dùng
+// học được đúng một điều: **đừng tin thanh tab**. Sau lần thứ hai đâm vào khung
+// "sắp có", họ ngừng bấm thử — kể cả những tab đã chạy tốt.
+//
+// Năm tab đầy đủ trông ra một sản phẩm hoàn chỉnh. Tám tab với ba khung công
+// trường trông ra một bản dựng dở. Cùng một lượng chức năng, khác hẳn cảm nhận.
+//
+// ⚠️ Đây KHÔNG phải xoá tính năng: `PO_VIEWS` và `po-rbac` giữ nguyên không đổi
+// một chữ. Ngày lát cắt thứ sáu được dựng, chỉ cần thêm `case` bên dưới và thêm
+// tên nó vào mảng này — hai dòng, và nó tự hiện lại trên thanh tab.
+//
+// ⚠️ `SliceComingSoon` GIỮ LẠI có chủ ý: nó là lưới an toàn cho trường hợp một
+// lát cắt lọt qua bộ lọc do sai sót về sau. Thà hiện khung nói thật là chưa
+// dựng còn hơn một vùng trắng không giải thích gì.
+// ============================================================================
+const IMPLEMENTED_VIEWS: readonly PoView[] = [
+  'executive', 'material', 'production', 'quality', 'shipment',
+] as const;
+
 export default function PoCommandClient({
   poId,
   views,
@@ -76,6 +103,20 @@ export default function PoCommandClient({
   /** Lát cắt 1 cũng nạp sẵn: nó là lát cắt mở đầu của mọi vai trò */
   initialExecutive: ExecutiveOverview | null;
 }) {
+  // Giữ ĐÚNG thứ tự do `po-rbac` quy định, chỉ bỏ những lát cắt chưa dựng.
+  // useMemo vì `views` là prop mảng: tạo mảng mới mỗi lượt vẽ sẽ làm effect
+  // chỉnh lát cắt trong khung chạy lại liên tục.
+  const shownViews = useMemo(
+    () => views.filter((v) => IMPLEMENTED_VIEWS.includes(v)),
+    [views],
+  );
+
+  // Lát cắt mở đầu phải nằm trong danh sách đã lọc, nếu không khung sẽ vẽ một
+  // nhịp bằng lát cắt sai rồi mới tự chỉnh — người dùng thấy màn hình nháy.
+  const safeInitialView = shownViews.includes(initialView)
+    ? initialView
+    : (shownViews[0] ?? initialView);
+
   // useCallback để khung không coi đây là hàm mới mỗi lượt vẽ — nếu không,
   // effect nạp dữ liệu trong khung sẽ chạy lại vô tận.
   const load = useCallback(() => getPoTwinHeaderClient(poId), [poId]);
@@ -103,8 +144,8 @@ export default function PoCommandClient({
   return (
     <PoCommandShell
       poId={poId}
-      views={views}
-      initialView={initialView}
+      views={shownViews}
+      initialView={safeInitialView}
       initialData={initialData}
       load={load}
       renderSlice={renderSlice}

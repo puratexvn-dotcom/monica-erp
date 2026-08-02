@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import Link from 'next/link';
 import {
   Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
-  Sparkles, Loader2,
+  Sparkles, Loader2, Handshake, ArrowUpRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -510,6 +511,32 @@ export default function MdClient({
           </div>
           );
         })}
+      </div>
+
+      {/* ═══ LỐI VÀO MÀN HÌNH PHẦN VIỆC ═════════════════════════════════════
+          ⚠️ Route `/md/assignments` tồn tại và có tiêu đề riêng trong
+          PAGE_IDENTITY, nhưng TRƯỚC BẢN VÁ NÀY không một `<Link>` hay
+          `router.push` nào trong toàn bộ mã giao diện trỏ tới nó — người dùng
+          chỉ tới được bằng cách gõ tay địa chỉ. Một màn hình không có đường vào
+          là một màn hình không tồn tại đối với người vận hành.
+
+          CỐ Ý KHÔNG thêm tab thứ 14: bố cục 13 tab đã được nghiệm thu, và
+          `/md/assignments` là một ROUTE riêng chứ không phải một lát cắt trong
+          trang này — nhét nó vào hàng tab sẽ nói dối về hành vi (bấm tab thì
+          đổi nội dung tại chỗ, bấm cái này thì chuyển trang). Để riêng một hàng
+          ngay dưới thanh tab: thấy ngay, nhưng không giả làm tab. */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <Link
+          href="/md/assignments"
+          className="flex touch-manipulation items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-800 transition hover:border-indigo-300 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 active:scale-95"
+        >
+          <Handshake className="h-4 w-4 shrink-0" aria-hidden="true" />
+          Phần việc giao đối tác
+          <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+        </Link>
+        <span className="text-[11px] font-semibold leading-tight text-slate-400">
+          Giao việc cho nhà thầu · theo dõi báo cáo ngày
+        </span>
       </div>
 
       <Card>
