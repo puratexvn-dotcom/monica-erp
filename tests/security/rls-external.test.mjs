@@ -95,9 +95,33 @@ try {
   console.log('\nB · 031b — LINE MAP + order_items');
   s.ok('SC1 thấy ĐÚNG 1 chuyền được giao', (await dem(sc1.client, 'sewing_lines')) === 1);
   s.ok('IN-01 (không gắn chuyền) thấy 0', (await dem(inpr.client, 'sewing_lines')) === 0);
+  // ⚠️ BÀI KIỂM NÀY ĐÃ ĐƯỢC SỬA — bản cũ khẳng định `buyer === admin`, tức chờ
+  // Buyer thấy TOÀN BỘ `order_items` trong CSDL.
+  //
+  // Nó chỉ xanh vì lúc viết, cả cơ sở dữ liệu chỉ có MỘT khách hàng: mọi dòng
+  // đều thuộc về chính Buyer đó, nên "khoanh đúng phạm vi" và "thấy hết mọi
+  // thứ" cho ra CÙNG một con số. Phép đo không phân biệt được hai điều đó —
+  // đúng họ lỗi của Hiến pháp V.1 và Playbook K-3.
+  //
+  // Ngay khi có khách hàng thứ hai, bản cũ báo đỏ trong khi RLS chạy ĐÚNG.
+  // Bản mới đo hai vế tách bạch:
+  //   ① vế KHẲNG ĐỊNH — Buyer phải thấy dòng của chính mình (> 0). Thiếu vế
+  //      này thì một policy chặn phẳng cũng qua được.
+  //   ② vế PHỦ ĐỊNH  — Buyer không được thấy dòng của khách khác. Chỉ đo được
+  //      khi CSDL thật sự có dòng của khách khác; không có thì ghi CHƯA ĐO
+  //      ĐƯỢC, tuyệt đối không ghi ĐẠT.
   const tongItem = await dem(admin, 'order_items');
-  s.ok(`Buyer thấy order_items của mình (${tongItem})`,
-    (await dem(buyer.client, 'order_items')) === tongItem);
+  const itemBuyer = await dem(buyer.client, 'order_items');
+  s.ok(`⭐ Buyer THẤY order_items của mình (${itemBuyer}/${tongItem})`, itemBuyer > 0);
+  if (tongItem > itemBuyer) {
+    s.ok(`⭐ Buyer KHÔNG thấy order_items của khách khác (ẩn ${tongItem - itemBuyer})`, true);
+  } else if (tongItem === itemBuyer) {
+    s.chuaDo('cô lập order_items giữa các khách',
+      'mọi dòng trong CSDL đều thuộc chính khách này — không có gì để so');
+  } else {
+    s.ok('Buyer không thấy NHIỀU HƠN service_role', false,
+      `buyer=${itemBuyer} > admin=${tongItem}`);
+  }
   await sc1.client.from('sewing_lines')
     .update({ target_pcs_per_hour: 555 }).eq('id', chuyen.id);
   const { data: cSau } = await admin.from('sewing_lines')
