@@ -37,6 +37,22 @@ export function ngayVN(luc: Date = new Date()): string {
   return luc.toLocaleDateString('en-CA', { timeZone: MUI_GIO });
 }
 
+/**
+ * Giờ trong ngày (0–23) theo giờ Việt Nam.
+ *
+ * Dùng cho những thứ phụ thuộc buổi — lời chào trên trang chủ, ca làm việc.
+ * Đi qua `Intl` với `MUI_GIO` thay vì cộng bù giờ bằng tay: cộng tay là đúng
+ * loại số ma thuật mà bài kiểm kiến trúc cấm, và nó sai ngay khi múi giờ đổi.
+ */
+export function gioVN(luc: Date = new Date()): number {
+  const hh = luc.toLocaleString('en-GB', {
+    timeZone: MUI_GIO,
+    hour: '2-digit',
+    hour12: false,
+  });
+  return Number(hh);
+}
+
 /** Ngày VN của một mốc thời gian bất kỳ (chuỗi ISO hoặc `Date`). */
 export function ngayVNCua(moc: string | Date | null | undefined): string | null {
   if (!moc) return null;

@@ -1,145 +1,175 @@
-import Link from 'next/link';
-
 import TopNavbar from './top-navbar';
-import { MODULES, type ModuleItem } from './home-modules';
-import { LOGO_TEXT_GRADIENT, APP_NAME } from '@/lib/brand';
+import { WORKSPACES, SERVICES, PLATFORM } from './home-modules';
+import { getHomeMetrics } from './home-metrics';
+import ExecutiveHero from './_home/executive-hero';
+import SectionHeading from './_home/section-heading';
+import WorkspaceCard from './_home/workspace-card';
+import AiHeroCard from './_home/ai-hero-card';
+import ServiceCard from './_home/service-card';
+import PlatformRow from './_home/platform-row';
+import { NOISE_URL } from './_home/surface';
+import { APP_NAME } from '@/lib/brand';
+import { gioVN, MUI_GIO } from '@/lib/time';
 
 // ============================================================================
-// TRANG CHỦ — MONICA ONE · APP LAUNCHER
+// TRANG CHỦ — BUSINESS OPERATING SYSTEM LAUNCHER (Điều 13.3 · ADR-001)
 //
-// Bốn tầng, không hơn:
-//   Top Header  →  Hero  →  Module Launcher  →  Footer rất nhỏ
+// ═══ TRIẾT LÝ ═══════════════════════════════════════════════════════════
+// Trang này trả lời đúng MỘT câu hỏi: *"sáng nay tôi vào đâu trước?"*
 //
-// ─── VÌ SAO GỠ SẠCH KPI, TIẾN ĐỘ, ĐƠN TỚI HẠN, THAO TÁC NHANH ────────────
-// Bản trước nhồi sáu khối số liệu lên trang chủ. Đó là ngôn ngữ của dashboard
-// ERP đời cũ: mở hệ thống ra là một bức tường widget, và người dùng phải đọc
-// hết mới tìm được lối vào việc của mình.
+// Năm nguyên tắc, rút từ chỗ Apple · Linear · Stripe · Fiori GIỐNG nhau —
+// không phải chỗ chúng khác nhau:
 //
-// Notion · Linear · Microsoft 365 · Google Workspace đều làm ngược lại: trang
-// đầu chỉ trả lời MỘT câu hỏi — *"tôi muốn vào đâu?"*. Số liệu thuộc về bên
-// trong từng phân hệ, nơi nó có ngữ cảnh để mà hiểu.
+//   ① MÀU LÀ THÔNG TIN, KHÔNG PHẢI TRANG TRÍ.
+//      Nền trung tính có hạt, thẻ trắng tinh, màu chỉ xuất hiện ở ô icon và
+//      chấm trạng thái. Mười sáu khối màu bão hoà cạnh nhau đọc ra "phần mềm
+//      quản trị nội bộ"; mười sáu thẻ trắng mỗi thẻ một mỏ neo màu đọc ra
+//      "sản phẩm".
 //
-// ⚠️ KHÔNG mất chức năng nào: `app/home-metrics.ts` giữ nguyên không sửa một
-// dòng, và các bảng điều hành bên trong `/giam-doc`, `/md` vẫn dùng nó. Ở đây
-// chỉ là trang chủ thôi không gọi tới.
+//   ② KHÔNG PHẢI Ô NÀO CŨNG BẰNG NHAU.
+//      Mười sáu ô cùng cỡ buộc mắt phải QUÉT. Ba mức nhấn cho mắt một điểm
+//      rơi: nó biết bắt đầu từ đâu trước khi đọc chữ nào.
 //
-// ─── BUSINESS OPERATING SYSTEM LAUNCHER (Điều 13.3 · ADR-001) ────────────
-// Trang chủ là LỐI VÀO HỢP NHẤT của hệ điều hành nghiệp vụ, không phải cơ chế
-// phân loại. Nó dựng cả ba loại hiến định thành thẻ: Business Workspace (§16.2)
-// · Global Service (§29 · §30 · §31 · §33) · Platform Service (§34).
+//   ③ THỨ BẬC DỰNG BẰNG CỠ, NHỊP VÀ ĐỘ CAO — KHÔNG BẰNG KHUNG VIỀN.
+//      Workspace nổi bốn lớp bóng · Service chìm một lớp · Platform phẳng
+//      không bóng. Ba mức nhìn ra ngay, không cần đọc tiêu đề khối.
 //
-// Việc một dịch vụ xuất hiện ở đây KHÔNG đổi phân loại hiến định của nó — §17.3
-// và §34.1 nay nói rõ điều đó. Xem app/home-modules.ts và
-// docs/architecture/adr/ADR-001-homepage-conceptual-model.md.
+//   ④ CHUYỂN ĐỘNG ĐỂ XÁC NHẬN, KHÔNG ĐỂ MUA VUI.
+//      200ms, chỉ `transform` và `box-shadow` — hai thứ chạy trên GPU. Không
+//      nảy, không xoay, không mờ dần.
 //
-// ─── KHÔNG CHIA NHÓM ─────────────────────────────────────────────────────
-// Không CORE/BUSINESS/COMMERCIAL/... Một lưới phẳng mười sáu ô, đúng kiểu
-// App Launcher. Tiêu đề nhóm chỉ có nghĩa với người đã thuộc hệ thống; với
-// người mở lần đầu nó là năm chướng ngại phải đọc trước khi thấy thứ cần bấm.
+//   ⑤ THÀ THIẾU MỘT DÒNG CÒN HƠN MỘT DÒNG BỊA.
+//      Mọi con số lấy từ CSDL thật. Không đọc được thì nói thẳng là chưa có
+//      số liệu — KHÔNG BAO GIỜ hiện 0. Trong nhà máy, "không có số" và "số
+//      bằng 0" là hai sự thật khác hẳn nhau.
+//
+// ═══ BA KHỐI, BA PHÂN LOẠI HIẾN ĐỊNH ════════════════════════════════════
+// §17.3 cấm trộn phân loại, nên ba khối có ba ngôn ngữ thị giác tách bạch —
+// không chỉ ba tiêu đề khác nhau trên cùng một kiểu thẻ:
+//
+//   Business Workspace  §16.2   thẻ nổi · 3 cỡ · icon tới 88px · nhấc 3px
+//   Global Service      §17     dòng chìm · icon 44px · không nhấc
+//   Platform Service    §34     dòng phẳng · icon 36px · số liệu chữ đều
+//
+// ⚠️ KHÔNG mất chức năng nào: 16 mục giữ nguyên tên, nguyên route, nguyên
+// phân loại. `app/home-metrics.ts` không sửa một dòng.
 //
 // ⚠️ TAILWIND JIT: class màu phải là chuỗi NGUYÊN VẸN, xem app/home-modules.ts.
 // ============================================================================
 
 export const dynamic = 'force-dynamic';
 
-function ModuleCard({ mod }: { mod: ModuleItem }) {
-  const Icon = mod.icon;
-
-  const inner = (
-    <>
-      {/* Huy hiệu Beta — nhỏ, góc trên phải, không cạnh tranh với tên phân hệ */}
-      {mod.beta && (
-        <span className="absolute right-3 top-3 rounded-full bg-slate-900/5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 sm:text-[10px]">
-          Beta
-        </span>
-      )}
-
-      {/* Ô icon là mỏ neo thị giác — người vận hành nhận ra phân hệ bằng MÀU và
-          HÌNH trước khi kịp đọc chữ. Vì vậy nó to hơn hẳn phần chữ. */}
-      <span
-        className={`mb-3.5 flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105 sm:mb-4 sm:h-16 sm:w-16 ${mod.tile}`}
-      >
-        <Icon className="h-6 w-6 sm:h-8 sm:w-8" strokeWidth={1.8} aria-hidden="true" />
-      </span>
-
-      <h2 className="text-sm font-bold leading-snug tracking-tight text-slate-900 sm:text-base">
-        {mod.name}
-      </h2>
-      <p className="mt-1 text-xs font-medium leading-snug text-slate-500">
-        {mod.desc}
-      </p>
-    </>
-  );
-
-  // rounded-3xl + ring-inset: bo tròn mềm, viền vẽ vào PHÍA TRONG nên thẻ không
-  // đổi kích thước giữa hai trạng thái — hàng thẻ không nhích khi rê chuột.
-  //
-  // ⚠️ Chiều cao tối thiểu 9,5rem (152px) ở màn hẹp: người vận hành xưởng bấm
-  // bằng ngón tay, nhiều khi đeo găng. 44px là ngưỡng tối thiểu của WCAG; một
-  // thẻ điều hướng chính đáng được rộng hơn nhiều lần ngưỡng đó.
-  const base =
-    'group relative flex min-h-[9.5rem] flex-col rounded-3xl bg-white p-5 text-left ring-1 ring-inset ring-slate-200/80 sm:min-h-[11.5rem] sm:p-6';
-
-  if (!mod.href) {
-    // Chưa có route ⇒ không bọc <Link>: bấm vào sẽ là 404. Vẫn giữ nguyên màu
-    // và bố cục, chỉ bỏ hiệu ứng nhấc lên để không hứa một hành vi không có.
-    return (
-      <div className={`${base} shadow-sm`} title={`${mod.name} — đang phát triển`}>
-        {inner}
-      </div>
-    );
-  }
-
-  // Vòng focus mang MÀU CỦA CHÍNH PHÂN HỆ, không phải một màu chung: người đi
-  // bằng bàn phím cũng nhận diện được mình đang ở đâu, y như người dùng chuột.
-  return (
-    <Link
-      href={mod.href}
-      className={`${base} shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0 active:scale-[0.98] ${mod.ring} ${mod.focus}`}
-    >
-      {inner}
-    </Link>
-  );
+/** Ngày hôm nay bằng tiếng Việt đầy đủ — "Thứ Hai, 03 tháng 8, 2026" */
+function ngayChu(): string {
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: MUI_GIO,
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Chưa đăng nhập thì hàm này KHÔNG truy vấn gì và trả 'unauthenticated' —
+  // trang chủ là trang công khai, không phơi số liệu cho khách vãng lai.
+  const metrics = await getHomeMetrics();
+
+  // AI Assistant tách ra khỏi hàng dịch vụ bằng CỜ trong sổ đăng ký, không
+  // bằng cách so tên. So tên là thứ hỏng im lặng vào ngày ai đó sửa một chữ.
+  const aiHero = SERVICES.find((s) => s.feature === 'hero');
+  const restServices = SERVICES.filter((s) => s.feature !== 'hero');
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <TopNavbar />
+    // Nền KHÔNG trắng tinh. Trắng trên trắng buộc phải kẻ viền đậm, mà viền
+    // đậm thì màn hình lập tức ồn. Xám rất nhạt để thẻ trắng nổi lên bằng
+    // chính độ sáng của nó.
+    <div className="relative min-h-screen bg-[#F6F7F9]">
+      {/* Hạt giấy dưới 1% — phá mảng màu phẳng tuyệt đối. Sinh ngay trong
+          trình duyệt bằng feTurbulence: không tải ảnh, không thêm byte mạng. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.022] mix-blend-multiply"
+        style={{ backgroundImage: NOISE_URL }}
+      />
 
-      <main className="mx-auto max-w-[1400px] px-4 pb-12 pt-8 sm:px-6 sm:pt-12 lg:px-8">
-        {/* ═══ HERO — hai dòng, không hơn ═══════════════════════════════════ */}
-        <section className="mb-8 text-center sm:mb-12">
-          <h1 className="flex flex-wrap items-baseline justify-center gap-x-2 whitespace-nowrap tracking-tight sm:gap-x-3">
-            <span className="text-sm font-semibold text-slate-400 sm:text-lg">
-              Welcome to
-            </span>
-            <span
-              className="bg-clip-text text-3xl font-black leading-[1.05] tracking-tighter text-transparent sm:text-5xl lg:text-6xl"
-              style={{ backgroundImage: LOGO_TEXT_GRADIENT }}
-            >
-              MONICA ONE
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-xs font-medium leading-relaxed text-slate-500 sm:text-sm">
-            Nền tảng quản trị toàn bộ chuỗi sản xuất may mặc trên một hệ thống duy nhất.
+      <div className="relative z-10">
+        <TopNavbar showVerse={false} />
+
+        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-10 sm:px-6 sm:pt-16 lg:px-8">
+          <ExecutiveHero metrics={metrics} hour={gioVN()} today={ngayChu()} />
+
+          {/* ═══ BUSINESS WORKSPACES · §16.2 ═════════════════════════════
+              Lưới 4 cột: hai hàng trên là ba thẻ nổi bật (hero 2×2 + hai wide
+              2×1), hai hàng dưới là tám thẻ chuẩn. Khít, không ô trống.
+              `auto-rows` đặt chiều cao hàng cố định để `row-span-2` của thẻ
+              hero ăn đúng hai hàng — thiếu nó, hàng tự co theo nội dung và
+              thẻ hero sẽ thò ra. */}
+          <section aria-labelledby="h-workspaces" className="mb-16 sm:mb-24">
+            <div id="h-workspaces">
+              <SectionHeading
+                level="primary"
+                eyebrow="Nơi công việc diễn ra"
+                title="Business Workspaces"
+                note="Mỗi Workspace là một miền vận hành của doanh nghiệp"
+                count={WORKSPACES.length}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:auto-rows-[13.75rem] lg:grid-cols-4">
+              {WORKSPACES.map((mod) => (
+                <WorkspaceCard key={mod.name} mod={mod} metrics={metrics} />
+              ))}
+            </div>
+          </section>
+
+          {/* ═══ GLOBAL SERVICES · §17 ═══════════════════════════════════ */}
+          <section aria-labelledby="h-services" className="mb-16 sm:mb-24">
+            <div id="h-services">
+              <SectionHeading
+                level="secondary"
+                title="Global Services"
+                note="Năng lực dùng chung cho mọi Workspace"
+                count={SERVICES.length}
+              />
+            </div>
+            {aiHero && (
+              <div className="mb-3">
+                <AiHeroCard mod={aiHero} metrics={metrics} />
+              </div>
+            )}
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+              {restServices.map((mod) => (
+                <ServiceCard key={mod.name} mod={mod} metrics={metrics} />
+              ))}
+            </div>
+          </section>
+
+          {/* ═══ PLATFORM SERVICES · §34 ═════════════════════════════════ */}
+          <section aria-labelledby="h-platform">
+            <div id="h-platform">
+              <SectionHeading
+                level="tertiary"
+                title="Platform Services"
+                note="Hạ tầng nền tảng"
+                count={PLATFORM.length}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {PLATFORM.map((mod) => (
+                <PlatformRow key={mod.name} mod={mod} metrics={metrics} />
+              ))}
+            </div>
+          </section>
+        </main>
+
+        <footer className="pb-12 text-center">
+          {/* slate-600: chân trang vẫn là chữ thật, vẫn phải đọc được. Xem
+              ghi chú độ tương phản ở app/_home/executive-hero.tsx. */}
+          <p className="text-[10.5px] font-medium tracking-wide text-slate-600">
+            © 2026 {APP_NAME}
           </p>
-        </section>
-
-        {/* ═══ MODULE LAUNCHER — lưới phẳng, không nhóm, không tiêu đề ══════
-            Mobile 2 · Tablet 3 · Desktop 4. Khoảng cách đều ở mọi mốc. */}
-        <section aria-label="Business Operating System Launcher">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {MODULES.map((mod) => (
-              <ModuleCard key={mod.name} mod={mod} />
-            ))}
-          </div>
-        </section>
-      </main>
-
-      <footer className="pb-8 text-center">
-        <p className="text-[11px] font-medium text-slate-400">© 2026 {APP_NAME}</p>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

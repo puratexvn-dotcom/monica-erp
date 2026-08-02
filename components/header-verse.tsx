@@ -44,11 +44,43 @@ export default function HeaderVerse({
   variant,
   className = '',
 }: {
-  /** 'center' = căn tuyệt đối giữa thanh (từ lg) · 'bar' = hàng riêng (dưới lg) */
-  variant: 'center' | 'bar';
+  /**
+   * 'center' = căn tuyệt đối giữa thanh (từ lg)
+   * 'bar'    = hàng riêng dưới thanh (dưới lg)
+   * 'hero'   = khối chữ trong Executive Hero của trang chủ
+   */
+  variant: 'center' | 'bar' | 'hero';
   className?: string;
 }) {
   const verse = todaysVerse();
+
+  // ─── Biến thể 'hero' — câu đứng thành một khối chữ, không phải mẩu chèn ──
+  //
+  // Cùng nguồn, cùng câu, cùng cách xoay theo ngày như hai biến thể kia. Khác
+  // ở CÁCH BÀY: có gạch dọc dẫn vào bên trái theo lối trích dẫn kinh điển, cỡ
+  // chữ lớn hơn, và xuất xứ tách hẳn xuống dòng.
+  //
+  // Cố ý KHÔNG dùng dấu ngoặc kép như hai biến thể kia: ở cỡ chữ này, cặp
+  // ngoặc kép vàng to đùng sẽ đọc ra là hình trang trí. Gạch dọc làm đúng việc
+  // của nó — báo hiệu "đây là lời của người khác" — mà không cần ồn ào.
+  if (variant === 'hero') {
+    return (
+      <figure
+        aria-label="Lời Chúa hôm nay"
+        className={`border-l-2 border-amber-300/70 pl-4 sm:pl-5 ${className}`}
+      >
+        <blockquote
+          className="text-balance bg-clip-text text-[15px] font-semibold italic leading-relaxed text-transparent sm:text-[17px]"
+          style={{ ...GLOW, backgroundImage: GOLD_GRADIENT }}
+        >
+          {verse.text}
+        </blockquote>
+        <figcaption className="mt-1.5 text-[11.5px] font-bold not-italic tracking-wide text-amber-700/90">
+          {verse.ref}
+        </figcaption>
+      </figure>
+    );
+  }
 
   if (variant === 'center') {
     return (
