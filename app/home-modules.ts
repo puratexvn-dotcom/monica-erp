@@ -10,15 +10,26 @@ import {
 //
 // ĐÚNG 16 mục, đúng tên hiến định. Không bịa, không giữ tên cũ.
 //
-//   1–11  Business Workspace   — Hiến pháp §16.2
-//   12–16 Global / Platform Service — §29 · §30 · §31 · §33 · §34
+//   1–11  Business Workspace   — §16.2
+//   12–15 Global Service       — §29 · §30 · §31 · §33
+//   16    Platform Service     — §34
 //
-// ⚠️ ĐIỂM CẦN BOARD PHÊ DUYỆT: §13.3 nói trang chủ trình bày **Business
-// Workspace** làm mô hình điều hướng chính, và §17.3 nói *"Global Services
-// shall not become Business Workspaces."* Năm mục 12–16 là Global/Platform
-// Service, nay xuất hiện như thẻ trên trang chủ. Hiển thị chúng như **lối vào**
-// không biến chúng **thành** Workspace, nhưng ranh giới này chưa được Hiến pháp
-// nói rõ. Đã báo cáo để Board quyết.
+// ─── ADR-001 · HOMEPAGE CONCEPTUAL MODEL (Board, 03/08/2026) ─────────────
+// Trang chủ là **Business Operating System Launcher**, không phải *Business
+// Workspace Launcher*. Nó cấp lối vào cho cả ba loại trên, lọc theo
+// Authorization · Assignment · Operational Context (Điều 13.3 sau sửa đổi).
+//
+// > **Homepage is an Entry Point. It is NOT a classification mechanism.**
+//
+// Xuất hiện ở đây KHÔNG đổi phân loại hiến định của mục nào: §17.3 nay nói rõ
+// *"Global Services may appear on the Business Operating System Launcher
+// without becoming Business Workspaces"*, và §34.1 nói điều tương tự cho
+// Platform Services. Ba loại nằm chung một lưới, vẫn là ba loại.
+//
+// ⚠️ Đây KHÔNG phải giấy phép nhét thêm thứ gì lên trang chủ. §13.4 và §13.5
+// vẫn là hàng rào; mọi mục mới vẫn phải đi qua một ADR.
+//
+// 📄 docs/architecture/adr/ADR-001-homepage-conceptual-model.md
 //
 // ─── VÌ SAO THẺ TRẮNG + Ô ICON MÀU ───────────────────────────────────────
 // Mười sáu khối màu bão hoà cạnh nhau đọc ra "phần mềm quản trị nội bộ". Dồn
@@ -50,8 +61,16 @@ export interface ModuleItem {
   focus: string;
 }
 
+/**
+ * MƯỜI SÁU MỤC CỦA BUSINESS OPERATING SYSTEM LAUNCHER (Điều 13.3 · ADR-001).
+ *
+ * Thứ tự trong mảng = thứ tự trên lưới: 11 Business Workspace trước, rồi 4
+ * Global Service, cuối cùng là Platform Service. Không có tiêu đề nhóm nào
+ * hiện ra — phân loại là chuyện của Hiến pháp, không phải chuyện người dùng
+ * phải đọc trước khi tìm được thứ cần bấm.
+ */
 export const MODULES: ModuleItem[] = [
-  // ─── BUSINESS WORKSPACES (§16.2) ──────────────────────────────────────────
+  // ─── BUSINESS WORKSPACES (§16.2) ─────────────────────────────────────────
   {
     name: 'Executive Center', desc: 'Điều hành tổng quan và phê duyệt toàn nhà máy',
     href: '/giam-doc', icon: LayoutDashboard, beta: false,
@@ -120,7 +139,17 @@ export const MODULES: ModuleItem[] = [
     ring: 'hover:ring-rose-300', focus: 'focus-visible:ring-rose-500',
   },
 
-  // ─── GLOBAL / PLATFORM SERVICES (§29 · §30 · §31 · §33 · §34) ────────────
+  // ─── GLOBAL SERVICES (§29 · §30 · §31 · §33) ─────────────────────────────
+  //
+  // Xuất hiện ở đây là LỐI VÀO, không phải phân loại (§17.3 · ADR-001). Mỗi mục
+  // còn có lối vào thứ hai đúng chuẩn Hiến pháp, và lối đó vẫn chạy nguyên vẹn:
+  //
+  //   Business Reporting     → nút "Báo cáo"   · Bottom Navigation
+  //   Business Communication → nút "Chat"      · Bottom Navigation
+  //   AI Assistant           → nút "A.I"       · Bottom Navigation
+  //   Documents              → khối "Tài liệu" · Order Context Rail
+  //
+  // Trang chủ là lối vào HỢP NHẤT, không phải lối vào DUY NHẤT.
   {
     name: 'Business Reporting', desc: 'Báo cáo một chạm, luôn kèm bằng chứng gốc',
     href: null, icon: PieChart, beta: true,
@@ -137,8 +166,11 @@ export const MODULES: ModuleItem[] = [
     // Mục DUY NHẤT dùng dải chuyển sắc — nó khác loại với 15 mục còn lại.
     name: 'AI Assistant', desc: 'Trợ lý hiểu ngữ cảnh công việc đang làm',
     href: null, icon: Sparkles, beta: true,
+    // Viền/vòng dùng fuchsia chứ KHÔNG dùng purple: purple đã là của
+    // Subcontract, và hai mục chung một màu viền thì mất hết tác dụng nhận
+    // diện. Fuchsia đứng cạnh dải chuyển sắc tím→lam vẫn thuận mắt.
     tile: 'bg-gradient-to-br from-purple-200 to-blue-200 text-purple-800',
-    ring: 'hover:ring-purple-300', focus: 'focus-visible:ring-purple-500',
+    ring: 'hover:ring-fuchsia-300', focus: 'focus-visible:ring-fuchsia-500',
   },
   {
     name: 'Documents', desc: 'Tech pack, chứng từ và quản lý phiên bản',
@@ -146,6 +178,8 @@ export const MODULES: ModuleItem[] = [
     tile: 'bg-gray-200 text-gray-700',
     ring: 'hover:ring-gray-400', focus: 'focus-visible:ring-gray-500',
   },
+  // ─── PLATFORM SERVICE (§34) ──────────────────────────────────────────────
+  // Lối vào thứ hai: nút bánh răng ở Top Header (xem app/top-navbar.tsx).
   {
     name: 'Platform Services', desc: 'Tài khoản, phân quyền, ngôn ngữ và cấu hình',
     href: '/admin', icon: SlidersHorizontal, beta: false,

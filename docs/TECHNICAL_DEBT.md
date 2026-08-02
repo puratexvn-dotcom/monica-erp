@@ -45,6 +45,9 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-01](#td-01) | `saveSizeBreakdown` — bù trừ thay cho giao dịch thật | 🔴 | mở | Enterprise Audit `d21f0ad` |
 | [TD-02](#td-02) | `cut_bundles.status` — `VARCHAR` tự do cho tập hữu hạn | 🟡 | mở | ADR-008 §5.3 · Board Quy tắc 5 |
 | [TD-03](#td-03) | Không có phép kiểm "vốn từ trong mã ⟷ vốn từ trong CSDL" | 🔴 | mở | ADR-008 §9.3 · Board Quy tắc 5 |
+| [TD-04](#td-04) | `components/sidebar.tsx` — mười lối vào không gắn ở layout nào | 🟡 | mở | Constitutional ADR-001 §5 |
+| [TD-05](#td-05) | Trang chủ hiện đủ 16 thẻ cho mọi người — §13.5 đòi lọc theo quyền | 🟡 | mở | Constitutional ADR-001 §5 |
+| [TD-06](#td-06) | Nhãn 16 phân hệ chưa đi qua `lib/i18n` | 🟡 | mở | Constitutional ADR-001 §5 |
 
 ---
 
@@ -190,6 +193,117 @@ nó bảo vệ mọi enum trong hệ thống, không riêng `bundle_stage_enum`.
 
 ---
 
+<a id="td-04"></a>
+## TD-04 · `components/sidebar.tsx` — MƯỜI LỐI VÀO KHÔNG GẮN Ở LAYOUT NÀO
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — **mã chết đang giả dạng lối vào** |
+| **Phát hiện** | Constitutional ADR-001 §2, ghi nhận theo §5 |
+| **Nơi** | [`components/sidebar.tsx:23`](../components/sidebar.tsx) — `NAV_ITEMS` |
+| **Vi phạm** | Playbook **XX** *(không mock, không giả)* |
+
+### Nội dung
+
+`Sidebar` khai mười mục điều hướng, có lọc quyền bằng `canAccess`, có trạng thái
+thu gọn, có drawer cho điện thoại. Nó **không được gắn ở bất kỳ layout nào**.
+
+Tìm toàn kho được đúng một tham chiếu, và tham chiếu đó **không dựng thanh bên**:
+
+```
+app/(dashboard)/admin/page.tsx:23    import { NAV_ITEMS } from '@/components/sidebar';
+```
+
+### Vì sao nó là nợ chứ không phải file cũ vô hại
+
+Nó **làm sai lệch phép đếm lối vào**. Khi cân nhắc gỡ thẻ Platform Services khỏi
+trang chủ, `grep '/admin'` cho ra dòng `sidebar.tsx:33` — trông như `/admin` còn
+đường vào khác. Không có. Nếu tin vào dòng đó mà gỡ thẻ, Quản trị hệ thống mất
+sạch đường vào phân hệ quản trị. Đây chính là bằng chứng §2 của ADR-001.
+
+### Cách trả
+
+Hoặc gắn `Sidebar` vào layout `(dashboard)` cho nó thành lối vào thật, hoặc tách
+`NAV_ITEMS` sang một module dữ liệu thuần và đánh dấu rõ phần còn lại là chưa
+gắn. **Không xoá** — Ràng buộc giao diện số 2 cấm xoá logic cũ.
+
+### Vì sao chưa trả
+
+Gắn thanh bên vào layout là một thay đổi kiến trúc điều hướng, chạm mọi trang
+trong `(dashboard)`. Nằm ngoài phạm vi ADR-001, vốn chỉ định nghĩa lại Trang chủ.
+
+---
+
+<a id="td-05"></a>
+## TD-05 · TRANG CHỦ HIỆN ĐỦ 16 THẺ CHO MỌI NGƯỜI
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — lệch Hiến pháp, **không** phải lỗ hổng bảo mật |
+| **Phát hiện** | Constitutional ADR-001 §5 |
+| **Nơi** | [`app/page.tsx`](../app/page.tsx) · [`app/home-modules.ts`](../app/home-modules.ts) |
+| **Vi phạm** | Hiến pháp **§13.5** *(Workspace Visibility)* |
+
+### Nội dung
+
+§13.5 sau sửa đổi đòi:
+
+> The Homepage shall display only the Business Workspaces, Global Services and
+> Platform Services that the authenticated user is authorized to access.
+
+`MODULES` là hằng số tĩnh, dựng đủ 16 thẻ cho mọi phiên, kể cả phiên chưa đăng
+nhập. §13.3 còn đòi lọc theo cả **Assignment** và **Operational Context** nữa.
+
+### Vì sao đây KHÔNG phải lỗ hổng bảo mật
+
+Ba tầng phòng thủ vẫn nguyên: `middleware.ts` chặn điều hướng theo `PROTECTED_
+PREFIXES`, `_services/guard.ts` chặn từng hàm, RLS chặn ở CSDL. Bấm vào thẻ
+không được phép thì bị chặn đúng như trước — **không rò dữ liệu nào**.
+
+Cái sai là ở **trải nghiệm**: trang chủ mời người dùng bấm vào thứ chắc chắn bị
+từ chối, đúng thứ CLAUDE.md §2.1 nói hai tầng đầu sinh ra để tránh.
+
+### Cách trả
+
+Đọc vai trò ở Server Component của `app/page.tsx` qua `supabase.auth.getUser()`
+*(không phải `getSession()`)*, lọc `MODULES` theo `MODULE_ACCESS` trong
+[`lib/rbac.ts`](../lib/rbac.ts) — nguồn chân lý duy nhất, không dựng bảng tra thứ hai.
+
+Lọc theo **Assignment** phải đợi `lib/mos/permission/` nối vào tầng trang chủ.
+
+### Vì sao chưa trả
+
+`app/page.tsx` hiện là trang công khai không đọc phiên. Cho nó đọc phiên là đổi
+mô hình nạp dữ liệu của trang chủ — cần quyết định riêng, và chạm vào SECURITY
+FREEZE đang có hiệu lực.
+
+---
+
+<a id="td-06"></a>
+## TD-06 · NHÃN 16 PHÂN HỆ CHƯA ĐI QUA `lib/i18n`
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — rủi ro bảo trì |
+| **Phát hiện** | Constitutional ADR-001 §5 |
+| **Nơi** | [`app/home-modules.ts`](../app/home-modules.ts) — `name` · `desc` của cả 16 mục |
+| **Vi phạm** | Hiến pháp **Điều IX** *(Globalization)* · CLAUDE.md §2.4 |
+
+### Nội dung
+
+Bộ chọn ngôn ngữ VN · EN · CN chạy đúng, nhưng tên và mô tả 16 phân hệ là chuỗi
+cứng trong `home-modules.ts`. Đổi ngôn ngữ thì lưới trang chủ không đổi theo.
+
+Cùng tình trạng: chữ trên trang đăng nhập và ba dòng giá trị cốt lõi ở cột trái.
+
+### Vì sao chưa trả
+
+Tên 16 phân hệ là **tên hiến định do Board chỉ định**, viết bằng tiếng Anh trong
+cả ba ngôn ngữ. Dịch chúng cần Board xác nhận bản dịch chính thức cho từng thứ
+tiếng — không phải việc kỹ thuật quyết được. Phần mô tả thì dịch được ngay.
+
+---
+
 ## 2. QUY TẮC CẬP NHẬT
 
 - Nợ mới phát hiện trong một ADR: ghi ở ADR đó *(nơi phát hiện)* **và** thêm mục
@@ -204,4 +318,5 @@ nó bảo vệ mọi enum trong hệ thống, không riêng `bundle_stage_enum`.
 - [`MONICA_CONSTITUTION.md`](MONICA_CONSTITUTION.md) — Điều III · V · V.3
 - [`ENGINEERING_PLAYBOOK.md`](ENGINEERING_PLAYBOOK.md) — XXVIII.2 · XXIX
 - [`adr/ADR-008-bundle-stage-vocabulary.md`](adr/ADR-008-bundle-stage-vocabulary.md) — nguồn TD-02, TD-03
+- [`architecture/adr/ADR-001-homepage-conceptual-model.md`](architecture/adr/ADR-001-homepage-conceptual-model.md) — nguồn TD-04, TD-05, TD-06
 - Commit `d21f0ad` — nguồn TD-01

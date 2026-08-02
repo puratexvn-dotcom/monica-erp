@@ -16,7 +16,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Bell } from 'lucide-react';
+import { Bell, SlidersHorizontal } from 'lucide-react';
 
 import HeaderVerse from '@/components/header-verse';
 import LanguageSwitcher from '@/components/language-switcher';
@@ -70,6 +70,27 @@ export default function TopNavbar() {
                 3
               </span>
             </button>
+
+            {/* ── PLATFORM SERVICES (§34) — lối vào ở Top Header ────────────
+                §14 định nghĩa Top Header là Global Command Bar thường trực, nên
+                đây là chỗ đúng cho một lối vào nền tảng: vào được /admin từ MỌI
+                trang, không phải quay về trang chủ trước.
+                Thẻ trên Launcher vẫn giữ (ADR-001) — hai lối vào cho cùng một
+                dịch vụ là chủ ý, không phải trùng lặp. Trước ADR-001, /admin
+                từng chỉ có ĐÚNG MỘT lối vào là thẻ trang chủ; `components/
+                sidebar.tsx` có khai mục /admin nhưng không được gắn ở layout
+                nào (nợ kỹ thuật TD-04).
+                ⚠️ KHÔNG đổi phân quyền: middleware và guard của /admin giữ
+                nguyên, nút này chỉ là đường dẫn. Ai không đủ quyền vẫn bị
+                chặn đúng như trước. */}
+            <Link
+              href="/admin"
+              aria-label="Platform Services — quản trị hệ thống"
+              title="Platform Services"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition-all hover:border-violet-300 hover:text-violet-600 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            >
+              <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+            </Link>
           </div>
         </div>
 

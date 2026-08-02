@@ -4,12 +4,13 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Status** | ✅ ADOPTED |
 | **Owner** | Joseph |
 | **Architecture Authority** | MONICA ONE Architecture Board |
 | **Effective Date** | 2026-08-02 |
-| **Last Updated** | 2026-08-02 |
+| **Last Updated** | 2026-08-03 |
+| **Latest Amendment** | [ADR-001 — Homepage Conceptual Model](adr/ADR-001-homepage-conceptual-model.md) |
 
 ## Revision History
 
@@ -71,6 +72,7 @@
 | 0.54 | 2026-08-02 | Architecture Board | Ban hành **Appendix › Glossary** — 12 nhóm chữ cái, 24 thuật ngữ, kèm *Constitutional Terminology Rule*. Claude chèn nguyên văn, không sửa một chữ. **Hạ một cấp heading** để lồng đúng dưới `## Glossary` của bộ khung đã đóng băng: nhóm chữ cái `##`→`###`, thuật ngữ `###`→`####`. Chỉ điều chỉnh cấp heading, không đổi chữ. Xem ghi nhận về tiêu đề `APPENDIX A`. |
 | 0.55 | 2026-08-02 | Architecture Board | Ban hành **Appendix › References** — 8 nhóm tham chiếu, kèm *Constitutional Independence*. **TOÀN BỘ NỘI DUNG HIẾN PHÁP ĐÃ ĐẦY ĐỦ:** PREAMBLE · 43/43 Điều · Glossary · References. Claude chèn nguyên văn, không sửa một chữ; hạ một cấp heading (`##`→`###`) để lồng đúng dưới `## References`. ⏳ **CHƯA BAN HÀNH** — Document Control vẫn ghi `Version 0.2 · Draft`; cần Quyết định ban hành của Board. |
 | **1.0** | **2026-08-02** | **Architecture Board** | **QUYẾT NGHỊ CUỐI — CHUẨN HOÁ VÀ BAN HÀNH.** ① Document Control: `Version 1.0` · `Status ADOPTED` · `Effective Date 2026-08-02`; gỡ toàn bộ dấu vết bản nháp. ② Chuẩn hoá bốn tiêu đề Điều: `29 Business Reporting` · `41 Versioning & Release Management` · `42 Constitutional Governance` · `43 Constitutional Authority` (kèm neo mục lục). ③ Thống nhất thứ bậc thẩm quyền ở §5.12 · §37.8 · §43.3 thành sáu bậc: Constitution → Accepted ADR → Engineering Standards → Approved Playbooks → Technical Documentation → Source Code. ④ Giữ nguyên cấu trúc Appendix. ⑤ **Hiến pháp là văn bản chuẩn tắc — KHÔNG sửa Hiến pháp cho khớp mã đang chạy.** Bốn khoảng cách triển khai còn mở, theo dõi như hạng mục kỹ thuật: **Điều 13 · 19 · 22 · 25**; xử lý sau qua ADR và công việc kỹ thuật. Đã chạy đủ bốn phép kiểm: markdown · liên kết · mục lục · tham chiếu chéo. |
+| **1.1** | **2026-08-03** | **Architecture Board** | **ADR-001 — Homepage Conceptual Model.** Trang chủ được định nghĩa lại là **Business Operating System Launcher** thay cho *Business Workspace Launcher*: nó là **lối vào**, không phải cơ chế **phân loại**. ① **Điều 13**: đổi tên §13.3 và thay định nghĩa; §13.1 · §13.4 · §13.5 · §13.8 chỉnh theo cho hết mâu thuẫn. ② **§17.3**: bổ sung *"Global Services may appear on the Business Operating System Launcher without becoming Business Workspaces."* ③ **§34.1**: bổ sung Platform Services xuất hiện trên Launcher như lối vào nền tảng, không đổi phân loại hiến định. ④ **Glossary**: `Workspace Launcher` → `Business Operating System Launcher`, chuyển từ nhóm **W** sang nhóm **B** cho đúng thứ tự chữ cái; nhóm **W** rỗng nên gỡ bỏ (còn 11 nhóm chữ cái · 25 thuật ngữ). ⑤ Mục lục cập nhật neo §13.3. Khoảng cách triển khai **Điều 13** khép lại; **Điều 19 · 22 · 25** vẫn mở. |
 
 ## Table of Contents
 
@@ -194,7 +196,7 @@
 - [Article 13. Homepage](#article-13-homepage)
   - [13.1 Constitutional Principle](#131-constitutional-principle)
   - [13.2 User Experience Objective](#132-user-experience-objective)
-  - [13.3 Business Workspace Launcher](#133-business-workspace-launcher)
+  - [13.3 Business Operating System Launcher](#133-business-operating-system-launcher)
   - [13.4 Information Simplicity](#134-information-simplicity)
   - [13.5 Workspace Visibility](#135-workspace-visibility)
   - [13.6 Consistency](#136-consistency)
@@ -516,7 +518,7 @@
 **[APPENDIX](#appendix)**
 
 - [Glossary](#glossary)
-  - [A](#a) · [B](#b) · [C](#c) · [D](#d) · [E](#e) · [G](#g) · [O](#o) · [P](#p) · [R](#r) · [S](#s) · [U](#u) · [W](#w)
+  - [A](#a) · [B](#b) · [C](#c) · [D](#d) · [E](#e) · [G](#g) · [O](#o) · [P](#p) · [R](#r) · [S](#s) · [U](#u)
   - [Constitutional Terminology Rule](#constitutional-terminology-rule)
 - [References](#references)
   - [Enterprise Architecture](#enterprise-architecture)
@@ -1606,7 +1608,7 @@ Any proposal that fundamentally changes the constitutional role of AI requires A
 
 The Homepage is the primary entry point of MONICA ONE.
 
-Its sole purpose is to direct users to the appropriate Business Workspace quickly, clearly and confidently.
+Its sole purpose is to direct users to the appropriate Business Workspace, Global Service or Platform Service quickly, clearly and confidently.
 
 The Homepage is not a dashboard.
 
@@ -1614,7 +1616,7 @@ The Homepage is not a reporting center.
 
 The Homepage is not an analytics portal.
 
-The Homepage is a Workspace Launcher.
+The Homepage is a Business Operating System Launcher.
 
 ---
 
@@ -1628,9 +1630,11 @@ Users should not need training to understand where to start.
 
 ---
 
-### 13.3 Business Workspace Launcher
+### 13.3 Business Operating System Launcher
 
-The Homepage shall present Business Workspaces as the primary navigation model.
+The Homepage serves as the unified entry point into the Business Operating System.
+
+It provides access to constitutional Business Workspaces, Global Services and Platform Services according to user authorization, assignment and operational context.
 
 Business Workspaces represent operational domains of the enterprise.
 
@@ -1644,15 +1648,15 @@ The Homepage shall remain intentionally simple.
 
 Business-critical navigation shall always take precedence over decorative information, excessive statistics or visual complexity.
 
-Information not directly supporting Workspace selection shall be minimized or relocated to its appropriate context.
+Information not directly supporting Workspace or Service selection shall be minimized or relocated to its appropriate context.
 
 ---
 
 ### 13.5 Workspace Visibility
 
-The Homepage shall display only the Business Workspaces that the authenticated user is authorized to access.
+The Homepage shall display only the Business Workspaces, Global Services and Platform Services that the authenticated user is authorized to access.
 
-Users shall not be distracted by inaccessible or unrelated Workspaces.
+Users shall not be distracted by inaccessible or unrelated Workspaces or Services.
 
 Visibility shall be determined by the platform authorization model.
 
@@ -1680,7 +1684,7 @@ Ease of adoption shall always be considered a constitutional objective.
 
 ### 13.8 Constitutional Enforcement
 
-The Homepage shall remain a Workspace Launcher throughout the lifetime of MONICA ONE.
+The Homepage shall remain a Business Operating System Launcher throughout the lifetime of MONICA ONE.
 
 Any proposal to transform the Homepage into a traditional ERP dashboard, KPI portal or feature catalog shall require explicit approval from the Architecture Board through an ADR.
 
@@ -2055,6 +2059,8 @@ Business Workspaces consume Global Services.
 Global Services shall not become Business Workspaces.
 
 Likewise, Business Workspaces shall not duplicate Global Services.
+
+Global Services may appear on the Business Operating System Launcher without becoming Business Workspaces.
 
 ---
 
@@ -4187,6 +4193,10 @@ Platform Services are infrastructure capabilities.
 
 They are not Business Workspaces.
 
+Platform Services may appear on the Business Operating System Launcher as platform entry points.
+
+Their appearance on the Homepage does not alter their constitutional classification.
+
 ---
 
 ### 34.2 Purpose
@@ -5379,6 +5389,16 @@ The integrated constitutional platform unifying Business Workspaces, Global Serv
 
 ---
 
+#### Business Operating System Launcher
+
+The constitutional Homepage serving as the unified entry point into MONICA ONE.
+
+It provides access to constitutional Business Workspaces, Global Services and Platform Services according to user authorization, assignment and operational context.
+
+The Homepage itself is neither a Business Workspace, nor a Global Service, nor a Platform Service.
+
+---
+
 #### Business Reporting
 
 The constitutional Global Service responsible for evidence-based reporting and business decision support.
@@ -5498,16 +5518,6 @@ The constitutional Global Service providing contextual assistance to users durin
 User Guidance supports learning through work.
 
 It is not a static Help Center.
-
----
-
-### W
-
-#### Workspace Launcher
-
-The constitutional Homepage whose purpose is to provide entry into Business Workspaces.
-
-The Homepage is not itself a Business Workspace.
 
 ---
 

@@ -23,6 +23,15 @@ import { LOGO_TEXT_GRADIENT, APP_NAME } from '@/lib/brand';
 // dòng, và các bảng điều hành bên trong `/giam-doc`, `/md` vẫn dùng nó. Ở đây
 // chỉ là trang chủ thôi không gọi tới.
 //
+// ─── BUSINESS OPERATING SYSTEM LAUNCHER (Điều 13.3 · ADR-001) ────────────
+// Trang chủ là LỐI VÀO HỢP NHẤT của hệ điều hành nghiệp vụ, không phải cơ chế
+// phân loại. Nó dựng cả ba loại hiến định thành thẻ: Business Workspace (§16.2)
+// · Global Service (§29 · §30 · §31 · §33) · Platform Service (§34).
+//
+// Việc một dịch vụ xuất hiện ở đây KHÔNG đổi phân loại hiến định của nó — §17.3
+// và §34.1 nay nói rõ điều đó. Xem app/home-modules.ts và
+// docs/architecture/adr/ADR-001-homepage-conceptual-model.md.
+//
 // ─── KHÔNG CHIA NHÓM ─────────────────────────────────────────────────────
 // Không CORE/BUSINESS/COMMERCIAL/... Một lưới phẳng mười sáu ô, đúng kiểu
 // App Launcher. Tiêu đề nhóm chỉ có nghĩa với người đã thuộc hệ thống; với
@@ -119,7 +128,7 @@ export default function HomePage() {
 
         {/* ═══ MODULE LAUNCHER — lưới phẳng, không nhóm, không tiêu đề ══════
             Mobile 2 · Tablet 3 · Desktop 4. Khoảng cách đều ở mọi mốc. */}
-        <section aria-label="Phân hệ hệ thống">
+        <section aria-label="Business Operating System Launcher">
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
             {MODULES.map((mod) => (
               <ModuleCard key={mod.name} mod={mod} />
