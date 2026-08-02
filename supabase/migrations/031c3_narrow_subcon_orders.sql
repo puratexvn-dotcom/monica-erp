@@ -135,12 +135,40 @@ FROM (VALUES
   ('Bất biến I-11 còn nguyên',
    (SELECT COUNT(*)::TEXT FROM pg_trigger
      WHERE tgname = 'subcon_orders_i11_trg' AND NOT tgisinternal), '1'),
+  -- ⚠️ BA PHÉP KIỂM DƯỚI ĐÂY ĐÃ ĐƯỢC SỬA SAU KHI CHẠY THẬT — chỉ sửa CÂU HỎI,
+  -- không đụng một byte nào của CSDL. Cùng loại đính chính với 031b Mục 5.
+  --
+  -- Bản đầu hỏi "031c còn nguyên" bằng `policyname LIKE 'p031c_%'` ⇒ chờ 1,
+  -- ra 2, báo ⛔ trong khi migration chạy HOÀN TOÀN ĐÚNG.
+  --
+  -- Vì sao: trong LIKE, `_` là ký tự đại diện MỘT KÝ TỰ, không phải gạch dưới
+  -- literal. Mẫu `p031c_%` đọc ra là `p031c` + <một ký tự bất kỳ> + <phần còn
+  -- lại>, nên nó khớp CẢ HAI:
+  --
+  --     p031c_vendor_scoped_read   ← của 031c   (`_` rơi vào wildcard)
+  --     p031c3_so_scoped_read      ← của CHÍNH TỆP NÀY (`3` rơi vào wildcard)
+  --
+  -- Tức là phép kiểm "031c còn nguyên" đang đếm cả policy mà 031c3 vừa tạo.
+  -- Kết quả 2 là dấu hiệu chạy ĐÚNG, không phải policy dư — đã đối chiếu:
+  -- 031c tạo `p031c_vendor_scoped_read` trên `subcontractors`, 031c2 DROP rồi
+  -- CREATE LẠI CÙNG TÊN CÙNG BẢNG (thay thế, không nhân đôi), và bài kiểm sống
+  -- chặng `C · 031c` đạt 5/5 bằng phiên đăng nhập thật.
+  --
+  -- ⛔ KHÔNG sửa bằng cách đổi kỳ vọng 1 → 2. Làm vậy là chép lại đúng cái bẫy:
+  -- ngày có `031c4`, con số 2 lại sai. Hỏi ĐÚNG ĐỐI TƯỢNG cần hỏi thay vì đếm
+  -- theo tiền tố — tên policy là danh tính, không phải không gian tên.
   ('⭐ 031a còn nguyên', (SELECT COUNT(*)::TEXT FROM pg_policies
      WHERE schemaname = 'public' AND policyname LIKE 'p031a_ext_no_%'), '12'),
   ('⭐ 031b còn nguyên', (SELECT COUNT(*)::TEXT FROM pg_policies
-     WHERE schemaname = 'public' AND policyname LIKE 'p031b_%'), '5'),
+     WHERE schemaname = 'public'
+       AND policyname IN ('p031b_line_scoped_read',
+                          'p031b_line_no_ext_insert',
+                          'p031b_line_no_ext_update',
+                          'p031b_line_no_ext_delete',
+                          'p031b_abn_partner_read')), '5'),
   ('⭐ 031c còn nguyên', (SELECT COUNT(*)::TEXT FROM pg_policies
-     WHERE schemaname = 'public' AND policyname LIKE 'p031c_%'), '1')
+     WHERE schemaname = 'public' AND tablename = 'subcontractors'
+       AND policyname = 'p031c_vendor_scoped_read'), '1')
 ) AS t(muc, ket_qua, ky_vong);
 
 COMMIT;

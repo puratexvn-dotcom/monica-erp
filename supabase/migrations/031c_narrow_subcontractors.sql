@@ -131,8 +131,17 @@ FROM (VALUES
   ('⭐ 031a còn nguyên', (SELECT COUNT(*)::TEXT FROM pg_policies
      WHERE schemaname = 'public' AND policyname LIKE 'p031a_ext_no_%'
        AND permissive = 'RESTRICTIVE'), '12'),
+  -- ⚠️ SỬA SAU KHI CHẠY THẬT — chỉ đổi CÂU HỎI, không đụng CSDL. Bản đầu đếm
+  -- `LIKE 'p031b_%'`; trong LIKE, `_` là wildcard MỘT KÝ TỰ, nên ngày có một
+  -- `031b2` thì policy của nó cũng bị đếm vào đây và mục này báo ⛔ oan. Đúng
+  -- cái bẫy đã nổ thật ở 031c3 Mục 3 — xem khối chú thích tại đó.
   ('⭐ 031b còn nguyên', (SELECT COUNT(*)::TEXT FROM pg_policies
-     WHERE schemaname = 'public' AND policyname LIKE 'p031b_%'), '5')
+     WHERE schemaname = 'public'
+       AND policyname IN ('p031b_line_scoped_read',
+                          'p031b_line_no_ext_insert',
+                          'p031b_line_no_ext_update',
+                          'p031b_line_no_ext_delete',
+                          'p031b_abn_partner_read')), '5')
 ) AS t(muc, ket_qua, ky_vong);
 
 COMMIT;
