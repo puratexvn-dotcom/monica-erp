@@ -69,6 +69,45 @@ export interface KpiValue {
   delta: string;
 }
 
+/** Một dòng trong khối "Hoạt động gần đây" — dựng từ đơn hàng THẬT, không bịa */
+export interface ActivityRow {
+  poNumber: string;
+  customer: string;
+  status: string;
+  /** `YYYY-MM-DD` hoặc null khi chưa chốt ngày giao */
+  deliveryDate: string | null;
+  /** true khi ngày giao đã qua mà đơn chưa đóng */
+  late: boolean;
+}
+
+/** Tiến độ kế hoạch ngày — dùng cho thanh tiến trình ở bảng điều hành */
+export interface ProgressValue {
+  /** 0–100, hoặc null khi chưa đặt kế hoạch ngày */
+  percent: number | null;
+  done: string;
+  target: string;
+}
+
+/**
+ * Một việc cần xử lý hôm nay. Ba nguồn, tất cả từ dữ liệu THẬT:
+ *   • phần việc đang chạy mà CHƯA gửi báo cáo ngày  (Playbook XXX mục 7)
+ *   • biên bản QA có hàng lỗi trong 7 ngày
+ *   • lô hàng có ETD đúng hôm nay
+ */
+export interface TaskRow {
+  kind: 'REPORT_MISSING' | 'QA_DEFECT' | 'SHIP_TODAY';
+  title: string;
+  detail: string;
+  href: string;
+}
+
+/** Ba con số cảnh báo vận hành. `null` = chưa đọc được, KHÔNG phải 0. */
+export interface OpsCounts {
+  reportMissing: number | null;
+  qaDefect: number | null;
+  shipToday: number | null;
+}
+
 export interface HomeMetrics {
   status: MetricsStatus;
   /** Vai trò người đang đăng nhập — trang chủ dùng để quyết định hiện khối nào */
@@ -81,6 +120,14 @@ export interface HomeMetrics {
     aqlRate: KpiValue;
     pendingShipments: KpiValue;
   };
+  /** Đơn hàng mới nhất — tối đa 6 dòng, đã sắp xếp giảm dần theo ngày giao */
+  recent: ActivityRow[];
+  /** Tiến độ sản lượng so với kế hoạch NGÀY */
+  dayProgress: ProgressValue;
+  /** Việc cần xử lý hôm nay — tối đa 6 dòng, ưu tiên việc trễ trước */
+  tasks: TaskRow[];
+  /** Ba con số cảnh báo vận hành */
+  ops: OpsCounts;
   /** Nhãn góc thẻ, tra theo href của phân hệ */
   badges: Record<string, string>;
 }
@@ -92,6 +139,10 @@ function blank(status: MetricsStatus): HomeMetrics {
     role: null,
     partial: false,
     kpi: { activeOrders: none, outputToday: none, aqlRate: none, pendingShipments: none },
+    recent: [],
+    dayProgress: { percent: null, done: DASH, target: DASH },
+    tasks: [],
+    ops: { reportMissing: null, qaDefect: null, shipToday: null },
     badges: {},
   };
 }
@@ -131,6 +182,7 @@ interface OrderRow {
   status: string | null;
   customer_name: string | null;
   delivery_date: string | null;
+  po_number?: string | null;
 }
 interface MaterialRow {
   stock_qty: number | null;
@@ -154,6 +206,25 @@ interface FinishingRow {
   ironing_qty: number | null;
 }
 interface SubconRow {
+  status: string | null;
+}
+interface AssignmentRow {
+  id: string;
+  assignment_no: string | null;
+  status: string | null;
+  planned_finish: string | null;
+}
+interface DailyReportRow {
+  assignment_id: string | null;
+}
+interface QaDefectRow {
+  line_name: string | null;
+  defect_qty: number | null;
+  inspected_qty: number | null;
+}
+interface ShipTodayRow {
+  shipment_no: string | null;
+  destination_port: string | null;
   status: string | null;
 }
 
@@ -191,7 +262,8 @@ export async function getHomeMetrics(): Promise<HomeMetrics> {
 
   const [orders, materials, sewing, cutting, qa, shipments, finishing, subcon, cartonsPacked, staff] =
     await Promise.all([
-      safeRows<OrderRow>(() => supabase.from('orders').select('status, customer_name, delivery_date')),
+      safeRows<OrderRow>(() =>
+        supabase.from('orders').select('status, customer_name, delivery_date, po_number')),
       safeRows<MaterialRow>(() => supabase.from('materials').select('stock_qty, min_stock_qty')),
       safeRows<SewingRow>(() =>
         supabase.from('hourly_production_logs').select('actual_qty, target_qty').eq('log_date', todayDate),
@@ -212,6 +284,25 @@ export async function getHomeMetrics(): Promise<HomeMetrics> {
       ),
       safeCount(() => supabase.from('profiles').select('id', { count: 'exact', head: true })),
     ]);
+
+  // ── Ba nguồn cho "Việc hôm nay" ───────────────────────────────────────────
+  // Tách khỏi Promise.all ở trên để không phải sửa mảng huỷ cấu trúc 10 phần tử
+  // đang chạy tốt — thêm phần tử vào đó là chỗ rất dễ lệch thứ tự mà TypeScript
+  // không bắt được (mọi phần tử đều là Res<...>).
+  const [assignments, todayReports, qaDefects, shipsToday] = await Promise.all([
+    safeRows<AssignmentRow>(() =>
+      supabase.from('assignments').select('id, assignment_no, status, planned_finish')
+        .in('status', ['ACCEPTED', 'IN_PROGRESS']).is('deleted_at', null).limit(500)),
+    safeRows<DailyReportRow>(() =>
+      supabase.from('assignment_daily_reports').select('assignment_id')
+        .eq('report_date', todayDate).limit(500)),
+    safeRows<QaDefectRow>(() =>
+      supabase.from('qa_audit_reports').select('line_name, defect_qty, inspected_qty')
+        .gt('defect_qty', 0).gte('created_at', vnDaysAgoUtc(7)).limit(200)),
+    safeRows<ShipTodayRow>(() =>
+      supabase.from('shipments').select('shipment_no, destination_port, status')
+        .eq('etd_date', todayDate).limit(100)),
+  ]);
 
   const partial = [orders, materials, sewing, cutting, qa, shipments, finishing, subcon, cartonsPacked, staff]
     .some((r) => !r.ok);
@@ -247,10 +338,77 @@ export async function getHomeMetrics(): Promise<HomeMetrics> {
   const subconRunning = subcon.v.filter((s) => SUBCON_RUNNING.has((s.status ?? '').toUpperCase())).length;
   const subconToSettle = subcon.v.filter((s) => (s.status ?? '').toUpperCase() === 'COMPLETED').length;
 
+  // ── Hoạt động gần đây ─────────────────────────────────────────────────────
+  // Lấy từ ĐƠN HÀNG THẬT. Sắp theo ngày giao gần nhất trước — đó là thứ người
+  // điều hành cần thấy đầu tiên, không phải thứ tự nhập liệu.
+  // Đơn chưa chốt ngày giao xếp cuối: `''` luôn nhỏ hơn mọi chuỗi ngày.
+  const recent: ActivityRow[] = openOrders
+    .slice()
+    .sort((a, b) => (a.delivery_date ?? '').localeCompare(b.delivery_date ?? ''))
+    .slice(0, 6)
+    .map((o) => ({
+      poNumber: (o.po_number ?? '').trim() || DASH,
+      customer: (o.customer_name ?? '').trim() || DASH,
+      status: (o.status ?? '').trim() || DASH,
+      deliveryDate: o.delivery_date,
+      late: Boolean(o.delivery_date && o.delivery_date < todayDate),
+    }));
+
+  // ── Tiến độ kế hoạch ngày ─────────────────────────────────────────────────
+  // `null` khi chưa đặt kế hoạch — KHÔNG hiện 0%, vì "chưa lập kế hoạch" và
+  // "lập rồi nhưng chưa làm được gì" là hai chuyện khác hẳn nhau.
+  const dayProgress: ProgressValue = {
+    percent: sewing.ok && targetToday > 0
+      ? Math.min(100, Math.round((sewnToday / targetToday) * 100))
+      : null,
+    done: sewing.ok ? fmt(sewnToday) : DASH,
+    target: sewing.ok && targetToday > 0 ? fmt(targetToday) : DASH,
+  };
+
+  // ── VIỆC HÔM NAY ──────────────────────────────────────────────────────────
+  // Playbook Điều XXX mục 7: phần việc chưa gửi báo cáo ngày phải hiện
+  // `REPORT MISSING` trên bảng điều khiển — Giám đốc, Merchandiser và QA đều
+  // thấy. Đây chính là chỗ thi hành điều khoản đó ở trang chủ.
+  const reportedToday = new Set(
+    todayReports.v.map((r) => r.assignment_id).filter((x): x is string => Boolean(x)),
+  );
+  const missing = assignments.v.filter((a) => !reportedToday.has(a.id));
+
+  const tasks: TaskRow[] = [
+    ...missing.slice(0, 3).map<TaskRow>((a) => ({
+      kind: 'REPORT_MISSING',
+      title: `Chưa có báo cáo ngày — ${a.assignment_no ?? DASH}`,
+      detail: a.planned_finish ? `Hạn hoàn thành ${a.planned_finish}` : 'Chưa đặt hạn hoàn thành',
+      href: '/md/assignments',
+    })),
+    ...qaDefects.v.slice(0, 2).map<TaskRow>((q) => ({
+      kind: 'QA_DEFECT',
+      title: `Hàng lỗi tại ${q.line_name ?? DASH}`,
+      detail: `${fmt(q.defect_qty ?? 0)} lỗi / ${fmt(q.inspected_qty ?? 0)} pcs đã kiểm`,
+      href: '/qa',
+    })),
+    ...shipsToday.v.slice(0, 2).map<TaskRow>((s) => ({
+      kind: 'SHIP_TODAY',
+      title: `Lô xuất hôm nay — ${s.shipment_no ?? DASH}`,
+      detail: `${s.destination_port ?? 'Chưa có cảng đích'} · ${s.status ?? DASH}`,
+      href: '/xuat-hang',
+    })),
+  ].slice(0, 6);
+
+  const ops: OpsCounts = {
+    reportMissing: assignments.ok && todayReports.ok ? missing.length : null,
+    qaDefect: qaDefects.ok ? qaDefects.v.length : null,
+    shipToday: shipsToday.ok ? shipsToday.v.length : null,
+  };
+
   return {
     status: 'ok',
     role,
     partial,
+    recent,
+    dayProgress,
+    tasks,
+    ops,
     kpi: {
       activeOrders: {
         value: orders.ok ? fmt(activeOrderCount) : DASH,
