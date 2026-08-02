@@ -15,6 +15,8 @@ Bắt buộc từ Migration 029 trở đi cho mọi thay đổi Domain Model ho�
 | [ADR-004](ADR-004-concurrency-control.md) | Concurrency Control — thay Last-Write-Wins | `034` | Đã phê duyệt · đã chạy |
 | [ADR-005](ADR-005-udmd-i18n-and-soft-delete.md) | Đa ngôn ngữ cho UDMD (JSONB) · xoá mềm cho điều khoản thương mại | `035a/b/c` · `036` · `036b` | Đã phê duyệt · đã chạy |
 | [ADR-006](ADR-006-permission-engine.md) | Permission Engine — phân quyền theo Assignment | `030` → `031` | ⏳ **Chờ phê duyệt** · **031 = điểm không quay lại** |
+| [ADR-007](ADR-007-data-reconciliation.md) | Data Reconciliation — đối soát dữ liệu lịch sử | — | 🟡 **Chờ phê duyệt** |
+| [ADR-008](ADR-008-bundle-stage-vocabulary.md) | Từ vựng vòng đời bó bán thành phẩm — **tách trục** | `039` → `031d` | ✅ **Đã phê duyệt** *(Board, 02/08/2026 · Phương án D)* |
 
 ⚠️ ADR-001 nằm ở [`docs/assignment/`](../assignment/) vì viết trước khi thư mục
 này tồn tại. **Không di chuyển** — đường dẫn cũ đã nằm trong lịch sử git và trong
@@ -26,6 +28,7 @@ phần References của ADR-002. Từ ADR-002 trở đi, nơi lưu chính thức
 |---|---|
 | [Mutation Policy](../MUTATION_POLICY.md) | retry · optimistic update · xung đột · danh tính yêu cầu cho mọi CREATE/UPDATE/DELETE |
 | [Domain Glossary](../DOMAIN_GLOSSARY.md) | từ vựng nghiệp vụ — bản chất, không phải cấu trúc bảng |
+| [Technical Debt](../TECHNICAL_DEBT.md) | sổ nợ kỹ thuật — nơi **theo dõi**; ADR là nơi **phát hiện** |
 
 ## Sáu mục bắt buộc
 
