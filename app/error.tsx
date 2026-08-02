@@ -11,7 +11,7 @@ interface ErrorProps {
 export default function ErrorBoundary({ error, reset }: ErrorProps) {
   useEffect(() => {
     // Tùy chọn: Log lỗi vào hệ thống theo dõi (VD: Sentry)
-    console.error('Lỗi khi tải trang hệ sinh thái ERP:', error);
+    console.error('[MONICA ONE] Lỗi khi tải trang:', error);
   }, [error]);
 
   return (

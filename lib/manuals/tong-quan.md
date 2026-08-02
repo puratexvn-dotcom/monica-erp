@@ -1,4 +1,4 @@
-# Hướng dẫn chung — MONICA MOS
+# Hướng dẫn chung — MONICA ONE
 
 Những quy ước áp dụng cho **mọi** phân hệ trong hệ thống. Đọc một lần là dùng được tất cả các màn hình.
 
@@ -18,7 +18,7 @@ Thanh này tự ẩn khi bàn phím ảo bật lên hoặc khi cuộn xuống, v
 
 ## 2. Về trang chủ
 
-Bấm **logo Monica** ở góc trái thanh đầu trang để về trang chủ ở bất kỳ đâu.
+Bấm **logo MONICA ONE** ở góc trái thanh đầu trang để về trang chủ ở bất kỳ đâu.
 
 ## 3. Quy ước số liệu
 

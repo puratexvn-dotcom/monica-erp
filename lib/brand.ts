@@ -1,5 +1,5 @@
 // ============================================================================
-// MONICA MOS — Hằng số nhận diện thương hiệu
+// MONICA ONE — Hằng số nhận diện thương hiệu
 //
 // Gom đường dẫn logo về MỘT chỗ để đổi file chỉ phải sửa một dòng, thay vì đi
 // lùng trong navbar, trang login và trang đổi mật khẩu.
@@ -15,20 +15,28 @@
 export const LOGO_SRC = '/MONICA.png';
 
 // ─── TÊN HỆ THỐNG ────────────────────────────────────────────────────────
-// Hệ thống không còn định vị là ERP truyền thống mà là Hệ điều hành Sản xuất
-// (Manufacturing Operating System).
+// Tên sản phẩm chính thức: **MONICA ONE**.
+//
+// ⚠️ KHÔNG dùng lại "ERP", "MOS", hay bất kỳ hậu tố kỹ thuật nào trong phần
+// NHÌN THẤY ĐƯỢC. Khách hàng mua một sản phẩm, không mua một thể loại phần mềm.
+// "ERP" và "Manufacturing Operating System" là cách người trong nghề phân loại
+// hệ thống — dán nó lên màn hình đăng nhập chỉ làm sản phẩm trông như một dự án
+// nội bộ chứ không phải một sản phẩm có tên.
 //
 // Hai biến thể, dùng đúng chỗ:
 //   • APP_NAME      — chỗ HẸP: logo, thanh đầu trang, thanh dưới, thẻ meta,
 //                     nhãn ngắn. Tên dài ở đây sẽ bị cắt hoặc bóp vỡ bố cục.
 //   • APP_NAME_FULL — chỗ RỘNG: trang chủ, chân trang, tài liệu, đoạn văn
-//                     xuôi trong báo cáo — nơi có chỗ cho cả phần giải nghĩa.
+//                     xuôi trong báo cáo.
 //
-// Gom về đây thay vì viết thẳng chuỗi ở từng nơi: lần đổi tên này phải sờ vào
-// mười mấy tệp rải rác, chính là cái giá của việc trước kia chép chuỗi khắp
-// nơi. Từ nay đổi tên hệ thống chỉ sửa hai dòng dưới đây.
-export const APP_NAME = 'MONICA MOS';
-export const APP_NAME_FULL = 'MONICA MOS (Manufacturing Operating System)';
+// Cả hai nay TRÙNG NHAU, và đó là có chủ ý: một sản phẩm có đúng một cái tên.
+// Giữ hai hằng số riêng để nơi gọi không phải sửa, và để sau này muốn thêm
+// khẩu hiệu ở chỗ rộng thì chỉ đổi một dòng.
+//
+// Gom về đây thay vì viết thẳng chuỗi ở từng nơi: đổi tên hệ thống chỉ sửa
+// hai dòng dưới đây.
+export const APP_NAME = 'MONICA ONE';
+export const APP_NAME_FULL = 'MONICA ONE';
 
 // Chữ thay ảnh logo. Dùng tên NGẮN vì đây là nhãn đọc màn hình cho một hình
 // ảnh nhỏ — đọc cả cụm dài mỗi lần lướt qua logo là tra tấn người khiếm thị.

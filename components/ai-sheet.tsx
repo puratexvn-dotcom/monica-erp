@@ -136,7 +136,7 @@ export default function AiSheet({
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                 <Sparkles className="h-7 w-7" aria-hidden="true" />
               </span>
-              <p className="text-sm font-bold text-slate-800">Trợ lý sản xuất Monica</p>
+              <p className="text-sm font-bold text-slate-800">Trợ lý sản xuất MONICA ONE</p>
               <p className="max-w-xs text-xs leading-relaxed text-slate-500">
                 Hỏi về sản lượng, tiến độ đơn hàng, tồn kho hoặc nhờ tổng kết ca làm việc.
               </p>

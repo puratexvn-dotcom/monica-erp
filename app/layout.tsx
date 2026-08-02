@@ -17,7 +17,7 @@ const inter = Inter({ subsets: ["latin"] });
 // khoảng 20 ký tự trước khi bị cắt bằng dấu ba chấm.
 export const metadata: Metadata = {
   title: APP_NAME,
-  description: "Hệ điều hành sản xuất ngành may — Manufacturing Operating System",
+  description: "MONICA ONE — Hệ thống quản trị sản xuất ngành may",
 };
 
 // ============================================================================

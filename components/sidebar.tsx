@@ -60,9 +60,9 @@ export default function Sidebar({ session, collapsed, onToggleCollapse, mobileOp
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-bold tracking-tight text-slate-900">
-              MONICA <span className="font-medium text-blue-600">ERP</span>
+              MONICA <span className="font-medium text-blue-600">ONE</span>
             </p>
-            <p className="truncate text-[11px] text-slate-400">Garment Smart System</p>
+            <p className="truncate text-[11px] text-slate-400">Hệ thống quản trị sản xuất</p>
           </div>
         )}
         <button onClick={onCloseMobile} className="ml-auto rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 lg:hidden">

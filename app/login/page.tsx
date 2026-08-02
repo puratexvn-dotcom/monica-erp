@@ -63,7 +63,7 @@ export default async function LoginPage({
               Hệ thống quản trị sản xuất
             </p>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 xl:text-5xl">
-              Chào mừng trở lại với <span className="text-blue-600">MONICA&nbsp;ERP</span>
+              Chào mừng trở lại với <span className="text-blue-600">MONICA&nbsp;ONE</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
               Đăng nhập bằng tài khoản công ty để vào phân hệ làm việc của bộ phận bạn.
