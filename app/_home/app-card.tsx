@@ -113,8 +113,18 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           xuống ba dòng mới đủ chỗ. Ghim hai dòng như cũ sẽ cắt cụt chữ. Ghim
           ba dòng thì đáy mọi ô trong một hàng vẫn bằng nhau — mà đó mới là
           điều kiện để lưới đọc ra là một lưới. */}
+      {/* ⚠️ KHỔ ĐIỆN THOẠI KHÔNG GHIM CHIỀU CAO TÊN NỮA.
+          Ghim ba dòng khiến tên ngắn như "Quality" hay "Finance" để lại hai
+          dòng trống bên dưới, đẩy câu chú thích rơi xa hẳn khỏi biểu tượng —
+          nhìn ra là chú thích của ô bên dưới chứ không phải của ô đang xem.
+          Bỏ ghim thì chữ bám sát biểu tượng, và cụm biểu tượng–tên–chú thích
+          đọc ra là MỘT khối.
+          Đổi lại đáy các ô trong hàng sẽ so le đôi chút. Chấp nhận: khoảng
+          cách dọc giữa các hàng đã đủ rộng để không ai nhầm hàng, còn việc chú
+          thích dính đúng vào module của nó thì quan trọng hơn nhiều.
+          Từ `sm` vẫn ghim hai dòng vì ô rộng, tên hiếm khi tràn. */}
       <span
-        className={`${TYPE.appLabel} mt-2.5 flex min-h-[3.9em] w-full items-start justify-center break-words px-0.5 text-center text-slate-800 transition-colors duration-200 group-hover:text-slate-900 sm:mt-4 sm:min-h-[2.6em] sm:px-0`}
+        className={`${TYPE.appLabel} mt-2.5 flex w-full items-start justify-center break-words px-0.5 text-center text-slate-800 transition-colors duration-200 group-hover:text-slate-900 sm:mt-4 sm:min-h-[2.6em] sm:px-0`}
       >
         {mod.name}
       </span>
@@ -137,8 +147,11 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           "Điều hành và…" thì mất đúng phần mang nghĩa, mà chú thích tồn tại
           chính là để người dùng HIỂU và CHỌN ĐƯỢC. Muốn ngắn mà vẫn hiểu thì
           phải VIẾT LẠI — nên có bản rút gọn 2–4 từ, dịch đủ ba ngôn ngữ. */}
+      {/* `mt-0.5` — chú thích nép SÁT ngay dưới tên. Khoảng cách giữa tên và
+          chú thích phải NHỎ HƠN hẳn khoảng cách giữa biểu tượng và tên, nếu
+          không ba thứ đọc ra là ba mục rời chứ không phải một cụm. */}
       <span
-        className={`${TYPE.appHint} mt-1.5 flex w-full items-start justify-center text-center text-slate-500 sm:hidden`}
+        className={`${TYPE.appHint} mt-0.5 flex w-full items-start justify-center text-center text-slate-500 sm:hidden`}
       >
         {t(mod.shortKey)}
       </span>

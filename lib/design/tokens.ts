@@ -217,6 +217,32 @@ export const MODULE_SURFACE: Record<ModuleKey, ModuleSurface> = {
   platform:       { surface: 'bg-violet-50',  edge: 'ring-violet-200/70',  tileStrong: 'bg-violet-500 text-white' },
 };
 
+// ─── ①C MÀU THANH ĐIỀU HƯỚNG DƯỚI ─────────────────────────────────────────
+//
+// ⚠️ Năm nút này trước đây XÁM HẾT, chỉ đổi sang xanh khi đang mở. Xám hết
+// nghĩa là người dùng phải ĐỌC nhãn mới biết nút nào là nút nào — mà nhãn ở
+// đây chỉ cao 10px. Thanh điều hướng là thứ được chạm nhiều nhất trong ngày;
+// nó phải nhận ra được bằng MÀU, không phải bằng chữ.
+//
+// Mỗi nút một sắc, chọn theo NGHĨA chứ không theo thẩm mỹ:
+//   Bàn làm việc  chàm    — cùng sắc Executive Center, nơi công việc bắt đầu
+//   Chat          lơ      — cùng sắc Business Communication
+//   Báo cáo       hổ phách— cùng sắc Finance, màu của con số
+//   Monica        hồng    — sắc thương hiệu, chỉ có ở trang chủ
+//   A.I           tím     — cùng sắc AI Assistant
+//   Hướng dẫn     ngọc    — sắc trung tính ấm, tách hẳn khỏi bốn nút kia
+//
+// ⚠️ Sắc độ 600 cho chữ: thanh nền trắng, sắc độ 500 chỉ đạt khoảng 3,5:1 với
+// chữ 10px — dưới ngưỡng. 600 đạt trên 4,5:1.
+export const NAV_ICON = {
+  workbench: 'text-indigo-600',
+  chat: 'text-sky-600',
+  report: 'text-amber-600',
+  monica: 'text-pink-600',
+  ai: 'text-violet-600',
+  guide: 'text-emerald-600',
+} as const;
+
 /**
  * Tra danh tính theo ĐƯỜNG DẪN — cầu nối để mọi màn hình bên trong Workspace
  * thừa hưởng đúng màu của App chứa nó (Điều 44.3 · Continuity).

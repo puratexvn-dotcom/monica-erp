@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, MessageSquare, BarChart3, Sparkles, BookOpen, Globe } from 'lucide-react';
 
 import { ROLE_HOME, type Role } from '@/lib/rbac';
+import { NAV_ICON } from '@/lib/design/tokens';
 import { useNavVisibility } from '@/lib/use-nav-visibility';
 import { moduleOfPath } from '@/lib/mos/mos-context';
 import ChatSheet from '@/components/chat-sheet';
@@ -165,10 +166,10 @@ export default function AppBottomNav({
               href={workbenchHref}
               onClick={goWorkbench}
               aria-current={workbenchActive ? 'page' : undefined}
-              className={`${btn} ${workbenchActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${workbenchActive ? NAV_ICON.workbench : 'text-slate-600'}`}
             >
               <span className="relative">
-                <LayoutDashboard className={icon} aria-hidden="true" />
+                <LayoutDashboard className={`${icon} ${NAV_ICON.workbench}`} aria-hidden="true" />
                 {workbenchActive && (
                   <span
                     className="absolute -top-2 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-blue-600"
@@ -184,9 +185,9 @@ export default function AppBottomNav({
             <button
               type="button"
               onClick={() => toggleSheet('chat')}
-              className={`${btn} ${openSheet === 'chat' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${openSheet === 'chat' ? NAV_ICON.chat : 'text-slate-600'}`}
             >
-              <MessageSquare className={icon} aria-hidden="true" />
+              <MessageSquare className={`${icon} ${NAV_ICON.chat}`} aria-hidden="true" />
               Chat
             </button>
           </li>
@@ -211,18 +212,18 @@ export default function AppBottomNav({
                 href="https://puratex.vn"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${btn} text-slate-500 hover:text-blue-600`}
+                className={`${btn} text-slate-600`}
               >
-                <Globe className={icon} aria-hidden="true" />
+                <Globe className={`${icon} ${NAV_ICON.monica}`} aria-hidden="true" />
                 Monica
               </a>
             ) : (
               <button
                 type="button"
                 onClick={() => toggleSheet('report')}
-                className={`${btn} ${openSheet === 'report' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+                className={`${btn} ${openSheet === 'report' ? NAV_ICON.report : 'text-slate-600'}`}
               >
-                <BarChart3 className={icon} aria-hidden="true" />
+                <BarChart3 className={`${icon} ${NAV_ICON.report}`} aria-hidden="true" />
                 Báo cáo
               </button>
             )}
@@ -232,9 +233,9 @@ export default function AppBottomNav({
             <button
               type="button"
               onClick={() => toggleSheet('ai')}
-              className={`${btn} ${openSheet === 'ai' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${openSheet === 'ai' ? NAV_ICON.ai : 'text-slate-600'}`}
             >
-              <Sparkles className={icon} aria-hidden="true" />
+              <Sparkles className={`${icon} ${NAV_ICON.ai}`} aria-hidden="true" />
               A.I
             </button>
           </li>
@@ -243,9 +244,9 @@ export default function AppBottomNav({
             <button
               type="button"
               onClick={() => toggleSheet('guide')}
-              className={`${btn} ${openSheet === 'guide' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`${btn} ${openSheet === 'guide' ? NAV_ICON.guide : 'text-slate-600'}`}
             >
-              <BookOpen className={icon} aria-hidden="true" />
+              <BookOpen className={`${icon} ${NAV_ICON.guide}`} aria-hidden="true" />
               Hướng dẫn
             </button>
           </li>

@@ -28,6 +28,7 @@ import { createClient } from "@/utils/supabase/server";
 import { isRole, type Role } from "@/lib/rbac";
 import { APP_NAME } from "@/lib/brand";
 import AppBottomNav from "@/components/app-bottom-nav";
+import PwaRegister from "@/components/pwa-register";
 import type { ReportMetric } from "@/components/report-sheet";
 
 const inter = Inter({
@@ -47,6 +48,58 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: APP_NAME,
   description: "MONICA ONE — Hệ thống quản trị sản xuất ngành may",
+
+  // ═══ ĐÓNG GÓI THÀNH ỨNG DỤNG ═══════════════════════════════════════════
+  // ⚠️ ĐÂY LÀ PHẦN QUYẾT ĐỊNH iPhone HIỆN LOGO HAY HIỆN CHỮ CÁI MẶC ĐỊNH.
+  // Thiếu `apple` icon thì Safari tự dựng một ô vuông trắng có chữ "M" — và
+  // đó chính xác là thứ đề bài yêu cầu phải loại bỏ.
+  applicationName: APP_NAME,
+  manifest: "/manifest.webmanifest",
+
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    // Safari CHỈ đọc `apple-touch-icon`. Nó không hiểu manifest icons.
+    apple: [{ url: "/icons/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: [{ url: "/favicon.ico" }],
+    other: [
+      { rel: "mask-icon", url: "/icons/icon-192.png" },
+      // Windows ghim lối tắt lên Start
+      { rel: "msapplication-TileImage", url: "/icons/icon-192.png" },
+    ],
+  },
+
+  appleWebApp: {
+    // `capable` là thứ bỏ thanh địa chỉ khi mở từ Màn hình chính trên iOS.
+    capable: true,
+    title: APP_NAME,
+    // `default` giữ thanh trạng thái trắng chữ đen — khớp nền trắng của app.
+    // `black-translucent` sẽ để nội dung chui lên dưới đồng hồ và pin.
+    statusBarStyle: "default",
+    // iOS KHÔNG dùng `background_color` của manifest. Thiếu ảnh khởi động thì
+    // mở app sẽ thấy khung trắng trống trơn cho tới khi trang vẽ xong.
+    startupImage: [
+      { url: "/icons/splash-1290x2796.png", media: "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" },
+      { url: "/icons/splash-1179x2556.png", media: "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" },
+      { url: "/icons/splash-1170x2532.png", media: "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" },
+      { url: "/icons/splash-1125x2436.png", media: "(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" },
+      { url: "/icons/splash-828x1792.png", media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" },
+      { url: "/icons/splash-1536x2048.png", media: "(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" },
+    ],
+  },
+
+  formatDetection: {
+    // Tắt tự động biến chuỗi số thành liên kết gọi điện: mã PO và mã cuộn vải
+    // toàn số, iOS sẽ tô xanh và biến chúng thành nút gọi.
+    telephone: false,
+  },
+
+  other: {
+    "msapplication-TileColor": "#FFFFFF",
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 // ============================================================================
@@ -71,6 +124,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  // Màu thanh trạng thái Android và thanh tiêu đề cửa sổ ứng dụng trên máy tính.
+  themeColor: "#FFFFFF",
 };
 
 // ============================================================================
@@ -149,6 +204,7 @@ export default async function RootLayout({
     <html lang="vi" className={inter.variable}>
       <body className="font-sans">
         {/* 2. Bọc toàn bộ ứng dụng (children) bên trong LanguageProvider */}
+        <PwaRegister />
         <LanguageProvider>
           {/* Chừa chỗ cho thanh điều hướng cố định (nay cao h-14 = 56px).
               pb-20 = 80px, dư 24px làm khoảng thở: chừa đúng bằng chiều cao
