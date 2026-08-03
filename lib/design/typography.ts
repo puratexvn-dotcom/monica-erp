@@ -261,7 +261,7 @@ export const TYPE = {
    * Tên to bằng tiêu đề mà đặt dưới một biểu tượng 80px sẽ thành hai thứ cùng
    * đòi được nhìn trước.
    */
-  appLabel: 'text-[13px] sm:text-[14px] font-semibold leading-[1.3] tracking-[-0.01em]',
+  appLabel: 'text-[12px] sm:text-[14px] font-semibold leading-[1.25] tracking-[-0.01em]',
   /** Đoạn dẫn, câu mở đầu */
   bodyLg: 'text-[16px] font-normal leading-[1.6]',
   /** Thân bài mặc định */

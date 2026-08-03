@@ -144,7 +144,14 @@ export default function HomeContent() {
           thể xuống hai dòng, nên thiếu khoảng cách dọc thì chữ của hàng trên
           dính vào biểu tượng của hàng dưới. */}
       <section aria-label={t('home.appsLabel')}>
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 sm:gap-x-6 sm:gap-y-12">
+        {/* ⚠️ BỐN CỘT Ở MỌI KHỔ MÀN, kể cả điện thoại.
+            Trên màn 390px, trừ đệm hai bên và ba khe giữa thì mỗi ô chỉ còn
+            khoảng 80px. Vì vậy khe ngang phải bóp xuống `gap-x-2` (8px) —
+            giữ `gap-x-4` như cũ sẽ ăn mất 48px, tức hơn một nửa bề ngang của
+            một ô.
+            Khe DỌC ngược lại vẫn phải rộng: tên App có thể xuống ba dòng ở khổ
+            hẹp, thiếu khoảng dọc thì chữ hàng trên chạm biểu tượng hàng dưới. */}
+        <div className="mx-auto grid max-w-5xl grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-12">
           {MODULES.map((mod) => (
             <AppCard key={mod.name} mod={mod} />
           ))}
