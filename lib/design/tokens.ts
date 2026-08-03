@@ -333,6 +333,17 @@ export const GLASS_GLOW =
 export const CANVAS = 'bg-[#F6F7F9]';
 
 /**
+ * Màu đệm của vòng focus khi phần tử nằm TRÊN NỀN TRANG.
+ *
+ * ⚠️ Thiếu thẻ này là một lỗi thật, không phải tiểu tiết: mặc định
+ * `--tw-ring-offset-color` của Tailwind là **trắng**. Trên nền `#F6F7F9`, một
+ * vòng focus có `ring-offset-2` sẽ vẽ một quầng TRẮNG quanh thẻ — trông như
+ * lỗi hiển thị chứ không như chỉ báo tiêu điểm, và nó chỉ lộ ra khi đi bằng
+ * bàn phím nên rất dễ lọt qua mọi lượt xem bằng chuột.
+ */
+export const FOCUS_OFFSET_CANVAS = 'focus-visible:ring-offset-[#F6F7F9]';
+
+/**
  * Hạt giấy dưới 1%. `feTurbulence` sinh nhiễu ngay trong trình duyệt: không
  * tải ảnh, không thêm byte mạng. Nó phá mảng màu phẳng tuyệt đối — thứ khiến
  * một trang đọc ra là "trang web" thay vì một mặt vật liệu.

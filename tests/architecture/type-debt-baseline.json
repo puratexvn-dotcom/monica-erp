@@ -9,7 +9,7 @@
     "thì GỠ tên nó khỏi đây trong CÙNG commit — bài kiểm sẽ nhắc nếu quên."
   ],
   "_ngay_chup": "2026-08-03",
-  "_tong": 115,
+  "_tong": 114,
   "files": [
     "app/(dashboard)/admin/page.tsx",
     "app/(dashboard)/admin/staff-form-dialog.tsx",
@@ -40,7 +40,6 @@
     "app/(dashboard)/to-truong-hoan-thanh/page.tsx",
     "app/(dashboard)/to-truong-may/page.tsx",
     "app/(dashboard)/xuat-hang/page.tsx",
-    "app/_home/app-card.tsx",
     "app/error.tsx",
     "app/login/form.tsx",
     "app/login/page.tsx",

@@ -67,7 +67,11 @@ export default function HomePage() {
       <div className="relative z-10">
         <TopNavbar />
 
-        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+        {/* ⚠️ Khoảng thở trên nới từ 12/16 lên 14/20. Trang chủ là màn hình đầu
+            tiên người dùng thấy mỗi sáng — nó phải mở ra bằng khoảng trống, chứ
+            không đập ngay vào mặt. Phần mềm rẻ tiền lấp đầy mọi pixel; phần mềm
+            đắt tiền để trống có chủ ý. */}
+        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:px-8">
           <HomeContent />
 
         </main>
