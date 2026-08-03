@@ -1,7 +1,7 @@
 import TopNavbar from './top-navbar';
 import HomeContent from './_home/home-content';
 import { NOISE_URL, CANVAS } from '@/lib/design/tokens';
-import { APP_NAME } from '@/lib/brand';
+import { APP_NAME, LOGO_COLORS } from '@/lib/brand';
 
 // ============================================================================
 // TRANG CHỦ MONICA ONE — LỐI VÀO CÔNG KHAI
@@ -58,6 +58,45 @@ export default function HomePage() {
       {/* Hạt giấy dưới 1% — phá mảng màu phẳng tuyệt đối, thứ khiến một trang
           đọc ra là "trang web" thay vì một mặt vật liệu. Sinh ngay trong trình
           duyệt bằng feTurbulence: không tải ảnh, không thêm byte mạng nào. */}
+      {/* ═══ TRẦN ÁNH SÁNG — linh hồn của bản dựng này ═══════════════════
+          Chẩn đoán của Board là "đúng nhưng PHẲNG VỀ CẢM XÚC". Phẳng không
+          phải vì thiếu thành phần — thêm thành phần chỉ làm trang ồn hơn.
+          Phẳng vì trang KHÔNG CÓ ÁNH SÁNG: một mặt xám đều tăm tắp, không
+          nguồn sáng, không hướng, nên không có gì để mắt tin là có chiều sâu.
+
+          Ba lớp, tất cả đều rất mờ, đặt phía trên đầu trang:
+            ① một vũng sáng trắng ngay trên wordmark — nguồn sáng
+            ② một quầng hồng ấm lệch trái
+            ③ một quầng lam mát lệch phải
+          Hai quầng màu lấy từ CHÍNH bảng màu logo, nên nó là tiếng vọng rất
+          nhỏ của wordmark chứ không phải một dải chuyển sắc thứ hai cạnh
+          tranh với nó.
+
+          ⚠️ Độ mờ 0,10–0,14. Nhìn thẳng gần như không thấy. Nhưng nó cho
+          trang một HƯỚNG SÁNG — và một khi có hướng sáng thì bóng đổ của các
+          thẻ bên dưới thôi là hiệu ứng, bắt đầu là hệ quả. Đó là toàn bộ khác
+          biệt giữa "sạch" và "đắt".
+
+          ⚠️ Cắt ở `h-[560px]`: ánh sáng chỉ thuộc về phần nghi thức. Để nó
+          tràn xuống lưới App sẽ làm 16 thẻ nằm trên nền không đều màu. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[560px] overflow-hidden"
+      >
+        <div
+          className="absolute left-1/2 top-[-260px] h-[620px] w-[1100px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: 'rgba(255,255,255,0.95)' }}
+        />
+        <div
+          className="absolute left-[calc(50%-340px)] top-[-140px] h-[420px] w-[420px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[0], opacity: 0.1 }}
+        />
+        <div
+          className="absolute left-[calc(50%+120px)] top-[-170px] h-[460px] w-[460px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[3], opacity: 0.14 }}
+        />
+      </div>
+
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.022] mix-blend-multiply"

@@ -53,11 +53,18 @@ export default function HomeContent() {
           ⚠️ Bốn tầng chữ rút còn HAI. "Click a Business App to continue" gộp
           vào cùng dòng với tagline, ngăn bằng dấu chấm giữa. Phần mềm cao cấp
           không dạy người dùng rằng thẻ thì bấm được. */}
-      <section className="mb-12 sm:mb-16">
-        {/* `items-baseline`: chữ nhỏ ngồi trên CÙNG ĐƯỜNG CHÂN với wordmark.
-            Căn giữa theo chiều cao sẽ làm "Welcome to" trôi lơ lửng ngang thân
-            chữ MONICA ONE. */}
-        <h1 className="flex flex-wrap items-baseline gap-x-3 whitespace-nowrap sm:gap-x-4">
+      <section className="mb-14 text-center sm:mb-20">
+        {/* ⚠️ CĂN GIỮA — quay lại đúng như vậy, và lần này là quyết định cuối.
+            Lượt trước tôi kéo phần chào sang trái để khớp trục với lưới App.
+            Về mặt bố cục thì đúng; về mặt SẢN PHẨM thì sai. Đây là CỬA CHÍNH
+            của hệ điều hành, và cửa chính thì đứng giữa. Trục đối xứng cũng là
+            trục của câu Lời Chúa ngay phía trên — hai thứ đó phải cùng một
+            đường, nếu không phần đầu trang gãy làm hai nửa lệch nhau.
+
+            Lưới App bên dưới vẫn căn trái. Đó KHÔNG phải xung đột: khối nghi
+            thức đứng giữa, khối làm việc trải đều — đúng cách một tiền sảnh
+            mở ra một không gian làm việc. */}
+        <h1 className="flex flex-wrap items-baseline justify-center gap-x-3 whitespace-nowrap sm:gap-x-4">
           <span className={`${TYPE.bodyLg} text-slate-400`}>{t('home.welcomeTo')}</span>
           {/* Tên sản phẩm — KHÔNG BAO GIỜ đi qua t() (§45.3).
               `pr-[0.06em]`: dải chuyển sắc cắt theo chữ (`bg-clip-text`) hay bị
@@ -79,7 +86,10 @@ export default function HomeContent() {
             và ở 11px nó gần như tàng hình dưới một wordmark 48px. Nay là chữ
             thường 14px — đọc được, có trọng lượng thật, và để wordmark giữ
             trọn vai trò điểm nhấn. */}
-        <p className={`${TYPE.body} mt-4 text-slate-600`}>
+        {/* Một dòng duy nhất dưới wordmark. Hai mệnh đề, ngăn bằng dấu chấm
+            giữa — không phải hai dòng xếp chồng. Xếp chồng sẽ thành tầng chữ
+            thứ ba và thứ tư, mà phần nghi thức chỉ chịu được hai tầng. */}
+        <p className={`${TYPE.body} mx-auto mt-5 max-w-xl text-slate-500`}>
           {t('brand.tagline')}
           <span className="mx-2 text-slate-300" aria-hidden="true">·</span>
           <span className="text-slate-400">{t('home.hint')}</span>

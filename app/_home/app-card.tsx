@@ -88,8 +88,20 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   // được ai thắng, thứ tự trong TỆP CSS mới quyết định. Nó chạy đúng hôm nay
   // hoàn toàn do may mắn về thứ tự Tailwind sinh ra. Nay mỗi nhánh tự khai nền
   // của mình, không còn chỗ cho may rủi.
+  // ⚠️ `before:` — MÉP TRÊN BẮT SÁNG.
+  //
+  // Trang nay có một trần sáng ở đầu (xem app/page.tsx). Nếu các thẻ không
+  // phản ứng với nguồn sáng đó thì trần sáng chỉ là một vệt trang trí dán lên
+  // nền. Một đường sáng trắng mảnh chạy dọc mép TRÊN của mỗi thẻ — đúng chỗ
+  // ánh sáng từ trên chạm vào một khối bo tròn — biến bóng đổ bên dưới từ
+  // "hiệu ứng" thành "hệ quả".
+  //
+  // Rộng 60%, căn giữa, mờ dần hai đầu: ánh sáng thật không dừng đột ngột ở
+  // góc. Một pixel, gradient, và cả lưới thôi trông như dán phẳng.
   const base =
-    'group relative flex min-h-[11rem] flex-col rounded-2xl p-5 text-left';
+    'group relative flex min-h-[11rem] flex-col overflow-hidden rounded-2xl p-5 text-left ' +
+    'before:pointer-events-none before:absolute before:inset-x-[20%] before:top-0 before:h-px ' +
+    'before:bg-gradient-to-r before:from-transparent before:via-white before:to-transparent';
 
   if (!mo) {
     // Chưa có route ⇒ không bọc <Link>. Nền ngà thay vì trắng: khác biệt rất
