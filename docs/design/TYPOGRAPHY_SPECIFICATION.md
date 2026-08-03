@@ -296,6 +296,70 @@ tuân thủ thì người ta tắt nó đi.
 
 ---
 
+## 11B. BẢN ĐỒ CHUYỂN ĐỔI — VÀ HAI RÀO CHẶN ĐÃ ĐO ĐƯỢC
+
+> Mục này trả lời câu hỏi *"vì sao chưa chuyển 115 tệp sang thẻ?"* bằng **số
+> đo**, không bằng nhận định.
+
+### Hiện trạng đã đếm trên `app/` và `components/`
+
+| Cỡ trong mã | Số lần | Nằm trong thang? | Chuyển được mà KHÔNG đổi hình? |
+|---|---:|---|---|
+| `text-[11px]` | 179 | ✅ `micro` | ✅ **có** — thẻ là đúng chuỗi đó |
+| `text-[13px]` | 3 | ✅ `bodySm` | ✅ **có** |
+| `text-[10px]` | **100** | ❌ dưới sàn | ❌ **không** |
+| `text-[15px]` | 4 | ❌ | ❌ |
+| `text-[9px]` | 3 | ❌ dưới sàn | ❌ |
+| `text-[9.5px]` · `[10.5px]` · `[12.5px]` · `[17px]` · `[26px]` · `[38px]` | 1 mỗi loại | ❌ | ❌ |
+| `text-xs` | **404** | 12px ✅ nhưng… | ⚠️ xem Rào chặn ② |
+| `text-sm` | **333** | 14px ✅ nhưng… | ⚠️ xem Rào chặn ② |
+| `text-base` | 54 | 16px ✅ nhưng… | ⚠️ xem Rào chặn ② |
+
+### ⚠️ Rào chặn ① — 100 lần dùng `10px`, mà sàn của thang là `11px`
+
+Thang dừng ở `11px` vì lý do **khả năng tiếp cận** (§9), không phải thẩm mỹ.
+Nhưng mã đang chạy có **100 chỗ** dùng `10px` và **3 chỗ** dùng `9px`.
+
+Ba lối đi, và **cả ba đều là quyết định của Board, không phải của người thi hành**:
+
+| Lối | Hệ quả |
+|---|---|
+| **A. Nâng 10px → 11px** | Tôn trọng sàn tiếp cận, nhưng **đổi hình 100 chỗ** — vi phạm ràng buộc *"Existing screens unchanged"* |
+| **B. Thêm `10px` vào thang** | Không đổi hình, nhưng **phá chính điều khoản** vừa ban hành, và mở lại cánh cửa cho `9px` |
+| **C. Giữ nguyên, ghi nợ** | Không đổi gì hôm nay; 100 chỗ đó vẫn nằm ngoài thang cho tới khi Board quyết |
+
+**Đang áp dụng: C.** Không tự chọn A hay B — A đổi giao diện, B sửa Hiến pháp;
+người thi hành không được phép làm cả hai.
+
+### ⚠️ Rào chặn ② — bậc Tailwind mang sẵn giãn dòng ngầm
+
+`text-xs` **không chỉ** là cỡ chữ. Nó là cỡ chữ **cộng** giãn dòng:
+
+| Bậc | Cỡ | Giãn dòng ngầm |
+|---|---|---|
+| `text-xs` | 12px | 16px *(1.333)* |
+| `text-sm` | 14px | 20px *(1.428)* |
+| `text-base` | 16px | 24px *(1.5)* |
+
+Thay `text-xs` bằng `text-[12px]` sẽ **mất giãn dòng ngầm**, và dòng chữ co lại
+theo giãn dòng mặc định của trình duyệt. Đó là **791 chỗ** có nguy cơ xô lệch bố
+cục — trong khi ràng buộc là *"Existing screens unchanged"*.
+
+Thẻ `TYPE.*` đã gói sẵn giãn dòng **rõ ràng** (`leading-[1.6]` cho thân bài),
+nên chuyển đổi là an toàn về mặt ngữ nghĩa — nhưng nó **không cho ra pixel y hệt**.
+`TYPE.body` = 14px/1.6 = 22.4px dòng, còn `text-sm` = 14px/20px. Lệch 2.4px mỗi
+dòng; trong một bảng 30 dòng là lệch 72px.
+
+### Kết luận
+
+Chuyển đổi hàng loạt **không thể vừa dùng thẻ vừa giữ nguyên giao diện**. Hai
+mục tiêu đó xung khắc nhau ở 891 vị trí. Phải chọn một, và chọn là việc của Board:
+
+- **Ưu tiên "màn hình không đổi"** ⇒ hoãn chuyển đổi *(đang áp dụng)*
+- **Ưu tiên "dùng thẻ"** ⇒ chấp nhận giao diện xê dịch, cần một đợt nghiệm thu thị giác
+
+---
+
 ## 12. LỘ TRÌNH
 
 | Giai đoạn | Nội dung | Trạng thái |
