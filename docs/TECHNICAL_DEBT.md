@@ -49,9 +49,11 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-05](#td-05) | Trang chủ hiện đủ 16 thẻ cho mọi người — §13.5 đòi lọc theo quyền | 🟡 | mở | Constitutional ADR-001 §5 |
 | [TD-06](#td-06) | Nhãn 16 phân hệ chưa đi qua `lib/i18n` | 🟡 | mở | Constitutional ADR-001 §5 |
 | [TD-07](#td-07) | 106 tệp `.tsx` còn màu viết thẳng, chưa qua thẻ màu | 🟡 | mở | ADR-009 §4 |
-| [TD-08](#td-08) | Không có phép kiểm chặn màu viết thẳng — Điều 44.6 chưa có răng | 🟡 | mở | ADR-009 §4 |
+| [TD-08](#td-08) | Không có phép kiểm chặn màu viết thẳng — Điều 44.6 chưa có răng | 🟢 | **đã trả** | ADR-009 §4 |
 | [TD-09](#td-09) | 3 tệp Recharts chưa dùng `CHART_PALETTE` | 🟡 | mở | ADR-009 §4 |
 | [TD-10](#td-10) | Chưa có hệ thẻ chữ — 12 cỡ tuỳ ý, không nguồn chuẩn | 🟡 | mở | Quyết nghị Board 03/08/2026 |
+| [TD-11](#td-11) | Chưa có hệ biểu tượng — cỡ và độ dày nét đặt tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
+| [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 
 ---
 
@@ -347,10 +349,40 @@ Chuyển theo phân hệ, ưu tiên nơi người dùng nhìn nhiều nhất: `/
 
 | | |
 |---|---|
-| **Mức** | 🟡 mở — **đây là thứ đã tạo ra TD-07** |
+| **Mức** | 🟢 **đã trả** — 03/08/2026 |
 | **Phát hiện** | ADR-009 §4 |
-| **Nơi** | thiếu ở `tests/architecture/arch.test.mjs` |
+| **Đã trả ở** | [`tests/architecture/arch.test.mjs`](../tests/architecture/arch.test.mjs) mục ⑨ · [`color-debt-baseline.json`](../tests/architecture/color-debt-baseline.json) |
 | **Vi phạm** | Hiến pháp **§44.6 · §44.8** |
+
+### ✅ ĐÃ TRẢ — cách thi hành
+
+Mục ⑨ của bài kiểm kiến trúc quét `app/` và `components/`, chặn mọi lớp màu định
+danh viết thẳng. Chạy **không cần CSDL**, nên nó nằm ở tầng `kiem-tra-tinh` của CI
+và gác mọi push.
+
+**Cơ chế bánh cóc, không phải cổng chặn.** 108 tệp đang nợ được đóng băng vào
+`color-debt-baseline.json`. Tệp MỚI vi phạm ⇒ HỎNG. Danh sách chỉ được ngắn đi —
+đó chính là TD-07 tự thu hẹp.
+
+**Đã chứng minh phép kiểm có răng thật**, không phải chỉ chạy xanh: gieo thử
+`bg-emerald-200` vào một tệp sạch ⇒ bài kiểm HỎNG và gọi đúng tên tệp; hoàn nguyên
+⇒ xanh lại. Một phép kiểm chưa bao giờ thấy đỏ là một phép kiểm chưa được chứng
+minh.
+
+### ⚠️ Hai quyết định thiết kế của phép kiểm, ghi lại để khỏi tranh cãi sau
+
+**① Phải bỏ chú thích trước khi quét.** `app/home-modules.ts` có dòng chú thích
+giải thích chính quy tắc này *("không viết thẳng `bg-blue-50`")*. Quét cả chú
+thích thì tệp **sạch nhất** lại bị báo vi phạm — phép kiểm trừng phạt đúng người
+đã ghi lại quy tắc. Lỗi này đã bắt được lúc dựng: bỏ chú thích làm số vi phạm từ
+109 xuống 108.
+
+**② Sắc trung tính KHÔNG bị chặn** — `slate` `gray` `zinc` `neutral` `white`
+`black`. Chúng là màu khung nền dùng khắp nơi, không phải màu định danh. Chặn cả
+chúng sẽ khiến quy tắc **không thể tuân thủ**, và quy tắc không thể tuân thủ thì
+người ta tắt nó đi. ⚠️ Đánh đổi đã biết: `slate` vừa là màu khung vừa là màu định
+danh của Business Reporting, nên vi phạm bằng `slate` sẽ **lọt lưới**. Chấp nhận
+có ý thức — bắt hụt một sắc còn hơn có một phép kiểm bị vô hiệu hoá.
 
 ### Nội dung
 
@@ -449,9 +481,22 @@ hiển thị bằng ba bộ chữ khác nhau trên Windows, macOS và Android �
 1. `lib/design/typography.ts` — một thang chữ hữu hạn, đặt tên theo VAI TRÒ chứ
    không theo cỡ: `display` · `title` · `subtitle` · `body` · `label` · `caption`
    · `metric`. Mỗi vai trò gói sẵn cỡ + độ đậm + giãn dòng + giãn chữ.
-2. Nạp **một** bộ chữ biến thiên qua `next/font` để mọi hệ điều hành hiển thị
-   giống nhau *(cần Board chọn bộ chữ — đây là quyết định nhận diện thương hiệu,
-   không phải quyết định kỹ thuật)*.
+2. **Bộ chữ đã được Board chốt ngày 03/08/2026: `Inter Variable`, tự lưu trữ qua
+   `next/font/local`.**
+
+   ⚠️ **Đang bị chặn — thiếu tệp phông.** Bản đang chạy nạp `Inter` qua
+   `next/font/google` *(xem `app/layout.tsx:2`)*, tức **bộ chữ đã đúng**, chỉ chưa
+   **tự lưu trữ**. `next/font/local` bắt buộc phải có tệp `.woff2` nằm trong kho
+   mã; kho hiện **không có tệp phông nào** — `public/` chỉ chứa `MONICA.png`.
+
+   Tôi **không tự tải tệp nhị phân về kho**. Cần một người đặt
+   `InterVariable.woff2` *(và bản `Italic` nếu muốn)* vào `public/fonts/` hoặc
+   `app/fonts/`; sau đó phần mã đổi sang `next/font/local` chỉ là vài dòng.
+
+   **Vì sao tự lưu trữ mà không dùng `next/font/google`:** `next/font/google` tải
+   phông lúc **build**, tức bản dựng phụ thuộc vào một máy chủ ngoài. Máy chủ đó
+   hỏng hoặc bị chặn ở mạng nhà máy thì bản dựng hỏng theo. Tự lưu trữ cắt hẳn
+   phụ thuộc đó.
 3. Chuyển dần, cùng nhịp với TD-07, sau khi phép kiểm của TD-08 đã dựng.
 
 ### Vì sao chưa trả
@@ -459,6 +504,82 @@ hiển thị bằng ba bộ chữ khác nhau trên Windows, macOS và Android �
 Board chỉ thị **dừng làm lại giao diện theo từng trang**; mốc tiếp theo là hoàn
 thiện Design System. TD-10 nằm ĐÚNG trong mốc đó, nên nó phải được làm **cùng**
 hệ thẻ chữ chứ không phải rải rác từng màn hình như trước.
+
+---
+
+<a id="td-11"></a>
+## TD-11 · ENTERPRISE ICONOGRAPHY SYSTEM
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở |
+| **Phát hiện** | Quyết nghị Architecture Board, 03/08/2026 |
+| **Nơi** | 105 tệp dùng `lucide-react` |
+| **Vi phạm** | Hiến pháp **§44.1** *(nhận diện nhất quán)* — chưa có điều khoản riêng |
+
+### Bằng chứng đo được
+
+| Phép đo | Kết quả |
+|---|---|
+| Tệp dùng `lucide-react` | **105** |
+| Cỡ icon khác nhau | **22** biến thể |
+| Độ dày nét khác nhau | **8** — `1` `1.25` `1.5` `1.6` `1.8` `1.9` `2` `2.5` |
+
+### Vì sao nó là nợ
+
+Độ dày nét là thứ mắt đọc ra "cùng một bộ" hay "nhặt từ nhiều nơi". Tám độ dày
+trên cùng một sản phẩm khiến biểu tượng trông như lấy từ ba thư viện khác nhau,
+kể cả khi tất cả đều từ `lucide`.
+
+Cỡ cũng vậy: 22 biến thể nghĩa là không có thang cỡ. Icon 18px cạnh icon 20px
+trong cùng một hàng đọc ra là lệch, không đọc ra là chủ ý.
+
+### Cách trả
+
+`lib/design/icons.ts` — thang cỡ hữu hạn theo VAI TRÒ *(`nav` · `action` ·
+`inline` · `feature` · `hero`)*, mỗi vai trò chốt cứng cỡ **và** độ dày. Chuyển
+dần theo cùng nhịp TD-07.
+
+⚠️ Cần chốt **một** độ dày chuẩn cho toàn hệ thống, ngoại lệ phải có lý do viết ra.
+
+---
+
+<a id="td-12"></a>
+## TD-12 · ENTERPRISE MOTION SYSTEM
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở |
+| **Phát hiện** | Quyết nghị Architecture Board, 03/08/2026 |
+| **Nơi** | toàn bộ `app/` và `components/` |
+| **Vi phạm** | Hiến pháp **§44.1** — chưa có điều khoản riêng |
+
+### Bằng chứng đo được
+
+| Phép đo | Kết quả |
+|---|---|
+| Thời lượng khác nhau | **4** — `75ms` `200ms` `300ms` `700ms` |
+| Đường cong | **1** — chỉ `ease-out`, phần còn lại dùng mặc định của trình duyệt |
+| Hoạt ảnh dựng sẵn | `animate-in` · `animate-ping` · `animate-pulse` · `animate-spin` |
+
+### Vì sao nó là nợ
+
+Chuyển động chưa loạn như màu và chữ, nhưng nó **chưa có ngữ nghĩa**. Hiện thời
+lượng được chọn theo cảm giác từng chỗ, không theo loại hành vi.
+
+Một hệ chuyển động doanh nghiệp cần gắn thời lượng với Ý NGHĨA:
+phản hồi tức thì *(~75ms)* · chuyển trạng thái *(~200ms)* · phần tử vào/ra
+*(~300ms)* · chuyển cảnh lớn *(~500ms)*. Thiếu ánh xạ đó thì mỗi màn hình lại
+dạy người dùng một nhịp khác nhau.
+
+⚠️ Phải kèm `prefers-reduced-motion`: hiện **không có** khai báo nào tôn trọng
+thiết lập giảm chuyển động của hệ điều hành. Đây là vấn đề **khả năng tiếp cận**,
+không phải vấn đề thẩm mỹ — người bị rối loạn tiền đình có thể chóng mặt thật.
+
+### Cách trả
+
+`lib/design/motion.ts` — thời lượng và đường cong đặt tên theo vai trò, kèm biến
+thể tôn trọng `prefers-reduced-motion`.
 
 ---
 

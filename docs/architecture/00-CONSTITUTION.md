@@ -4,7 +4,7 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Version** | 1.3 |
+| **Version** | 1.4 |
 | **Status** | ✅ ADOPTED |
 | **Owner** | Joseph |
 | **Architecture Authority** | MONICA ONE Architecture Board |
@@ -75,6 +75,7 @@
 | **1.1** | **2026-08-03** | **Architecture Board** | **ADR-001 — Homepage Conceptual Model.** Trang chủ được định nghĩa lại là **Business Operating System Launcher** thay cho *Business Workspace Launcher*: nó là **lối vào**, không phải cơ chế **phân loại**. ① **Điều 13**: đổi tên §13.3 và thay định nghĩa; §13.1 · §13.4 · §13.5 · §13.8 chỉnh theo cho hết mâu thuẫn. ② **§17.3**: bổ sung *"Global Services may appear on the Business Operating System Launcher without becoming Business Workspaces."* ③ **§34.1**: bổ sung Platform Services xuất hiện trên Launcher như lối vào nền tảng, không đổi phân loại hiến định. ④ **Glossary**: `Workspace Launcher` → `Business Operating System Launcher`, chuyển từ nhóm **W** sang nhóm **B** cho đúng thứ tự chữ cái; nhóm **W** rỗng nên gỡ bỏ (còn 11 nhóm chữ cái · 25 thuật ngữ). ⑤ Mục lục cập nhật neo §13.3. Khoảng cách triển khai **Điều 13** khép lại; **Điều 19 · 22 · 25** vẫn mở. |
 | **1.2** | **2026-08-03** | **Architecture Board** | **ADR-009 — Enterprise Design System.** Ban hành **PART VIII — ENTERPRISE DESIGN SYSTEM** và **Điều 44 · Enterprise Visual Identity** (§44.1–§44.8): màu là THÔNG TIN, không phải trang trí; mỗi Business App giữ một dải màu vĩnh viễn gồm bảy vai trò; danh tính màu phải chảy tiếp vào mọi màn hình bên trong Workspace; mỗi trạng thái nghiệp vụ một sắc ngữ nghĩa riêng; biểu đồ dùng bảng màu hiến định; mọi màu phải lấy từ hệ thẻ màu duy nhất; độ tương phản WCAG AA là ràng buộc chứ không phải gợi ý. ⚠️ **Board chỉ định "PART VII"**, nhưng PART VII đã là GOVERNANCE từ v1.0 — đánh số trùng sẽ tạo hai Phần cùng số hiệu, nên ban hành thành **PART VIII**; cần Board xác nhận. Mục lục cập nhật thêm Phần VIII và tám khoản của Điều 44. |
 | **1.3** | **2026-08-03** | **Architecture Board** | **Quyết nghị chuẩn hoá PART VIII.** ① Board **PHÊ DUYỆT** cách đánh số **PART VIII** — không đánh số lại; khoảng vênh "PART VII" ở v1.2 khép lại. ② **Đổi tên Phần**: `ENTERPRISE DESIGN SYSTEM` → **`ENTERPRISE EXPERIENCE`**; neo mục lục cập nhật theo. ③ Board tuyên bố **Điều 44 và Điều 45** cùng thuộc Phần VIII. ⚠️ **Điều 45 CHƯA có nội dung** — Board chưa ban hành tiêu đề lẫn điều khoản, và người biên tập KHÔNG suy diễn nội dung Hiến pháp. Phần VIII hiện chỉ có Điều 44; **chờ Board ban hành Điều 45**. ④ Ghi nhận **TD-10 · Enterprise Typography Token System**. ⑤ Board chỉ thị **dừng việc làm lại giao diện theo từng trang**; mốc tiếp theo là **hoàn thiện Enterprise Design System**, sau đó mới nâng cấp toàn bộ Workspace bằng cùng một ngôn ngữ thị giác. |
+| **1.4** | **2026-08-03** | **Architecture Board** | **Quyết nghị Enterprise Design Language.** ① **PART VIII giữ nguyên.** ② Ban hành **Điều 45 — Reserved**: điều khoản để trống chính thức, chỉ Board mới được điền; ghi rõ **cấm mọi người thi hành, biên tập viên hay tác nhân tự động suy diễn nội dung**. Đây là lần đầu Hiến pháp có một Điều mang trạng thái *Reserved* — chỗ trống có tên tốt hơn một chỗ trống im lặng. ③ **Bộ chữ chính thức: Inter Variable**, tự lưu trữ qua `next/font/local`. ④ Trình tự thi hành được duyệt: **TD-08 → TD-10 → TD-07 → TD-09**. ⑤ Thêm **TD-11 · Enterprise Iconography System** và **TD-12 · Enterprise Motion System**. ⑥ Mục tiêu dài hạn: dựng **Enterprise Design Language** hoàn chỉnh, từ đó dẫn xuất ra Design System · Tokens · Components · Patterns và mọi Workspace tương lai. **Không cho phép làm lại giao diện theo từng trang cho tới khi nền móng Design System hoàn tất.** |
 
 ## Table of Contents
 
@@ -528,6 +529,7 @@
   - [44.6 Design Tokens](#446-design-tokens)
   - [44.7 Accessibility](#447-accessibility)
   - [44.8 Constitutional Enforcement](#448-constitutional-enforcement)
+- [Article 45. Reserved](#article-45-reserved)
 
 **[APPENDIX](#appendix)**
 
@@ -5402,6 +5404,16 @@ Accessibility is a constitutional constraint, not a design preference. A colour 
 Every current and future screen of MONICA ONE shall comply with this Article.
 
 Any proposal to introduce a colour outside the constitutional token system, or to alter the permanent identity of a Business App, requires Architecture Board approval through an ADR.
+
+---
+
+## Article 45. Reserved
+
+**Status: Reserved.**
+
+This Article is reserved and shall remain without content until formally issued by the Architecture Board.
+
+No constitutional text may be inferred, drafted or assumed for this Article by any implementer, editor or automated agent.
 
 ---
 

@@ -152,4 +152,73 @@ s.ok(`Có ADR (${adr.length} bản)`, adr.length >= 6);
 const so = adr.map((f) => Number(f.slice(4, 7))).sort((a, b) => a - b);
 s.ok('Số hiệu ADR không trùng', new Set(so).size === so.length);
 
+// ── 9. MÀU HIẾN ĐỊNH — Điều 44.6 · TD-08 ───────────────────────────────────
+//
+// Điều 44.6: *"No colour value shall be written directly into a business
+// screen."* Mục này là RĂNG của điều khoản đó.
+//
+// ─── VÌ SAO PHẢI CÓ PHÉP KIỂM, KHÔNG CHỈ CÓ ĐIỀU KHOẢN ───────────────────
+// Cùng một họ bài học với TD-03: thứ để lỗi sống sót không phải sự bất cẩn,
+// mà là **thiếu một phép thử chứng minh quy tắc đang được tuân thủ**. Ban hành
+// Điều 44 mà không dựng mục này thì sáu tháng nữa sẽ có đợt màu viết thẳng thứ
+// hai, chỉ khác tên tệp.
+//
+// ─── CƠ CHẾ BÁNH CÓC, KHÔNG PHẢI CỔNG CHẶN ──────────────────────────────
+// 109 tệp đang vi phạm. Đặt ngưỡng 0 thì bài kiểm đỏ vĩnh viễn, và bài kiểm đỏ
+// vĩnh viễn thì người ta ngừng đọc nó. Thay vào đó: danh sách nợ ĐÓNG BĂNG.
+//   • Tệp MỚI vi phạm            → HỎNG
+//   • Tệp trong danh sách đã sạch → báo tiến độ, nhắc gỡ khỏi danh sách
+// Danh sách chỉ được phép NGẮN ĐI. Đó là TD-07 tự thu hẹp theo thời gian.
+//
+// ⚠️ PHẢI BỎ CHÚ THÍCH TRƯỚC KHI QUÉT. `app/home-modules.ts` có dòng chú
+// thích giải thích chính quy tắc này (“không viết thẳng `bg-blue-50`”). Quét
+// cả chú thích thì tệp SẠCH NHẤT lại bị báo vi phạm — tức phép kiểm trừng phạt
+// đúng người đã ghi lại quy tắc. Đây là lỗi đã bắt được khi dựng mục này.
+//
+// ⚠️ Sắc TRUNG TÍNH (`slate` `gray` `zinc` `neutral` `white` `black`) KHÔNG bị
+// chặn: chúng là màu khung nền dùng khắp nơi, không phải màu định danh. Chặn cả
+// chúng sẽ khiến quy tắc không thể tuân thủ, và quy tắc không thể tuân thủ thì
+// người ta tắt nó đi.
+console.log('\n⑨ MÀU HIẾN ĐỊNH — Điều 44.6 · mọi màu phải lấy từ thẻ màu');
+
+const SAC_DINH_DANH =
+  'indigo|orange|red|teal|blue|emerald|green|cyan|purple|amber|rose|sky|fuchsia|stone|violet|pink|lime|yellow';
+const TIEN_TO =
+  'bg|text|ring|border|from|via|to|fill|stroke|divide|outline|accent|decoration|placeholder|shadow';
+const RE_MAU = new RegExp(`\\b(?:${TIEN_TO})-(?:${SAC_DINH_DANH})-[0-9]{2,3}\\b`);
+
+/** Bỏ chú thích khối và chú thích dòng. `[^:]` giữ lại `https://`. */
+function boChuThich(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+}
+
+const NGUON_THE_MAU = 'lib/design/tokens.ts';
+const duongDanNo = join(ROOT, 'tests/architecture/color-debt-baseline.json');
+const danhSachNo = existsSync(duongDanNo)
+  ? new Set(JSON.parse(doc(duongDanNo)).files)
+  : new Set();
+
+const viPham = [...quet('app'), ...quet('components')]
+  .filter((p) => RE_MAU.test(boChuThich(doc(p))))
+  .map(rel)
+  .sort();
+
+const moiViPham = viPham.filter((f) => !danhSachNo.has(f));
+const daSach = [...danhSachNo].filter((f) => !viPham.includes(f)).sort();
+
+s.ok(`Thẻ màu hiến định tồn tại (${NGUON_THE_MAU})`,
+  existsSync(join(ROOT, NGUON_THE_MAU)));
+s.ok('Danh sách nợ màu tồn tại (cơ chế bánh cóc TD-07)', danhSachNo.size > 0);
+s.ok(`KHÔNG tệp MỚI nào viết màu thẳng (đang nợ ${viPham.length}/${danhSachNo.size})`,
+  moiViPham.length === 0,
+  moiViPham.join(' · '));
+s.ok('Danh sách nợ không phình ra', viPham.length <= danhSachNo.size,
+  `${viPham.length} > ${danhSachNo.size}`);
+
+if (daSach.length) {
+  console.log(`   ↻ ${daSach.length} tệp đã sạch — gỡ khỏi color-debt-baseline.json: ${daSach.slice(0, 5).join(' · ')}${daSach.length > 5 ? ' …' : ''}`);
+}
+
 process.exit(s.ketThuc() ? 1 : 0);
