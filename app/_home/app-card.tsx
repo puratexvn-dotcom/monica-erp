@@ -67,16 +67,27 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
         {/* Beta: chấm + chữ, KHÔNG khung viên thuốc. Khung làm nhãn nặng ngang
             ô icon; bỏ khung đi thì nó lùi về đúng hạng — một ghi chú, không
             phải một huy hiệu. */}
+        {/* ⚠️ Nhìn ảnh chụp thật mới thấy nhãn này gần như TÀNG HÌNH: chữ
+            `slate-400` 11px trên nền màu nhạt thì chìm hẳn. Nay là viên nền
+            trắng, chữ `slate-600`, chấm màu giữ nguyên — đọc được từ khoảng
+            cách quét mắt bình thường, mà vẫn không nặng ngang ô icon. */}
         {!mo && (
-          <span className="flex shrink-0 items-center gap-1.5 pt-1">
-            <span className={`h-1 w-1 rounded-full ${id.bar}`} aria-hidden="true" />
-            <span className={`${TYPE.overline} text-slate-400`}>{t('home.beta')}</span>
+          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/80 px-2 py-1">
+            <span className={`h-1.5 w-1.5 rounded-full ${id.bar}`} aria-hidden="true" />
+            <span className={`${TYPE.overline} text-slate-600`}>{t('home.beta')}</span>
           </span>
         )}
       </div>
 
-      {/* Tên ứng dụng — nhân vật chính của thẻ */}
-      <h2 className={`${TYPE.appTitle} text-slate-900`}>{mod.name}</h2>
+      {/* Tên ứng dụng — nhân vật chính của thẻ.
+          ⚠️ `min-h-[2.5em]` GHIM ĐÚNG HAI DÒNG. Nhìn ảnh chụp thật mới thấy:
+          "Business Communication", "Human Resources", "Business Reporting",
+          "Platform Services" xuống hai dòng, còn "Quality", "Warehouse",
+          "Finance" chỉ một dòng — nên phần mô tả của các thẻ cạnh nhau KHÔNG
+          nằm trên cùng một đường. Cả hàng thẻ đọc ra là so le.
+          Ghim chiều cao tiêu đề thì mọi dòng mô tả về đúng một đường ngang, dù
+          tên dài hay ngắn, và dù đang ở tiếng Việt, Anh hay Trung. */}
+      <h2 className={`${TYPE.appTitle} min-h-[2.5em] text-slate-900`}>{mod.name}</h2>
 
       {/* ⚠️ `line-clamp-2` + `min-h`: mười sáu câu mô tả dài ngắn khác nhau, và
           ba ngôn ngữ dài ngắn khác nhau nữa. Không ghim chiều cao thì đáy thẻ

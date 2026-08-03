@@ -59,5 +59,26 @@ export const LOGO_ALT = APP_NAME;
 // im lặng không sinh CSS.
 export const LOGO_COLORS = ['#E4549C', '#FCC048', '#B4CC30', '#54C0E4', '#006CB4'] as const;
 
-/** Dải chuyển sắc dùng cho chữ "Monica" — khớp màu wordmark trên logo */
+/** Dải chuyển sắc sáu màu — khớp đúng wordmark trên tệp logo. Dùng cho chữ NHỎ. */
 export const LOGO_TEXT_GRADIENT = `linear-gradient(100deg, ${LOGO_COLORS.join(', ')})`;
+
+/**
+ * Dải chuyển sắc cho chữ LỚN — hồng → xanh dương.
+ *
+ * ⚠️ ĐÂY LÀ BẢN SỬA MỘT LỖI NHÌN THẤY ĐƯỢC, không phải một tinh chỉnh thẩm mỹ.
+ *
+ * Dải sáu màu ở trên chạy hồng → vàng → xanh chanh → lơ → lam. Ở cỡ chữ nhỏ
+ * trên logo thì đẹp, nhưng trải ra chữ 64px thì đoạn GIỮA rơi đúng vào vàng
+ * `#FCC048` và xanh chanh `#B4CC30` — hai màu sáng nhất trong bảng. Trên nền
+ * trắng, độ tương phản của chúng chỉ khoảng 1,7:1, nên phần "CA O" của
+ * "MONICA ONE" gần như biến mất. Chữ lớn nhất trang bị BẠC MÀU.
+ *
+ * Bản này chỉ dùng hai màu ĐỦ TỐI trong bảng logo — hồng `#E4549C` và xanh
+ * dương `#006CB4` — nên mọi ký tự đều giữ được sức nặng. Chỗ chuyển giữa hai
+ * màu tự đi qua sắc tím, cho ra một dải liền mạch chứ không phải một vệt cầu
+ * vồng. Đọc ra là bản sắc thương hiệu có chủ đích, không phải hiệu ứng.
+ *
+ * Bản sáu màu vẫn giữ nguyên cho logo và mọi chỗ chữ nhỏ.
+ */
+export const LOGO_TEXT_GRADIENT_STRONG =
+  `linear-gradient(100deg, ${LOGO_COLORS[0]} 0%, ${LOGO_COLORS[4]} 100%)`;

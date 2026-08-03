@@ -4,7 +4,7 @@ import { MODULES } from '../home-modules';
 import AppCard from './app-card';
 import { useLanguage } from '@/lib/i18n';
 import { TYPE } from '@/lib/design/typography';
-import { LOGO_TEXT_GRADIENT } from '@/lib/brand';
+import { LOGO_TEXT_GRADIENT_STRONG } from '@/lib/brand';
 
 // ============================================================================
 // NỘI DUNG TRANG CHỦ — Hiến pháp Điều 45 · đa ngôn ngữ
@@ -71,7 +71,7 @@ export default function HomeContent() {
               xén mất đuôi ký tự cuối ở một số bộ chữ. */}
           <span
             className={`${TYPE.heroMark} bg-clip-text pr-[0.06em] text-transparent`}
-            style={{ backgroundImage: LOGO_TEXT_GRADIENT }}
+            style={{ backgroundImage: LOGO_TEXT_GRADIENT_STRONG }}
           >
             MONICA ONE
           </span>
