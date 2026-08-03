@@ -17,6 +17,7 @@ Bắt buộc từ Migration 029 trở đi cho mọi thay đổi Domain Model ho�
 | [ADR-006](ADR-006-permission-engine.md) | Permission Engine — phân quyền theo Assignment | `030` → `031` | ⏳ **Chờ phê duyệt** · **031 = điểm không quay lại** |
 | [ADR-007](ADR-007-data-reconciliation.md) | Data Reconciliation — đối soát dữ liệu lịch sử | — | 🟡 **Chờ phê duyệt** |
 | [ADR-008](ADR-008-bundle-stage-vocabulary.md) | Từ vựng vòng đời bó bán thành phẩm — **tách trục** | `039` → `031d` | ✅ **Đã phê duyệt** *(Board, 02/08/2026 · Phương án D)* |
+| [ADR-009](ADR-009-enterprise-design-system.md) | Enterprise Design System — màu là thông tin, không phải trang trí | — *(Hiến pháp `1.2` · PART VIII · Điều 44)* | ✅ **Đã phê duyệt** *(Board, 03/08/2026)* |
 
 ⚠️ ADR-001 nằm ở [`docs/assignment/`](../assignment/) vì viết trước khi thư mục
 này tồn tại. **Không di chuyển** — đường dẫn cũ đã nằm trong lịch sử git và trong

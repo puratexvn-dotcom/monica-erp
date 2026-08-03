@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
 import type { ModuleItem } from '../home-modules';
-import { ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW } from './surface';
+import {
+  MODULE_IDENTITY, ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW,
+} from '@/lib/design/tokens';
 
 // ============================================================================
 // THẺ BUSINESS APP — MỘT KIỂU DUY NHẤT CHO CẢ 16 MỤC
@@ -41,9 +43,21 @@ import { ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW } from './surface';
 
 export default function AppCard({ mod }: { mod: ModuleItem }) {
   const Icon = mod.icon;
+  // Nguồn màu DUY NHẤT của thẻ này. Không một mã màu nào được viết thẳng
+  // trong tệp — Điều 44.6.
+  const id = MODULE_IDENTITY[mod.key];
 
   const inner = (
     <>
+      {/* Vạch nhấn mép trên — Điều 44.2. Một dải 3px mang đúng sắc của App,
+          nằm sát mép thẻ. Đây là thứ khiến mười sáu thẻ trắng thôi đọc ra
+          "mười sáu ô giống nhau": quét dọc lưới, mắt bắt được dải màu trước
+          cả ô icon, vì nó nằm ở mép — nơi mắt chạm đầu tiên khi lướt. */}
+      <span
+        aria-hidden="true"
+        className={`absolute inset-x-0 top-0 h-[3px] rounded-t-[1.25rem] ${id.bar}`}
+      />
+
       <div className="mb-5 flex items-start justify-between gap-3">
         {/* Ô icon 80px — mỏ neo thị giác. Người vận hành xưởng nhận ra phân hệ
             bằng HÌNH và MÀU trước khi kịp đọc chữ, nên nó to hơn hẳn phần chữ.
@@ -51,7 +65,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
             bo tròn — một dòng, và ô icon thôi trông như mảng màu, bắt đầu
             trông như một vật thể có bề mặt. */}
         <span
-          className={`flex h-16 w-16 items-center justify-center rounded-[1.25rem] transition-[transform,box-shadow] duration-300 ease-out group-hover:scale-[1.04] sm:h-20 sm:w-20 ${mod.tile} ${GLASS} ${GLASS_GLOW}`}
+          className={`flex h-16 w-16 items-center justify-center rounded-[1.25rem] transition-[transform,box-shadow] duration-300 ease-out group-hover:scale-[1.04] sm:h-20 sm:w-20 ${id.soft} ${id.primary} ${GLASS} ${GLASS_GLOW}`}
         >
           <Icon className="h-7 w-7 sm:h-9 sm:w-9" strokeWidth={1.6} aria-hidden="true" />
         </span>
@@ -66,7 +80,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           // kinh doanh. Đặt ở đúng chỗ mũi tên để hai trạng thái không làm
           // lệch bố cục của nhau.
           <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 ring-1 ring-inset ring-slate-200/80">
-            <span className={`h-1 w-1 rounded-full ${mod.dot}`} aria-hidden="true" />
+            <span className={`h-1 w-1 rounded-full ${id.bar}`} aria-hidden="true" />
             <span className="text-[9.5px] font-bold uppercase tracking-[0.1em] text-slate-500">
               Beta
             </span>
@@ -105,7 +119,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
       // Chỉ chuyển động `transform` và `box-shadow`: hai thuộc tính này trình
       // duyệt chạy trên GPU. Thêm `background-color` hay `width` vào danh sách
       // là buộc nó tính lại bố cục 60 lần mỗi giây.
-      className={`${base} ${ELEV_REST} ${ELEV_HOVER} ring-1 ring-inset ring-transparent transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0 active:duration-75 ${mod.ring} ${mod.focus}`}
+      className={`${base} ${ELEV_REST} ${ELEV_HOVER} ring-1 ring-inset ring-transparent transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0 active:duration-75 ${id.hover} ${id.focus}`}
     >
       {inner}
     </Link>

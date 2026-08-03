@@ -1,7 +1,7 @@
 import TopNavbar from './top-navbar';
 import { MODULES } from './home-modules';
 import AppCard from './_home/app-card';
-import { NOISE_URL } from './_home/surface';
+import { NOISE_URL, CANVAS } from '@/lib/design/tokens';
 import { LOGO_TEXT_GRADIENT, APP_NAME } from '@/lib/brand';
 
 // ============================================================================
@@ -55,7 +55,7 @@ export default function HomePage() {
     // Nền KHÔNG trắng tinh. Trắng trên trắng buộc phải kẻ viền đậm, mà viền
     // đậm thì màn hình lập tức ồn. Xám rất nhạt để thẻ trắng nổi lên bằng
     // chính độ sáng của nó.
-    <div className="relative min-h-screen bg-[#F6F7F9]">
+    <div className={`relative min-h-screen ${CANVAS}`}>
       {/* Hạt giấy dưới 1% — phá mảng màu phẳng tuyệt đối, thứ khiến một trang
           đọc ra là "trang web" thay vì một mặt vật liệu. Sinh ngay trong trình
           duyệt bằng feTurbulence: không tải ảnh, không thêm byte mạng nào. */}

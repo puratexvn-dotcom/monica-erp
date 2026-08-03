@@ -48,6 +48,9 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-04](#td-04) | `components/sidebar.tsx` — mười lối vào không gắn ở layout nào | 🟡 | mở | Constitutional ADR-001 §5 |
 | [TD-05](#td-05) | Trang chủ hiện đủ 16 thẻ cho mọi người — §13.5 đòi lọc theo quyền | 🟡 | mở | Constitutional ADR-001 §5 |
 | [TD-06](#td-06) | Nhãn 16 phân hệ chưa đi qua `lib/i18n` | 🟡 | mở | Constitutional ADR-001 §5 |
+| [TD-07](#td-07) | 106 tệp `.tsx` còn màu viết thẳng, chưa qua thẻ màu | 🟡 | mở | ADR-009 §4 |
+| [TD-08](#td-08) | Không có phép kiểm chặn màu viết thẳng — Điều 44.6 chưa có răng | 🟡 | mở | ADR-009 §4 |
+| [TD-09](#td-09) | 3 tệp Recharts chưa dùng `CHART_PALETTE` | 🟡 | mở | ADR-009 §4 |
 
 ---
 
@@ -304,6 +307,102 @@ tiếng — không phải việc kỹ thuật quyết được. Phần mô tả 
 
 ---
 
+<a id="td-07"></a>
+## TD-07 · 106 TỆP CÒN MÀU VIẾT THẲNG
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — lệch Hiến pháp, chưa gây sự cố |
+| **Phát hiện** | ADR-009 §1.2 |
+| **Nơi** | 106 tệp `.tsx` trong `app/` và `components/` |
+| **Vi phạm** | Hiến pháp **§44.6** *(Design Tokens)* |
+
+### Nội dung
+
+Điều 44.6 đòi mọi màu phải lấy từ hệ thẻ màu. Hiện đã chuyển: trang chủ
+(`app/page.tsx`, `app/home-modules.ts`, `app/_home/app-card.tsx`) và thanh đầu
+trang nội bộ (`components/dashboard-topbar.tsx` — điểm đòn bẩy lớn nhất, vì nó
+cấp danh tính màu cho **mọi** màn hình bên trong cùng lúc).
+
+Phần còn lại — bảng, biểu mẫu, hộp thoại, Kanban, dòng thời gian của 12 phân hệ —
+vẫn viết màu thẳng tại chỗ.
+
+### Vì sao chưa trả hết
+
+Chuyển 106 tệp trong một lượt là thay đổi diện rộng **không có phép kiểm nào
+bảo vệ**: mỗi tệp chạm vào là một cơ hội đổi nhầm sắc mà build vẫn xanh. Thứ tự
+đúng là **dựng phép kiểm trước** (TD-08), rồi chuyển từng phân hệ một, mỗi phân
+hệ một commit, có chỗ để soi lại.
+
+### Cách trả
+
+Chuyển theo phân hệ, ưu tiên nơi người dùng nhìn nhiều nhất: `/md` → `/kho` →
+`/qa` → `/to-truong-may` → phần còn lại.
+
+---
+
+<a id="td-08"></a>
+## TD-08 · KHÔNG CÓ PHÉP KIỂM CHẶN MÀU VIẾT THẲNG
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — **đây là thứ đã tạo ra TD-07** |
+| **Phát hiện** | ADR-009 §4 |
+| **Nơi** | thiếu ở `tests/architecture/arch.test.mjs` |
+| **Vi phạm** | Hiến pháp **§44.6 · §44.8** |
+
+### Nội dung
+
+Không có phép kiểm nào chặn một lớp màu viết thẳng lọt vào màn hình nghiệp vụ.
+Điều 44.6 hiện chỉ được giữ bằng **kỷ luật con người** — mà kỷ luật con người
+chính là thứ đã sinh ra 106 tệp của TD-07.
+
+### Vì sao đây là khoản đáng trả trước
+
+Cùng một họ bài học với **TD-03**: thứ để lỗi sống sót không phải sự bất cẩn, mà
+là **thiếu một phép thử chứng minh quy tắc đang được tuân thủ**. Ban hành Điều 44
+mà không dựng phép kiểm thì sáu tháng nữa sẽ có TD-07 thứ hai, chỉ khác tên.
+
+### Cách trả
+
+Một mục trong `arch.test.mjs` quét `app/**` và `components/**` tìm lớp màu
+Tailwind viết thẳng *(`bg-|text-|ring-|border-` + tên sắc + bậc số)*, cho phép
+danh sách miễn trừ hẹp: `lib/design/tokens.ts`, các sắc trung tính
+`slate|white|black|transparent`, và những tệp đã ghi nhận trong TD-07 cho tới khi
+chúng được chuyển xong.
+
+⚠️ Phép kiểm phải chạy **không cần CSDL**, để nó nằm ở tầng `kiem-tra-tinh` của CI.
+
+### Vì sao chưa trả
+
+Board đã chỉ thị hoãn việc mở rộng bài kiểm kiến trúc cho tới sau bàn giao khách
+hàng. Ghi nhận ở đây để không rơi mất.
+
+---
+
+<a id="td-09"></a>
+## TD-09 · BIỂU ĐỒ CHƯA DÙNG BẢNG MÀU HIẾN ĐỊNH
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở |
+| **Phát hiện** | ADR-009 §1.2 |
+| **Nơi** | 3 tệp dùng `recharts` |
+| **Vi phạm** | Hiến pháp **§44.5** *(Chart Palette)* |
+
+### Nội dung
+
+Điều 44.5 cấm bảng màu mặc định của thư viện và màu tuỳ tiện. `CHART_PALETTE` và
+`chartColor()` đã có trong thẻ màu nhưng ba tệp biểu đồ chưa gọi tới.
+
+### Cách trả
+
+Thay mọi mã màu trong `<Bar>`, `<Line>`, `<Cell>`, `<Pie>` bằng `chartColor(i)`,
+hoặc bằng `MODULE_IDENTITY[key].chart` khi biểu đồ thuộc về một phân hệ cụ thể —
+biểu đồ của Production phải cùng sắc với thẻ của Production.
+
+---
+
 ## 2. QUY TẮC CẬP NHẬT
 
 - Nợ mới phát hiện trong một ADR: ghi ở ADR đó *(nơi phát hiện)* **và** thêm mục
@@ -319,4 +418,5 @@ tiếng — không phải việc kỹ thuật quyết được. Phần mô tả 
 - [`ENGINEERING_PLAYBOOK.md`](ENGINEERING_PLAYBOOK.md) — XXVIII.2 · XXIX
 - [`adr/ADR-008-bundle-stage-vocabulary.md`](adr/ADR-008-bundle-stage-vocabulary.md) — nguồn TD-02, TD-03
 - [`architecture/adr/ADR-001-homepage-conceptual-model.md`](architecture/adr/ADR-001-homepage-conceptual-model.md) — nguồn TD-04, TD-05, TD-06
+- [`adr/ADR-009-enterprise-design-system.md`](adr/ADR-009-enterprise-design-system.md) — nguồn TD-07, TD-08, TD-09
 - Commit `d21f0ad` — nguồn TD-01

@@ -8,6 +8,7 @@ import { Search } from 'lucide-react';
 import NotificationBell from '@/components/notification-bell';
 
 import { LOGO_SRC, LOGO_ALT, APP_NAME } from '@/lib/brand';
+import { identityForPath } from '@/lib/design/tokens';
 
 // ============================================================================
 // THANH ĐẦU TRANG CHO KHU VỰC DASHBOARD
@@ -84,6 +85,9 @@ const HAS_PALETTE = ['/md'];
 export default function DashboardTopbar() {
   const pathname = usePathname();
   const id = identityOf(pathname);
+  // Danh tính MÀU của App chứa màn hình này (Điều 44.3). `null` khi đường dẫn
+  // chưa được gán App — khi đó thanh giữ nguyên vẻ trung tính.
+  const identity = identityForPath(pathname);
   const canSearch = HAS_PALETTE.some((p) => pathname === p || pathname.startsWith(p + '/'));
 
   // ─── VÌ SAO DÙNG SỰ KIỆN TOÀN CỤC THAY VÌ TRUYỀN PROP ────────────────────
@@ -105,14 +109,47 @@ export default function DashboardTopbar() {
         </Link>
 
         {id && (
-          <div className="min-w-0 flex-1 border-l border-slate-200 pl-3 sm:pl-4">
-            <h1 className="truncate text-sm font-bold tracking-tight text-slate-800 sm:text-base">
-              {id.title}
-            </h1>
+          // ─── DANH TÍNH MÀU CHẢY TIẾP VÀO BÊN TRONG — Điều 44.3 ──────────
+          //
+          // Đây là điểm đòn bẩy lớn nhất của cả hệ thẻ màu: thanh này dựng ở
+          // layout của MỌI màn hình nội bộ. Một chỗ sửa, và cả 12 phân hệ lập
+          // tức mang đúng sắc của mình ở đầu trang — Production xanh dương,
+          // Quality xanh ngọc, Warehouse xanh lá, Finance hổ phách.
+          //
+          // Không có nó thì màu chỉ sống ở trang chủ rồi tắt ngóm ngay khi
+          // người dùng bước vào trong, và danh tính thành ra một lớp sơn ở
+          // cửa chứ không phải bản sắc của phân hệ.
+          //
+          // `identity` có thể `null` với đường dẫn chưa gán App — khi đó vạch
+          // màu không dựng và thanh trở về trung tính, KHÔNG đoán bừa một màu.
+          <div
+            className={`min-w-0 flex-1 border-l pl-3 sm:pl-4 ${
+              identity ? 'border-transparent' : 'border-slate-200'
+            }`}
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              {identity && (
+                // Vạch dọc thay cho đường kẻ xám: cùng vị trí, cùng vai trò
+                // ngăn cách, nhưng mang thông tin thay vì chỉ chia đôi.
+                <span
+                  aria-hidden="true"
+                  className={`h-7 w-[3px] shrink-0 rounded-full ${identity.bar}`}
+                />
+              )}
+              <h1 className="truncate text-sm font-bold tracking-tight text-slate-800 sm:text-base">
+                {id.title}
+              </h1>
+            </div>
             {id.slogan && (
               // Ẩn ở màn hẹp: nhét cả câu khẩu hiệu vào bề ngang 360px sẽ bóp
               // tiêu đề còn vài chữ, mà tiêu đề mới là thứ cần đọc trước.
-              <p className="hidden truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 md:block">
+              // Khẩu hiệu nay mang sắc của chính phân hệ, không còn xanh dương
+              // cứng cho mọi nơi.
+              <p
+                className={`ml-0 hidden truncate text-[11px] font-semibold uppercase tracking-[0.12em] md:block ${
+                  identity ? identity.primary : 'text-slate-500'
+                } ${identity ? 'md:ml-[1.375rem]' : ''}`}
+              >
                 {id.slogan}
               </p>
             )}

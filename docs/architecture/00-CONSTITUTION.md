@@ -4,13 +4,13 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Status** | ✅ ADOPTED |
 | **Owner** | Joseph |
 | **Architecture Authority** | MONICA ONE Architecture Board |
 | **Effective Date** | 2026-08-02 |
 | **Last Updated** | 2026-08-03 |
-| **Latest Amendment** | [ADR-001 — Homepage Conceptual Model](adr/ADR-001-homepage-conceptual-model.md) |
+| **Latest Amendment** | [ADR-009 — Enterprise Design System](../adr/ADR-009-enterprise-design-system.md) |
 
 ## Revision History
 
@@ -73,6 +73,7 @@
 | 0.55 | 2026-08-02 | Architecture Board | Ban hành **Appendix › References** — 8 nhóm tham chiếu, kèm *Constitutional Independence*. **TOÀN BỘ NỘI DUNG HIẾN PHÁP ĐÃ ĐẦY ĐỦ:** PREAMBLE · 43/43 Điều · Glossary · References. Claude chèn nguyên văn, không sửa một chữ; hạ một cấp heading (`##`→`###`) để lồng đúng dưới `## References`. ⏳ **CHƯA BAN HÀNH** — Document Control vẫn ghi `Version 0.2 · Draft`; cần Quyết định ban hành của Board. |
 | **1.0** | **2026-08-02** | **Architecture Board** | **QUYẾT NGHỊ CUỐI — CHUẨN HOÁ VÀ BAN HÀNH.** ① Document Control: `Version 1.0` · `Status ADOPTED` · `Effective Date 2026-08-02`; gỡ toàn bộ dấu vết bản nháp. ② Chuẩn hoá bốn tiêu đề Điều: `29 Business Reporting` · `41 Versioning & Release Management` · `42 Constitutional Governance` · `43 Constitutional Authority` (kèm neo mục lục). ③ Thống nhất thứ bậc thẩm quyền ở §5.12 · §37.8 · §43.3 thành sáu bậc: Constitution → Accepted ADR → Engineering Standards → Approved Playbooks → Technical Documentation → Source Code. ④ Giữ nguyên cấu trúc Appendix. ⑤ **Hiến pháp là văn bản chuẩn tắc — KHÔNG sửa Hiến pháp cho khớp mã đang chạy.** Bốn khoảng cách triển khai còn mở, theo dõi như hạng mục kỹ thuật: **Điều 13 · 19 · 22 · 25**; xử lý sau qua ADR và công việc kỹ thuật. Đã chạy đủ bốn phép kiểm: markdown · liên kết · mục lục · tham chiếu chéo. |
 | **1.1** | **2026-08-03** | **Architecture Board** | **ADR-001 — Homepage Conceptual Model.** Trang chủ được định nghĩa lại là **Business Operating System Launcher** thay cho *Business Workspace Launcher*: nó là **lối vào**, không phải cơ chế **phân loại**. ① **Điều 13**: đổi tên §13.3 và thay định nghĩa; §13.1 · §13.4 · §13.5 · §13.8 chỉnh theo cho hết mâu thuẫn. ② **§17.3**: bổ sung *"Global Services may appear on the Business Operating System Launcher without becoming Business Workspaces."* ③ **§34.1**: bổ sung Platform Services xuất hiện trên Launcher như lối vào nền tảng, không đổi phân loại hiến định. ④ **Glossary**: `Workspace Launcher` → `Business Operating System Launcher`, chuyển từ nhóm **W** sang nhóm **B** cho đúng thứ tự chữ cái; nhóm **W** rỗng nên gỡ bỏ (còn 11 nhóm chữ cái · 25 thuật ngữ). ⑤ Mục lục cập nhật neo §13.3. Khoảng cách triển khai **Điều 13** khép lại; **Điều 19 · 22 · 25** vẫn mở. |
+| **1.2** | **2026-08-03** | **Architecture Board** | **ADR-009 — Enterprise Design System.** Ban hành **PART VIII — ENTERPRISE DESIGN SYSTEM** và **Điều 44 · Enterprise Visual Identity** (§44.1–§44.8): màu là THÔNG TIN, không phải trang trí; mỗi Business App giữ một dải màu vĩnh viễn gồm bảy vai trò; danh tính màu phải chảy tiếp vào mọi màn hình bên trong Workspace; mỗi trạng thái nghiệp vụ một sắc ngữ nghĩa riêng; biểu đồ dùng bảng màu hiến định; mọi màu phải lấy từ hệ thẻ màu duy nhất; độ tương phản WCAG AA là ràng buộc chứ không phải gợi ý. ⚠️ **Board chỉ định "PART VII"**, nhưng PART VII đã là GOVERNANCE từ v1.0 — đánh số trùng sẽ tạo hai Phần cùng số hiệu, nên ban hành thành **PART VIII**; cần Board xác nhận. Mục lục cập nhật thêm Phần VIII và tám khoản của Điều 44. |
 
 ## Table of Contents
 
@@ -514,6 +515,18 @@
   - [43.7 Historical Preservation](#437-historical-preservation)
   - [43.8 Long-Term Stewardship](#438-long-term-stewardship)
   - [43.9 Constitutional Enforcement](#439-constitutional-enforcement)
+
+**[PART VIII — ENTERPRISE DESIGN SYSTEM](#part-viii--enterprise-design-system)**
+
+- [Article 44. Enterprise Visual Identity](#article-44-enterprise-visual-identity)
+  - [44.1 Constitutional Principle](#441-constitutional-principle)
+  - [44.2 Business Colour Identity](#442-business-colour-identity)
+  - [44.3 Identity Continuity](#443-identity-continuity)
+  - [44.4 Semantic Status Colour](#444-semantic-status-colour)
+  - [44.5 Chart Palette](#445-chart-palette)
+  - [44.6 Design Tokens](#446-design-tokens)
+  - [44.7 Accessibility](#447-accessibility)
+  - [44.8 Constitutional Enforcement](#448-constitutional-enforcement)
 
 **[APPENDIX](#appendix)**
 
@@ -5290,6 +5303,104 @@ No implementation shall knowingly violate this Constitution.
 Any exception requires formal approval through the constitutional governance process defined in Article 42.
 
 This Constitution shall remain the single constitutional source of architectural authority for MONICA ONE.
+
+---
+
+# PART VIII — ENTERPRISE DESIGN SYSTEM
+
+## Article 44. Enterprise Visual Identity
+
+### 44.1 Constitutional Principle
+
+Colour in MONICA ONE is not decoration.
+
+Colour is information, navigation and identity.
+
+Users shall be able to recognise a Business App, a business status or a workflow **by colour before reading any text**.
+
+No screen of MONICA ONE shall present business information as undifferentiated white rectangles or identical grey boxes.
+
+The interface shall remain readable, professional and calm. Visual energy shall never be achieved at the cost of legibility.
+
+---
+
+### 44.2 Business Colour Identity
+
+Every Business App shall own a permanent colour identity comprising:
+
+- a primary colour
+- a secondary colour
+- a soft surface colour
+- a hover colour
+- a focus colour
+- a badge colour
+- a chart accent
+
+No colour identity shall be shared between two Business Apps.
+
+A Business App's colour identity is permanent. Changing it requires an approved Architecture Decision Record.
+
+Gradients shall be used sparingly. **AI Assistant is the only Business App permitted to use a gradient surface.**
+
+---
+
+### 44.3 Identity Continuity
+
+A Business App's colour identity shall continue inside every screen belonging to that App.
+
+Cards, panels, tables, statistics, forms, charts, tabs and status indicators within a Workspace shall visibly belong to that Workspace.
+
+Colour identity shall not terminate at the Homepage.
+
+---
+
+### 44.4 Semantic Status Colour
+
+Every business status shall carry a distinct semantic colour.
+
+A single colour shall not be reused across unrelated statuses.
+
+Semantic status colours shall be identical across every screen of the platform, so that a status learned once is recognised everywhere.
+
+---
+
+### 44.5 Chart Palette
+
+Every chart shall draw from the constitutional palette.
+
+Default library palettes and arbitrary colours are prohibited.
+
+Adjacent series shall be visually distinguishable without reference to a legend.
+
+---
+
+### 44.6 Design Tokens
+
+All colour shall originate from a single constitutional token system.
+
+No colour value shall be written directly into a business screen.
+
+Token identifiers shall be complete, literal values. Colour classes shall never be assembled at runtime through string concatenation.
+
+The token system shall be included in the styling toolchain's content scan.
+
+---
+
+### 44.7 Accessibility
+
+Colour shall never be the sole carrier of meaning. Every colour-coded state shall also carry text or shape.
+
+All text shall meet WCAG AA contrast against its own background.
+
+Accessibility is a constitutional constraint, not a design preference. A colour that fails contrast is not permitted, regardless of visual appeal.
+
+---
+
+### 44.8 Constitutional Enforcement
+
+Every current and future screen of MONICA ONE shall comply with this Article.
+
+Any proposal to introduce a colour outside the constitutional token system, or to alter the permanent identity of a Business App, requires Architecture Board approval through an ADR.
 
 ---
 
