@@ -1,92 +1,64 @@
 import TopNavbar from './top-navbar';
-import { WORKSPACES, SERVICES, PLATFORM } from './home-modules';
-import { getHomeMetrics } from './home-metrics';
-import ExecutiveHero from './_home/executive-hero';
-import SectionHeading from './_home/section-heading';
-import WorkspaceCard from './_home/workspace-card';
-import AiHeroCard from './_home/ai-hero-card';
-import ServiceCard from './_home/service-card';
-import PlatformRow from './_home/platform-row';
+import { MODULES } from './home-modules';
+import AppCard from './_home/app-card';
 import { NOISE_URL } from './_home/surface';
-import { APP_NAME } from '@/lib/brand';
-import { gioVN, MUI_GIO } from '@/lib/time';
+import { LOGO_TEXT_GRADIENT, APP_NAME } from '@/lib/brand';
 
 // ============================================================================
-// TRANG CHỦ — BUSINESS OPERATING SYSTEM LAUNCHER (Điều 13.3 · ADR-001)
+// TRANG CHỦ MONICA ONE — LỐI VÀO CÔNG KHAI
 //
-// ═══ TRIẾT LÝ ═══════════════════════════════════════════════════════════
-// Trang này trả lời đúng MỘT câu hỏi: *"sáng nay tôi vào đâu trước?"*
+// ═══ ⚠️ TRANG NÀY LÀ GÌ, VÀ TUYỆT ĐỐI KHÔNG PHẢI GÌ ═════════════════════
+// Trang chủ KHÔNG phải Workspace. KHÔNG phải Dashboard. KHÔNG phải Trung tâm
+// vận hành. Nó là **lối vào công khai** của MONICA ONE — bất kỳ ai gõ đúng
+// địa chỉ đều thấy nó, kể cả khi chưa đăng nhập một giây nào.
 //
-// Năm nguyên tắc, rút từ chỗ Apple · Linear · Stripe · Fiori GIỐNG nhau —
-// không phải chỗ chúng khác nhau:
+// Luồng sản phẩm bắt buộc:
 //
-//   ① MÀU LÀ THÔNG TIN, KHÔNG PHẢI TRANG TRÍ.
-//      Nền trung tính có hạt, thẻ trắng tinh, màu chỉ xuất hiện ở ô icon và
-//      chấm trạng thái. Mười sáu khối màu bão hoà cạnh nhau đọc ra "phần mềm
-//      quản trị nội bộ"; mười sáu thẻ trắng mỗi thẻ một mỏ neo màu đọc ra
-//      "sản phẩm".
+//   Trang chủ → chọn Business App → Đăng nhập → Workspace
+//             → Bảng điều hành → Công việc → Báo cáo → Biểu đồ → Vận hành
 //
-//   ② KHÔNG PHẢI Ô NÀO CŨNG BẰNG NHAU.
-//      Mười sáu ô cùng cỡ buộc mắt phải QUÉT. Ba mức nhấn cho mắt một điểm
-//      rơi: nó biết bắt đầu từ đâu trước khi đọc chữ nào.
+// Trang chủ đứng ở bước MỘT. Mọi thứ từ "Bảng điều hành" trở đi chỉ được phép
+// xuất hiện SAU khi xác thực, và xuất hiện BÊN TRONG Workspace.
 //
-//   ③ THỨ BẬC DỰNG BẰNG CỠ, NHỊP VÀ ĐỘ CAO — KHÔNG BẰNG KHUNG VIỀN.
-//      Workspace nổi bốn lớp bóng · Service chìm một lớp · Platform phẳng
-//      không bóng. Ba mức nhìn ra ngay, không cần đọc tiêu đề khối.
+// ─── VÌ SAO TRANG NÀY KHÔNG GỌI `getHomeMetrics()` ──────────────────────
+// Cố ý không gọi. Gọi rồi thì sớm muộn cũng có người bày số ra màn hình, và
+// mỗi con số bày ra ở đây là một mẩu thông tin vận hành nằm ở bước SAI trong
+// luồng. `app/home-metrics.ts` giữ nguyên không sửa một dòng — nó vẫn phục vụ
+// các bảng điều hành bên trong `/giam-doc`, `/md`. Chỉ trang chủ thôi không
+// gọi tới.
 //
-//   ④ CHUYỂN ĐỘNG ĐỂ XÁC NHẬN, KHÔNG ĐỂ MUA VUI.
-//      200ms, chỉ `transform` và `box-shadow` — hai thứ chạy trên GPU. Không
-//      nảy, không xoay, không mờ dần.
+// KHÔNG có ở đây, và không được phép có: lời chào theo buổi · vai trò người
+// dùng · việc cần chú ý · thông báo · chờ duyệt · KPI · biểu đồ · số liệu ·
+// trạng thái vận hành.
 //
-//   ⑤ THÀ THIẾU MỘT DÒNG CÒN HƠN MỘT DÒNG BỊA.
-//      Mọi con số lấy từ CSDL thật. Không đọc được thì nói thẳng là chưa có
-//      số liệu — KHÔNG BAO GIỜ hiện 0. Trong nhà máy, "không có số" và "số
-//      bằng 0" là hai sự thật khác hẳn nhau.
+// ─── MỘT LƯỚI, KHÔNG CHIA KHỐI ──────────────────────────────────────────
+// Không có tiêu đề "Business Workspaces" / "Global Services" / "Platform
+// Services" trên màn hình. Ba cái tên đó là **phân loại hiến định** — cách
+// Hiến pháp mô tả bản chất từng thứ — chứ KHÔNG phải bố cục của trang chủ.
+// Phân loại vẫn được giữ nguyên vẹn trong dữ liệu, ở ba mảng của
+// `app/home-modules.ts`. Trang chủ chỉ bày ra các Business App.
 //
-// ═══ BA KHỐI, BA PHÂN LOẠI HIẾN ĐỊNH ════════════════════════════════════
-// §17.3 cấm trộn phân loại, nên ba khối có ba ngôn ngữ thị giác tách bạch —
-// không chỉ ba tiêu đề khác nhau trên cùng một kiểu thẻ:
+// ─── BỐN TẦNG, KHÔNG HƠN ────────────────────────────────────────────────
+//   Top Header (giữ nguyên, kèm Lời Chúa căn giữa) → Hero → Lưới App → Chân
 //
-//   Business Workspace  §16.2   thẻ nổi · 3 cỡ · icon tới 88px · nhấc 3px
-//   Global Service      §17     dòng chìm · icon 44px · không nhấc
-//   Platform Service    §34     dòng phẳng · icon 36px · số liệu chữ đều
-//
-// ⚠️ KHÔNG mất chức năng nào: 16 mục giữ nguyên tên, nguyên route, nguyên
-// phân loại. `app/home-metrics.ts` không sửa một dòng.
+// ⚠️ Top Header và Lời Chúa KHÔNG được đụng tới. Lời Chúa nằm căn giữa trên
+// cùng, phía trên mọi thứ — đó là bản sắc tinh thần của MONICA ONE, và nó
+// thuộc về thanh đầu trang chứ không phải phần Hero.
 //
 // ⚠️ TAILWIND JIT: class màu phải là chuỗi NGUYÊN VẸN, xem app/home-modules.ts.
 // ============================================================================
 
 export const dynamic = 'force-dynamic';
 
-/** Ngày hôm nay bằng tiếng Việt đầy đủ — "Thứ Hai, 03 tháng 8, 2026" */
-function ngayChu(): string {
-  return new Intl.DateTimeFormat('vi-VN', {
-    timeZone: MUI_GIO,
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date());
-}
-
-export default async function HomePage() {
-  // Chưa đăng nhập thì hàm này KHÔNG truy vấn gì và trả 'unauthenticated' —
-  // trang chủ là trang công khai, không phơi số liệu cho khách vãng lai.
-  const metrics = await getHomeMetrics();
-
-  // AI Assistant tách ra khỏi hàng dịch vụ bằng CỜ trong sổ đăng ký, không
-  // bằng cách so tên. So tên là thứ hỏng im lặng vào ngày ai đó sửa một chữ.
-  const aiHero = SERVICES.find((s) => s.feature === 'hero');
-  const restServices = SERVICES.filter((s) => s.feature !== 'hero');
-
+export default function HomePage() {
   return (
     // Nền KHÔNG trắng tinh. Trắng trên trắng buộc phải kẻ viền đậm, mà viền
     // đậm thì màn hình lập tức ồn. Xám rất nhạt để thẻ trắng nổi lên bằng
     // chính độ sáng của nó.
     <div className="relative min-h-screen bg-[#F6F7F9]">
-      {/* Hạt giấy dưới 1% — phá mảng màu phẳng tuyệt đối. Sinh ngay trong
-          trình duyệt bằng feTurbulence: không tải ảnh, không thêm byte mạng. */}
+      {/* Hạt giấy dưới 1% — phá mảng màu phẳng tuyệt đối, thứ khiến một trang
+          đọc ra là "trang web" thay vì một mặt vật liệu. Sinh ngay trong trình
+          duyệt bằng feTurbulence: không tải ảnh, không thêm byte mạng nào. */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.022] mix-blend-multiply"
@@ -94,77 +66,49 @@ export default async function HomePage() {
       />
 
       <div className="relative z-10">
-        <TopNavbar showVerse={false} />
+        <TopNavbar />
 
-        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-10 sm:px-6 sm:pt-16 lg:px-8">
-          <ExecutiveHero metrics={metrics} hour={gioVN()} today={ngayChu()} />
+        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+          {/* ═══ HERO — hai dòng, không hơn ═══════════════════════════════
+              Một dòng chào, một dòng nói đây là thứ gì. Hết. Không đoạn văn,
+              không tóm tắt vận hành, không lời chào theo giờ, không vai trò.
 
-          {/* ═══ BUSINESS WORKSPACES · §16.2 ═════════════════════════════
-              Lưới 4 cột: hai hàng trên là ba thẻ nổi bật (hero 2×2 + hai wide
-              2×1), hai hàng dưới là tám thẻ chuẩn. Khít, không ô trống.
-              `auto-rows` đặt chiều cao hàng cố định để `row-span-2` của thẻ
-              hero ăn đúng hai hàng — thiếu nó, hàng tự co theo nội dung và
-              thẻ hero sẽ thò ra. */}
-          <section aria-labelledby="h-workspaces" className="mb-16 sm:mb-24">
-            <div id="h-workspaces">
-              <SectionHeading
-                level="primary"
-                eyebrow="Nơi công việc diễn ra"
-                title="Business Workspaces"
-                note="Mỗi Workspace là một miền vận hành của doanh nghiệp"
-                count={WORKSPACES.length}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:auto-rows-[13.75rem] lg:grid-cols-4">
-              {WORKSPACES.map((mod) => (
-                <WorkspaceCard key={mod.name} mod={mod} metrics={metrics} />
-              ))}
-            </div>
+              tracking âm ở cỡ chữ lớn: khoảng cách chữ mặc định được thiết kế
+              cho cỡ chữ thân bài; giữ nguyên khi phóng to thì các chữ cái rời
+              rạc. Bóp lại là thứ khiến một tiêu đề lớn đọc ra "được sắp chữ"
+              thay vì "được phóng to". */}
+          <section className="mb-12 text-center sm:mb-16">
+            <h1 className="flex flex-wrap items-baseline justify-center gap-x-2.5 whitespace-nowrap sm:gap-x-4">
+              <span className="text-[15px] font-medium tracking-tight text-slate-500 sm:text-xl">
+                Welcome to
+              </span>
+              <span
+                className="bg-clip-text text-[38px] font-black leading-[1.02] tracking-[-0.04em] text-transparent sm:text-6xl lg:text-7xl"
+                style={{ backgroundImage: LOGO_TEXT_GRADIENT }}
+              >
+                MONICA ONE
+              </span>
+            </h1>
+
+            {/* MỘT dòng duy nhất. Nói đúng một điều: đây là loại phần mềm gì. */}
+            <p className="mt-5 text-[12px] font-bold uppercase tracking-[0.28em] text-slate-500 sm:mt-6 sm:text-[13px]">
+              Business Operating System
+            </p>
           </section>
 
-          {/* ═══ GLOBAL SERVICES · §17 ═══════════════════════════════════ */}
-          <section aria-labelledby="h-services" className="mb-16 sm:mb-24">
-            <div id="h-services">
-              <SectionHeading
-                level="secondary"
-                title="Global Services"
-                note="Năng lực dùng chung cho mọi Workspace"
-                count={SERVICES.length}
-              />
-            </div>
-            {aiHero && (
-              <div className="mb-3">
-                <AiHeroCard mod={aiHero} metrics={metrics} />
-              </div>
-            )}
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-              {restServices.map((mod) => (
-                <ServiceCard key={mod.name} mod={mod} metrics={metrics} />
-              ))}
-            </div>
-          </section>
-
-          {/* ═══ PLATFORM SERVICES · §34 ═════════════════════════════════ */}
-          <section aria-labelledby="h-platform">
-            <div id="h-platform">
-              <SectionHeading
-                level="tertiary"
-                title="Platform Services"
-                note="Hạ tầng nền tảng"
-                count={PLATFORM.length}
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              {PLATFORM.map((mod) => (
-                <PlatformRow key={mod.name} mod={mod} metrics={metrics} />
+          {/* ═══ LƯỚI BUSINESS APP — ngay dưới Hero ══════════════════════
+              Một lưới duy nhất, 16 thẻ đồng cỡ, không tiêu đề nhóm.
+              Mobile 2 · Tablet 3 · Desktop 4. Khoảng cách đều ở mọi mốc. */}
+          <section aria-label="Business Apps">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {MODULES.map((mod) => (
+                <AppCard key={mod.name} mod={mod} />
               ))}
             </div>
           </section>
         </main>
 
         <footer className="pb-12 text-center">
-          {/* slate-600: chân trang vẫn là chữ thật, vẫn phải đọc được. Xem
-              ghi chú độ tương phản ở app/_home/executive-hero.tsx. */}
           <p className="text-[10.5px] font-medium tracking-wide text-slate-600">
             © 2026 {APP_NAME}
           </p>

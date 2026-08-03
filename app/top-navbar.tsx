@@ -23,19 +23,7 @@ import LanguageSwitcher from '@/components/language-switcher';
 
 import { LOGO_SRC, LOGO_ALT, APP_NAME } from '@/lib/brand';
 
-export default function TopNavbar({
-  /**
-   * Trang chủ đặt `false`: câu Lời Chúa đã có một khối riêng, trang trọng hơn,
-   * trong Executive Hero. Hiện hai lần trên cùng một màn hình thì cả hai lần
-   * đều mất giá trị.
-   *
-   * ⚠️ Mặc định vẫn là `true` — không màn hình nào khác bị đổi hành vi, và câu
-   * Lời Chúa KHÔNG bị gỡ khỏi hệ thống, chỉ đổi chỗ trên đúng một trang.
-   */
-  showVerse = true,
-}: {
-  showVerse?: boolean;
-} = {}) {
+export default function TopNavbar() {
   return (
     <>
       {/* ── Thanh điều hướng kính mờ ───────────────────────────────────── */}
@@ -66,7 +54,7 @@ export default function TopNavbar({
               Nằm ngoài luồng flex nên không bị logo và cụm nút đẩy lệch. Chỉ
               hiện từ lg: khối căn tuyệt đối không đẩy được ai ra, màn hẹp hơn
               thì nó sẽ đè lên logo — biến thể 'bar' bên dưới lo phần đó. */}
-          {showVerse && <HeaderVerse variant="center" />}
+          <HeaderVerse variant="center" />
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
@@ -110,7 +98,7 @@ export default function TopNavbar({
             Nằm TRONG luồng nên tự chiếm chỗ, không đè lên logo. Đây là cách
             duy nhất để câu hiện được ở màn hẹp mà vẫn giữ căn giữa tuyệt đối
             ở màn rộng. */}
-        {showVerse && <HeaderVerse variant="bar" />}
+        <HeaderVerse variant="bar" />
       </header>
 
     </>
