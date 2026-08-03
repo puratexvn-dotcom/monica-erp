@@ -4,7 +4,8 @@ import Link from 'next/link';
 
 import type { ModuleItem } from '../home-modules';
 import {
-  MODULE_IDENTITY, ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW, FOCUS_OFFSET_CANVAS,
+  MODULE_IDENTITY, MODULE_SURFACE, ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW,
+  FOCUS_OFFSET_CANVAS,
 } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
@@ -46,15 +47,21 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   const { t } = useLanguage();
   const Icon = mod.icon;
   const id = MODULE_IDENTITY[mod.key];
+  const sf = MODULE_SURFACE[mod.key];
   const mo = Boolean(mod.href);
 
   const inner = (
     <>
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="mb-3.5 flex items-start justify-between gap-3">
+        {/* ⚠️ Ô ICON 64px, BIỂU TƯỢNG TRẮNG TRÊN NỀN BÃO HOÀ.
+            Đây là nơi "sinh động" thật sự nằm. Nền thẻ chỉ ở sắc độ 50 để chữ
+            còn đọc được; sức sống dồn hết vào ô này. Biểu tượng trắng trên nền
+            đặc cho tương phản cao nhất có thể — nhận ra được từ khoảng cách xa
+            gấp đôi so với biểu tượng màu trên nền nhạt. */}
         <span
-          className={`flex h-11 w-11 items-center justify-center rounded-xl transition-shadow duration-300 ease-out ${id.soft} ${id.primary} ${GLASS} ${GLASS_GLOW}`}
+          className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-[transform,box-shadow] duration-300 ease-out group-hover:scale-105 sm:h-16 sm:w-16 ${sf.tileStrong} ${GLASS} ${GLASS_GLOW}`}
         >
-          <Icon className="h-[22px] w-[22px]" strokeWidth={1.7} aria-hidden="true" />
+          <Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.8} aria-hidden="true" />
         </span>
 
         {/* Beta: chấm + chữ, KHÔNG khung viên thuốc. Khung làm nhãn nặng ngang
@@ -75,7 +82,9 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           ba ngôn ngữ dài ngắn khác nhau nữa. Không ghim chiều cao thì đáy thẻ
           nhấp nhô theo từng ô — thứ phá vỡ cảm giác "một lưới" nhanh hơn bất
           cứ chi tiết nào khác. */}
-      <p className={`${TYPE.bodySm} mt-2 line-clamp-2 min-h-[2.6em] text-slate-500`}>
+      {/* slate-600 chứ không slate-500: nay chữ nằm trên nền MÀU, không phải
+          nền trắng, nên phải đậm thêm một bậc mới giữ được ngưỡng AA. */}
+      <p className={`${TYPE.bodySm} mt-1.5 line-clamp-2 min-h-[2.6em] text-slate-600`}>
         {t(mod.descKey)}
       </p>
     </>
@@ -98,18 +107,21 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   //
   // Rộng 60%, căn giữa, mờ dần hai đầu: ánh sáng thật không dừng đột ngột ở
   // góc. Một pixel, gradient, và cả lưới thôi trông như dán phẳng.
+  // ⚠️ HỘP NHỎ LẠI, ICON TO LÊN — đúng chỉ thị.
+  //   cao 176 → 160px  ·  đệm 20 → 16px  ·  ô icon 44 → 64px
+  // Tỷ lệ icon/hộp đảo hẳn: icon nay chiếm 40% chiều cao thẻ thay vì 25%. Thẻ
+  // đọc ra là MỘT ỨNG DỤNG có biểu tượng, không phải một ô chữ có hình minh hoạ.
   const base =
-    'group relative flex min-h-[11rem] flex-col overflow-hidden rounded-2xl p-5 text-left ' +
-    'before:pointer-events-none before:absolute before:inset-x-[20%] before:top-0 before:h-px ' +
-    'before:bg-gradient-to-r before:from-transparent before:via-white before:to-transparent';
+    'group relative flex min-h-[10rem] flex-col overflow-hidden rounded-2xl p-4 text-left ring-1 ring-inset ' +
+    'before:pointer-events-none before:absolute before:inset-x-[15%] before:top-0 before:h-px ' +
+    'before:bg-gradient-to-r before:from-transparent before:via-white/90 before:to-transparent';
 
   if (!mo) {
-    // Chưa có route ⇒ không bọc <Link>. Nền ngà thay vì trắng: khác biệt rất
-    // nhẹ nhưng đủ để mắt phân loại được 6 thẻ chưa mở với 10 thẻ mở được, mà
-    // không cần đọc nhãn Beta.
+    // Chưa có route ⇒ không bọc <Link>. Nền cùng sắc nhưng giảm độ đục: 6 thẻ
+    // chưa mở vẫn giữ danh tính màu, chỉ lùi lại một bước so với 10 thẻ mở được.
     return (
       <div
-        className={`${base} bg-white/70 ${ELEV_REST}`}
+        className={`${base} ${sf.surface} ${sf.edge} opacity-75 ${ELEV_REST}`}
         title={`${mod.name} — ${t('home.betaHint')}`}
       >
         {inner}
@@ -120,7 +132,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   return (
     <Link
       href={mod.href as string}
-      className={`${base} bg-white ${ELEV_REST} ${ELEV_HOVER} ring-1 ring-inset ring-transparent transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${FOCUS_OFFSET_CANVAS} active:translate-y-0 active:duration-75 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${id.hover} ${id.focus}`}
+      className={`${base} ${sf.surface} ${sf.edge} ${ELEV_REST} ${ELEV_HOVER} transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${FOCUS_OFFSET_CANVAS} active:translate-y-0 active:duration-75 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${id.focus}`}
     >
       {inner}
     </Link>

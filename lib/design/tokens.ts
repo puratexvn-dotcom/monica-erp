@@ -170,6 +170,53 @@ export const MODULE_IDENTITY: Record<ModuleKey, ModuleIdentity> = {
   },
 };
 
+// ─── ①B MẶT THẺ SINH ĐỘNG — mỗi App một nền màu riêng ──────────────────────
+//
+// ⚠️ ĐỔI HƯỚNG THEO CHỈ THỊ 03/08/2026: *"tất cả các module bắt buộc phải có
+// màu nền sinh động và khác nhau"*.
+//
+// Bản trước để cả 16 thẻ nền TRẮNG, màu chỉ nằm trong ô icon. Nay mỗi thẻ mang
+// nền theo sắc riêng, và ô icon nâng lên độ bão hoà cao với biểu tượng trắng.
+// Nhận diện bằng màu vì thế xảy ra ở khoảng cách xa hơn nhiều — quét cả lưới
+// một lượt là thấy Production ở đâu, không cần đọc.
+//
+// ⚠️ VÌ SAO NỀN CHỈ Ở SẮC ĐỘ 50, KHÔNG ĐẬM HƠN
+// Chữ tiêu đề `slate-900` và mô tả `slate-600` phải đọc được TRÊN nền đó. Sắc
+// độ 50 giữ tương phản trên 12:1 và 7:1 — dư ngưỡng AA. Đẩy nền lên 100 hay
+// 200 là bắt đầu ăn vào phần đọc, mà 16 ô màu no đủ cạnh nhau còn làm mắt mỏi
+// sau vài phút. Sức sống đến từ Ô ICON bão hoà, không đến từ nền.
+//
+// ⚠️ `tileStrong` KHÔNG dùng chuyển sắc (trừ AI Assistant) — Điều 44.2 chỉ cho
+// phép AI Assistant dùng dải chuyển sắc.
+export interface ModuleSurface {
+  /** Nền thẻ — sắc riêng của App, đủ nhạt để chữ đen vẫn đọc tốt */
+  surface: string;
+  /** Viền trong của thẻ, cùng sắc */
+  edge: string;
+  /** Ô icon bão hoà + biểu tượng trắng — nơi sức sống thật sự nằm */
+  tileStrong: string;
+}
+
+export const MODULE_SURFACE: Record<ModuleKey, ModuleSurface> = {
+  executive:      { surface: 'bg-indigo-50',  edge: 'ring-indigo-200/70',  tileStrong: 'bg-indigo-500 text-white' },
+  commercial:     { surface: 'bg-orange-50',  edge: 'ring-orange-200/70',  tileStrong: 'bg-orange-500 text-white' },
+  merchandising:  { surface: 'bg-red-50',     edge: 'ring-red-200/70',     tileStrong: 'bg-red-500 text-white' },
+  planning:       { surface: 'bg-teal-50',    edge: 'ring-teal-200/70',    tileStrong: 'bg-teal-500 text-white' },
+  production:     { surface: 'bg-blue-50',    edge: 'ring-blue-200/70',    tileStrong: 'bg-blue-500 text-white' },
+  quality:        { surface: 'bg-emerald-50', edge: 'ring-emerald-200/70', tileStrong: 'bg-emerald-500 text-white' },
+  warehouse:      { surface: 'bg-green-50',   edge: 'ring-green-200/70',   tileStrong: 'bg-green-500 text-white' },
+  shipment:       { surface: 'bg-cyan-50',    edge: 'ring-cyan-200/70',    tileStrong: 'bg-cyan-500 text-white' },
+  subcontract:    { surface: 'bg-purple-50',  edge: 'ring-purple-200/70',  tileStrong: 'bg-purple-500 text-white' },
+  finance:        { surface: 'bg-amber-50',   edge: 'ring-amber-200/70',   tileStrong: 'bg-amber-500 text-white' },
+  humanResources: { surface: 'bg-rose-50',    edge: 'ring-rose-200/70',    tileStrong: 'bg-rose-500 text-white' },
+  reporting:      { surface: 'bg-slate-100',  edge: 'ring-slate-300/70',   tileStrong: 'bg-slate-500 text-white' },
+  communication:  { surface: 'bg-sky-50',     edge: 'ring-sky-200/70',     tileStrong: 'bg-sky-500 text-white' },
+  // Mục DUY NHẤT được dùng dải chuyển sắc — Điều 44.2.
+  ai:             { surface: 'bg-fuchsia-50', edge: 'ring-fuchsia-200/70', tileStrong: 'bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white' },
+  documents:      { surface: 'bg-stone-100',  edge: 'ring-stone-300/70',   tileStrong: 'bg-stone-500 text-white' },
+  platform:       { surface: 'bg-violet-50',  edge: 'ring-violet-200/70',  tileStrong: 'bg-violet-500 text-white' },
+};
+
 /**
  * Tra danh tính theo ĐƯỜNG DẪN — cầu nối để mọi màn hình bên trong Workspace
  * thừa hưởng đúng màu của App chứa nó (Điều 44.3 · Continuity).

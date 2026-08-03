@@ -65,12 +65,12 @@ export default function HomeContent() {
             thức đứng giữa, khối làm việc trải đều — đúng cách một tiền sảnh
             mở ra một không gian làm việc. */}
         <h1 className="flex flex-wrap items-baseline justify-center gap-x-3 whitespace-nowrap sm:gap-x-4">
-          <span className={`${TYPE.bodyLg} text-slate-400`}>{t('home.welcomeTo')}</span>
+          <span className={`${TYPE.heroLead} text-slate-400`}>{t('home.welcomeTo')}</span>
           {/* Tên sản phẩm — KHÔNG BAO GIỜ đi qua t() (§45.3).
               `pr-[0.06em]`: dải chuyển sắc cắt theo chữ (`bg-clip-text`) hay bị
               xén mất đuôi ký tự cuối ở một số bộ chữ. */}
           <span
-            className={`${TYPE.display} bg-clip-text pr-[0.06em] text-transparent`}
+            className={`${TYPE.heroMark} bg-clip-text pr-[0.06em] text-transparent`}
             style={{ backgroundImage: LOGO_TEXT_GRADIENT }}
           >
             MONICA ONE
@@ -95,7 +95,7 @@ export default function HomeContent() {
             Khoá `home.hint` GIỮ NGUYÊN ở cả ba tệp dịch: nó không còn được
             dựng ra, nhưng bộ khoá ba ngôn ngữ vẫn cân nhau và muốn dùng lại
             thì chỉ là một dòng. */}
-        <p className={`${TYPE.body} mx-auto mt-5 max-w-xl text-slate-500`}>
+        <p className={`${TYPE.heroTagline} mx-auto mt-6 max-w-xl text-slate-500`}>
           {t('brand.tagline')}
         </p>
       </section>

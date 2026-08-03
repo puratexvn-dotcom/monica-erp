@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShieldCheck, Layers, FileCheck2, AlertTriangle, ArrowLeft } from 'lucide-react';
 
-import { LOGO_SRC, LOGO_ALT, APP_NAME } from '@/lib/brand';
+import { LOGO_SRC, LOGO_ALT } from '@/lib/brand';
+import BrandFooter from '@/components/brand-footer';
 import LoginForm from './form';
 
 export const dynamic = 'force-dynamic';
@@ -147,9 +148,7 @@ export default async function LoginPage({
               </p>
             </div>
 
-            <p className="mt-6 text-center text-[13px] font-medium text-slate-400">
-              © 2026 {APP_NAME} · Bản quyền thuộc Joseph
-            </p>
+            <BrandFooter className="mt-6" />
           </section>
         </div>
       </div>

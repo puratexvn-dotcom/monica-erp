@@ -1,7 +1,8 @@
 import TopNavbar from './top-navbar';
 import HomeContent from './_home/home-content';
 import { NOISE_URL, CANVAS } from '@/lib/design/tokens';
-import { APP_NAME, LOGO_COLORS } from '@/lib/brand';
+import { LOGO_COLORS } from '@/lib/brand';
+import BrandFooter from '@/components/brand-footer';
 
 // ============================================================================
 // TRANG CHỦ MONICA ONE — LỐI VÀO CÔNG KHAI
@@ -115,11 +116,7 @@ export default function HomePage() {
 
         </main>
 
-        <footer className="pb-12 text-center">
-          <p className="text-[10.5px] font-medium tracking-wide text-slate-600">
-            © 2026 {APP_NAME}
-          </p>
-        </footer>
+        <BrandFooter className="pb-12" />
       </div>
     </div>
   );

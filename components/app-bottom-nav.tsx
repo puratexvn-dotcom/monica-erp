@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, BarChart3, Sparkles, BookOpen } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, BarChart3, Sparkles, BookOpen, Globe } from 'lucide-react';
 
 import { ROLE_HOME, type Role } from '@/lib/rbac';
 import { useNavVisibility } from '@/lib/use-nav-visibility';
@@ -56,6 +56,9 @@ export default function AppBottomNav({
   // không lẫn với kênh Merchandiser. Suy từ đường dẫn vì thanh này dựng ở layout
   // và layout không biết trang con là trang nào.
   const mod = moduleOfPath(pathname);
+
+  // Trang chủ đổi ô thứ ba sang nút Monica (xem chú thích ở dưới).
+  const onHome = pathname === '/';
 
   // Chưa đăng nhập thì Bàn làm việc chưa biết dẫn đi đâu -> đưa về /login
   const workbenchHref = role ? ROLE_HOME[role] : '/login';
@@ -188,15 +191,41 @@ export default function AppBottomNav({
             </button>
           </li>
 
+          {/* ─── Ô THỨ BA: TRANG CHỦ THÌ LÀ MONICA, NƠI KHÁC LÀ BÁO CÁO ─────
+              Chỉ thị 03/08/2026: *"trang chủ sẽ thay nút báo cáo bằng nút
+              monica, nhấp vào sẽ trỏ đến website monica là puratex.vn"*.
+
+              Đổi CHỈ ở trang chủ. Mọi màn hình bên trong vẫn giữ nút Báo cáo
+              nguyên vẹn — ở đó người dùng đang làm việc và cần nó.
+
+              ⚠️ Trang chủ là trang CÔNG KHAI, người xem có thể chưa đăng nhập,
+              nên bảng Báo cáo ở đó vốn không có gì để hiện. Thay bằng đường dẫn
+              ra website công ty là đổi một ô trống lấy một lối đi thật.
+
+              ⚠️ `rel="noopener noreferrer"`: mở tab ngoài mà thiếu `noopener`
+              thì trang đích giữ được tham chiếu `window.opener` và có thể tự ý
+              điều hướng tab gốc sang chỗ khác. */}
           <li className="flex-1">
-            <button
-              type="button"
-              onClick={() => toggleSheet('report')}
-              className={`${btn} ${openSheet === 'report' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              <BarChart3 className={icon} aria-hidden="true" />
-              Báo cáo
-            </button>
+            {onHome ? (
+              <a
+                href="https://puratex.vn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${btn} text-slate-500 hover:text-blue-600`}
+              >
+                <Globe className={icon} aria-hidden="true" />
+                Monica
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => toggleSheet('report')}
+                className={`${btn} ${openSheet === 'report' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                <BarChart3 className={icon} aria-hidden="true" />
+                Báo cáo
+              </button>
+            )}
           </li>
 
           <li className="flex-1">

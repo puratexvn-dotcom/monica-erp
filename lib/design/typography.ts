@@ -88,6 +88,15 @@ export const FONT_SIZE = {
   display: 'text-[28px]',
   displayLg: 'text-[36px]',
   displayXl: 'text-[48px]',
+  /**
+   * Bậc cao nhất — CHỈ dùng cho wordmark ở cửa chính.
+   *
+   * ⚠️ Thêm vào thang ngày 03/08/2026 theo chỉ thị "tự tăng kích thước cho cân
+   * đối và cao cấp hơn". 48px là đủ cho một tiêu đề trang, nhưng KHÔNG đủ cho
+   * một tên sản phẩm đứng giữa một tiền sảnh — ở khổ màn rộng nó đọc ra như
+   * một dòng tiêu đề, không ra một tấm biển.
+   */
+  displayXxl: 'text-[64px]',
 } as const;
 
 // ─── ④ GIÃN DÒNG ────────────────────────────────────────────────────────────
@@ -196,6 +205,21 @@ export const A11Y = {
 export const TYPE = {
   /** Chữ hiển thị lớn nhất — trang chủ, màn hình chào */
   display: 'text-[36px] sm:text-[48px] font-bold leading-[1.05] tracking-[-0.03em]',
+
+  // ─── Bộ ba của CỬA CHÍNH ────────────────────────────────────────────────
+  // Ba thẻ này chỉ dùng ở phần chào trang chủ. Tách riêng khỏi `display` vì
+  // chúng phải nhích lên một bậc so với mọi tiêu đề khác trong hệ thống: đây
+  // là chỗ DUY NHẤT mà cỡ chữ được phép gây ấn tượng thay vì chỉ tổ chức.
+  //
+  // ⚠️ `tracking` âm hơn ở cỡ 64px (-0.035em). Giãn chữ mặc định được cân cho
+  // cỡ thân bài; phóng lên gấp bốn mà không bóp lại thì các chữ cái rời ra và
+  // wordmark đọc thành mười ký tự rời rạc thay vì một khối.
+  /** "Chào mừng đến với" — dòng dẫn vào wordmark */
+  heroLead: 'text-[18px] sm:text-[22px] font-normal leading-[1.3]',
+  /** MONICA ONE — tấm biển ở cửa chính */
+  heroMark: 'text-[40px] sm:text-[64px] font-bold leading-[1.02] tracking-[-0.035em]',
+  /** Business Operating System — dòng nói đây là thứ gì */
+  heroTagline: 'text-[16px] sm:text-[18px] font-normal leading-[1.5]',
   /** Tiêu đề trang (h1) */
   pageTitle: 'text-[22px] sm:text-[28px] font-bold leading-[1.2] tracking-[-0.015em]',
   /** Tiêu đề mục (h2) */

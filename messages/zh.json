@@ -40,6 +40,11 @@
     "errorUnreachable": "无法连接认证服务器。请稍后再试。"
   },
 
+  "footer": {
+    "developedBy": "由 Joseph 开发",
+    "hotline": "热线"
+  },
+
   "nav": {
     "workbench": "工作台",
     "chat": "沟通",

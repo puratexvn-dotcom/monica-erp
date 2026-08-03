@@ -40,6 +40,11 @@
     "errorUnreachable": "The authentication server cannot be reached. Please try again in a few minutes."
   },
 
+  "footer": {
+    "developedBy": "Developed by Joseph",
+    "hotline": "Hotline"
+  },
+
   "nav": {
     "workbench": "Workbench",
     "chat": "Chat",

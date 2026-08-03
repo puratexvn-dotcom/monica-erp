@@ -40,6 +40,11 @@
     "errorUnreachable": "Không liên lạc được máy chủ xác thực. Vui lòng thử lại sau ít phút."
   },
 
+  "footer": {
+    "developedBy": "Phát triển bởi Joseph",
+    "hotline": "Hotline"
+  },
+
   "nav": {
     "workbench": "Bàn làm việc",
     "chat": "Chat",
