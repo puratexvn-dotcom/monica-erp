@@ -221,4 +221,55 @@ if (daSach.length) {
   console.log(`   ↻ ${daSach.length} tệp đã sạch — gỡ khỏi color-debt-baseline.json: ${daSach.slice(0, 5).join(' · ')}${daSach.length > 5 ? ' …' : ''}`);
 }
 
+// ── 10. CHỮ HIẾN ĐỊNH — TD-10 ──────────────────────────────────────────────
+//
+// Quyết nghị Board 03/08/2026: *"Direct Tailwind typography utilities shall not
+// be introduced into new code once the token system is established."*
+//
+// Cùng cơ chế bánh cóc với mục ⑨, vì cùng một bài học: một điều khoản không có
+// phép kiểm là một điều khoản sống được khoảng ba tháng.
+//
+// ⚠️ Phạm vi chặn hẹp hơn màu một cách có chủ ý. Chỉ chặn bốn nhóm THỰC SỰ
+// dựng nên thứ bậc chữ: cỡ · độ đậm · giãn dòng · giãn chữ. KHÔNG chặn
+// `text-center`, `truncate`, `uppercase`, `italic` — đó là bố cục và ngữ nghĩa,
+// không phải thang chữ, và chặn chúng sẽ biến quy tắc thành thứ không ai theo nổi.
+console.log('\n⑩ CHỮ HIẾN ĐỊNH — TD-10 · thang chữ phải lấy từ thẻ chữ');
+
+const RE_CHU = new RegExp(
+  [
+    'text-\\[[0-9.]+px\\]',
+    '\\btext-(?:xs|sm|base|lg|xl|[2-9]xl)\\b',
+    '\\bfont-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black)\\b',
+    '\\bleading-[a-z0-9[]',
+    '\\btracking-[a-z0-9[]',
+  ].join('|'),
+);
+
+const NGUON_THE_CHU = 'lib/design/typography.ts';
+const duongDanNoChu = join(ROOT, 'tests/architecture/type-debt-baseline.json');
+const danhSachNoChu = existsSync(duongDanNoChu)
+  ? new Set(JSON.parse(doc(duongDanNoChu)).files)
+  : new Set();
+
+const viPhamChu = [...quet('app'), ...quet('components')]
+  .filter((p) => RE_CHU.test(boChuThich(doc(p))))
+  .map(rel)
+  .sort();
+
+const moiViPhamChu = viPhamChu.filter((f) => !danhSachNoChu.has(f));
+const daSachChu = [...danhSachNoChu].filter((f) => !viPhamChu.includes(f)).sort();
+
+s.ok(`Thẻ chữ hiến định tồn tại (${NGUON_THE_CHU})`,
+  existsSync(join(ROOT, NGUON_THE_CHU)));
+s.ok('Danh sách nợ chữ tồn tại (cơ chế bánh cóc TD-10)', danhSachNoChu.size > 0);
+s.ok(`KHÔNG tệp MỚI nào tự đặt thang chữ (đang nợ ${viPhamChu.length}/${danhSachNoChu.size})`,
+  moiViPhamChu.length === 0,
+  moiViPhamChu.join(' · '));
+s.ok('Danh sách nợ chữ không phình ra', viPhamChu.length <= danhSachNoChu.size,
+  `${viPhamChu.length} > ${danhSachNoChu.size}`);
+
+if (daSachChu.length) {
+  console.log(`   ↻ ${daSachChu.length} tệp đã sạch — gỡ khỏi type-debt-baseline.json: ${daSachChu.slice(0, 5).join(' · ')}${daSachChu.length > 5 ? ' …' : ''}`);
+}
+
 process.exit(s.ketThuc() ? 1 : 0);

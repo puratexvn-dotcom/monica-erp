@@ -51,7 +51,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-07](#td-07) | 106 tệp `.tsx` còn màu viết thẳng, chưa qua thẻ màu | 🟡 | mở | ADR-009 §4 |
 | [TD-08](#td-08) | Không có phép kiểm chặn màu viết thẳng — Điều 44.6 chưa có răng | 🟢 | **đã trả** | ADR-009 §4 |
 | [TD-09](#td-09) | 3 tệp Recharts chưa dùng `CHART_PALETTE` | 🟡 | mở | ADR-009 §4 |
-| [TD-10](#td-10) | Chưa có hệ thẻ chữ — 12 cỡ tuỳ ý, không nguồn chuẩn | 🟡 | mở | Quyết nghị Board 03/08/2026 |
+| [TD-10](#td-10) | Hệ thẻ chữ — GĐ1 xong, GĐ2 chờ tệp phông, GĐ3 chờ nền móng | 🟡 | **GĐ1 đã trả** | Quyết nghị Board 03/08/2026 |
 | [TD-11](#td-11) | Chưa có hệ biểu tượng — cỡ và độ dày nét đặt tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 
@@ -441,10 +441,28 @@ biểu đồ của Production phải cùng sắc với thẻ của Production.
 
 | | |
 |---|---|
-| **Mức** | 🟡 mở — **chặn đường tới mốc "Design System hoàn chỉnh"** |
+| **Mức** | 🟡 **Giai đoạn 1 đã trả** — 03/08/2026 |
 | **Phát hiện** | Quyết nghị Architecture Board, 03/08/2026 |
 | **Nơi** | toàn bộ `app/` và `components/` |
-| **Liên quan** | [TD-07](#td-07) *(màu viết thẳng)* · [TD-08](#td-08) *(thiếu phép kiểm)* |
+| **Đã trả ở** | [`lib/design/typography.ts`](../lib/design/typography.ts) · [Đặc tả chữ](design/TYPOGRAPHY_SPECIFICATION.md) · `arch.test.mjs` mục ⑩ |
+| **Liên quan** | [TD-07](#td-07) *(màu viết thẳng)* · [TD-08](#td-08) *(phép kiểm màu)* |
+
+### ✅ GIAI ĐOẠN 1 ĐÃ TRẢ
+
+| Việc | Kết quả |
+|---|---|
+| Hệ thẻ chữ | 8 nhóm: họ chữ · độ đậm · cỡ · giãn dòng · giãn chữ · chữ số · thang đáp ứng · khả năng tiếp cận |
+| Thẻ vai trò | 16 thẻ `TYPE.*` — cửa vào duy nhất của mã ứng dụng |
+| Thang cỡ | **10 bậc** thay cho 12 cỡ tuỳ ý + 11 bậc Tailwind chạy song song |
+| Độ đậm | **4 bậc** thay cho 9 |
+| Đặc tả | [`docs/design/TYPOGRAPHY_SPECIFICATION.md`](design/TYPOGRAPHY_SPECIFICATION.md) |
+| Cưỡng chế | `arch.test.mjs` mục ⑩ — bánh cóc, 115 tệp đóng băng |
+
+**Đã chứng minh phép kiểm có răng:** tệp mới chứa `text-2xl font-black
+bg-emerald-200` làm **cả** mục ⑨ lẫn ⑩ HỎNG, gọi đúng tên tệp; xoá tệp ⇒ xanh lại.
+
+**Cỡ đã loại bỏ khỏi thang:** `9` `9,5` `10` `10,5` `12,5` `15` `17` `26` `38` px.
+Riêng `9px` và `9,5px` bị loại vì lý do khả năng tiếp cận, không phải vì thẩm mỹ.
 
 ### Nội dung
 

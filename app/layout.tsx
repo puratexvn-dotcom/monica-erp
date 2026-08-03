@@ -1,4 +1,23 @@
 import type { Metadata, Viewport } from "next";
+// ─── BỘ CHỮ — GIAI ĐOẠN 1 CỦA TD-10 ────────────────────────────────────────
+//
+// Board chốt **Inter Variable, tự lưu trữ qua `next/font/local`**. Kho hiện
+// CHƯA có tệp `InterVariable.woff2`, nên giai đoạn này vẫn nạp qua
+// `next/font/google` — cùng bộ chữ, khác nguồn.
+//
+// ⚠️ Điểm mấu chốt: phông được phơi ra bằng **biến CSS** `--font-sans` chứ
+// không bằng `inter.className`. Nhờ vậy Giai đoạn 2 chỉ đổi ĐÚNG BA DÒNG ở
+// đây — `import` và lời gọi — còn `tailwind.config.ts`,
+// `lib/design/typography.ts` và toàn bộ màn hình **không phải đụng tới**.
+// Đó chính là yêu cầu của Board: chuyển nguồn phông mà kiến trúc thẻ giữ
+// nguyên.
+//
+// Giai đoạn 2 sẽ thành:
+//   import localFont from 'next/font/local';
+//   const sans = localFont({
+//     src: './fonts/InterVariable.woff2',
+//     variable: '--font-sans', display: 'swap',
+//   });
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -11,7 +30,17 @@ import { APP_NAME } from "@/lib/brand";
 import AppBottomNav from "@/components/app-bottom-nav";
 import type { ReportMetric } from "@/components/report-sheet";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  // `variable` thay cho `className`: phông đi vào CSS qua biến, nên
+  // `tailwind.config.ts` trỏ `font-sans` vào đúng một chỗ và không cần biết
+  // phông đến từ Google hay từ tệp cục bộ.
+  variable: "--font-sans",
+  // `swap`: hiện ngay bằng phông dự phòng rồi đổi khi phông thật tải xong.
+  // Mặc định `block` sẽ giấu chữ tới 3 giây — trên mạng xưởng đó là ba giây
+  // màn hình trắng.
+  display: "swap",
+});
 
 // Thẻ meta dùng tên NGẮN: đây là chữ trên tab trình duyệt, nơi chỉ hiện được
 // khoảng 20 ký tự trước khi bị cắt bằng dấu ba chấm.
@@ -115,8 +144,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="vi">
-      <body className={inter.className}>
+    // `inter.variable` đặt biến `--font-sans` lên thẻ gốc; `font-sans` của
+    // Tailwind đọc biến đó. Đổi nguồn phông ở Giai đoạn 2 không chạm dòng này.
+    <html lang="vi" className={inter.variable}>
+      <body className="font-sans">
         {/* 2. Bọc toàn bộ ứng dụng (children) bên trong LanguageProvider */}
         <LanguageProvider>
           {/* Chừa chỗ cho thanh điều hướng cố định (nay cao h-14 = 56px).

@@ -15,6 +15,24 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // ─── HỌ CHỮ — TD-10 ────────────────────────────────────────────────
+      // `font-sans` trỏ vào biến CSS do `next/font` đặt ở app/layout.tsx.
+      // Nhờ lớp gián tiếp này, đổi nguồn phông (Google → tệp cục bộ ở Giai
+      // đoạn 2) KHÔNG chạm tới thẻ chữ lẫn màn hình nào.
+      //
+      // ⚠️ Danh sách dự phòng là bắt buộc: phông chưa tải xong, hoặc tải
+      // hỏng, thì trang vẫn phải đọc được bằng phông hệ thống.
+      fontFamily: {
+        sans: [
+          "var(--font-sans)",
+          "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI",
+          "Roboto", "Helvetica Neue", "Arial", "sans-serif",
+        ],
+        mono: [
+          "ui-monospace", "SFMono-Regular", "Menlo", "Consolas",
+          "Liberation Mono", "monospace",
+        ],
+      },
       colors: {
         monica: {
           pink: "#E84393",
