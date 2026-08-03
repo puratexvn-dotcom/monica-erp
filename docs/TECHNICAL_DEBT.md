@@ -51,6 +51,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-07](#td-07) | 106 tệp `.tsx` còn màu viết thẳng, chưa qua thẻ màu | 🟡 | mở | ADR-009 §4 |
 | [TD-08](#td-08) | Không có phép kiểm chặn màu viết thẳng — Điều 44.6 chưa có răng | 🟡 | mở | ADR-009 §4 |
 | [TD-09](#td-09) | 3 tệp Recharts chưa dùng `CHART_PALETTE` | 🟡 | mở | ADR-009 §4 |
+| [TD-10](#td-10) | Chưa có hệ thẻ chữ — 12 cỡ tuỳ ý, không nguồn chuẩn | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 
 ---
 
@@ -400,6 +401,64 @@ hàng. Ghi nhận ở đây để không rơi mất.
 Thay mọi mã màu trong `<Bar>`, `<Line>`, `<Cell>`, `<Pie>` bằng `chartColor(i)`,
 hoặc bằng `MODULE_IDENTITY[key].chart` khi biểu đồ thuộc về một phân hệ cụ thể —
 biểu đồ của Production phải cùng sắc với thẻ của Production.
+
+---
+
+<a id="td-10"></a>
+## TD-10 · ENTERPRISE TYPOGRAPHY TOKEN SYSTEM
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — **chặn đường tới mốc "Design System hoàn chỉnh"** |
+| **Phát hiện** | Quyết nghị Architecture Board, 03/08/2026 |
+| **Nơi** | toàn bộ `app/` và `components/` |
+| **Liên quan** | [TD-07](#td-07) *(màu viết thẳng)* · [TD-08](#td-08) *(thiếu phép kiểm)* |
+
+### Nội dung
+
+`ADR-009` đã dựng hệ thẻ **MÀU**. Chưa có hệ thẻ **CHỮ**. Chữ hiện được đặt cỡ
+tại chỗ, mỗi màn hình một kiểu.
+
+### Bằng chứng đo được
+
+| Phép đo | Kết quả |
+|---|---|
+| Lần dùng cỡ chữ tuỳ ý `text-[..px]` | **298** |
+| Số cỡ tuỳ ý khác nhau | **12** — `9px` `9.5px` `10px` `10.5px` `11px` `12px` `12.5px` `13px` `15px` `17px` `26px` `38px` |
+| Bậc chữ Tailwind cũng đang dùng song song | **11** bậc |
+| Biến thể `tracking-[...]` tuỳ ý | **7** |
+| Khai báo `font-family` / `next/font` | **2** — hệ thống chưa nạp một bộ chữ nào của riêng mình |
+
+Tức là **hai hệ đo song song** — bậc Tailwind và pixel tuỳ ý — cùng tồn tại, và
+`12,5px` với `13px` nằm cạnh nhau trên cùng một thẻ mà không ai giải thích được
+vì sao phải khác nhau nửa pixel.
+
+### Vì sao nó nặng hơn nó trông
+
+**Thang chữ là thứ dựng nên thứ bậc.** Màu nói *"cái này thuộc về đâu"*; chữ nói
+*"cái nào quan trọng hơn cái nào"*. Có thẻ màu mà không có thẻ chữ thì mới xong
+một nửa việc: mỗi màn hình vẫn tự chế thứ bậc riêng, và người dùng phải học lại
+cách đọc ở từng phân hệ.
+
+Thêm nữa, bộ chữ hiện là **ngăn xếp mặc định của hệ điều hành**. Cùng một trang
+hiển thị bằng ba bộ chữ khác nhau trên Windows, macOS và Android — mọi giá trị
+`tracking` và cỡ chữ đã cân ở đây chỉ đúng với **một** trong ba.
+
+### Cách trả
+
+1. `lib/design/typography.ts` — một thang chữ hữu hạn, đặt tên theo VAI TRÒ chứ
+   không theo cỡ: `display` · `title` · `subtitle` · `body` · `label` · `caption`
+   · `metric`. Mỗi vai trò gói sẵn cỡ + độ đậm + giãn dòng + giãn chữ.
+2. Nạp **một** bộ chữ biến thiên qua `next/font` để mọi hệ điều hành hiển thị
+   giống nhau *(cần Board chọn bộ chữ — đây là quyết định nhận diện thương hiệu,
+   không phải quyết định kỹ thuật)*.
+3. Chuyển dần, cùng nhịp với TD-07, sau khi phép kiểm của TD-08 đã dựng.
+
+### Vì sao chưa trả
+
+Board chỉ thị **dừng làm lại giao diện theo từng trang**; mốc tiếp theo là hoàn
+thiện Design System. TD-10 nằm ĐÚNG trong mốc đó, nên nó phải được làm **cùng**
+hệ thẻ chữ chứ không phải rải rác từng màn hình như trước.
 
 ---
 

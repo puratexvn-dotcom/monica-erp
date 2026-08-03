@@ -48,7 +48,7 @@ thi hành đầu tiên. `./lib/**/*` đã được thêm vào danh sách quét.
 
 ## 2. Decision
 
-Ban hành **PART VIII — ENTERPRISE DESIGN SYSTEM**, **Điều 44 · Enterprise Visual
+Ban hành **PART VIII — ENTERPRISE EXPERIENCE**, **Điều 44 · Enterprise Visual
 Identity**, gồm tám khoản: nguyên tắc · danh tính App · tính liên tục · màu ngữ
 nghĩa · bảng màu biểu đồ · thẻ màu · khả năng tiếp cận · cưỡng chế.
 
@@ -143,11 +143,12 @@ phân quyền. Rủi ro quay lui nằm ở nhận diện thị giác, không n�
 
 ---
 
-## 7. ⚠️ Hai điểm cần Board xác nhận
+## 7. Hai điểm đã đưa ra Board
 
-1. **Board chỉ định "PART VII"**, nhưng PART VII đã là **GOVERNANCE** từ v1.0.
-   Đánh số trùng sẽ tạo hai Phần cùng số hiệu trong một bản Hiến pháp. Đã ban
-   hành thành **PART VIII**. Cần xác nhận.
+1. **Đánh số Phần — ĐÃ GIẢI QUYẾT.** Board chỉ định "PART VII", nhưng PART VII đã
+   là **GOVERNANCE** từ v1.0, nên quyết định này được ban hành thành **PART VIII**.
+   ✅ **Board phê duyệt ngày 03/08/2026**: giữ **PART VIII**, không đánh số lại, và
+   đổi tên Phần thành **ENTERPRISE EXPERIENCE**. Hiến pháp lên `1.3`.
 
 2. **Số hiệu ADR.** Theo phán quyết quản trị ADR ngày 03/08/2026 — *một kho duy
    nhất, số hiệu duy nhất toàn cục, cấm chuỗi song song* — quyết định này lấy số

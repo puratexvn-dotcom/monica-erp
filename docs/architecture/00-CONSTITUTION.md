@@ -4,7 +4,7 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 | **Status** | ✅ ADOPTED |
 | **Owner** | Joseph |
 | **Architecture Authority** | MONICA ONE Architecture Board |
@@ -74,6 +74,7 @@
 | **1.0** | **2026-08-02** | **Architecture Board** | **QUYẾT NGHỊ CUỐI — CHUẨN HOÁ VÀ BAN HÀNH.** ① Document Control: `Version 1.0` · `Status ADOPTED` · `Effective Date 2026-08-02`; gỡ toàn bộ dấu vết bản nháp. ② Chuẩn hoá bốn tiêu đề Điều: `29 Business Reporting` · `41 Versioning & Release Management` · `42 Constitutional Governance` · `43 Constitutional Authority` (kèm neo mục lục). ③ Thống nhất thứ bậc thẩm quyền ở §5.12 · §37.8 · §43.3 thành sáu bậc: Constitution → Accepted ADR → Engineering Standards → Approved Playbooks → Technical Documentation → Source Code. ④ Giữ nguyên cấu trúc Appendix. ⑤ **Hiến pháp là văn bản chuẩn tắc — KHÔNG sửa Hiến pháp cho khớp mã đang chạy.** Bốn khoảng cách triển khai còn mở, theo dõi như hạng mục kỹ thuật: **Điều 13 · 19 · 22 · 25**; xử lý sau qua ADR và công việc kỹ thuật. Đã chạy đủ bốn phép kiểm: markdown · liên kết · mục lục · tham chiếu chéo. |
 | **1.1** | **2026-08-03** | **Architecture Board** | **ADR-001 — Homepage Conceptual Model.** Trang chủ được định nghĩa lại là **Business Operating System Launcher** thay cho *Business Workspace Launcher*: nó là **lối vào**, không phải cơ chế **phân loại**. ① **Điều 13**: đổi tên §13.3 và thay định nghĩa; §13.1 · §13.4 · §13.5 · §13.8 chỉnh theo cho hết mâu thuẫn. ② **§17.3**: bổ sung *"Global Services may appear on the Business Operating System Launcher without becoming Business Workspaces."* ③ **§34.1**: bổ sung Platform Services xuất hiện trên Launcher như lối vào nền tảng, không đổi phân loại hiến định. ④ **Glossary**: `Workspace Launcher` → `Business Operating System Launcher`, chuyển từ nhóm **W** sang nhóm **B** cho đúng thứ tự chữ cái; nhóm **W** rỗng nên gỡ bỏ (còn 11 nhóm chữ cái · 25 thuật ngữ). ⑤ Mục lục cập nhật neo §13.3. Khoảng cách triển khai **Điều 13** khép lại; **Điều 19 · 22 · 25** vẫn mở. |
 | **1.2** | **2026-08-03** | **Architecture Board** | **ADR-009 — Enterprise Design System.** Ban hành **PART VIII — ENTERPRISE DESIGN SYSTEM** và **Điều 44 · Enterprise Visual Identity** (§44.1–§44.8): màu là THÔNG TIN, không phải trang trí; mỗi Business App giữ một dải màu vĩnh viễn gồm bảy vai trò; danh tính màu phải chảy tiếp vào mọi màn hình bên trong Workspace; mỗi trạng thái nghiệp vụ một sắc ngữ nghĩa riêng; biểu đồ dùng bảng màu hiến định; mọi màu phải lấy từ hệ thẻ màu duy nhất; độ tương phản WCAG AA là ràng buộc chứ không phải gợi ý. ⚠️ **Board chỉ định "PART VII"**, nhưng PART VII đã là GOVERNANCE từ v1.0 — đánh số trùng sẽ tạo hai Phần cùng số hiệu, nên ban hành thành **PART VIII**; cần Board xác nhận. Mục lục cập nhật thêm Phần VIII và tám khoản của Điều 44. |
+| **1.3** | **2026-08-03** | **Architecture Board** | **Quyết nghị chuẩn hoá PART VIII.** ① Board **PHÊ DUYỆT** cách đánh số **PART VIII** — không đánh số lại; khoảng vênh "PART VII" ở v1.2 khép lại. ② **Đổi tên Phần**: `ENTERPRISE DESIGN SYSTEM` → **`ENTERPRISE EXPERIENCE`**; neo mục lục cập nhật theo. ③ Board tuyên bố **Điều 44 và Điều 45** cùng thuộc Phần VIII. ⚠️ **Điều 45 CHƯA có nội dung** — Board chưa ban hành tiêu đề lẫn điều khoản, và người biên tập KHÔNG suy diễn nội dung Hiến pháp. Phần VIII hiện chỉ có Điều 44; **chờ Board ban hành Điều 45**. ④ Ghi nhận **TD-10 · Enterprise Typography Token System**. ⑤ Board chỉ thị **dừng việc làm lại giao diện theo từng trang**; mốc tiếp theo là **hoàn thiện Enterprise Design System**, sau đó mới nâng cấp toàn bộ Workspace bằng cùng một ngôn ngữ thị giác. |
 
 ## Table of Contents
 
@@ -516,7 +517,7 @@
   - [43.8 Long-Term Stewardship](#438-long-term-stewardship)
   - [43.9 Constitutional Enforcement](#439-constitutional-enforcement)
 
-**[PART VIII — ENTERPRISE DESIGN SYSTEM](#part-viii--enterprise-design-system)**
+**[PART VIII — ENTERPRISE EXPERIENCE](#part-viii--enterprise-experience)**
 
 - [Article 44. Enterprise Visual Identity](#article-44-enterprise-visual-identity)
   - [44.1 Constitutional Principle](#441-constitutional-principle)
@@ -5306,7 +5307,7 @@ This Constitution shall remain the single constitutional source of architectural
 
 ---
 
-# PART VIII — ENTERPRISE DESIGN SYSTEM
+# PART VIII — ENTERPRISE EXPERIENCE
 
 ## Article 44. Enterprise Visual Identity
 
