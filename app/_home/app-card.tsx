@@ -3,137 +3,101 @@
 import Link from 'next/link';
 
 import type { ModuleItem } from '../home-modules';
-import {
-  MODULE_IDENTITY, MODULE_SURFACE, ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW,
-  FOCUS_OFFSET_CANVAS,
-} from '@/lib/design/tokens';
+import { MODULE_SURFACE, GLASS } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
 
 // ============================================================================
-// THẺ BUSINESS APP — BẢN DỰNG LẠI SAU KHI BOARD TỪ CHỐI BẢN CŨ
+// BUSINESS APP — KHÔNG CÒN KHUNG. BIỂU TƯỢNG VÀ TÊN, HẾT.
 //
-// ═══ BẢN CŨ SAI Ở ĐÂU ═══════════════════════════════════════════════════
-// Không sai về kỹ thuật. Sai về TỶ LỆ.
+// ═══ VÌ SAO BỎ HẲN KHUNG ════════════════════════════════════════════════
+// Cái khung không mang thông tin nào cả. Nó chỉ vẽ một đường bao quanh thứ
+// vốn đã tách bạch nhờ khoảng trắng. Mười sáu cái khung xếp cạnh nhau tạo ra
+// mười sáu đường viền, mười sáu nền màu, mười sáu vệt bóng — tức là ba lớp
+// nhiễu chồng lên nội dung thật, mà nội dung thật chỉ có hai thứ: BIỂU TƯỢNG
+// và TÊN.
 //
-//   • Ô icon 72px cạnh tên 16px  → tỷ lệ 4,5:1. Đó là bàn phím ứng dụng của
-//     điện thoại, không phải hệ điều hành doanh nghiệp.
-//   • Thẻ cao 240px chứa hai dòng chữ → một phần ba dưới trống trơn, thẻ
-//     không có điểm tựa ở đáy.
-//   • 240×330 gần vuông → tỷ lệ ít sức sống nhất có thể chọn.
-//   • Vạch màu tràn mép trên → khuôn mẫu "panel cảnh báo" của bảng điều
-//     khiển đời cũ.
-//   • Tên App 16px → bằng cỡ chữ thân bài ở chỗ khác, tức tự hạ nó xuống
-//     hàng chú thích.
+// Bỏ khung đi thì trang thở ra. Đây đúng là cách màn hình chính điện thoại
+// hoạt động: không ai vẽ hộp quanh từng ứng dụng, mà chưa bao giờ có ai nhầm
+// ứng dụng này với ứng dụng kia.
 //
-// ═══ BẢN NÀY ĐẢO NGƯỢC TỶ LỆ ════════════════════════════════════════════
+// ═══ KHI MẤT KHUNG, BIỂU TƯỢNG PHẢI GÁNH TẤT CẢ ═════════════════════════
+// Khung biến mất nghĩa là mất luôn nền màu và mất luôn bóng đổ — hai thứ
+// trước đây làm nhiệm vụ nhận diện và tách lớp. Nên biểu tượng phải:
 //
-//   ô icon 72 → 44px          tên 16 → 18px
-//   cao 240 → 176px           tỷ lệ ~1,9:1 (nằm ngang, có hướng)
+//   • TO HẲN LÊN            64 → 80px, đủ sức làm mỏ neo một mình
+//   • BO GÓC MỀM            góc bo 28% cạnh — tỷ lệ của biểu tượng iOS, khác
+//                           hẳn góc bo của một cái thẻ
+//   • CÓ BÓNG RIÊNG         bóng nay thuộc về BIỂU TƯỢNG, không thuộc về hộp;
+//                           nhờ vậy nó nổi trên nền trang chứ không nằm trong
+//                           một cái khay
+//   • MÀU BÃO HOÀ           màu nay là thứ DUY NHẤT phân biệt mười sáu mục
 //
-// Icon thôi làm nhân vật chính; TÊN ỨNG DỤNG làm nhân vật chính. Icon lùi về
-// đúng vai trò: mỏ neo màu để nhận diện khi quét mắt.
+// ═══ CĂN GIỮA ═══════════════════════════════════════════════════════════
+// Biểu tượng và tên cùng một trục dọc, tên nằm chính giữa bên dưới. Ghim tên
+// đúng hai dòng để mọi ô trong một hàng có đáy bằng nhau, dù tên dài ngắn khác
+// nhau và dù đang ở tiếng Việt, Anh hay Trung.
 //
-// ⚠️ ĐÃ GỠ vạch màu mép trên và mũi tên góc.
-// "Premium products remove." Màu vẫn còn nguyên ở ô icon — mười sáu sắc, đủ
-// để nhận ra bằng mắt. Thêm một vạch màu nữa chỉ là nói cùng một điều hai lần
-// bằng một khuôn mẫu đã cũ.
-//
-// ⚠️ Bo góc: thẻ 16px, ô icon 12px. Bản cũ để cả hai 20px nên ô icon đọc ra
-// như một cái thẻ con nằm trong thẻ mẹ. Khác cấp thì phải khác bo góc.
+// ⚠️ Câu mô tả chuyển vào thuộc tính `title` — hiện khi rê chuột, không còn
+// chiếm chỗ trên lưới. Màn hình chính điện thoại không có dòng mô tả nào dưới
+// tên ứng dụng, và đó chính là lý do nó trông thoáng.
 // ============================================================================
 
 export default function AppCard({ mod }: { mod: ModuleItem }) {
   const { t } = useLanguage();
   const Icon = mod.icon;
-  const id = MODULE_IDENTITY[mod.key];
   const sf = MODULE_SURFACE[mod.key];
   const mo = Boolean(mod.href);
 
+  // Bóng của BIỂU TƯỢNG, không phải của hộp. Hai lớp: một lớp sát để bắt mép,
+  // một lớp toả rộng và thấp để nó có vẻ đang nổi trên mặt trang.
+  const iconShadow =
+    'shadow-[0_2px_4px_-1px_rgba(16,24,40,0.10),0_12px_24px_-8px_rgba(16,24,40,0.18)]';
+  const iconShadowHover =
+    'group-hover:shadow-[0_4px_8px_-2px_rgba(16,24,40,0.12),0_20px_36px_-10px_rgba(16,24,40,0.26)]';
+
   const inner = (
     <>
-      <div className="mb-3.5 flex items-start justify-between gap-3">
-        {/* ⚠️ Ô ICON 64px, BIỂU TƯỢNG TRẮNG TRÊN NỀN BÃO HOÀ.
-            Đây là nơi "sinh động" thật sự nằm. Nền thẻ chỉ ở sắc độ 50 để chữ
-            còn đọc được; sức sống dồn hết vào ô này. Biểu tượng trắng trên nền
-            đặc cho tương phản cao nhất có thể — nhận ra được từ khoảng cách xa
-            gấp đôi so với biểu tượng màu trên nền nhạt. */}
+      <span className="relative">
+        {/* rounded-[28%] — tỷ lệ bo góc của biểu tượng điện thoại. Dùng giá trị
+            phần trăm để góc bo giãn theo kích thước ô ở từng khổ màn, giữ đúng
+            dáng ở mọi cỡ. */}
         <span
-          className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-[transform,box-shadow] duration-300 ease-out group-hover:scale-105 sm:h-16 sm:w-16 ${sf.tileStrong} ${GLASS} ${GLASS_GLOW}`}
+          className={`flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[28%] transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-20 sm:w-20 ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover}`}
         >
-          <Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.8} aria-hidden="true" />
+          <Icon className="h-9 w-9 sm:h-10 sm:w-10" strokeWidth={1.7} aria-hidden="true" />
         </span>
 
-        {/* Beta: chấm + chữ, KHÔNG khung viên thuốc. Khung làm nhãn nặng ngang
-            ô icon; bỏ khung đi thì nó lùi về đúng hạng — một ghi chú, không
-            phải một huy hiệu. */}
-        {/* ⚠️ Nhìn ảnh chụp thật mới thấy nhãn này gần như TÀNG HÌNH: chữ
-            `slate-400` 11px trên nền màu nhạt thì chìm hẳn. Nay là viên nền
-            trắng, chữ `slate-600`, chấm màu giữ nguyên — đọc được từ khoảng
-            cách quét mắt bình thường, mà vẫn không nặng ngang ô icon. */}
+        {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt
+            huy hiệu. Viền trắng để nó tách khỏi màu biểu tượng bên dưới. */}
         {!mo && (
-          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/80 px-2 py-1">
-            <span className={`h-1.5 w-1.5 rounded-full ${id.bar}`} aria-hidden="true" />
-            <span className={`${TYPE.overline} text-slate-600`}>{t('home.beta')}</span>
+          <span
+            className={`${TYPE.overline} absolute -right-1.5 -top-1.5 rounded-full bg-white px-1.5 py-0.5 text-slate-500 shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200`}
+          >
+            {t('home.beta')}
           </span>
         )}
-      </div>
+      </span>
 
-      {/* Tên ứng dụng — nhân vật chính của thẻ.
-          ⚠️ `min-h-[2.5em]` GHIM ĐÚNG HAI DÒNG. Nhìn ảnh chụp thật mới thấy:
-          "Business Communication", "Human Resources", "Business Reporting",
-          "Platform Services" xuống hai dòng, còn "Quality", "Warehouse",
-          "Finance" chỉ một dòng — nên phần mô tả của các thẻ cạnh nhau KHÔNG
-          nằm trên cùng một đường. Cả hàng thẻ đọc ra là so le.
-          Ghim chiều cao tiêu đề thì mọi dòng mô tả về đúng một đường ngang, dù
-          tên dài hay ngắn, và dù đang ở tiếng Việt, Anh hay Trung. */}
-      <h2 className={`${TYPE.appTitle} min-h-[2.5em] text-slate-900`}>{mod.name}</h2>
-
-      {/* ⚠️ `line-clamp-2` + `min-h`: mười sáu câu mô tả dài ngắn khác nhau, và
-          ba ngôn ngữ dài ngắn khác nhau nữa. Không ghim chiều cao thì đáy thẻ
-          nhấp nhô theo từng ô — thứ phá vỡ cảm giác "một lưới" nhanh hơn bất
-          cứ chi tiết nào khác. */}
-      {/* slate-600 chứ không slate-500: nay chữ nằm trên nền MÀU, không phải
-          nền trắng, nên phải đậm thêm một bậc mới giữ được ngưỡng AA. */}
-      <p className={`${TYPE.bodySm} mt-1.5 line-clamp-2 min-h-[2.6em] text-slate-600`}>
-        {t(mod.descKey)}
-      </p>
+      {/* Ghim hai dòng: đáy của mọi ô trong một hàng bằng nhau, bất kể tên dài
+          ngắn và bất kể ngôn ngữ. */}
+      <span
+        className={`${TYPE.appLabel} mt-3.5 flex min-h-[2.6em] w-full items-start justify-center text-center text-slate-700 transition-colors duration-200 group-hover:text-slate-900 sm:mt-4`}
+      >
+        {mod.name}
+      </span>
     </>
   );
 
-  // 176px: vừa đủ cho ô icon 44 + tên 18 + hai dòng mô tả + đệm. Không dư một
-  // vùng trống nào ở đáy.
-  // ⚠️ `base` KHÔNG khai nền. Bản trước để `bg-white` ở đây rồi ghi đè bằng
-  // `bg-white/60` ở nhánh Beta — mà thứ tự lớp trong CHUỖI không quyết định
-  // được ai thắng, thứ tự trong TỆP CSS mới quyết định. Nó chạy đúng hôm nay
-  // hoàn toàn do may mắn về thứ tự Tailwind sinh ra. Nay mỗi nhánh tự khai nền
-  // của mình, không còn chỗ cho may rủi.
-  // ⚠️ `before:` — MÉP TRÊN BẮT SÁNG.
-  //
-  // Trang nay có một trần sáng ở đầu (xem app/page.tsx). Nếu các thẻ không
-  // phản ứng với nguồn sáng đó thì trần sáng chỉ là một vệt trang trí dán lên
-  // nền. Một đường sáng trắng mảnh chạy dọc mép TRÊN của mỗi thẻ — đúng chỗ
-  // ánh sáng từ trên chạm vào một khối bo tròn — biến bóng đổ bên dưới từ
-  // "hiệu ứng" thành "hệ quả".
-  //
-  // Rộng 60%, căn giữa, mờ dần hai đầu: ánh sáng thật không dừng đột ngột ở
-  // góc. Một pixel, gradient, và cả lưới thôi trông như dán phẳng.
-  // ⚠️ HỘP NHỎ LẠI, ICON TO LÊN — đúng chỉ thị.
-  //   cao 176 → 160px  ·  đệm 20 → 16px  ·  ô icon 44 → 64px
-  // Tỷ lệ icon/hộp đảo hẳn: icon nay chiếm 40% chiều cao thẻ thay vì 25%. Thẻ
-  // đọc ra là MỘT ỨNG DỤNG có biểu tượng, không phải một ô chữ có hình minh hoạ.
-  const base =
-    'group relative flex min-h-[10rem] flex-col overflow-hidden rounded-2xl p-4 text-left ring-1 ring-inset ' +
-    'before:pointer-events-none before:absolute before:inset-x-[15%] before:top-0 before:h-px ' +
-    'before:bg-gradient-to-r before:from-transparent before:via-white/90 before:to-transparent';
+  // Không nền. Không viền. Không bóng trên vùng bấm. Vùng bấm vẫn phủ trọn cả
+  // biểu tượng lẫn tên — người dùng chạm vào chữ cũng mở được App.
+  const base = 'group flex flex-col items-center rounded-2xl p-2 focus-visible:outline-none';
 
   if (!mo) {
-    // Chưa có route ⇒ không bọc <Link>. Nền cùng sắc nhưng giảm độ đục: 6 thẻ
-    // chưa mở vẫn giữ danh tính màu, chỉ lùi lại một bước so với 10 thẻ mở được.
     return (
       <div
-        className={`${base} ${sf.surface} ${sf.edge} opacity-75 ${ELEV_REST}`}
-        title={`${mod.name} — ${t('home.betaHint')}`}
+        className={`${base} cursor-default opacity-60`}
+        title={`${mod.name} — ${t(mod.descKey)} · ${t('home.betaHint')}`}
       >
         {inner}
       </div>
@@ -143,7 +107,8 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   return (
     <Link
       href={mod.href as string}
-      className={`${base} ${sf.surface} ${sf.edge} ${ELEV_REST} ${ELEV_HOVER} transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${FOCUS_OFFSET_CANVAS} active:translate-y-0 active:duration-75 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${id.focus}`}
+      title={`${mod.name} — ${t(mod.descKey)}`}
+      className={`${base} focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#F6F7F9]`}
     >
       {inner}
     </Link>

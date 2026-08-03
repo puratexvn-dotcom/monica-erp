@@ -107,8 +107,22 @@ export default function HomeContent() {
           của MỘT bảng, khoảng cách rộng làm mỗi thẻ đọc ra như MỘT ứng dụng
           riêng. Đây là thay đổi rẻ nhất và có tác dụng lớn nhất trong cả lượt
           tinh chỉnh này. */}
+      {/* ⚠️ LƯỚI 4 CỘT Ở MÀN RỘNG — 16 mục chia đúng 4 hàng, thành một khối
+          VUÔNG. Bỏ khung rồi thì bố cục không còn đường viền nào để dựa vào,
+          nên hình dạng tổng thể của lưới trở thành thứ giữ trật tự thay cho
+          chúng. 4×4 là hình cân nhất có thể chia từ mười sáu.
+
+          ⚠️ `max-w-4xl mx-auto`: lưới HẸP HƠN phần chào phía trên. Bỏ khung
+          thì mỗi ô chỉ còn biểu tượng và một dòng chữ; trải chúng ra hết bề
+          ngang 1400px sẽ khiến mười sáu mục trôi nổi rời rạc. Thu lại thì
+          chúng thành MỘT khối, có mép trái mép phải rõ ràng, và khoảng trắng
+          hai bên trở thành khoảng thở có chủ đích.
+
+          ⚠️ Khoảng cách DỌC rộng hơn ngang (gap-y 10 so với gap-x 4). Tên có
+          thể xuống hai dòng, nên thiếu khoảng cách dọc thì chữ của hàng trên
+          dính vào biểu tượng của hàng dưới. */}
       <section aria-label={t('home.appsLabel')}>
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4">
           {MODULES.map((mod) => (
             <AppCard key={mod.name} mod={mod} />
           ))}

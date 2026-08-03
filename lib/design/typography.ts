@@ -235,6 +235,16 @@ export const TYPE = {
    * phải cỡ mới.
    */
   appTitle: 'text-[18px] font-semibold leading-[1.25] tracking-[-0.02em]',
+  /**
+   * Tên App đặt DƯỚI biểu tượng, kiểu màn hình chính điện thoại.
+   *
+   * ⚠️ Nhỏ hơn `appTitle` một cách có chủ ý. Khi thẻ còn khung, tên phải tự
+   * gánh vai nhân vật chính. Bỏ khung đi thì BIỂU TƯỢNG gánh vai đó, và tên
+   * lùi về đúng chức năng của một cái nhãn — đọc được, không tranh chấp.
+   * Tên to bằng tiêu đề mà đặt dưới một biểu tượng 80px sẽ thành hai thứ cùng
+   * đòi được nhìn trước.
+   */
+  appLabel: 'text-[13px] sm:text-[14px] font-semibold leading-[1.3] tracking-[-0.01em]',
   /** Đoạn dẫn, câu mở đầu */
   bodyLg: 'text-[16px] font-normal leading-[1.6]',
   /** Thân bài mặc định */
