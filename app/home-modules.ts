@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 
 import type { ModuleKey } from '@/lib/design/tokens';
+// Chỉ nhập KIỂU — bị xoá lúc biên dịch, nên tệp này vẫn dùng được ở Server
+// Component dù `lib/i18n.tsx` là module phía client.
+import type { DictionaryKey } from '@/lib/i18n';
 
 // ============================================================================
 // SỔ ĐĂNG KÝ BUSINESS APP — TRANG CHỦ MONICA ONE
@@ -33,10 +36,21 @@ import type { ModuleKey } from '@/lib/design/tokens';
 // ============================================================================
 
 export interface ModuleItem {
-  /** Tên hiến định. KHÔNG dịch, KHÔNG đổi. */
+  /**
+   * Tên hiến định — **KHÔNG DỊCH** ở bất kỳ ngôn ngữ nào (Hiến pháp §45.3).
+   *
+   * Đây là bản sắc sản phẩm, không phải nhãn giao diện. Xem
+   * `lib/constitutional-terms.ts`; bài kiểm kiến trúc mục ⑪ cưỡng chế điều này.
+   */
   name: string;
-  /** Một dòng, ≤ 40 ký tự. Dài hơn thì thẻ hết thở. */
-  desc: string;
+  /**
+   * KHOÁ i18n cho câu mô tả — không phải bản thân câu chữ (§45.4).
+   *
+   * Trước đây trường này giữ thẳng tiếng Việt, nên bản tiếng Anh và tiếng Trung
+   * của trang chủ vẫn hiện mô tả tiếng Việt. Nay câu chữ nằm ở
+   * `messages/{vi,en,zh}.json`, tệp này chỉ giữ khoá.
+   */
+  descKey: DictionaryKey;
   /**
    * Đường dẫn phân hệ, hoặc `null` khi chưa có route.
    *
@@ -55,47 +69,47 @@ export interface ModuleItem {
 
 // ─── BUSINESS WORKSPACES · §16.2 ────────────────────────────────────────────
 export const WORKSPACES: ModuleItem[] = [
-  { name: 'Executive Center', desc: 'Điều hành và phê duyệt toàn nhà máy',
+  { name: 'Executive Center', descKey: 'appDesc.executive',
     href: '/giam-doc', icon: LayoutDashboard, beta: false, key: 'executive' },
-  { name: 'Commercial', desc: 'Khách hàng, báo giá và đơn đặt hàng',
+  { name: 'Commercial', descKey: 'appDesc.commercial',
     href: '/buyer', icon: Handshake, beta: false, key: 'commercial' },
-  { name: 'Merchandising', desc: 'Mã hàng, định mức và điều phối đơn',
+  { name: 'Merchandising', descKey: 'appDesc.merchandising',
     href: '/md', icon: Briefcase, beta: false, key: 'merchandising' },
-  { name: 'Planning', desc: 'Kế hoạch, năng lực chuyền và mốc giao',
+  { name: 'Planning', descKey: 'appDesc.planning',
     href: null, icon: CalendarRange, beta: true, key: 'planning' },
-  { name: 'Production', desc: 'Tổ cắt, chuyền may và sản lượng giờ',
+  { name: 'Production', descKey: 'appDesc.production',
     href: '/to-truong-may', icon: Factory, beta: false, key: 'production' },
-  { name: 'Quality', desc: 'Kiểm hàng AQL 2.5 và khắc phục lỗi',
+  { name: 'Quality', descKey: 'appDesc.quality',
     href: '/qa', icon: ShieldCheck, beta: false, key: 'quality' },
-  { name: 'Warehouse', desc: 'Nhập, xuất, kiểm kê và tồn kho',
+  { name: 'Warehouse', descKey: 'appDesc.warehouse',
     href: '/kho', icon: Package, beta: false, key: 'warehouse' },
-  { name: 'Shipment', desc: 'Đóng thùng, container và chứng từ',
+  { name: 'Shipment', descKey: 'appDesc.shipment',
     href: '/xuat-hang', icon: Ship, beta: false, key: 'shipment' },
-  { name: 'Subcontract', desc: 'Xưởng gia công ngoài và báo cáo ngày',
+  { name: 'Subcontract', descKey: 'appDesc.subcontract',
     href: '/subcon', icon: Users, beta: false, key: 'subcontract' },
-  { name: 'Finance', desc: 'Công nợ, giá thành và đối soát',
+  { name: 'Finance', descKey: 'appDesc.finance',
     href: '/ke-toan', icon: Wallet, beta: false, key: 'finance' },
-  { name: 'Human Resources', desc: 'Nhân sự, chấm công và đào tạo',
+  { name: 'Human Resources', descKey: 'appDesc.humanResources',
     href: null, icon: IdCard, beta: true, key: 'humanResources' },
 ];
 
 // ─── GLOBAL SERVICES · §29 · §30 · §31 · §33 ────────────────────────────────
 export const SERVICES: ModuleItem[] = [
-  { name: 'Business Reporting', desc: 'Báo cáo một chạm, kèm bằng chứng gốc',
+  { name: 'Business Reporting', descKey: 'appDesc.reporting',
     href: null, icon: PieChart, beta: true, key: 'reporting' },
-  { name: 'Business Communication', desc: 'Trao đổi gắn với đơn hàng, lưu vĩnh viễn',
+  { name: 'Business Communication', descKey: 'appDesc.communication',
     href: null, icon: MessagesSquare, beta: true, key: 'communication' },
   // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2) — dải đó khai
   // ở `MODULE_IDENTITY.ai.soft`, không khai ở đây.
-  { name: 'AI Assistant', desc: 'Trợ lý hiểu ngữ cảnh việc đang làm',
+  { name: 'AI Assistant', descKey: 'appDesc.ai',
     href: null, icon: Sparkles, beta: true, key: 'ai' },
-  { name: 'Documents', desc: 'Tech pack, chứng từ và phiên bản',
+  { name: 'Documents', descKey: 'appDesc.documents',
     href: null, icon: FileText, beta: true, key: 'documents' },
 ];
 
 // ─── PLATFORM SERVICE · §34 ─────────────────────────────────────────────────
 export const PLATFORM: ModuleItem[] = [
-  { name: 'Platform Services', desc: 'Tài khoản, phân quyền, ngôn ngữ và cấu hình',
+  { name: 'Platform Services', descKey: 'appDesc.platform',
     href: '/admin', icon: SlidersHorizontal, beta: false, key: 'platform' },
 ];
 

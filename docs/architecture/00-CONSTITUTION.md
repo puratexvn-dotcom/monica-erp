@@ -4,7 +4,7 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Version** | 1.4 |
+| **Version** | 1.5 |
 | **Status** | ✅ ADOPTED |
 | **Owner** | Joseph |
 | **Architecture Authority** | MONICA ONE Architecture Board |
@@ -76,6 +76,7 @@
 | **1.2** | **2026-08-03** | **Architecture Board** | **ADR-009 — Enterprise Design System.** Ban hành **PART VIII — ENTERPRISE DESIGN SYSTEM** và **Điều 44 · Enterprise Visual Identity** (§44.1–§44.8): màu là THÔNG TIN, không phải trang trí; mỗi Business App giữ một dải màu vĩnh viễn gồm bảy vai trò; danh tính màu phải chảy tiếp vào mọi màn hình bên trong Workspace; mỗi trạng thái nghiệp vụ một sắc ngữ nghĩa riêng; biểu đồ dùng bảng màu hiến định; mọi màu phải lấy từ hệ thẻ màu duy nhất; độ tương phản WCAG AA là ràng buộc chứ không phải gợi ý. ⚠️ **Board chỉ định "PART VII"**, nhưng PART VII đã là GOVERNANCE từ v1.0 — đánh số trùng sẽ tạo hai Phần cùng số hiệu, nên ban hành thành **PART VIII**; cần Board xác nhận. Mục lục cập nhật thêm Phần VIII và tám khoản của Điều 44. |
 | **1.3** | **2026-08-03** | **Architecture Board** | **Quyết nghị chuẩn hoá PART VIII.** ① Board **PHÊ DUYỆT** cách đánh số **PART VIII** — không đánh số lại; khoảng vênh "PART VII" ở v1.2 khép lại. ② **Đổi tên Phần**: `ENTERPRISE DESIGN SYSTEM` → **`ENTERPRISE EXPERIENCE`**; neo mục lục cập nhật theo. ③ Board tuyên bố **Điều 44 và Điều 45** cùng thuộc Phần VIII. ⚠️ **Điều 45 CHƯA có nội dung** — Board chưa ban hành tiêu đề lẫn điều khoản, và người biên tập KHÔNG suy diễn nội dung Hiến pháp. Phần VIII hiện chỉ có Điều 44; **chờ Board ban hành Điều 45**. ④ Ghi nhận **TD-10 · Enterprise Typography Token System**. ⑤ Board chỉ thị **dừng việc làm lại giao diện theo từng trang**; mốc tiếp theo là **hoàn thiện Enterprise Design System**, sau đó mới nâng cấp toàn bộ Workspace bằng cùng một ngôn ngữ thị giác. |
 | **1.4** | **2026-08-03** | **Architecture Board** | **Quyết nghị Enterprise Design Language.** ① **PART VIII giữ nguyên.** ② Ban hành **Điều 45 — Reserved**: điều khoản để trống chính thức, chỉ Board mới được điền; ghi rõ **cấm mọi người thi hành, biên tập viên hay tác nhân tự động suy diễn nội dung**. Đây là lần đầu Hiến pháp có một Điều mang trạng thái *Reserved* — chỗ trống có tên tốt hơn một chỗ trống im lặng. ③ **Bộ chữ chính thức: Inter Variable**, tự lưu trữ qua `next/font/local`. ④ Trình tự thi hành được duyệt: **TD-08 → TD-10 → TD-07 → TD-09**. ⑤ Thêm **TD-11 · Enterprise Iconography System** và **TD-12 · Enterprise Motion System**. ⑥ Mục tiêu dài hạn: dựng **Enterprise Design Language** hoàn chỉnh, từ đó dẫn xuất ra Design System · Tokens · Components · Patterns và mọi Workspace tương lai. **Không cho phép làm lại giao diện theo từng trang cho tới khi nền móng Design System hoàn tất.** |
+| **1.5** | **2026-08-03** | **Architecture Board** | **Chỉ thị Enterprise Internationalization — MỨC CRITICAL.** ① **Ban hành Điều 45 · Enterprise Internationalization** (§45.1–§45.8), thay thế trạng thái *Reserved*: ba ngôn ngữ chính thức **ngang hàng** (Tiếng Việt · English · 简体中文); **ngôn ngữ hiến định là tiếng Anh**; **Từ vựng hiến định KHÔNG BAO GIỜ được dịch** — đó là bản sắc sản phẩm; mọi câu chữ khác phải localize; cấm chuỗi viết thẳng, dịch nội tuyến, rẽ nhánh theo ngôn ngữ, từ điển trùng lặp; định dạng theo locale; **cấm dịch dữ liệu nghiệp vụ** — dịch dữ liệu là làm sai lệch hồ sơ; tính năng mới không hỗ trợ đủ ba ngôn ngữ thì không được hợp nhất. ② **Mở rộng Điều 44** thêm năm khoản Board chỉ định: §44.8 Enterprise Design Language · §44.9 Colour Ownership Principle · §44.10 Component Identity · §44.11 Visual Hierarchy · §44.12 Premium User Experience; khoản Cưỡng chế dời thành §44.13. ⚠️ **Board chỉ thị "PART VII"**, nhưng PART VII là GOVERNANCE và PART VIII đã được chính Board phê duyệt ngày 03/08/2026 với chỉ thị *"do not renumber"* — nên Điều 44 và 45 **giữ nguyên ở PART VIII**. |
 
 ## Table of Contents
 
@@ -528,8 +529,21 @@
   - [44.5 Chart Palette](#445-chart-palette)
   - [44.6 Design Tokens](#446-design-tokens)
   - [44.7 Accessibility](#447-accessibility)
-  - [44.8 Constitutional Enforcement](#448-constitutional-enforcement)
-- [Article 45. Reserved](#article-45-reserved)
+  - [44.8 Enterprise Design Language](#448-enterprise-design-language)
+  - [44.9 Colour Ownership Principle](#449-colour-ownership-principle)
+  - [44.10 Component Identity](#4410-component-identity)
+  - [44.11 Visual Hierarchy](#4411-visual-hierarchy)
+  - [44.12 Premium User Experience](#4412-premium-user-experience)
+  - [44.13 Constitutional Enforcement](#4413-constitutional-enforcement)
+- [Article 45. Enterprise Internationalization](#article-45-enterprise-internationalization)
+  - [45.1 Constitutional Principle](#451-constitutional-principle)
+  - [45.2 Official Languages](#452-official-languages)
+  - [45.3 Constitutional Terms](#453-constitutional-terms)
+  - [45.4 Localization Scope](#454-localization-scope)
+  - [45.5 Translation Architecture](#455-translation-architecture)
+  - [45.6 Locale Formatting](#456-locale-formatting)
+  - [45.7 Business Data](#457-business-data)
+  - [45.8 Future Compliance](#458-future-compliance)
 
 **[APPENDIX](#appendix)**
 
@@ -5399,7 +5413,57 @@ Accessibility is a constitutional constraint, not a design preference. A colour 
 
 ---
 
-### 44.8 Constitutional Enforcement
+### 44.8 Enterprise Design Language
+
+The constitutional visual identity forms a single Enterprise Design Language.
+
+The Design System, Design Tokens, Components, Patterns and all Workspaces shall derive from this language. None shall define a parallel language of its own.
+
+Colour, typography, iconography and motion are components of one language, not four independent systems.
+
+---
+
+### 44.9 Colour Ownership Principle
+
+Every Business App owns its colour identity permanently.
+
+No two Business Apps shall share an identity. No Business App shall borrow the identity of another to signal relationship, hierarchy or state.
+
+Ownership is exclusive and durable. It survives redesigns.
+
+---
+
+### 44.10 Component Identity
+
+Every visual container shall carry visual identity.
+
+Cards, panels, tables, statistics, widgets, dialogs, forms, sections, lists, timelines, boards, reports, charts, tabs and navigation shall each express the identity of the Business App they belong to and the semantic state they represent.
+
+Undifferentiated white rectangles and identical grey boxes are prohibited.
+
+---
+
+### 44.11 Visual Hierarchy
+
+Every screen shall establish a clear visual hierarchy.
+
+Hierarchy shall be built from scale, spacing, elevation and typographic weight — not from borders or colour saturation alone.
+
+Not all elements are equal. A screen where everything is emphasised communicates no emphasis at all.
+
+---
+
+### 44.12 Premium User Experience
+
+The platform shall present the visual quality expected of commercial enterprise software.
+
+Restraint takes precedence over decoration. Motion confirms action rather than entertains. Density serves the operator rather than the demonstration.
+
+Visual energy shall never be achieved at the cost of legibility, accessibility or professional composure.
+
+---
+
+### 44.13 Constitutional Enforcement
 
 Every current and future screen of MONICA ONE shall comply with this Article.
 
@@ -5407,13 +5471,92 @@ Any proposal to introduce a colour outside the constitutional token system, or t
 
 ---
 
-## Article 45. Reserved
+## Article 45. Enterprise Internationalization
 
-**Status: Reserved.**
+### 45.1 Constitutional Principle
 
-This Article is reserved and shall remain without content until formally issued by the Architecture Board.
+MONICA ONE is an international Business Operating System.
 
-No constitutional text may be inferred, drafted or assumed for this Article by any implementer, editor or automated agent.
+Multi-language support is a native platform capability, not an optional feature.
+
+Internationalization is a constitutional architecture requirement. Every present and future screen shall comply.
+
+---
+
+### 45.2 Official Languages
+
+MONICA ONE officially supports:
+
+- Vietnamese
+- English
+- Simplified Chinese
+
+All three languages hold equal constitutional status. No language is a second-class citizen of the platform.
+
+The constitutional language of MONICA ONE is **English**. All constitutional documents, architecture records, ADRs, design standards, engineering standards, Business App names and architecture terminology shall remain in English.
+
+---
+
+### 45.3 Constitutional Terms
+
+The names of the platform, its Business Apps, its Global Services, its Platform Services and its architecture vocabulary constitute **Product Identity**.
+
+Constitutional Terms shall never be translated. They shall appear identically in every language.
+
+Product Identity shall not fragment across locales. A term learned in one language shall be recognisable in every other.
+
+---
+
+### 45.4 Localization Scope
+
+Every visible sentence that is not a Constitutional Term shall be localized.
+
+This includes, but is not limited to: navigation, buttons, labels, menus, dialogs, forms, validation messages, notifications, tooltips, settings, search, filters, reports, help content, empty states, loading states, errors, warnings, success messages and confirmation dialogs.
+
+No screen shall present more than one language at a time.
+
+---
+
+### 45.5 Translation Architecture
+
+Every visible string shall originate from a translation resource.
+
+The following are prohibited:
+
+- Hardcoded user-facing strings
+- Inline translation
+- Language branching in business logic
+- Translation by conditional or switch statement
+- Duplicated dictionaries
+- Component-local translation
+
+One concept shall have one key, one meaning and one translation per language. Synonyms and duplicate keys are prohibited.
+
+---
+
+### 45.6 Locale Formatting
+
+Each language shall use its own locale for dates, numbers, currency, percentages and time.
+
+Locale governs presentation only. It shall not alter the operational timezone, the currency of a business document, or any stored value.
+
+---
+
+### 45.7 Business Data
+
+Business data shall never be translated.
+
+Customer names, supplier names, purchase order numbers, SKUs, barcodes, QR codes, evidence, product names, style numbers, uploaded files and stored database content shall be presented exactly as recorded.
+
+Translating business data would falsify the record.
+
+---
+
+### 45.8 Future Compliance
+
+No new feature shall be merged unless it supports all three official languages.
+
+Any proposal to add, remove or downgrade an official language, or to translate a Constitutional Term, requires Architecture Board approval through an ADR.
 
 ---
 

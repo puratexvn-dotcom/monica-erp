@@ -272,4 +272,80 @@ if (daSachChu.length) {
   console.log(`   ↻ ${daSachChu.length} tệp đã sạch — gỡ khỏi type-debt-baseline.json: ${daSachChu.slice(0, 5).join(' · ')}${daSachChu.length > 5 ? ' …' : ''}`);
 }
 
+// ── 11. QUỐC TẾ HOÁ — Hiến pháp Điều 45 ────────────────────────────────────
+//
+// Ba phép kiểm, ba loại sai sót khác nhau:
+//   ① BỘ KHOÁ PHẢI TRÙNG KHỚP ở cả ba ngôn ngữ. Đây là thứ bắt được "tiếng
+//      Trung chưa dịch xong" ngay lúc CI, thay vì lúc khách hàng Trung Quốc mở
+//      màn hình và thấy một nửa tiếng Việt.
+//   ② KHÔNG khoá rỗng. Khoá tồn tại mà giá trị rỗng còn tệ hơn khoá thiếu:
+//      phép kiểm ① thấy đủ, còn màn hình thì trống trơn.
+//   ③ TỪ HIẾN ĐỊNH giữ nguyên chữ ở mọi ngôn ngữ (§45.3).
+console.log('\n⑪ QUỐC TẾ HOÁ — Điều 45 · ba ngôn ngữ ngang hàng');
+
+const NGON_NGU = [
+  ['vi', 'messages/vi.json'],
+  ['en', 'messages/en.json'],
+  ['zh', 'messages/zh.json'],
+];
+
+for (const [, p] of NGON_NGU) s.ok(`Có ${p}`, existsSync(join(ROOT, p)));
+
+function phangJson(obj, tienTo = '') {
+  const ra = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === '_meta') continue;
+    const khoa = tienTo ? `${tienTo}.${k}` : k;
+    if (typeof v === 'string') ra[khoa] = v;
+    else if (v && typeof v === 'object') Object.assign(ra, phangJson(v, khoa));
+  }
+  return ra;
+}
+
+const catalog = {};
+for (const [ma, p] of NGON_NGU) {
+  catalog[ma] = existsSync(join(ROOT, p)) ? phangJson(JSON.parse(doc(join(ROOT, p)))) : {};
+}
+
+const khoaVi = Object.keys(catalog.vi).sort();
+s.ok(`Từ điển gốc có khoá (${khoaVi.length} khoá)`, khoaVi.length > 0);
+
+for (const ma of ['en', 'zh']) {
+  const khoa = Object.keys(catalog[ma]);
+  const thieu = khoaVi.filter((k) => !khoa.includes(k));
+  const thua = khoa.filter((k) => !khoaVi.includes(k));
+  s.ok(`${ma}: đủ ${khoaVi.length} khoá, không thiếu`, thieu.length === 0,
+    `thiếu: ${thieu.slice(0, 8).join(' · ')}`);
+  s.ok(`${ma}: không có khoá thừa`, thua.length === 0,
+    `thừa: ${thua.slice(0, 8).join(' · ')}`);
+}
+
+for (const [ma] of NGON_NGU) {
+  const rong = Object.entries(catalog[ma]).filter(([, v]) => !v || !v.trim()).map(([k]) => k);
+  s.ok(`${ma}: không có khoá rỗng`, rong.length === 0, rong.slice(0, 8).join(' · '));
+}
+
+// ③ Từ hiến định — §45.3. Đọc danh sách từ chính tệp cưỡng chế, không chép lại
+//    ở đây: hai bản danh sách là hai bản sẽ lệch nhau.
+const tepTu = join(ROOT, 'lib/constitutional-terms.ts');
+s.ok('Có lib/constitutional-terms.ts', existsSync(tepTu));
+const TU_HIEN_DINH = existsSync(tepTu)
+  ? [...doc(tepTu).matchAll(/^\s*'([^']+)',$/gm)].map((m) => m[1])
+  : [];
+s.ok(`Danh sách từ hiến định đọc được (${TU_HIEN_DINH.length} từ)`, TU_HIEN_DINH.length >= 25);
+
+// Khoá nào ở bản tiếng Việt mang đúng một từ hiến định thì hai bản kia phải
+// mang y hệt. Đây là phép so CHÉO — nó bắt được cả trường hợp dịch sót lẫn
+// trường hợp "dịch cho đẹp".
+const saiTu = [];
+for (const k of khoaVi) {
+  const goc = catalog.vi[k]?.trim();
+  if (!TU_HIEN_DINH.includes(goc)) continue;
+  for (const ma of ['en', 'zh']) {
+    if (catalog[ma][k]?.trim() !== goc) saiTu.push(`${ma}:${k}`);
+  }
+}
+s.ok('Từ hiến định KHÔNG bị dịch ở bất kỳ ngôn ngữ nào', saiTu.length === 0,
+  saiTu.slice(0, 8).join(' · '));
+
 process.exit(s.ketThuc() ? 1 : 0);

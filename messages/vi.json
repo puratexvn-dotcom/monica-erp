@@ -1,0 +1,170 @@
+{
+  "_meta": {
+    "locale": "vi-VN",
+    "name": "Tiếng Việt",
+    "note": "Bản gốc. Khoá mới phải thêm vào ĐỦ CẢ BA tệp — bài kiểm kiến trúc mục ⑪ chặn nếu thiếu."
+  },
+
+  "brand": {
+    "tagline": "Business Operating System"
+  },
+
+  "home": {
+    "welcomeTo": "Chào mừng đến với",
+    "hint": "Chọn một Business App để tiếp tục",
+    "appsLabel": "Business Apps",
+    "beta": "Beta",
+    "betaHint": "đang phát triển"
+  },
+
+  "login": {
+    "eyebrow": "Business Operating System",
+    "welcomeBack": "Chào mừng trở lại.",
+    "subtitle": "Đăng nhập bằng tài khoản công ty để vào không gian làm việc được cấp quyền của bạn.",
+    "heading": "Đăng nhập",
+    "headingHint": "Dùng tài khoản công ty do Quản trị hệ thống cấp.",
+    "email": "Email",
+    "emailPlaceholder": "ten@congty.com",
+    "password": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "forgotPassword": "Quên mật khẩu?",
+    "signIn": "Đăng nhập",
+    "signingIn": "Đang đăng nhập…",
+    "backToHome": "Về trang chủ",
+    "contactAdmin": "Quên mật khẩu hoặc chưa có tài khoản? Liên hệ Quản trị hệ thống",
+    "highlightPlatform": "Một nền tảng vận hành hợp nhất cho toàn doanh nghiệp",
+    "highlightWorkspace": "Không gian làm việc theo vai trò, phân quyền chặt",
+    "highlightEvidence": "Mọi thao tác đều có bằng chứng và truy vết đầy đủ",
+    "errorConfig": "Hệ thống chưa được cấu hình kết nối máy chủ dữ liệu. Quản trị viên cần kiểm tra biến môi trường rồi triển khai lại — đổi biến không tự kích hoạt build lại.",
+    "errorUnreachable": "Không liên lạc được máy chủ xác thực. Vui lòng thử lại sau ít phút."
+  },
+
+  "nav": {
+    "workbench": "Bàn làm việc",
+    "chat": "Chat",
+    "reports": "Báo cáo",
+    "ai": "A.I",
+    "guide": "Hướng dẫn",
+    "home": "Trang chủ",
+    "notifications": "Thông báo",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "signOut": "Đăng xuất",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm PO, mã hàng, khách hàng…",
+    "language": "Ngôn ngữ"
+  },
+
+  "action": {
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "close": "Đóng",
+    "confirm": "Xác nhận",
+    "delete": "Xoá",
+    "edit": "Sửa",
+    "create": "Tạo mới",
+    "add": "Thêm",
+    "remove": "Gỡ",
+    "submit": "Gửi",
+    "approve": "Duyệt",
+    "reject": "Từ chối",
+    "export": "Xuất",
+    "download": "Tải về",
+    "upload": "Tải lên",
+    "filter": "Lọc",
+    "reset": "Đặt lại",
+    "retry": "Thử lại",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "viewAll": "Xem tất cả",
+    "viewDetail": "Xem chi tiết"
+  },
+
+  "empty": {
+    "noData": "Chưa có dữ liệu",
+    "noReports": "Chưa có báo cáo",
+    "noEvidence": "Chưa có bằng chứng",
+    "noDocuments": "Chưa có tài liệu",
+    "nothingAssigned": "Chưa được giao việc nào",
+    "noResults": "Không tìm thấy kết quả",
+    "noNotifications": "Không có thông báo",
+    "noActivity": "Chưa ghi nhận hoạt động nào"
+  },
+
+  "state": {
+    "loading": "Đang tải…",
+    "saving": "Đang lưu…",
+    "processing": "Đang xử lý…",
+    "uploading": "Đang tải lên…"
+  },
+
+  "error": {
+    "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "network": "Không kết nối được máy chủ. Kiểm tra đường truyền rồi thử lại.",
+    "unauthorized": "Bạn không có quyền truy cập nội dung này.",
+    "notFound": "Không tìm thấy nội dung.",
+    "conflict": "Dữ liệu đã được người khác thay đổi. Vui lòng tải lại rồi thao tác lại.",
+    "server": "Máy chủ gặp sự cố. Vui lòng thử lại sau.",
+    "sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+  },
+
+  "success": {
+    "saved": "Đã lưu",
+    "created": "Đã tạo",
+    "updated": "Đã cập nhật",
+    "deleted": "Đã xoá",
+    "approved": "Đã duyệt",
+    "sent": "Đã gửi"
+  },
+
+  "validation": {
+    "required": "Trường này bắt buộc nhập",
+    "email": "Email không hợp lệ",
+    "minLength": "Phải có ít nhất {min} ký tự",
+    "maxLength": "Không được quá {max} ký tự",
+    "number": "Phải là số",
+    "positive": "Phải là số dương",
+    "passwordWeak": "Mật khẩu quá yếu"
+  },
+
+  "confirm": {
+    "title": "Xác nhận",
+    "deleteTitle": "Xác nhận xoá",
+    "deleteBody": "Thao tác này không hoàn tác được. Bạn có chắc chắn không?",
+    "discardTitle": "Bỏ thay đổi?",
+    "discardBody": "Các thay đổi chưa lưu sẽ mất."
+  },
+
+  "status": {
+    "healthy": "Ổn định",
+    "inProgress": "Đang chạy",
+    "completed": "Hoàn thành",
+    "approved": "Đã duyệt",
+    "waiting": "Đang chờ",
+    "draft": "Nháp",
+    "warning": "Cần để mắt",
+    "blocked": "Bị chặn",
+    "critical": "Nguy cấp",
+    "rejected": "Bị từ chối"
+  },
+
+  "appDesc": {
+    "executive": "Điều hành và phê duyệt toàn nhà máy",
+    "commercial": "Khách hàng, báo giá và đơn đặt hàng",
+    "merchandising": "Mã hàng, định mức và điều phối đơn",
+    "planning": "Kế hoạch, năng lực chuyền và mốc giao",
+    "production": "Tổ cắt, chuyền may và sản lượng giờ",
+    "quality": "Kiểm hàng AQL 2.5 và khắc phục lỗi",
+    "warehouse": "Nhập, xuất, kiểm kê và tồn kho",
+    "shipment": "Đóng thùng, container và chứng từ",
+    "subcontract": "Xưởng gia công ngoài và báo cáo ngày",
+    "finance": "Công nợ, giá thành và đối soát",
+    "humanResources": "Nhân sự, chấm công và đào tạo",
+    "reporting": "Báo cáo một chạm, kèm bằng chứng gốc",
+    "communication": "Trao đổi gắn với đơn hàng, lưu vĩnh viễn",
+    "ai": "Trợ lý hiểu ngữ cảnh việc đang làm",
+    "documents": "Tech pack, chứng từ và phiên bản",
+    "platform": "Tài khoản, phân quyền, ngôn ngữ và cấu hình"
+  }
+}

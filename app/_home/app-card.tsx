@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -5,6 +7,7 @@ import type { ModuleItem } from '../home-modules';
 import {
   MODULE_IDENTITY, ELEV_REST, ELEV_HOVER, GLASS, GLASS_GLOW,
 } from '@/lib/design/tokens';
+import { useLanguage } from '@/lib/i18n';
 
 // ============================================================================
 // THẺ BUSINESS APP — MỘT KIỂU DUY NHẤT CHO CẢ 16 MỤC
@@ -42,6 +45,7 @@ import {
 // ============================================================================
 
 export default function AppCard({ mod }: { mod: ModuleItem }) {
+  const { t } = useLanguage();
   const Icon = mod.icon;
   // Nguồn màu DUY NHẤT của thẻ này. Không một mã màu nào được viết thẳng
   // trong tệp — Điều 44.6.
@@ -82,7 +86,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 ring-1 ring-inset ring-slate-200/80">
             <span className={`h-1 w-1 rounded-full ${id.bar}`} aria-hidden="true" />
             <span className="text-[9.5px] font-bold uppercase tracking-[0.1em] text-slate-500">
-              Beta
+              {t('home.beta')}
             </span>
           </span>
         )}
@@ -95,7 +99,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           slate-400 chỉ đạt 2,56:1 và sẽ biến mất trên màn hình xưởng dưới
           ánh đèn cao áp. */}
       <p className="mt-1.5 text-[12.5px] font-normal leading-relaxed text-slate-500 sm:text-[13px]">
-        {mod.desc}
+        {t(mod.descKey)}
       </p>
     </>
   );
@@ -107,7 +111,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
     // Chưa có route ⇒ không bọc <Link>: bấm vào sẽ là 404. Giữ nguyên màu và
     // bố cục, chỉ bỏ hiệu ứng nhấc lên — không hứa một hành vi không có.
     return (
-      <div className={`${base} ${ELEV_REST}`} title={`${mod.name} — đang phát triển`}>
+      <div className={`${base} ${ELEV_REST}`} title={`${mod.name} — ${t('home.betaHint')}`}>
         {inner}
       </div>
     );

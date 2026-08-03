@@ -1,0 +1,170 @@
+{
+  "_meta": {
+    "locale": "en-US",
+    "name": "English",
+    "note": "Constitutional language. New keys must be added to ALL THREE files — arch test ⑪ fails on any gap."
+  },
+
+  "brand": {
+    "tagline": "Business Operating System"
+  },
+
+  "home": {
+    "welcomeTo": "Welcome to",
+    "hint": "Click a Business App to continue",
+    "appsLabel": "Business Apps",
+    "beta": "Beta",
+    "betaHint": "in development"
+  },
+
+  "login": {
+    "eyebrow": "Business Operating System",
+    "welcomeBack": "Welcome back.",
+    "subtitle": "Sign in using your company account to access your authorized Business Workspace.",
+    "heading": "Sign in",
+    "headingHint": "Use the company account issued by your system administrator.",
+    "email": "Email",
+    "emailPlaceholder": "name@company.com",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "backToHome": "Back to Homepage",
+    "contactAdmin": "Forgot your password or need an account? Contact your system administrator",
+    "highlightPlatform": "One unified operating platform for the whole enterprise",
+    "highlightWorkspace": "Role-based workspaces with strict authorization",
+    "highlightEvidence": "Every action carries evidence and a full audit trail",
+    "errorConfig": "The connection to the data server is not configured. An administrator must check the environment variables and redeploy — changing a variable does not trigger a rebuild on its own.",
+    "errorUnreachable": "The authentication server cannot be reached. Please try again in a few minutes."
+  },
+
+  "nav": {
+    "workbench": "Workbench",
+    "chat": "Chat",
+    "reports": "Reports",
+    "ai": "A.I",
+    "guide": "Guide",
+    "home": "Home",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "search": "Search",
+    "searchPlaceholder": "Search PO, style, customer…",
+    "language": "Language"
+  },
+
+  "action": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "export": "Export",
+    "download": "Download",
+    "upload": "Upload",
+    "filter": "Filter",
+    "reset": "Reset",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "viewAll": "View all",
+    "viewDetail": "View details"
+  },
+
+  "empty": {
+    "noData": "No data",
+    "noReports": "No reports",
+    "noEvidence": "No evidence",
+    "noDocuments": "No documents",
+    "nothingAssigned": "Nothing assigned",
+    "noResults": "No results found",
+    "noNotifications": "No notifications",
+    "noActivity": "No activity recorded"
+  },
+
+  "state": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "processing": "Processing…",
+    "uploading": "Uploading…"
+  },
+
+  "error": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Cannot reach the server. Check your connection and try again.",
+    "unauthorized": "You are not authorized to view this content.",
+    "notFound": "Content not found.",
+    "conflict": "This record was changed by someone else. Please reload and try again.",
+    "server": "The server encountered a problem. Please try again later.",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+
+  "success": {
+    "saved": "Saved",
+    "created": "Created",
+    "updated": "Updated",
+    "deleted": "Deleted",
+    "approved": "Approved",
+    "sent": "Sent"
+  },
+
+  "validation": {
+    "required": "This field is required",
+    "email": "Enter a valid email address",
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be no more than {max} characters",
+    "number": "Must be a number",
+    "positive": "Must be a positive number",
+    "passwordWeak": "Password is too weak"
+  },
+
+  "confirm": {
+    "title": "Confirm",
+    "deleteTitle": "Confirm deletion",
+    "deleteBody": "This action cannot be undone. Are you sure?",
+    "discardTitle": "Discard changes?",
+    "discardBody": "Unsaved changes will be lost."
+  },
+
+  "status": {
+    "healthy": "Healthy",
+    "inProgress": "In progress",
+    "completed": "Completed",
+    "approved": "Approved",
+    "waiting": "Waiting",
+    "draft": "Draft",
+    "warning": "Needs attention",
+    "blocked": "Blocked",
+    "critical": "Critical",
+    "rejected": "Rejected"
+  },
+
+  "appDesc": {
+    "executive": "Factory-wide oversight and approvals",
+    "commercial": "Customers, quotations and purchase orders",
+    "merchandising": "Styles, consumption and order coordination",
+    "planning": "Production plans, line capacity and delivery milestones",
+    "production": "Cutting, sewing lines and hourly output",
+    "quality": "AQL 2.5 inspection and corrective action",
+    "warehouse": "Inbound, outbound, stocktaking and inventory",
+    "shipment": "Cartons, containers and shipping documents",
+    "subcontract": "External workshops and daily progress reports",
+    "finance": "Payables, costing and reconciliation",
+    "humanResources": "People, attendance and training",
+    "reporting": "One-tap reports, always with source evidence",
+    "communication": "Order-linked conversations, retained permanently",
+    "ai": "An assistant that understands the work in front of you",
+    "documents": "Tech packs, documents and version control",
+    "platform": "Accounts, authorization, language and configuration"
+  }
+}

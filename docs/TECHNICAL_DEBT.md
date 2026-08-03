@@ -54,6 +54,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-10](#td-10) | Hệ thẻ chữ — GĐ1 xong, GĐ2 chờ tệp phông, GĐ3 chờ nền móng | 🟡 | **GĐ1 đã trả** | Quyết nghị Board 03/08/2026 |
 | [TD-11](#td-11) | Chưa có hệ biểu tượng — cỡ và độ dày nét đặt tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
+| [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
 
 ---
 
@@ -598,6 +599,56 @@ không phải vấn đề thẩm mỹ — người bị rối loạn tiền đì
 
 `lib/design/motion.ts` — thời lượng và đường cong đặt tên theo vai trò, kèm biến
 thể tôn trọng `prefers-reduced-motion`.
+
+---
+
+<a id="td-13"></a>
+## TD-13 · i18n — CHUỖI VIẾT THẲNG CÒN Ở PHẦN LỚN MÀN HÌNH
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — **kiến trúc đã xong, phủ sóng chưa xong** |
+| **Phát hiện** | Chỉ thị Enterprise Internationalization, 03/08/2026 |
+| **Vi phạm** | Hiến pháp **§45.4 · §45.5** |
+
+### Đã xong
+
+| Việc | Trạng thái |
+|---|---|
+| Nguồn dịch chính thức `messages/{vi,en,zh}.json` | ✅ 124 khoá × 3 ngôn ngữ |
+| Runtime: `t()` có tham số thay thế, locale, định dạng ngày/số/tiền/phần trăm | ✅ |
+| Từ vựng hiến định (`lib/constitutional-terms.ts`) | ✅ 29 từ |
+| Cưỡng chế: bài kiểm mục ⑪ — khoá khớp nhau, không rỗng, từ hiến định không bị dịch | ✅ |
+| Trang chủ + thẻ Business App | ✅ đã localize |
+
+### Chưa xong
+
+Phần lớn màn hình nội bộ vẫn viết chuỗi thẳng trong JSX. Ngoài ra còn **hai từ
+điển cũ** — `MD_DICT` và `WAREHOUSE_DICT`, tổng **1.756 dòng** — đang được 28 tệp
+gọi tới.
+
+⚠️ Hai từ điển đó **cố ý chưa gỡ**. Xoá ngay là làm gãy 28 màn hình trong một
+lần sửa, đúng lúc Board vừa cấm làm lại giao diện theo từng trang. Chúng được
+trộn vào như **lớp tương thích**, và khoá của `messages/*.json` đứng sau nên
+**thắng** khi trùng tên — nguồn hiến định luôn thắng nguồn cũ.
+
+### Vì sao chưa trả hết
+
+Cùng lý do với TD-07: chuyển hàng trăm chuỗi trong một lượt là thay đổi diện
+rộng **không có phép kiểm nào bảo vệ từng chuỗi một**. Bài kiểm mục ⑪ bảo vệ
+được *bộ khoá*, nhưng chưa bảo vệ được *chuỗi viết thẳng trong JSX* — thứ đó cần
+một bánh cóc riêng, cùng họ với mục ⑨ và ⑩.
+
+### Cách trả
+
+1. Dựng bánh cóc thứ ba: quét chuỗi chữ cái trong JSX của `app/` và
+   `components/`, đóng băng hiện trạng, chặn tệp mới.
+2. Chuyển theo phân hệ, gộp dần `MD_DICT` và `WAREHOUSE_DICT` vào
+   `messages/*.json`, mỗi phân hệ một commit.
+
+⚠️ Bánh cóc chuỗi JSX **khó hơn** hai cái trước: phải phân biệt được chữ hiển
+thị với tên lớp CSS, khoá đối tượng, đường dẫn và mã kỹ thuật. Làm ẩu sẽ ra một
+phép kiểm đầy báo động giả — mà phép kiểm báo động giả thì người ta tắt đi.
 
 ---
 
