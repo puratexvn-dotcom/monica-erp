@@ -154,6 +154,25 @@
     "rejected": "Rejected"
   },
 
+  "appShort": {
+    "executive": "Factory oversight",
+    "commercial": "Customers & orders",
+    "merchandising": "Styles & consumption",
+    "planning": "Production planning",
+    "production": "Cutting, sewing, output",
+    "quality": "AQL inspection",
+    "warehouse": "Inbound, outbound, stock",
+    "shipment": "Cartons & documents",
+    "subcontract": "External workshops",
+    "finance": "Payables & costing",
+    "humanResources": "People & attendance",
+    "reporting": "Evidence-backed reports",
+    "communication": "Order-linked chat",
+    "ai": "Context-aware assistant",
+    "documents": "Tech packs & files",
+    "platform": "Accounts & access"
+  },
+
   "appDesc": {
     "executive": "Factory-wide oversight and approvals",
     "commercial": "Customers, quotations and purchase orders",

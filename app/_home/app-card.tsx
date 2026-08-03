@@ -125,15 +125,23 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
           phận nào. Dòng tiếng Việt này là thứ khiến họ CHỌN ĐƯỢC.
           Nét thanh (300) và cỡ nhỏ (11–12px) nên nó đọc được mà không tranh
           chấp với tên. Ghim hai dòng để lưới không so le. */}
-      {/* ⚠️ ẨN Ở KHỔ ĐIỆN THOẠI — `hidden sm:flex`.
-          Bốn cột trên màn 390px cho mỗi ô khoảng 80px. Ở cỡ chữ 11px, một ô
-          như vậy chứa được chừng bảy ký tự mỗi dòng, nên câu "Điều hành và phê
-          duyệt toàn nhà máy" sẽ trải thành NĂM dòng — cao hơn cả biểu tượng, và
-          mười sáu ô như thế biến lưới thành một bức tường chữ.
-          Bốn icon mỗi dòng và câu chú thích đầy đủ KHÔNG cùng tồn tại được ở
-          bề ngang này. Đã chọn giữ bốn icon vì đó là yêu cầu trực tiếp; câu
-          chú thích vẫn còn nguyên ở tablet, máy tính, và trong thuộc tính
-          `title` khi chạm giữ trên điện thoại. */}
+      {/* ═══ CHÚ THÍCH — HAI BẢN, MỘT VAI TRÒ ═══════════════════════════
+          Điện thoại và máy tính dùng HAI câu khác nhau, không phải một câu bị
+          cắt bớt.
+
+          Ô trên điện thoại rộng khoảng 80px; ở cỡ chữ 11px nó chứa chừng bảy
+          ký tự mỗi dòng. Câu đầy đủ "Điều hành và phê duyệt toàn nhà máy" sẽ
+          trải thành NĂM dòng và biến lưới thành một bức tường chữ.
+
+          ⚠️ Cắt chữ bằng `line-clamp` KHÔNG giải quyết được: cắt xong còn
+          "Điều hành và…" thì mất đúng phần mang nghĩa, mà chú thích tồn tại
+          chính là để người dùng HIỂU và CHỌN ĐƯỢC. Muốn ngắn mà vẫn hiểu thì
+          phải VIẾT LẠI — nên có bản rút gọn 2–4 từ, dịch đủ ba ngôn ngữ. */}
+      <span
+        className={`${TYPE.appHint} mt-1.5 flex w-full items-start justify-center text-center text-slate-500 sm:hidden`}
+      >
+        {t(mod.shortKey)}
+      </span>
       <span
         className={`${TYPE.appHint} mt-1.5 hidden min-h-[2.9em] w-full items-start justify-center text-center text-slate-500 sm:flex`}
       >

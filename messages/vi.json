@@ -154,6 +154,25 @@
     "rejected": "Bị từ chối"
   },
 
+  "appShort": {
+    "executive": "Điều hành nhà máy",
+    "commercial": "Khách hàng & đơn hàng",
+    "merchandising": "Mã hàng & định mức",
+    "planning": "Kế hoạch sản xuất",
+    "production": "Cắt, may, sản lượng",
+    "quality": "Kiểm hàng AQL",
+    "warehouse": "Nhập, xuất, tồn kho",
+    "shipment": "Đóng thùng & chứng từ",
+    "subcontract": "Gia công ngoài",
+    "finance": "Công nợ & giá thành",
+    "humanResources": "Nhân sự & chấm công",
+    "reporting": "Báo cáo có bằng chứng",
+    "communication": "Trao đổi theo đơn",
+    "ai": "Trợ lý theo ngữ cảnh",
+    "documents": "Tech pack & chứng từ",
+    "platform": "Tài khoản & phân quyền"
+  },
+
   "appDesc": {
     "executive": "Điều hành và phê duyệt toàn nhà máy",
     "commercial": "Khách hàng, báo giá và đơn đặt hàng",

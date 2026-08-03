@@ -52,6 +52,18 @@ export interface ModuleItem {
    */
   descKey: DictionaryKey;
   /**
+   * KHOÁ i18n cho bản mô tả RÚT GỌN — dùng ở khổ điện thoại.
+   *
+   * ⚠️ Vì sao phải có bản thứ hai: lưới điện thoại là bốn cột, mỗi ô rộng
+   * khoảng 80px. Câu mô tả đầy đủ ở cỡ chữ 11px sẽ trải thành NĂM dòng và
+   * biến lưới thành một bức tường chữ. Bản rút gọn 2–4 từ thì vừa ba dòng.
+   *
+   * Cắt chữ bằng `line-clamp` KHÔNG thay thế được: "Điều hành và phê duyệt
+   * toàn nhà máy" bị cắt còn "Điều hành và…" thì mất đúng phần mang nghĩa.
+   * Muốn ngắn mà vẫn hiểu được thì phải VIẾT LẠI, không phải cắt bớt.
+   */
+  shortKey: DictionaryKey;
+  /**
    * Đường dẫn phân hệ, hoặc `null` khi chưa có route.
    *
    * ⚠️ Đây LÀ đường dẫn thật, KHÔNG phải `/login`. Khách chưa đăng nhập bấm
@@ -69,47 +81,47 @@ export interface ModuleItem {
 
 // ─── BUSINESS WORKSPACES · §16.2 ────────────────────────────────────────────
 export const WORKSPACES: ModuleItem[] = [
-  { name: 'Executive Center', descKey: 'appDesc.executive',
+  { name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive',
     href: '/giam-doc', icon: LayoutDashboard, beta: false, key: 'executive' },
-  { name: 'Commercial', descKey: 'appDesc.commercial',
+  { name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial',
     href: '/buyer', icon: Handshake, beta: false, key: 'commercial' },
-  { name: 'Merchandising', descKey: 'appDesc.merchandising',
+  { name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising',
     href: '/md', icon: Briefcase, beta: false, key: 'merchandising' },
-  { name: 'Planning', descKey: 'appDesc.planning',
+  { name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning',
     href: null, icon: CalendarRange, beta: true, key: 'planning' },
-  { name: 'Production', descKey: 'appDesc.production',
+  { name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production',
     href: '/to-truong-may', icon: Factory, beta: false, key: 'production' },
-  { name: 'Quality', descKey: 'appDesc.quality',
+  { name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality',
     href: '/qa', icon: ShieldCheck, beta: false, key: 'quality' },
-  { name: 'Warehouse', descKey: 'appDesc.warehouse',
+  { name: 'Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse',
     href: '/kho', icon: Package, beta: false, key: 'warehouse' },
-  { name: 'Shipment', descKey: 'appDesc.shipment',
+  { name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment',
     href: '/xuat-hang', icon: Ship, beta: false, key: 'shipment' },
-  { name: 'Subcontract', descKey: 'appDesc.subcontract',
+  { name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract',
     href: '/subcon', icon: Users, beta: false, key: 'subcontract' },
-  { name: 'Finance', descKey: 'appDesc.finance',
+  { name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance',
     href: '/ke-toan', icon: Wallet, beta: false, key: 'finance' },
-  { name: 'Human Resources', descKey: 'appDesc.humanResources',
+  { name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources',
     href: null, icon: IdCard, beta: true, key: 'humanResources' },
 ];
 
 // ─── GLOBAL SERVICES · §29 · §30 · §31 · §33 ────────────────────────────────
 export const SERVICES: ModuleItem[] = [
-  { name: 'Business Reporting', descKey: 'appDesc.reporting',
+  { name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting',
     href: null, icon: PieChart, beta: true, key: 'reporting' },
-  { name: 'Business Communication', descKey: 'appDesc.communication',
+  { name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication',
     href: null, icon: MessagesSquare, beta: true, key: 'communication' },
   // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2) — dải đó khai
   // ở `MODULE_IDENTITY.ai.soft`, không khai ở đây.
-  { name: 'AI Assistant', descKey: 'appDesc.ai',
+  { name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai',
     href: null, icon: Sparkles, beta: true, key: 'ai' },
-  { name: 'Documents', descKey: 'appDesc.documents',
+  { name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents',
     href: null, icon: FileText, beta: true, key: 'documents' },
 ];
 
 // ─── PLATFORM SERVICE · §34 ─────────────────────────────────────────────────
 export const PLATFORM: ModuleItem[] = [
-  { name: 'Platform Services', descKey: 'appDesc.platform',
+  { name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform',
     href: '/admin', icon: SlidersHorizontal, beta: false, key: 'platform' },
 ];
 
