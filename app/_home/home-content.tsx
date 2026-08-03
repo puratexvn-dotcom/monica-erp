@@ -86,13 +86,17 @@ export default function HomeContent() {
             và ở 11px nó gần như tàng hình dưới một wordmark 48px. Nay là chữ
             thường 14px — đọc được, có trọng lượng thật, và để wordmark giữ
             trọn vai trò điểm nhấn. */}
-        {/* Một dòng duy nhất dưới wordmark. Hai mệnh đề, ngăn bằng dấu chấm
-            giữa — không phải hai dòng xếp chồng. Xếp chồng sẽ thành tầng chữ
-            thứ ba và thứ tư, mà phần nghi thức chỉ chịu được hai tầng. */}
+        {/* ⚠️ ĐÃ BỎ dòng "Chọn một Business App để tiếp tục".
+            Phần nghi thức nay còn đúng HAI tầng: wordmark và một dòng nói đây
+            là thứ gì. Câu hướng dẫn kia dạy người dùng rằng thẻ thì bấm được —
+            điều mà mười sáu ô rõ ràng đã tự nói. Bỏ đi thì tagline đứng một
+            mình dưới wordmark và câu chuyện gọn lại còn một nhịp.
+
+            Khoá `home.hint` GIỮ NGUYÊN ở cả ba tệp dịch: nó không còn được
+            dựng ra, nhưng bộ khoá ba ngôn ngữ vẫn cân nhau và muốn dùng lại
+            thì chỉ là một dòng. */}
         <p className={`${TYPE.body} mx-auto mt-5 max-w-xl text-slate-500`}>
           {t('brand.tagline')}
-          <span className="mx-2 text-slate-300" aria-hidden="true">·</span>
-          <span className="text-slate-400">{t('home.hint')}</span>
         </p>
       </section>
 
