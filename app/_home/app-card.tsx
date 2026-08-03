@@ -62,10 +62,13 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
         {/* rounded-[28%] — tỷ lệ bo góc của biểu tượng điện thoại. Dùng giá trị
             phần trăm để góc bo giãn theo kích thước ô ở từng khổ màn, giữ đúng
             dáng ở mọi cỡ. */}
+        {/* 80 → 96px. Bỏ khung rồi thì biểu tượng là mỏ neo DUY NHẤT; ở cỡ 80
+            nó vẫn còn dáng một cái nút, ở 96 nó thành một biểu tượng ứng dụng
+            thật sự. */}
         <span
-          className={`flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[28%] transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-20 sm:w-20 ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover}`}
+          className={`flex h-20 w-20 items-center justify-center rounded-[28%] transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-24 sm:w-24 ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover}`}
         >
-          <Icon className="h-9 w-9 sm:h-10 sm:w-10" strokeWidth={1.7} aria-hidden="true" />
+          <Icon className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.6} aria-hidden="true" />
         </span>
 
         {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt
@@ -79,12 +82,24 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
         )}
       </span>
 
-      {/* Ghim hai dòng: đáy của mọi ô trong một hàng bằng nhau, bất kể tên dài
-          ngắn và bất kể ngôn ngữ. */}
+      {/* Tên App — ghim hai dòng để đáy mọi ô trong một hàng bằng nhau, bất kể
+          tên dài ngắn và bất kể ngôn ngữ. */}
       <span
-        className={`${TYPE.appLabel} mt-3.5 flex min-h-[2.6em] w-full items-start justify-center text-center text-slate-700 transition-colors duration-200 group-hover:text-slate-900 sm:mt-4`}
+        className={`${TYPE.appLabel} mt-4 flex min-h-[2.6em] w-full items-start justify-center text-center text-slate-800 transition-colors duration-200 group-hover:text-slate-900`}
       >
         {mod.name}
+      </span>
+
+      {/* ⚠️ DÒNG CHÚ THÍCH QUAY LẠI — nhưng ở đúng hạng của nó.
+          Tên App là từ vựng hiến định bằng tiếng Anh: "Merchandising",
+          "Subcontract" — người chưa quen hệ thống không đoán được đó là bộ
+          phận nào. Dòng tiếng Việt này là thứ khiến họ CHỌN ĐƯỢC.
+          Nét thanh (300) và cỡ nhỏ (11–12px) nên nó đọc được mà không tranh
+          chấp với tên. Ghim hai dòng để lưới không so le. */}
+      <span
+        className={`${TYPE.appHint} mt-1.5 flex min-h-[2.9em] w-full items-start justify-center text-center text-slate-500`}
+      >
+        {t(mod.descKey)}
       </span>
     </>
   );

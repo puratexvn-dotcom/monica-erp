@@ -218,8 +218,25 @@ export const TYPE = {
   heroLead: 'text-[18px] sm:text-[22px] font-normal leading-[1.3]',
   /** MONICA ONE — tấm biển ở cửa chính */
   heroMark: 'text-[40px] sm:text-[64px] font-bold leading-[1.02] tracking-[-0.035em]',
-  /** Business Operating System — dòng nói đây là thứ gì */
-  heroTagline: 'text-[16px] sm:text-[18px] font-normal leading-[1.5]',
+  /**
+   * Business Operating System — dòng nói đây là thứ gì.
+   *
+   * ⚠️ Giãn chữ RẤT RỘNG (0.34em) là chủ ý, không phải trang trí. Dòng này
+   * phải trải ra bằng đúng bề ngang của wordmark phía trên; ở cỡ 22px mà để
+   * giãn chữ thường thì nó chỉ dài khoảng một nửa và đọc ra như một chú thích
+   * bị bỏ quên dưới một tấm biển lớn. Nới giãn chữ ra thì hai dòng khoá vào
+   * nhau thành MỘT khối.
+   */
+  heroTagline: 'text-[16px] sm:text-[22px] font-normal leading-[1.5] tracking-[0.18em] sm:tracking-[0.34em]',
+  /**
+   * Chú thích tác vụ dưới tên App — NÉT THANH, CỠ NHỎ.
+   *
+   * `font-light` (300) chứ không phải `font-normal`: dòng này nằm dưới một cái
+   * tên đậm và một biểu tượng lớn, nên nó phải nhẹ hẳn về nét mới không tranh
+   * chấp. Nó tồn tại để người chưa quen hệ thống hiểu được App làm gì — đọc
+   * được là đủ, không cần được nhìn thấy trước.
+   */
+  appHint: 'text-[11px] sm:text-[12px] font-light leading-[1.45]',
   /** Tiêu đề trang (h1) */
   pageTitle: 'text-[22px] sm:text-[28px] font-bold leading-[1.2] tracking-[-0.015em]',
   /** Tiêu đề mục (h2) */

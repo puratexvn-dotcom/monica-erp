@@ -82,3 +82,37 @@ export const LOGO_TEXT_GRADIENT = `linear-gradient(100deg, ${LOGO_COLORS.join(',
  */
 export const LOGO_TEXT_GRADIENT_STRONG =
   `linear-gradient(100deg, ${LOGO_COLORS[0]} 0%, ${LOGO_COLORS[4]} 100%)`;
+
+/**
+ * MÀU TỪNG CHỮ CÁI của "MONICA" — khớp cách logo tô màu.
+ *
+ * Sáu chữ, sáu màu, theo đúng thứ tự phổ màu đo được từ `public/MONICA.png`
+ * (xem chú thích bảng màu ở trên). `#E45454` đỏ san hô không nằm trong
+ * `LOGO_COLORS` vì mảng đó dùng cho dải chuyển sắc; ở đây cần đủ sáu.
+ *
+ * ⚠️ CẦN ĐỐI CHIẾU BẰNG MẮT với tệp logo. Thứ tự dưới đây suy từ tỷ lệ điểm
+ * ảnh đã ghi trong tài liệu, KHÔNG phải đọc trực tiếp từng chữ cái trên ảnh.
+ * Nếu chữ nào lệch màu so với logo thì sửa đúng một dòng ở đây.
+ *
+ * ⚠️ ĐÁNH ĐỔI ĐÃ BIẾT: vàng `#FCC048` và xanh chanh `#B4CC30` chỉ đạt tương
+ * phản khoảng 1,7:1 trên nền trắng — đây chính là thứ từng làm cả wordmark bị
+ * bạc màu. Nay chúng chỉ chiếm HAI chữ cái thay vì cả đoạn giữa, và có thêm
+ * một lớp bóng chữ rất nhẹ để giữ nét. Vẫn là hai chữ yếu nhất trong sáu chữ.
+ */
+export const LOGO_LETTER_COLORS: ReadonlyArray<{ ch: string; color: string }> = [
+  { ch: 'M', color: '#E4549C' }, // hồng
+  { ch: 'O', color: '#E45454' }, // đỏ san hô
+  { ch: 'N', color: '#FCC048' }, // vàng
+  { ch: 'I', color: '#B4CC30' }, // xanh chanh
+  { ch: 'C', color: '#54C0E4' }, // xanh lơ
+  { ch: 'A', color: '#006CB4' }, // xanh dương
+];
+
+/**
+ * Bóng chữ rất nhẹ cho wordmark nhiều màu.
+ *
+ * Không phải hiệu ứng trang trí — nó là thứ giữ cho chữ N (vàng) và chữ I
+ * (xanh chanh) còn nét trên nền sáng. Dùng `drop-shadow` chứ không
+ * `text-shadow` vì một số chữ được tô bằng nền cắt.
+ */
+export const LOGO_LETTER_SHADOW = '0 1px 2px rgba(15,23,42,0.16)';

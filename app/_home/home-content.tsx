@@ -4,7 +4,7 @@ import { MODULES } from '../home-modules';
 import AppCard from './app-card';
 import { useLanguage } from '@/lib/i18n';
 import { TYPE } from '@/lib/design/typography';
-import { LOGO_TEXT_GRADIENT_STRONG } from '@/lib/brand';
+import { LOGO_LETTER_COLORS, LOGO_LETTER_SHADOW, LOGO_COLORS } from '@/lib/brand';
 
 // ============================================================================
 // NỘI DUNG TRANG CHỦ — Hiến pháp Điều 45 · đa ngôn ngữ
@@ -69,11 +69,33 @@ export default function HomeContent() {
           {/* Tên sản phẩm — KHÔNG BAO GIỜ đi qua t() (§45.3).
               `pr-[0.06em]`: dải chuyển sắc cắt theo chữ (`bg-clip-text`) hay bị
               xén mất đuôi ký tự cuối ở một số bộ chữ. */}
-          <span
-            className={`${TYPE.heroMark} bg-clip-text pr-[0.06em] text-transparent`}
-            style={{ backgroundImage: LOGO_TEXT_GRADIENT_STRONG }}
-          >
-            MONICA ONE
+          {/* ⚠️ TỪNG CHỮ MỘT MÀU, khớp cách logo tô.
+              Bản trước tô cả cụm bằng MỘT dải chuyển sắc — nhìn xa thì giống,
+              nhưng nó KHÔNG phải cách logo hoạt động: logo tô rời từng chữ cái,
+              mỗi chữ một màu đặc. Dải chuyển sắc làm màu trôi qua giữa các chữ
+              nên không chữ nào mang đúng màu của nó.
+              Nay mỗi chữ là một phần tử riêng, lấy đúng màu từ bảng logo.
+              `aria-label` giữ nguyên cả cụm để trình đọc màn hình đọc liền
+              "MONICA ONE" chứ không đánh vần từng chữ cái. */}
+          <span className={TYPE.heroMark} aria-label="MONICA ONE">
+            <span aria-hidden="true">
+              {LOGO_LETTER_COLORS.map(({ ch, color }, i) => (
+                <span
+                  key={`${ch}-${i}`}
+                  style={{ color, textShadow: LOGO_LETTER_SHADOW }}
+                >
+                  {ch}
+                </span>
+              ))}
+              {/* "ONE" tô một màu xanh dương đặc — đó là chữ KHÔNG có trên
+                  logo, nên nó không được phép giành sắc độ với sáu chữ kia. */}
+              <span
+                className="ml-[0.18em]"
+                style={{ color: LOGO_COLORS[4], textShadow: LOGO_LETTER_SHADOW }}
+              >
+                ONE
+              </span>
+            </span>
           </span>
         </h1>
 
@@ -95,7 +117,7 @@ export default function HomeContent() {
             Khoá `home.hint` GIỮ NGUYÊN ở cả ba tệp dịch: nó không còn được
             dựng ra, nhưng bộ khoá ba ngôn ngữ vẫn cân nhau và muốn dùng lại
             thì chỉ là một dòng. */}
-        <p className={`${TYPE.heroTagline} mx-auto mt-6 max-w-xl text-slate-500`}>
+        <p className={`${TYPE.heroTagline} mx-auto mt-6 text-slate-500`}>
           {t('brand.tagline')}
         </p>
       </section>
@@ -122,7 +144,7 @@ export default function HomeContent() {
           thể xuống hai dòng, nên thiếu khoảng cách dọc thì chữ của hàng trên
           dính vào biểu tượng của hàng dưới. */}
       <section aria-label={t('home.appsLabel')}>
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 sm:gap-x-6 sm:gap-y-12">
           {MODULES.map((mod) => (
             <AppCard key={mod.name} mod={mod} />
           ))}

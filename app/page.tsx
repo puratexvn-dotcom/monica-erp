@@ -80,21 +80,56 @@ export default function HomePage() {
 
           ⚠️ Cắt ở `h-[560px]`: ánh sáng chỉ thuộc về phần nghi thức. Để nó
           tràn xuống lưới App sẽ làm 16 thẻ nằm trên nền không đều màu. */}
+      {/* ═══ NỀN — SÁU QUẦNG MÀU THƯƠNG HIỆU ════════════════════════════
+          ⚠️ BẢN TRƯỚC HỎNG. Ba quầng ở độ mờ 0,10–0,14 — nhìn ảnh chụp thật
+          thì chúng KHÔNG hiện ra chút nào. Tôi từng nói nếu nhìn không thấy
+          thì phải nâng lên; đây là lúc làm đúng điều đó.
+
+          Nay sáu quầng, độ mờ 0,20–0,30, và trải khắp CẢ TRANG chứ không chỉ
+          đầu trang. Màu lấy nguyên từ bảng logo nên nền là tiếng vọng của
+          thương hiệu, không phải một lớp trang trí ngoại lai.
+
+          Bố trí lệch nhau có chủ ý — không quầng nào đối xứng với quầng nào.
+          Đặt đối xứng thì mắt đọc ra ngay là hình trang trí; đặt lệch thì nó
+          đọc ra là ÁNH SÁNG. Đây là toàn bộ khác biệt giữa "có hoạ tiết nền"
+          và "có không khí".
+
+          ⚠️ `blur-3xl` trên khối lớn: mọi quầng đều phải nhoè tới mức không
+          còn thấy đường viền tròn. Thấy được mép tròn là hỏng — lúc đó nó
+          thành sáu cái đốm, không phải ánh sáng. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[560px] overflow-hidden"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
       >
+        {/* Nguồn sáng chính ngay trên wordmark */}
         <div
-          className="absolute left-1/2 top-[-260px] h-[620px] w-[1100px] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ background: 'rgba(255,255,255,0.95)' }}
+          className="absolute left-1/2 top-[-300px] h-[680px] w-[1200px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: 'rgba(255,255,255,0.98)' }}
         />
+        {/* Hồng — trên trái */}
         <div
-          className="absolute left-[calc(50%-340px)] top-[-140px] h-[420px] w-[420px] rounded-full blur-3xl"
-          style={{ background: LOGO_COLORS[0], opacity: 0.1 }}
+          className="absolute left-[-140px] top-[-120px] h-[520px] w-[520px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[0], opacity: 0.26 }}
         />
+        {/* Xanh lơ — trên phải */}
         <div
-          className="absolute left-[calc(50%+120px)] top-[-170px] h-[460px] w-[460px] rounded-full blur-3xl"
-          style={{ background: LOGO_COLORS[3], opacity: 0.14 }}
+          className="absolute right-[-160px] top-[-60px] h-[560px] w-[560px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[3], opacity: 0.3 }}
+        />
+        {/* Vàng — giữa trái, thấp hơn hẳn để phá thế đối xứng */}
+        <div
+          className="absolute left-[6%] top-[46%] h-[460px] w-[460px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[1], opacity: 0.2 }}
+        />
+        {/* Xanh dương — giữa phải */}
+        <div
+          className="absolute right-[2%] top-[38%] h-[500px] w-[500px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[4], opacity: 0.2 }}
+        />
+        {/* Xanh chanh — đáy trái, khép lại nhịp màu ở cuối trang */}
+        <div
+          className="absolute bottom-[-160px] left-[24%] h-[480px] w-[480px] rounded-full blur-3xl"
+          style={{ background: LOGO_COLORS[2], opacity: 0.22 }}
         />
       </div>
 
