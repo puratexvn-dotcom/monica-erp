@@ -202,6 +202,15 @@ export const TYPE = {
   sectionTitle: 'text-[18px] sm:text-[22px] font-semibold leading-[1.2] tracking-[-0.015em]',
   /** Tiêu đề thẻ (h3) */
   cardTitle: 'text-[16px] font-semibold leading-[1.35] tracking-[-0.015em]',
+  /**
+   * Tên một Business App trên lưới trang chủ.
+   *
+   * ⚠️ 18px chứ không phải 16px. Tên ứng dụng là thứ NẶNG NHẤT trên thẻ; để nó
+   * cùng cỡ với chữ thân bài ở nơi khác là tự tay hạ nó xuống hàng chú thích.
+   * 18px đã có sẵn trong thang (`FONT_SIZE.title`) — đây là vai trò mới, KHÔNG
+   * phải cỡ mới.
+   */
+  appTitle: 'text-[18px] font-semibold leading-[1.25] tracking-[-0.02em]',
   /** Đoạn dẫn, câu mở đầu */
   bodyLg: 'text-[16px] font-normal leading-[1.6]',
   /** Thân bài mặc định */

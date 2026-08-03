@@ -308,8 +308,16 @@ export function chartColor(i: number): string {
 // thẻ dán phẳng lên trang. Tổng độ mờ giữ dưới 0,2: bóng đậm là dấu hiệu của
 // phần mềm đời cũ, nó tạo chiều sâu bằng tương phản thay vì bằng lớp.
 
+// ⚠️ ĐỘ MỜ NÂNG LÊN sau lượt soi thị giác 03/08/2026.
+//
+// Bản trước tổng độ mờ dưới 0,2 nên trên nền `#F6F7F9` các thẻ trắng gần như
+// KHÔNG tách khỏi nền — chúng đọc ra như được IN LÊN trang, không phải NẰM
+// TRÊN trang. "Bóng nhạt" là đúng nguyên tắc, nhưng nhạt quá thì mất luôn cái
+// nó sinh ra để tạo: chiều sâu.
+//
+// Vẫn giữ bốn lớp và vẫn rất kiềm chế — chỉ đủ để mắt đọc ra "vật thể".
 export const ELEV_REST =
-  'shadow-[0_0_0_1px_rgba(16,24,40,0.03),0_1px_2px_-1px_rgba(16,24,40,0.06),0_4px_8px_-4px_rgba(16,24,40,0.05),0_12px_24px_-12px_rgba(16,24,40,0.05)]';
+  'shadow-[0_0_0_1px_rgba(16,24,40,0.04),0_1px_2px_-1px_rgba(16,24,40,0.08),0_4px_10px_-3px_rgba(16,24,40,0.08),0_16px_32px_-12px_rgba(16,24,40,0.10)]';
 
 export const ELEV_HOVER =
   'hover:shadow-[0_0_0_1px_rgba(16,24,40,0.05),0_2px_4px_-2px_rgba(16,24,40,0.07),0_12px_20px_-8px_rgba(16,24,40,0.07),0_28px_48px_-24px_rgba(16,24,40,0.16)]';

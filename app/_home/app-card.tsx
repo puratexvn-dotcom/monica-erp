@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
 
 import type { ModuleItem } from '../home-modules';
 import {
@@ -11,105 +10,96 @@ import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
 
 // ============================================================================
-// THẺ BUSINESS APP — MỘT KIỂU DUY NHẤT CHO CẢ 16 MỤC
+// THẺ BUSINESS APP — BẢN DỰNG LẠI SAU KHI BOARD TỪ CHỐI BẢN CŨ
 //
-// ─── ⚠️ ĐÂY LÀ MỘT ỨNG DỤNG, KHÔNG PHẢI MỘT THẺ THÔNG TIN ───────────────
-// Người dùng phải cảm thấy đang MỞ PHẦN MỀM, không phải đang ĐỌC MỘT Ô. Bốn
-// thứ tạo ra cảm giác đó, và cả bốn đều rất nhỏ:
+// ═══ BẢN CŨ SAI Ở ĐÂU ═══════════════════════════════════════════════════
+// Không sai về kỹ thuật. Sai về TỶ LỆ.
 //
-//   ① Mũi tên LUÔN hiện, chỉ rất mờ. Bản trước để `opacity-0` — thẻ không hề
-//      báo mình bấm được cho tới khi con trỏ chạm vào, mà trên màn cảm ứng thì
-//      **không bao giờ có lúc chạm vào**. Nay nó mờ sẵn và rõ dần khi rê.
-//   ② Ô icon nhấc lên cùng thẻ, không phóng to rời rạc.
-//   ③ Vạch nhấn nhạt lúc nghỉ, đậm hẳn khi rê — App "sáng lên" khi được chọn.
-//   ④ Nhấn xuống có phản hồi tức thì (75ms), như một nút vật lý.
+//   • Ô icon 72px cạnh tên 16px  → tỷ lệ 4,5:1. Đó là bàn phím ứng dụng của
+//     điện thoại, không phải hệ điều hành doanh nghiệp.
+//   • Thẻ cao 240px chứa hai dòng chữ → một phần ba dưới trống trơn, thẻ
+//     không có điểm tựa ở đáy.
+//   • 240×330 gần vuông → tỷ lệ ít sức sống nhất có thể chọn.
+//   • Vạch màu tràn mép trên → khuôn mẫu "panel cảnh báo" của bảng điều
+//     khiển đời cũ.
+//   • Tên App 16px → bằng cỡ chữ thân bài ở chỗ khác, tức tự hạ nó xuống
+//     hàng chú thích.
 //
-// ─── ⚠️ MỌI CỠ CHỮ LẤY TỪ `TYPE` (TD-10) ────────────────────────────────
-// Tệp này trước đây tự đặt `text-[15px] sm:text-[17px]`, `text-[12.5px]`,
-// `text-[9.5px]`. Nay dùng thẻ. Hai thứ được lợi:
-//   • Nhịp chữ khớp với phần còn lại của hệ thống, không còn nửa pixel.
-//   • Nhãn Beta từ **9,5px lên 11px** — 9,5px nằm DƯỚI SÀN ĐỌC ĐƯỢC của đặc
-//     tả (§9), tức bản trước là một lỗi khả năng tiếp cận, không phải một lựa
-//     chọn thẩm mỹ.
+// ═══ BẢN NÀY ĐẢO NGƯỢC TỶ LỆ ════════════════════════════════════════════
 //
-// ─── LUỒNG KHI BẤM ───────────────────────────────────────────────────────
-//   Trang chủ → chọn App → Đăng nhập → Workspace
+//   ô icon 72 → 44px          tên 16 → 18px
+//   cao 240 → 176px           tỷ lệ ~1,9:1 (nằm ngang, có hướng)
 //
-// `href` là đường dẫn THẬT, không phải `/login`. Khách chưa đăng nhập bấm vào
-// thì `middleware.ts` chuyển sang `/login?next=<đường dẫn>`; đăng nhập xong
-// quay đúng về nơi đã bấm.
+// Icon thôi làm nhân vật chính; TÊN ỨNG DỤNG làm nhân vật chính. Icon lùi về
+// đúng vai trò: mỏ neo màu để nhận diện khi quét mắt.
 //
-// ⚠️ VÌ SAO KHÔNG TRỎ THẲNG VÀO `/login`: middleware xoá sạch chuỗi truy vấn
-// khi người ĐÃ đăng nhập chạm `/login`, rồi đẩy về `ROLE_HOME`. Trỏ thẳng sẽ
-// khiến người đã đăng nhập bấm "Merchandising" mà rơi về trang chủ vai trò.
+// ⚠️ ĐÃ GỠ vạch màu mép trên và mũi tên góc.
+// "Premium products remove." Màu vẫn còn nguyên ở ô icon — mười sáu sắc, đủ
+// để nhận ra bằng mắt. Thêm một vạch màu nữa chỉ là nói cùng một điều hai lần
+// bằng một khuôn mẫu đã cũ.
+//
+// ⚠️ Bo góc: thẻ 16px, ô icon 12px. Bản cũ để cả hai 20px nên ô icon đọc ra
+// như một cái thẻ con nằm trong thẻ mẹ. Khác cấp thì phải khác bo góc.
 // ============================================================================
 
 export default function AppCard({ mod }: { mod: ModuleItem }) {
   const { t } = useLanguage();
   const Icon = mod.icon;
-  // Nguồn màu DUY NHẤT của thẻ này — Điều 44.6.
   const id = MODULE_IDENTITY[mod.key];
   const mo = Boolean(mod.href);
 
   const inner = (
     <>
-      {/* Vạch nhấn mép trên — Điều 44.2 · 44.9 Colour Ownership.
-          Quét dọc lưới, mắt bắt được dải màu trước cả ô icon vì nó nằm ở mép.
-          ⚠️ Lúc nghỉ chỉ 60% đục: mười sáu vạch màu no đủ cạnh nhau đọc ra một
-          bảng phân loại; mờ đi thì chúng lùi về đúng vai trò — dấu nhận biết,
-          không phải trang trí. Rê chuột mới lên 100%, và đó là lúc màu cần nói. */}
-      <span
-        aria-hidden="true"
-        className={`absolute inset-x-0 top-0 h-[3px] rounded-t-[1.25rem] opacity-60 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none ${id.bar}`}
-      />
-
-      <div className="mb-5 flex items-start justify-between gap-3">
-        {/* Ô icon — mỏ neo thị giác. Người vận hành xưởng nhận ra phân hệ bằng
-            HÌNH và MÀU trước khi kịp đọc chữ, nên nó to hơn hẳn phần chữ.
-            Vệt sáng ở mép trên (GLASS) là chỗ ánh sáng chạm vào khối bo tròn. */}
+      <div className="mb-4 flex items-start justify-between gap-3">
         <span
-          className={`flex h-16 w-16 items-center justify-center rounded-[1.25rem] transition-shadow duration-300 ease-out sm:h-[4.5rem] sm:w-[4.5rem] ${id.soft} ${id.primary} ${GLASS} ${GLASS_GLOW}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl transition-shadow duration-300 ease-out ${id.soft} ${id.primary} ${GLASS} ${GLASS_GLOW}`}
         >
-          <Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.6} aria-hidden="true" />
+          <Icon className="h-[22px] w-[22px]" strokeWidth={1.7} aria-hidden="true" />
         </span>
 
-        {mo ? (
-          // Mờ sẵn chứ KHÔNG ẩn: trên màn cảm ứng không có trạng thái "rê
-          // chuột", nên thứ chỉ hiện khi hover là thứ một nửa người dùng không
-          // bao giờ thấy.
-          <ArrowUpRight
-            className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-slate-500 motion-reduce:transition-none"
-            aria-hidden="true"
-          />
-        ) : (
-          // Nhãn Beta nói về TÌNH TRẠNG DỰNG PHẦN MỀM, không phải tình hình
-          // kinh doanh. Đặt đúng chỗ mũi tên để hai trạng thái không làm lệch
-          // bố cục của nhau.
-          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 ring-1 ring-inset ring-slate-200/80">
+        {/* Beta: chấm + chữ, KHÔNG khung viên thuốc. Khung làm nhãn nặng ngang
+            ô icon; bỏ khung đi thì nó lùi về đúng hạng — một ghi chú, không
+            phải một huy hiệu. */}
+        {!mo && (
+          <span className="flex shrink-0 items-center gap-1.5 pt-1">
             <span className={`h-1 w-1 rounded-full ${id.bar}`} aria-hidden="true" />
-            <span className={`${TYPE.overline} text-slate-500`}>{t('home.beta')}</span>
+            <span className={`${TYPE.overline} text-slate-400`}>{t('home.beta')}</span>
           </span>
         )}
       </div>
 
-      <h2 className={`${TYPE.cardTitle} text-slate-900`}>{mod.name}</h2>
-      {/* slate-500 trên nền trắng đạt 4,76:1 — vượt ngưỡng WCAG AA. slate-400
-          chỉ đạt 2,56:1 và biến mất trên màn hình xưởng dưới đèn cao áp. */}
-      <p className={`${TYPE.bodySm} mt-2 text-slate-500`}>{t(mod.descKey)}</p>
+      {/* Tên ứng dụng — nhân vật chính của thẻ */}
+      <h2 className={`${TYPE.appTitle} text-slate-900`}>{mod.name}</h2>
+
+      {/* ⚠️ `line-clamp-2` + `min-h`: mười sáu câu mô tả dài ngắn khác nhau, và
+          ba ngôn ngữ dài ngắn khác nhau nữa. Không ghim chiều cao thì đáy thẻ
+          nhấp nhô theo từng ô — thứ phá vỡ cảm giác "một lưới" nhanh hơn bất
+          cứ chi tiết nào khác. */}
+      <p className={`${TYPE.bodySm} mt-2 line-clamp-2 min-h-[2.6em] text-slate-500`}>
+        {t(mod.descKey)}
+      </p>
     </>
   );
 
-  // ⚠️ `min-h` tăng và `p` tăng: mười sáu thẻ sát nhau thì khoảng thở là thứ
-  // duy nhất ngăn lưới đọc ra như một bảng tính. Phần mềm doanh nghiệp phải
-  // TĨNH, và tĩnh đến từ khoảng trống chứ không từ màu.
+  // 176px: vừa đủ cho ô icon 44 + tên 18 + hai dòng mô tả + đệm. Không dư một
+  // vùng trống nào ở đáy.
+  // ⚠️ `base` KHÔNG khai nền. Bản trước để `bg-white` ở đây rồi ghi đè bằng
+  // `bg-white/60` ở nhánh Beta — mà thứ tự lớp trong CHUỖI không quyết định
+  // được ai thắng, thứ tự trong TỆP CSS mới quyết định. Nó chạy đúng hôm nay
+  // hoàn toàn do may mắn về thứ tự Tailwind sinh ra. Nay mỗi nhánh tự khai nền
+  // của mình, không còn chỗ cho may rủi.
   const base =
-    'group relative flex min-h-[13.5rem] flex-col rounded-[1.25rem] bg-white p-5 text-left sm:min-h-[15rem] sm:p-6';
+    'group relative flex min-h-[11rem] flex-col rounded-2xl p-5 text-left';
 
   if (!mo) {
-    // Chưa có route ⇒ không bọc <Link>: bấm vào sẽ là 404. Giữ nguyên màu và
-    // bố cục, chỉ bỏ hiệu ứng nhấc lên — không hứa một hành vi không có.
+    // Chưa có route ⇒ không bọc <Link>. Nền ngà thay vì trắng: khác biệt rất
+    // nhẹ nhưng đủ để mắt phân loại được 6 thẻ chưa mở với 10 thẻ mở được, mà
+    // không cần đọc nhãn Beta.
     return (
-      <div className={`${base} ${ELEV_REST}`} title={`${mod.name} — ${t('home.betaHint')}`}>
+      <div
+        className={`${base} bg-white/70 ${ELEV_REST}`}
+        title={`${mod.name} — ${t('home.betaHint')}`}
+      >
         {inner}
       </div>
     );
@@ -118,18 +108,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   return (
     <Link
       href={mod.href as string}
-      // Chỉ chuyển động `transform` và `box-shadow` — hai thuộc tính chạy trên
-      // GPU. Thêm `background-color` hay `width` là buộc trình duyệt tính lại
-      // bố cục 60 lần mỗi giây.
-      //
-      // ⚠️ Nhấc 2px, không phải 3px. Nhấc mạnh đọc ra là hoạt ảnh; nhấc nhẹ đọc
-      // ra là vật thể phản hồi. Ở đây người dùng cần nhận ra sự CHẮC CHẮN, chứ
-      // không cần nhận ra chuyển động.
-      //
-      // ⚠️ `motion-reduce:*` — tôn trọng thiết lập giảm chuyển động của hệ điều
-      // hành. Người rối loạn tiền đình có thể chóng mặt thật; đây là khả năng
-      // tiếp cận, không phải tuỳ chọn thẩm mỹ.
-      className={`${base} ${ELEV_REST} ${ELEV_HOVER} ring-1 ring-inset ring-transparent transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${FOCUS_OFFSET_CANVAS} active:translate-y-0 active:duration-75 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${id.hover} ${id.focus}`}
+      className={`${base} bg-white ${ELEV_REST} ${ELEV_HOVER} ring-1 ring-inset ring-transparent transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${FOCUS_OFFSET_CANVAS} active:translate-y-0 active:duration-75 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${id.hover} ${id.focus}`}
     >
       {inner}
     </Link>
