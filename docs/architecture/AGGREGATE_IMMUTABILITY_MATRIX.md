@@ -60,19 +60,41 @@ Thêm `approved_device` · `approved_ip` · `approved_signature` về sau ⇒ **
 phần tử vào `mutable_after_final`**. ⛔ Không sửa trigger · ⛔ không sửa migration
 · ⛔ không sửa kiến trúc.
 
-### ⚠️ Một điểm tôi phải nêu trước khi Board chốt
+### ✅ Board Decision `A1` — đề xuất của CSA đã bị BÁC
 
-Board xác nhận `Costing · Final State = APPROVED`. Nhưng `SUPERSEDED` cũng là
-trạng thái **không nên sửa nội dung**. Nếu `final_states = {APPROVED}` thì một
-chiết tính `SUPERSEDED` **sửa nội dung tự do**.
+CSA đề xuất `final_states = {APPROVED, SUPERSEDED}`. **Board bác:**
 
-⇒ Tôi đề xuất `final_states = {APPROVED, SUPERSEDED}`, giữ nguyên
-`mutable_after_final` Board đã chốt.
+> *"`final_states = { APPROVED }`. `SUPERSEDED` không thuộc `final_states`.
+> Workflow Engine chịu trách nhiệm các transition sang `SUPERSEDED`. Cơ chế bất
+> biến chỉ khoá nội dung của trạng thái `APPROVED`."*
 
-Hệ quả: từ `SUPERSEDED`, cột `status` vẫn đổi được ở tầng CSDL. **Đó là đúng
-theo `W.1`** — *"`SUPERSEDED` là trạng thái cuối, không quay lui"* là **phép
-chuyển**, thuộc **Workflow Engine**, ⛔ không thuộc trigger. Trigger chỉ giữ
-**bất biến nội dung**.
+🔑 **Thi hành quyết định này tốn đúng một chuỗi trong một mảng.** Hàm engine
+không đổi một ký tự. Đây là phép thử đầu tiên của thiết kế metadata-driven, và
+nó qua.
+
+#### 🟡 Khoảng hở còn lại — `[MEASURED]` mỗi vòng, không phải giả định
+
+Sau `045`, chiết tính đang ở `SUPERSEDED` **sửa nội dung được**: policy
+`costings_no_edit_after_approve` bị gỡ, và trigger chỉ khoá khi
+`OLD.status = 'APPROVED'`.
+
+**Con đường tới `SUPERSEDED` vẫn an toàn** — dòng phải đi qua `APPROVED`, lúc đó
+nội dung đã khoá, và phép chuyển chỉ đổi `status`. Nhưng **sau khi** đã
+`SUPERSEDED` thì không còn lớp nào chặn.
+
+⇒ `tests/security/costing-lifecycle.test.mjs` mục **`D`** đo khoảng hở này **mỗi
+lần chạy** và in ra dù đạt hay hỏng. Nó dùng `⚪ chưa đo được` chứ không `⛔` —
+**đây là quyết định của Board, không phải lỗi**. Nhưng con số phải hiện ra, để
+nếu Board đổi ý thì đã có sẵn phép đo đối chứng.
+
+#### Ràng buộc Board kèm theo — ghi để Workflow Engine sau này chịu
+
+> *"Workflow Engine **không được `UPDATE` trực tiếp** aggregate mà phải đi qua
+> transition."*
+
+Ràng buộc này **chưa thi hành được** — Workflow Engine chưa tồn tại trên CSDL.
+Ghi vào đây làm điều kiện thiết kế bắt buộc khi nó ra đời. `[NO EVIDENCE]` cho
+tới lúc đó.
 
 ---
 
@@ -87,7 +109,7 @@ Bốn cột đầu là **metadata thi hành được** — chép thẳng vào b�
 
 | Aggregate | `status_column` | `final_states[]` | `mutable_after_final[]` | Nguồn | RLS đủ? |
 |---|---|---|---|---|---|
-| **`costings`** | `status` | `APPROVED` · `SUPERSEDED` | `status` · `approved_by` · `approved_at` | ✅ **Board chốt 05/08/2026** *(`SUPERSEDED` do CSA đề xuất — §0.1)* | ⛔ **KHÔNG** |
+| **`costings`** | `status` | **`APPROVED`** | `status` · `approved_by` · `approved_at` | ✅ **Board Decision `A1`** 05/08/2026 | ⛔ **KHÔNG** |
 | **`purchase_orders`** | `status` | `CONFIRMED` · `PARTIAL` · `RECEIVED` · `CANCELLED` | `status` · *(cột tiến độ nhận — chưa xác định)* | ⏳ `[INFERRED]` — chờ `A1-PO` | ⛔ KHÔNG |
 | **`stock_counts`** | `status` | `POSTED` · `CANCELLED` | `status` | ⏳ `[INFERRED]` — chờ `A1-SC` | ⛔ KHÔNG |
 

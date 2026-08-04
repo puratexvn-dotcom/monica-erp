@@ -159,6 +159,26 @@ try {
   s.ok('⭐ Khoản mục của bản ĐÃ DUYỆT bị khoá',
     Number(duyet.unit_price) === 3, `giá thành ${duyet.unit_price} — B-3 còn hở`);
 
+  // ══ D · KHOẢNG HỞ ĐÃ BIẾT — `SUPERSEDED` ngoài `final_states` ────────────
+  // Board Decision `A1` 05/08/2026: `final_states = {APPROVED}`. `SUPERSEDED`
+  // CỐ Ý nằm ngoài — transition sang nó thuộc Workflow Engine (`W.1`).
+  //
+  // ⚠️ Hệ quả: sau `045`, nội dung của một chiết tính `SUPERSEDED` KHÔNG còn gì
+  // chặn. Mục này **đo** điều đó mỗi lần chạy thay vì để nó thành giả định.
+  //
+  // Nó dùng `chuaDo` chứ không `ok`: đây **không phải phép kiểm đạt/hỏng** —
+  // đó là quyết định của Board, không phải lỗi. Nhưng con số phải hiện ra mỗi
+  // vòng, để nếu Board đổi ý thì có sẵn phép đo đối chứng.
+  console.log('\nD · Khoảng hở đã biết — SUPERSEDED ngoài final_states (A1)');
+  const cSup2 = await moi('SUPERSEDED');
+  await md.from('costings').update({ quoted_price: 321 }).eq('id', cSup2);
+  const { data: sauSup } = await admin.from('costings')
+    .select('quoted_price').eq('id', cSup2).single();
+  s.chuaDo('nội dung chiết tính SUPERSEDED',
+    Number(sauSup.quoted_price) === 321
+      ? '🔴 SỬA ĐƯỢC — đúng hệ quả của A1, Board đã biết'
+      : `bị chặn (giá giữ ${sauSup.quoted_price}) — còn lớp khác đang phủ`);
+
   await md.auth.signOut();
 } catch (e) {
   console.error('\n⛔ NGOẠI LỆ: ' + e.message);

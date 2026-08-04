@@ -178,20 +178,39 @@ BEGIN
     'FOR EACH ROW EXECUTE FUNCTION public.mos_guard_aggregate_immutability()', p_bang);
 END $$;
 
--- ─── Khai báo Costing — Board chốt 05/08/2026 ─────────────────────────────
--- ⚠️ `SUPERSEDED` do CSA đề xuất thêm và đã nêu ở Matrix §0.1: Board chốt Final
--- = `APPROVED`, nhưng một chiết tính `SUPERSEDED` cũng không được sửa nội dung.
--- Nếu Board bác, xoá đúng một chuỗi trong `ARRAY` dưới đây — ⛔ không sửa hàm.
+-- ─── Khai báo Costing — Board Decision `A1`, 05/08/2026 ───────────────────
+-- Board **bác** đề xuất thêm `SUPERSEDED` của CSA:
+--   *"`final_states = { APPROVED }`. `SUPERSEDED` không thuộc `final_states`.
+--     Workflow Engine chịu trách nhiệm các transition sang `SUPERSEDED`.
+--     Cơ chế bất biến chỉ khoá nội dung của trạng thái `APPROVED`."*
+--
+-- 🔑 Sửa quyết định này tốn **đúng một chuỗi trong mảng dưới đây**. Hàm ở Mục 2
+-- không đổi một ký tự. Đó là thứ thiết kế metadata-driven mua được.
+--
+-- ⚠️ HỆ QUẢ CÒN LẠI — ghi ra thay vì để phát hiện sau:
+-- Sau `045`, một chiết tính đang ở `SUPERSEDED` **sửa nội dung được**: policy
+-- `costings_no_edit_after_approve` bị gỡ ở Mục 3, và trigger chỉ khoá khi
+-- `OLD.status = 'APPROVED'`.
+--
+-- Con đường tới `SUPERSEDED` vẫn an toàn — dòng phải đi qua `APPROVED`, lúc đó
+-- nội dung đã khoá, và phép chuyển chỉ đổi `status`. Nhưng **sau khi** đã
+-- `SUPERSEDED` thì không còn gì chặn.
+--
+-- Đây là **khoảng hở đo được**, không phải suy diễn:
+-- `tests/security/costing-lifecycle.test.mjs` mục `D` đo nó mỗi lần chạy và in
+-- ra dù đạt hay hỏng. Board xem số thật rồi quyết mở rộng `final_states` hay
+-- giao hẳn cho Workflow Engine.
 INSERT INTO public.mos_aggregate_immutability
   (table_name, status_column, final_states, mutable_after_final, adr, note)
 VALUES
   ('costings', 'status',
-   ARRAY['APPROVED','SUPERSEDED'],
+   ARRAY['APPROVED'],
    ARRAY['status','approved_by','approved_at'],
    'ADR-019',
-   'Board Decision A1 · 05/08/2026. Thêm cột ghi nhận phê duyệt về sau '
-   '(approved_device, approved_ip, approved_signature…) ⇒ thêm vào '
-   'mutable_after_final, KHÔNG sửa trigger.')
+   'Board Decision A1 · 05/08/2026. SUPERSEDED CỐ Ý không nằm trong final_states '
+   '— transition sang SUPERSEDED thuộc Workflow Engine (W.1). Thêm cột ghi nhận '
+   'phê duyệt về sau (approved_device, approved_ip, approved_signature…) ⇒ thêm '
+   'vào mutable_after_final, KHÔNG sửa trigger.')
 ON CONFLICT (table_name) DO UPDATE
   SET status_column       = EXCLUDED.status_column,
       final_states        = EXCLUDED.final_states,
