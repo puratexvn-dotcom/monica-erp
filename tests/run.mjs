@@ -30,6 +30,10 @@ const BAI = [
   // `authenticated_only` được Board duyệt và chạy. Nó mô tả trạng thái ĐÍCH.
   // Xanh sớm nghĩa là bài kiểm sai, không phải hệ thống đúng.
   ['security/md-internal-scope.test.mjs', 'Phân quyền người trong', true],
+  // Bài này TỰ GIEO dữ liệu dùng-một-lần rồi dọn trong `finally`, nên nó cho
+  // kết luận thật trên 4 bảng đang rỗng — thứ mà phép đếm suông không làm được
+  // (Hiến pháp V.1).
+  ['security/md-read-matrix.test.mjs', 'Ma trận đọc VR-004 · VR-005', true],
 ];
 
 const ketQua = [];

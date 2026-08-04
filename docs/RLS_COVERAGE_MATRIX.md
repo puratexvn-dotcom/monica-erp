@@ -329,10 +329,33 @@ theo lược đồ** — nên A001 liệt kê **động**.
 | 02/08/2026 | **`031c` + `031c2` chạy · hồi quy 13/13.** Nhà thầu hết thấy nhà thầu khác. Bản `031c` đầu **chặn phẳng thay vì khoanh vùng** — policy truy vấn `partners`, bảng mà chính đối tác không đọc được. Vá bằng hàm bắc cầu `SECURITY DEFINER`. → **Playbook K-3**. | Claude |
 | | *Còn chờ:* mở rộng `S001` cho 3 bảng `subcon_*` đang rỗng → rồi `031d` | |
 | 04/08/2026 | **`VR-001` đo xong bằng phiên đăng nhập thật** — [`audit/VR-001-KET-QUA.md`](audit/VR-001-KET-QUA.md). Đính chính một kết luận sai của Audit Report: người NGOÀI **không** rò `costings`/`style_bom` (đã có `buyer_denied` 018 + `subcon_denied` 025). Lỗ hổng thật ở phía **NỘI BỘ**: 23 bảng của `014`/`015` chạy bằng `authenticated_only` = `FOR ALL` + `GRANT ALL`. | Claude |
+| 05/08/2026 | ✅ **MA TRẬN ĐỌC — `90 đạt · 0 hỏng`.** Board Directive 05/08 yêu cầu kiểm READ theo từng bảng × từng vai trên CSDL thật. Bài kiểm mới [`md-read-matrix`](../tests/security/md-read-matrix.test.mjs) **tự gieo 6 dòng dùng-một-lần** rồi dọn trong `finally` — nhờ đó 4 bảng đang rỗng cho kết luận **thật**, không còn `⚪`. Đo **14 vai × 5 đối tượng**, cả `SELECT` thẳng qua PostgREST lẫn `MODULE_ACCESS` tầng ứng dụng. Không vai nào ngoài danh sách Board duyệt đọc được dòng nào | Claude |
 | 05/08/2026 | ✅ **`041` ĐÃ CHẠY — `F-1` ĐÓNG.** Khối kiểm tra 7/7 đúng kỳ vọng. Đo lại độc lập bằng phiên đăng nhập thật: **18 đạt · 6 hỏng · 4 chưa đo được**. `activity_log` hết `UPDATE`/`DELETE`/`TRUNCATE` với `authenticated` và `anon`; `INSERT`/`SELECT` còn nguyên nên sổ cái **vẫn ghi nhận được**; `service_role` giữ nguyên. **Sổ kiểm toán nay bất biến — BDR-14 thoả.** 6 mục hỏng còn lại đúng bằng 6 ngoại lệ có chủ ý của `TD-25` | Claude |
 | 05/08/2026 | **`042` ĐÃ CHẠY.** Đo lại bằng phiên đăng nhập thật vai `md`: **16 đạt · 8 hỏng · 4 chưa đo được** *(trước đó 0 đạt · 24 hỏng)*. 16/16 bảng cần khoá đã khoá; 6 bảng hỏng là **6 ngoại lệ có chủ ý** của `TD-25`; 2 bảng hỏng còn lại là `activity_log` — **`041` CHƯA CHẠY**. `authenticated_only` còn **0** bảng. `buyer_denied`/`subcon_denied` nguyên vẹn. Phép chiếu `v_costing_approved` đã dựng. ⏳ **`A001` chưa chạy lại** — nghĩa vụ ② của `SECURITY_DEFINER_REGISTRY` §2.4 | Claude |
 | 05/08/2026 | ⚠️ **Khối kiểm tra của `042` có một dòng sai — lỗi của tôi.** Phép đếm `Policy _read mới` không lọc theo bảng nên đếm cả `*_read` của toàn schema *(`communications_read`, `p031b_line_scoped_read`, `p031c_vendor_scoped_read`, `p031c3_so_scoped_read`…)*, ra `33` thay vì `22`. **Không phải sai sót của migration** — phép đo sai, không phải hệ thống sai | Claude |
 | 04/08/2026 | **`041` — Security Hotfix `F-1`.** Thu hồi `UPDATE`/`DELETE`/`TRUNCATE` của `authenticated` + `anon` trên `activity_log`. Sổ kiểm toán trước đó **sửa và xoá được bởi mọi vai nội bộ** — vi phạm BDR-14 và K-1. ⏳ *Board chưa chạy — chờ chép kết quả khối kiểm tra về đây.* | Claude |
+
+### ✅ MA TRẬN ĐỌC — `VR-004` · `VR-005` · đo 05/08/2026
+
+`[VERIFIED]` 14 vai × 5 đối tượng, phiên đăng nhập thật, **có dữ liệu gieo tạm**
+nên số 0 là kết luận thật chứ không phải bảng rỗng.
+
+| Đối tượng | Vai ĐỌC ĐƯỢC *(chờ > 0)* | Vai BỊ CHẶN *(chờ 0)* | |
+|---|---|---|---|
+| `costings` | `superadmin` `giamdoc` `md` | 11 vai còn lại + `anon` | ✅ |
+| `costing_items` | `superadmin` `giamdoc` `md` | 11 vai còn lại + `anon` | ✅ |
+| `inquiries` | `superadmin` `giamdoc` `md` | 11 vai còn lại + `anon` | ✅ |
+| `style_bom` | `superadmin` `giamdoc` `md` **+ `kho` `khotruong` `thukho` `ketoanvattu`** | 7 vai còn lại + `anon` | ✅ |
+| `v_costing_approved` | `superadmin` `giamdoc` `md` **+ `ketoan`** | 10 vai còn lại + `anon` | ✅ |
+
+**Phép chiếu kế toán còn được soi ở mức CỘT và mức DÒNG** — đếm dòng không chứng
+minh được `VR-005`:
+
+- ⛔ 5 cột thương lượng **không tồn tại** trong view: `target_price` · `notes` ·
+  `reject_reason` · `inquiry_id` · `created_by`
+- ✅ 2 cột Board **cho phép** vẫn còn: `quoted_price` · `margin_percent`
+  *(vế đối chứng — chặn quá tay cũng là hỏng)*
+- ⛔ Chiết tính `DRAFT` **không lộ**; ✅ bản `APPROVED` vẫn thấy
 
 ### 🔴 F-2 — 22 bảng còn hở, chờ ADR-018
 
