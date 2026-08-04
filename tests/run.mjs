@@ -38,6 +38,10 @@ const BAI = [
   // một bản phản biện suy diễn hành vi policy mà không chạy thử — xem
   // docs/review/ADR-018-review.md, Phụ lục.
   ['security/costing-lifecycle.test.mjs', 'Vòng đời chiết tính', true],
+  ['security/md-update-matrix.test.mjs', 'Ma trận ghi (UPDATE)', true],
+  // KHÔNG thay thế `supabase/audits/A001` — nó chỉ đo phần HÀNH VI mà PostgREST
+  // với tới được. Ba phép kiểm cần `pg_catalog` vẫn phải chạy A001 thật.
+  ['security/a001-runtime.test.mjs', 'A001 runtime — bề mặt phơi ra', true],
 ];
 
 const ketQua = [];
