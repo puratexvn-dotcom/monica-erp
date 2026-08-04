@@ -131,10 +131,23 @@ try {
   s.ok('⭐ KHÔNG sửa được giá của chiết tính ĐÃ DUYỆT (có approved_at)',
     Number(sauGia.quoted_price) === 10, `SỬA ĐƯỢC — giá thành ${sauGia.quoted_price}`);
 
+  // ⚠️ Phép kiểm này ĐÃ ĐỔI TẦNG, không phải bị nới lỏng.
+  //
+  // Bản đầu khẳng định `SUPERSEDED` không quay lui được, và đo điều đó ở tầng
+  // CSDL. **Board Decision `W.1` (05/08/2026) giao hẳn phép chuyển trạng thái
+  // cho Workflow Engine** — tầng CSDL chỉ giữ bất biến NỘI DUNG.
+  //
+  // ⇒ *"`SUPERSEDED → DRAFT` là bất hợp lệ"* vẫn đúng về nghiệp vụ, nhưng nó
+  // **không còn là điều tầng này chịu trách nhiệm**. Đo nó ở đây rồi báo đỏ là
+  // đo sai tầng — và sẽ đỏ vĩnh viễn cho tới khi Workflow Engine ra đời.
+  //
+  // Ghi `⚪` chứ không gỡ bỏ: khi Workflow Engine có mặt, đây là chỗ nối lại.
   const cSup = await moi('SUPERSEDED');
   await md.from('costings').update({ status: 'DRAFT' }).eq('id', cSup);
-  s.ok('⭐ SUPERSEDED là trạng thái CUỐI — không quay lui được',
-    (await trangThai(cSup)) === 'SUPERSEDED');
+  s.chuaDo('SUPERSEDED → DRAFT bị chặn',
+    (await trangThai(cSup)) === 'SUPERSEDED'
+      ? 'hiện bị chặn, nhưng KHÔNG do tầng này bảo đảm'
+      : 'ĐI QUA — đúng W.1, phép chuyển thuộc Workflow Engine (chưa dựng)');
 
   // ══ C · KHOẢN MỤC CỦA CHIẾT TÍNH ĐÃ DUYỆT — `B-3` ────────────────────────
   // Khoản mục sửa được trong khi `margin_percent` của bảng cha bị khoá ⇒ số
