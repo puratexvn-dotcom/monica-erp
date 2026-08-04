@@ -9,7 +9,7 @@
 | **Hồ sơ phản biện** | [`docs/review/ADR-018-review.md`](../review/) — chưa lập |
 | **Hiến pháp** | **Điều 4** *(ADR trước SQL)* · **Điều 8** *(Evidence First)* |
 | **MOS** | **§XI.1** *(SECURITY FREEZE)* — `MONICA_CONSTITUTION.md`, bậc 4 |
-| **Migration** | `042_narrow_md_grants.sql` — ⛔ **CHƯA VIẾT, CHƯA CHẠY** |
+| **Migration** | `042_narrow_md_grants.sql` — ✅ **ĐÃ CHẠY 05/08/2026**, đo lại đạt *(xem §10.3)* |
 | **Phát hiện gốc** | `F-2` — [`docs/audit/VR-001-KET-QUA.md`](../audit/VR-001-KET-QUA.md) §2.1 |
 | **Số ADR** | `012` · `013` · `014` là **số dành riêng, không tái sử dụng** (Hiến pháp §37.5) |
 
@@ -601,6 +601,71 @@ Board dặn *"không mở rộng phạm vi"*. Tôi đang thêm **một view mớ
 🔴 **Nếu Board không muốn thêm view**, phương án thay thế duy nhất là **hoãn
 phần `ketoan`**: `042` cấm `ketoan` toàn bộ T1, và `VR-005` để lại Sprint sau.
 An toàn hơn, nhưng kế toán mất đường đọc giá đã duyệt. **Tôi cần Board chọn.**
+
+> ✅ **Board đã chọn phương án A** — `042` chạy 05/08/2026 và phép chiếu
+> `v_costing_approved` đã dựng trên CSDL thật. Câu hỏi ở §10.2 khép lại.
+
+### 10.3 ✅ Kết quả chạy thật — 05/08/2026
+
+`042` đã chạy trên CSDL đang chạy. Khối kiểm tra và bài kiểm phiên-đăng-nhập-thật
+cho cùng một kết luận: **migration làm đúng thiết kế.**
+
+| Phép đo | Trước `042` | Sau `042` | Kỳ vọng |
+|---|---|---|---|
+| Bài kiểm nội bộ | `0 đạt · 24 hỏng` | **`16 đạt · 8 hỏng`** | — |
+| Bảng còn `authenticated_only` | 22 | **0** | 0 ✅ |
+| Bảng còn hở `TRUNCATE` | 22 | **0** | 0 ✅ |
+| Bảng còn hở `DELETE` | 22 | **6** | 6 ✅ *(`TD-25`)* |
+| `buyer_denied` · `subcon_denied` | nguyên | **nguyên** | không được đụng ✅ |
+| `v_costing_approved` | — | **đã dựng** | 1 ✅ |
+| Hàm dựng `mos_narrow_md_table` | — | **đã dọn** | 0 ✅ |
+
+**8 mục còn hỏng — không mục nào ngoài dự tính:**
+
+| Mục | Bảng | Vì sao |
+|---|---|---|
+| 6 × `[F-2]` | `costing_items` · `order_size_breakdown` · `md_documents` · `style_colorways` · `style_sizes` · `style_operations` | **6 ngoại lệ có chủ ý** của §6.2 — `TD-25`. Đúng thiết kế, không phải lỗi |
+| 2 × `[F-1]` | `activity_log` | 🔴 **`041` CHƯA CHẠY** — sổ kiểm toán vẫn sửa và xoá được |
+
+#### 10.3.1 ⚠️ Một dòng trong khối kiểm tra của `042` SAI — lỗi của tôi
+
+Dòng `⭐ Policy _read mới (phải đủ 22)` trả **`33`**. Không phải hệ thống sai —
+**phép đo sai**:
+
+```sql
+-- SAI: đếm mọi policy `*_read` của TOÀN schema
+WHERE schemaname='public' AND policyname LIKE '%\_read'
+```
+
+Nó đếm cả `communications_read` (`019`) · `defect_catalog_read` (`023`) ·
+`p031b_line_scoped_read` · `p031c_vendor_scoped_read` · `p031c3_so_scoped_read`
+… — những policy `042` **không đụng tới**. Thiếu bộ lọc theo bảng.
+
+**Truy vấn đúng** *(nên chạy để đóng phép đo này)*:
+
+```sql
+SELECT COUNT(*) AS policy_read_cua_042      -- kỳ vọng: 22
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND policyname LIKE '%\_read'
+  AND tablename IN (
+    'costings','costing_items','inquiries','style_bom',
+    'production_orders','material_requests','order_milestones',
+    'change_requests','risk_assessments','sample_submissions',
+    'order_size_breakdown','seasons','customers','customer_contacts',
+    'styles','style_colorways','style_sizes','style_operations',
+    'ta_templates','ta_template_items','md_documents','md_comments');
+```
+
+⚠️ Dù vậy, con số `33` **không để lại nghi ngờ nào về `042`**: dòng
+*"Bảng CÒN policy `authenticated_only` = 0"* và bài kiểm 16/16 đã chứng minh
+đúng điều cần chứng minh — bằng hai phép đo độc lập.
+
+#### 10.3.2 🔴 Nghĩa vụ ② chưa hoàn thành
+
+`SECURITY_DEFINER_REGISTRY.md` §2.4 buộc **chạy lại `A001`** ngay sau `042`, vì
+`v_costing_approved` là view đầu tiên **không** `security_invoker` — nó phá bất
+biến *"11/11 view invoker"* mà `A001` bản 2 đo được. **Chưa chạy.**
 
 ---
 
