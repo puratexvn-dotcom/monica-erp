@@ -255,7 +255,8 @@ Bộ kiểm phép chiếu · bài kiểm rò chéo tenant/đối tác/**tương 
 - 🧠 **[`PROJECT_MEMORY.md`](PROJECT_MEMORY.md)** — chỉ mục duy nhất, cửa vào cho mọi AI và lập trình viên
 - [`architecture/00-CONSTITUTION.md`](architecture/00-CONSTITUTION.md) **v1.6**
 - [`business/BUSINESS_KNOWLEDGE_BASE.md`](business/BUSINESS_KNOWLEDGE_BASE.md) **v2.0 ADOPTED**
-- [`adr/`](adr/) — 15 tài liệu ADR · [ADR-015](adr/ADR-015-muoi-bon-business-workspace.md) · [ADR-016](adr/ADR-016-executive-center-enterprise-control-center.md) · [ADR-017](adr/ADR-017-trang-chu-hai-vung.md)
+- [`adr/`](adr/) — 15 tài liệu ADR trong baseline · [ADR-015](adr/ADR-015-muoi-bon-business-workspace.md) · [ADR-016](adr/ADR-016-executive-center-enterprise-control-center.md) · [ADR-017](adr/ADR-017-trang-chu-hai-vung.md)
+- [ADR-018](adr/ADR-018-thu-hep-authenticated-only.md) — ⏳ **ADR đầu tiên SAU đóng băng.** Không thuộc baseline; đi qua Architecture Change Procedure (EDD-06 §10). Chờ phản biện độc lập + Board phê duyệt. Migration `042` ⛔ chưa viết
   > ⚠️ **`ADR-012` · `ADR-013` · `ADR-014` được đề xuất ở [Audit Report](audit/MONICA_ONE_AUDIT_REPORT.md) §6 nhưng CHƯA BAO GIỜ ban hành** — nội dung của chúng đã được EDD-01…EDD-05 hấp thụ. Ba số hiệu này **đặt chỗ, ⛔ không tái sử dụng** *(Hiến pháp §37.5)*.
 - [`enterprise-design/EDD-06`](enterprise-design/EDD-06-ARCHITECTURE-FREEZE-PACKAGE.md) — kiểm toán · §10 Architecture Change Procedure
 - [`../CLAUDE.md`](../CLAUDE.md) — quy ước kho mã

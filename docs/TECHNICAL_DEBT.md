@@ -56,6 +56,27 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
 
+### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
+
+`[VERIFIED]` 05/08/2026. Sổ nợ đã **vỡ thành ba nơi đánh số độc lập**, và
+`TD-13` đang mang **hai nghĩa khác nhau**:
+
+| Nơi cấp số | Dải | Có trong sổ này? |
+|---|---|---|
+| **`TECHNICAL_DEBT.md`** *(sổ chính)* | `TD-01`…`TD-13` | ✅ |
+| [`adr/ADR-010`](adr/ADR-010-thu-bac-van-ban-chuan-tac.md) §175 | `TD-13` *(ba chuỗi ADR song song — **trùng nghĩa**)* · `TD-14` | ⛔ |
+| [`adr/ADR-011`](adr/ADR-011-tham-quyen-kien-truc.md) §4.3 | `TD-15` *(đã trả — `docs/review/`)* | ⛔ |
+| [`enterprise-design/EDD-06`](enterprise-design/EDD-06-ARCHITECTURE-FREEZE-PACKAGE.md) §9.2 | `TD-16`…`TD-24` | ⛔ |
+| [`adr/ADR-018`](adr/ADR-018-thu-hep-authenticated-only.md) §9.3 | `TD-25`…`TD-30` | ⛔ |
+
+⚠️ **Trước khi cấp một số `TD` mới, phải tra cả năm nơi trên.** Bản nháp đầu của
+ADR-018 cấp `TD-18`…`TD-22` và **cả năm số đều đã bị EDD-06 chiếm** — phát hiện
+được chỉ nhờ tra ngược trước lúc commit.
+
+⇒ Cần một đợt gộp về sổ này kèm bảng ánh xạ, **và** một sổ cấp số tập trung cho
+`TD` · `VR` · `BDR`. Đề nghị đã nêu ở ADR-018 §9.3 `TD-30`; **Board quyết riêng**,
+không thuộc phạm vi ADR-018.
+
 ---
 
 <a id="td-01"></a>

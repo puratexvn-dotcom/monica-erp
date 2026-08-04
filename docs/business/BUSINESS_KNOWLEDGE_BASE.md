@@ -464,6 +464,32 @@ hoặc service. Cần ADR riêng **sau khi** `OQ-005` được trả lời.
 | `VR-002` | `BR-ACC-003` có thể **đang bị siết quá tay** — nhà thầu không thấy cả đơn giá của chính mình | `[EVIDENCE]` `031c3` thu hẹp `subcon_orders` theo `assignment_id`. Đo 04/08: subcon mới thấy **0/3** — nhưng tài khoản đó **chưa gắn assignment** nên số 0 không mang thông tin | **Đăng nhập thật** bằng tài khoản `subcon` đã gắn assignment |
 | `VR-003` | `style_bom` — bí mật kỹ thuật của khách — có thể cũng không thu hẹp | như `VR-001` | cùng truy vấn |
 
+> ### ⛔ ĐÍNH CHÍNH `VR-001` và `VR-003` — 04/08/2026
+>
+> **Đã đo xong bằng phiên đăng nhập thật** trên CSDL đang chạy:
+> [`docs/audit/VR-001-KET-QUA.md`](../audit/VR-001-KET-QUA.md).
+>
+> **Cột *Bằng chứng* của hai dòng trên là SAI.** Phép quét migration tìm theo
+> khuôn `CREATE POLICY ... ON costings`, không thấy, rồi kết luận trên chỗ không
+> tìm thấy. Lớp bảo vệ thật **không đặt theo từng bảng** — nó là hai policy
+> `RESTRICTIVE` quét toàn bộ schema: `buyer_denied` (`018:307`) và
+> `subcon_denied` (`025:111`).
+>
+> ⇒ **`BR-ACC-002` KHÔNG bị vi phạm.** Buyer và nhà thầu **không** đọc được
+> `costings`, `costing_items`, `style_bom`.
+>
+> **Nhưng có một vi phạm khác, nặng hơn, ở phía NỘI BỘ** — `F-2`: 23 bảng chạy
+> bằng `authenticated_only` = `FOR ALL` + `GRANT ALL`, nên **mọi vai nội bộ đọc,
+> sửa và xoá cứng được** cơ cấu giá thành và định mức. Và `F-1`: sổ kiểm toán
+> `activity_log` sửa được — đã vá bằng migration `041`.
+>
+> Xử lý `F-2`: [ADR-018](../adr/ADR-018-thu-hep-authenticated-only.md) — ⏳ chờ
+> Board phê duyệt.
+>
+> Giữ nguyên hai dòng sai bên trên theo **Hiến pháp Điều 43.7** *(không viết lại
+> lịch sử)*. Chúng là **tư liệu**, không còn là kết luận có hiệu lực. Bản BKB kế
+> tiếp phải viết lại — ghi nhận `TD-22`.
+
 > ### 🔴 `VR-001` · Việc cần Board làm — một truy vấn, một phút
 >
 > ```sql

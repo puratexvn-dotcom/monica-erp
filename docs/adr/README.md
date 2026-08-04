@@ -18,8 +18,13 @@ Bắt buộc từ Migration 029 trở đi cho mọi thay đổi Domain Model ho�
 | [ADR-007](ADR-007-data-reconciliation.md) | Data Reconciliation — đối soát dữ liệu lịch sử | — | 🟡 **Chờ phê duyệt** |
 | [ADR-008](ADR-008-bundle-stage-vocabulary.md) | Từ vựng vòng đời bó bán thành phẩm — **tách trục** | `039` → `031d` | ✅ **Đã phê duyệt** *(Board, 02/08/2026 · Phương án D)* |
 | [ADR-009](ADR-009-enterprise-design-system.md) | Enterprise Design System — màu là thông tin, không phải trang trí | — *(Hiến pháp `1.2` · PART VIII · Điều 44)* | ✅ **Đã phê duyệt** *(Board, 03/08/2026)* |
-| [ADR-010](ADR-010-thu-bac-van-ban-chuan-tac.md) | Thứ bậc văn bản chuẩn tắc — chấm dứt tình trạng hai Hiến pháp | — | ⏳ **Chờ phê duyệt** · ⚠️ **đã thi hành trước lên 3 tệp `.md`** — xem ghi chú dưới |
-| [ADR-011](ADR-011-tham-quyen-kien-truc.md) | Thẩm quyền kiến trúc và phản biện độc lập bắt buộc | — | ⏳ **Chờ phê duyệt** · ghi nhận phán quyết Board 04/08/2026 |
+| [ADR-010](ADR-010-thu-bac-van-ban-chuan-tac.md) | Thứ bậc văn bản chuẩn tắc — chấm dứt tình trạng hai Hiến pháp | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* · ⚠️ **đã thi hành trước lên 3 tệp `.md`** — xem ghi chú dưới |
+| [ADR-011](ADR-011-tham-quyen-kien-truc.md) | Thẩm quyền kiến trúc và phản biện độc lập bắt buộc | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* |
+| — | *`012` · `013` · `014` — **số dành riêng, chưa từng ban hành**. Chỉ được ĐỀ XUẤT ở Audit Report §6 rồi hấp thụ vào EDD. **Không tái sử dụng** (Hiến pháp §37.5)* | — | ⛔ **không tồn tại** |
+| [ADR-015](ADR-015-muoi-bon-business-workspace.md) | Mười bốn Business Workspace — tu chính Hiến pháp §16.2 · Domain Activation Model | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* → Hiến pháp `v1.6` |
+| [ADR-016](ADR-016-executive-center-enterprise-control-center.md) | Executive Center là Enterprise Control Center — ngoại lệ hiến định duy nhất của §5.4 | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* → §18.10 · §18.11 |
+| [ADR-017](ADR-017-trang-chu-hai-vung.md) | Trang chủ hai vùng — Work Zone + Launcher, sáu ràng buộc `WZ-1`…`WZ-6` | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* → §13.3 |
+| [ADR-018](ADR-018-thu-hep-authenticated-only.md) | Thu hẹp `authenticated_only` trên 23 bảng Merchandising — phát hiện `F-2` | `042` *(chưa viết)* | ⏳ **Chờ phản biện + Board phê duyệt** · ⛔ **không viết SQL trước khi duyệt** |
 
 ⚠️ **ADR-010 đã được thi hành một phần trước khi phê duyệt**, theo chỉ thị trực
 tiếp của Board ngày 04/08/2026 (*"dựng lại nền quản trị"*). Ba tệp bị chạm:

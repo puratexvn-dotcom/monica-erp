@@ -14,7 +14,12 @@
 >
 > **[`ARCHITECTURE_BASELINE.md`](ARCHITECTURE_BASELINE.md)** — Freeze Certificate đã ký.
 > Baseline `MONICA-ONE-BASELINE-2026-08-04` · Constitution **v1.6** · BKB **v2.0 ADOPTED** ·
-> **15 tài liệu ADR** · 14 EDD · 149 Decision Log · 29 Board Decision.
+> **15 tài liệu ADR · 14 số hiệu** · 14 EDD · 149 Decision Log · 29 Board Decision.
+>
+> ⏳ **ADR-018** *(Thu hẹp `authenticated_only` — 23 bảng)* là **ADR đầu tiên sau
+> khi đóng băng** — nó **không** thuộc baseline, mà đi qua Architecture Change
+> Procedure. Đã soạn, chờ phản biện độc lập và Board phê duyệt. Migration `042`
+> ⛔ chưa viết.
 >
 > 🔴 **Mọi thay đổi kiến trúc từ nay đi qua [Architecture Change Procedure](enterprise-design/EDD-06-ARCHITECTURE-FREEZE-PACKAGE.md) — EDD-06 §10.**
 > ⛔ **Không được thay đổi kiến trúc trực tiếp bằng mã.** Phát hiện vấn đề khi lập trình
@@ -112,7 +117,12 @@ Mâu thuẫn thật ⇒ 🔴 **DỪNG**, ghi `NEEDS_CLARIFICATION`, Board phán 
 > `E-2` DORMANT là **4** Domain *(thêm `D15 Textile`)* · `E-3` **~226** màn hình, không phải ~208 ·
 > `E-4` `Capability` ⟷ `Module` là **hai bản đồ khác nhau** *(93 ⟷ 78)* · `E-5` `DL-104` là mở rộng của CSA.
 >
-> 🔴 **Freeze CHƯA có hiệu lực** — chờ Cổng A: `ADR-015` · `ADR-016` · `ADR-017` · BKB `ADOPTED` · ADR-011 `APPROVED`.
+> ✅ **Freeze CÓ HIỆU LỰC 04/08/2026.** Cổng A khép: `ADR-015` · `ADR-016` ·
+> `ADR-017` đã ban hành và Board phê duyệt · BKB `ADOPTED` · ADR-011 `APPROVED` ·
+> Hiến pháp lên `v1.6`.
+>
+> 🟡 **Cổng B còn 4/6:** `B1` ✅ *(`VR-001` đo xong)* · `B6` ✅ *(`docs/review/`)* ·
+> **`B2` 🔴 Board phải cắt vòng khoá SECURITY FREEZE** · `B3` · `B4` · `B5`.
 
 `*` EDD-03A kéo Phase 11 về sớm theo chỉ thị Board.
 
