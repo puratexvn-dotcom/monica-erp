@@ -36,6 +36,46 @@ những chỗ có trạng thái *"khoá nội dung nhưng chưa kết thúc"* �
 
 ---
 
+## 0.1 🔑 KHAI BÁO BẰNG METADATA — Board Decision 05/08/2026
+
+> **Trigger ⛔ không được biết Business Column.** Nó chỉ biết **Immutable Field
+> Set**, và đọc tập đó từ **metadata**.
+>
+> ⛔ Không `IF NEW.approved_by …` · ⛔ không văn xuôi · ⛔ không hardcode trong SQL.
+
+Mỗi aggregate khai báo **bốn trường**, lưu thành dữ liệu:
+
+```
+table_name           tên bảng
+status_column        cột mang vòng đời      (khác nhau: status · stage · current_stage)
+final_states[]       tập trạng thái Final
+mutable_after_final[] các cột VẪN đổi được sau Final
+```
+
+**Immutable Field Set** = *(mọi cột của bảng)* − `mutable_after_final` — **suy ra
+lúc chạy**, không liệt kê sẵn. Nhờ vậy thêm cột mới vào bảng thì nó **tự động**
+được bảo vệ, không phải sửa gì.
+
+Thêm `approved_device` · `approved_ip` · `approved_signature` về sau ⇒ **thêm một
+phần tử vào `mutable_after_final`**. ⛔ Không sửa trigger · ⛔ không sửa migration
+· ⛔ không sửa kiến trúc.
+
+### ⚠️ Một điểm tôi phải nêu trước khi Board chốt
+
+Board xác nhận `Costing · Final State = APPROVED`. Nhưng `SUPERSEDED` cũng là
+trạng thái **không nên sửa nội dung**. Nếu `final_states = {APPROVED}` thì một
+chiết tính `SUPERSEDED` **sửa nội dung tự do**.
+
+⇒ Tôi đề xuất `final_states = {APPROVED, SUPERSEDED}`, giữ nguyên
+`mutable_after_final` Board đã chốt.
+
+Hệ quả: từ `SUPERSEDED`, cột `status` vẫn đổi được ở tầng CSDL. **Đó là đúng
+theo `W.1`** — *"`SUPERSEDED` là trạng thái cuối, không quay lui"* là **phép
+chuyển**, thuộc **Workflow Engine**, ⛔ không thuộc trigger. Trigger chỉ giữ
+**bất biến nội dung**.
+
+---
+
 ## 1. MA TRẬN — 24 aggregate
 
 Cột `Trạng thái` là **`[MEASURED]`** — trích từ ràng buộc `CHECK` trong lược đồ.
@@ -43,11 +83,22 @@ Cột `Final` là **`[INFERRED]`** trừ chỗ ghi khác, và **cần Board xác
 
 ### 1.1 Nhóm `L` — 🔴 **BẮT BUỘC trigger**
 
-| Aggregate | Trạng thái `[MEASURED]` | Final | Đổi được sau Final | Bất biến | RLS đủ? | Lý do |
-|---|---|---|---|---|---|---|
-| **`costings`** | `DRAFT` `SUBMITTED` `APPROVED` `REJECTED` `REVISE` `SUPERSEDED` | `SUPERSEDED` **`T`** · `APPROVED` **`L`** | `status` *(→`SUPERSEDED`)* · `approved_by` · `approved_at` | `quoted_price` · `target_price` · `margin_percent` · `quantity` · `order_type` · `currency` · `costing_id` của con | ⛔ **KHÔNG** cho `APPROVED` | `APPROVED` khoá nội dung nhưng **còn** chuyển sang `SUPERSEDED` — EDD-04 §8.4.2. Đúng dạng `L` |
-| **`purchase_orders`** | `DRAFT` `SENT` `CONFIRMED` `PARTIAL` `RECEIVED` `CANCELLED` | `CANCELLED` `RECEIVED` **`T`** · `CONFIRMED` **`L`** | `status` · số lượng đã nhận | đơn giá · điều khoản · nhà cung cấp | ⛔ cho `CONFIRMED` | PO đã xác nhận là **cam kết pháp lý**; giá không đổi nhưng tiến độ nhận còn chạy |
-| **`stock_counts`** | `OPEN` `COUNTING` `REVIEW` `POSTED` `CANCELLED` | `CANCELLED` **`T`** · `POSTED` **`L`** | `status` | số đếm · chênh lệch · `stock_count_items` | ⛔ cho `POSTED` | Kiểm kê đã ghi sổ ⇒ số liệu là bằng chứng kế toán *(Điều 8)* |
+Bốn cột đầu là **metadata thi hành được** — chép thẳng vào bảng khai báo.
+
+| Aggregate | `status_column` | `final_states[]` | `mutable_after_final[]` | Nguồn | RLS đủ? |
+|---|---|---|---|---|---|
+| **`costings`** | `status` | `APPROVED` · `SUPERSEDED` | `status` · `approved_by` · `approved_at` | ✅ **Board chốt 05/08/2026** *(`SUPERSEDED` do CSA đề xuất — §0.1)* | ⛔ **KHÔNG** |
+| **`purchase_orders`** | `status` | `CONFIRMED` · `PARTIAL` · `RECEIVED` · `CANCELLED` | `status` · *(cột tiến độ nhận — chưa xác định)* | ⏳ `[INFERRED]` — chờ `A1-PO` | ⛔ KHÔNG |
+| **`stock_counts`** | `status` | `POSTED` · `CANCELLED` | `status` | ⏳ `[INFERRED]` — chờ `A1-SC` | ⛔ KHÔNG |
+
+**Immutable Field Set** của mỗi dòng = *(mọi cột)* − `mutable_after_final`, suy
+ra lúc chạy. ⛔ Không liệt kê tay.
+
+| Aggregate | Vì sao KHÔNG dùng RLS được |
+|---|---|
+| `costings` | `APPROVED` khoá nội dung nhưng **còn** chuyển sang `SUPERSEDED` — EDD-04 §8.4.2. Dạng `L` |
+| `purchase_orders` | PO đã xác nhận là **cam kết pháp lý**: giá bất biến, nhưng tiến độ nhận còn chạy |
+| `stock_counts` | Kiểm kê đã ghi sổ là **bằng chứng kế toán** *(Điều 8)*; `status` còn đổi |
 
 ### 1.2 Nhóm `T` — ✅ **RLS một mình là đủ**
 
