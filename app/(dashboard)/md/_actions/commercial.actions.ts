@@ -432,7 +432,31 @@ export async function reviseCosting(costingId: string): Promise<ActionResult<{ i
     copied = itemsRes.rows.length;
   }
 
-  await g.supabase.from('costings').update({ status: 'SUPERSEDED' }).eq('id', costingId);
+  // ⚠️ PHẢI kiểm cả `error` LẪN số dòng khớp — `error === null` MỘT MÌNH không
+  // đủ. RLS lọc dòng thì **im lặng**: lệnh trả về thành công với 0 dòng, không
+  // ném lỗi. Chỉ số dòng mới phân biệt được "đã đổi" với "không chạm được dòng
+  // nào".
+  //
+  // Đây không phải lo xa. Đo trên CSDL thật 05/08/2026 cho thấy `UPDATE` lên
+  // `costing_items` của một chiết tính đã duyệt trả về **0 dòng, không lỗi** —
+  // đúng đường im lặng đó, ở bảng ngay cạnh. Bản trước gọi rồi bỏ qua hoàn toàn
+  // kết quả, nên nếu đường này chạm tới `costings` thì hệ thống sẽ sinh HAI bản
+  // cùng `APPROVED` cho một mã hàng mà người dùng vẫn thấy báo thành công.
+  //
+  // Xem docs/review/ADR-018-review.md §B-1.
+  const { data: daThayThe, error: supErr } = await g.supabase
+    .from('costings').update({ status: 'SUPERSEDED' }).eq('id', costingId).select('id');
+  if (supErr || !daThayThe?.length) {
+    return {
+      ok: false,
+      message:
+        `Đã tạo phiên bản ${nextVersion} nhưng KHÔNG chuyển được bản cũ sang trạng thái "đã có bản mới thay thế"` +
+        `${supErr ? `: ${friendlyDbError('reviseCosting:supersede', supErr)}` : ' — không có dòng nào được cập nhật.'}` +
+        ` Hai bản đang cùng hiệu lực cho ${s.costing_no}. Báo quản trị trước khi dùng số liệu này.`,
+      data: { id: newId },
+    };
+  }
+
   await syncCostingMargin(newId);
   await writeAudit('COSTING', newId, 'CREATE', {
     version: { from: s.version, to: nextVersion },

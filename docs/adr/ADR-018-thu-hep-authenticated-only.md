@@ -3,7 +3,8 @@
 | Trường | Giá trị |
 |---|---|
 | **Số hiệu** | ADR-018 |
-| **Trạng thái** | ⏳ **Chờ Board phê duyệt** — soạn theo Board Directive 04/08/2026 mục 2 |
+| **Trạng thái** | ✅ **ĐÃ ĐÓNG 05/08/2026** — Board phê duyệt · `042` đã chạy · phản biện hậu kiểm xong |
+| **Hồ sơ phản biện** | [`docs/review/ADR-018-review.md`](../review/ADR-018-review.md) — 🔴 treo: **0** · 🟠 treo: **1** (`B-2` → `TD-32`) |
 | **Người soạn** | Chief Solution Architect |
 | **Phản biện độc lập** | ⏳ chưa thực hiện — bắt buộc theo [ADR-011](ADR-011-tham-quyen-kien-truc.md) §2.2 *(thay đổi RLS · policy · mô hình phân quyền)* |
 | **Hồ sơ phản biện** | [`docs/review/ADR-018-review.md`](../review/) — chưa lập |
@@ -501,6 +502,7 @@ sao một bảng lại rộng hơn cùng tầng.
 | **`TD-27`** | Luật `.delete()` của arch test dùng **ngưỡng bằng hiện trạng** (`arch.test.mjs:66`) nên không chặn lời gọi mới, chỉ chặn lời gọi thứ 5 trở đi. Nên đổi sang danh sách miễn trừ tường minh theo `tệp:dòng` |
 | **`TD-28`** | `CLAUDE.md` §2.2 trích `SECURITY FREEZE` là *"Hiến pháp XI.1"* trong khi điều đó nằm ở `MONICA_CONSTITUTION.md` **bậc 4**. Trái quy tắc trích dẫn của chính CLAUDE.md §0 |
 | **`TD-29`** | `BUSINESS_KNOWLEDGE_BASE.md:463` *(bậc 0′, **ADOPTED**)* còn chứa phát biểu `VR-001` đã bị bác bỏ. Đã gắn đính chính tại chỗ; bản BKB kế tiếp phải viết lại dòng đó |
+| **`TD-32`** | 🟠 **Người lập chiết tính cũng là người duyệt.** `giamdoc` không có `/md` trong `MODULE_ACCESS` (`lib/rbac.ts:76`) và không có quyền ghi `costings` trong `042` ⇒ `md` tự duyệt chiết tính của chính mình. Trái **Board Working Principle v2.0** *("costing chỉ được duyệt bởi giám đốc sản xuất")* và tinh thần `SOD-H*`. **Không phải hồi quy do `042`** — trước đó mọi vai đều duyệt được, tệ hơn — nhưng `042` đóng băng nó vào tầng CSDL. Sửa = **thay đổi mô hình phân quyền** ⇒ ADR riêng + phản biện riêng. Nguồn: [`ADR-018-review.md`](../review/ADR-018-review.md) §B-2 |
 | **`TD-31`** | `VR-004` cấm *"export, copy"* nhưng tầng **Data Egress Control** (EDD-04F `E1` `E6` · `P-ATTRIB`) **chưa dựng**. `042` chỉ thi hành được *"chỉ đọc"*. Watermark · nhật ký tải · audit trail nằm ở **Cổng D** |
 | **`TD-30`** | 🔴 **Sổ nợ kỹ thuật đã vỡ thành ba nơi đánh số độc lập.** `TECHNICAL_DEBT.md` *(sổ chính)* dừng ở `TD-13`; `ADR-010` cấp `TD-13` `TD-14` với **nghĩa khác**; `ADR-011` cấp `TD-15`; `EDD-06` §9.2 cấp `TD-16`…`TD-24`. ⇒ **`TD-13` đang mang hai nghĩa**, và `TD-14`…`TD-24` chưa bao giờ vào sổ chính |
 

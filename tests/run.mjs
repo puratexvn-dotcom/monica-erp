@@ -34,6 +34,10 @@ const BAI = [
   // kết luận thật trên 4 bảng đang rỗng — thứ mà phép đếm suông không làm được
   // (Hiến pháp V.1).
   ['security/md-read-matrix.test.mjs', 'Ma trận đọc VR-004 · VR-005', true],
+  // Đi hết vòng đời chứng từ thay vì chỉ đo quyền ở mức bảng. Sinh ra sau khi
+  // một bản phản biện suy diễn hành vi policy mà không chạy thử — xem
+  // docs/review/ADR-018-review.md, Phụ lục.
+  ['security/costing-lifecycle.test.mjs', 'Vòng đời chiết tính', true],
 ];
 
 const ketQua = [];

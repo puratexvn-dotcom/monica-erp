@@ -16,10 +16,19 @@
 > Baseline `MONICA-ONE-BASELINE-2026-08-04` · Constitution **v1.6** · BKB **v2.0 ADOPTED** ·
 > **15 tài liệu ADR · 14 số hiệu** · 14 EDD · 149 Decision Log · 29 Board Decision.
 >
-> ⏳ **ADR-018** *(Thu hẹp `authenticated_only` — 23 bảng)* là **ADR đầu tiên sau
-> khi đóng băng** — nó **không** thuộc baseline, mà đi qua Architecture Change
-> Procedure. Đã soạn, chờ phản biện độc lập và Board phê duyệt. Migration `042`
-> ⛔ chưa viết.
+> ✅ **ADR-018** *(Thu hẹp `authenticated_only` — 23 bảng)* — **ADR đầu tiên sau
+> khi đóng băng**, đi qua Architecture Change Procedure, **không** thuộc baseline.
+> **ĐÃ ĐÓNG 05/08/2026**: Board phê duyệt · `041` + `042` đã chạy · `F-1` và
+> `F-2` khép · ma trận đọc `90/90` · `A001` đạt · phản biện hậu kiểm xong
+> *(🔴 treo 0 · 🟠 treo 1 ⇒ `TD-32`)*.
+>
+> 🔑 **Bài học đắt nhất của chặng này nằm ở
+> [`docs/review/ADR-018-review.md`](review/ADR-018-review.md) Phụ lục:** bản phản
+> biện tự sinh ra một lỗi 🔴 **không tồn tại** kèm một migration `043` sẽ **làm
+> yếu** hệ thống — vì tôi đọc biểu thức policy rồi suy ra hành vi, **không chạy
+> một lệnh nào**. Một phép chạy 30 giây bác bỏ toàn bộ. ⇒ Mọi khẳng định về hành
+> vi policy phải có **một phép chạy đứng sau**, kể cả khẳng định trong văn bản đi
+> kiểm tra người khác.
 >
 > 🔴 **Mọi thay đổi kiến trúc từ nay đi qua [Architecture Change Procedure](enterprise-design/EDD-06-ARCHITECTURE-FREEZE-PACKAGE.md) — EDD-06 §10.**
 > ⛔ **Không được thay đổi kiến trúc trực tiếp bằng mã.** Phát hiện vấn đề khi lập trình
