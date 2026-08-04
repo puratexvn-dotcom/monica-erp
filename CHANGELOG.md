@@ -83,6 +83,38 @@ Nguyên nhân chung: **không có sổ cấp số tập trung.** Thứ bậc vă
 xung đột *nội dung*, không giải quyết xung đột *số hiệu*. Ghi thành `TD-30`,
 **đề nghị Board quyết riêng**.
 
+### 🗄️ Migration `042` — soạn xong, ⛔ **chưa chạy**
+
+Board phê duyệt ADR-018 **về nguyên tắc** 05/08/2026 và giữ nguyên SECURITY
+FREEZE ⇒ `042` được **soạn**, không được **chạy**.
+
+- **Tầng Privilege** — `REVOKE TRUNCATE, TRIGGER, REFERENCES` trên 22 bảng;
+  `REVOKE DELETE` trên 16 bảng. Sáu bảng giữ `DELETE` có thời hạn (`TD-25`).
+- **Tầng Policy** — thay `authenticated_only` bằng bộ ba tách theo hành động
+  `_read` / `_insert` / `_update`, điều kiện qua `mos_current_role()`.
+- **`costings_no_edit_after_approve`** — policy `RESTRICTIVE` chặn sửa chứng từ
+  đã duyệt *(Hiến pháp Điều 8 · rủi ro `R-3`)*. Cố ý **không** có `WITH CHECK`,
+  nếu không sẽ chặn luôn phép chuyển hợp lệ `SUBMITTED → APPROVED`.
+
+### ⚖️ Hai phán quyết Board — và chỗ chúng đụng giới hạn kỹ thuật
+
+**`VR-004` · Warehouse READ ONLY trên `style_bom`** — thi hành đủ:
+`SELECT` cho 4 vai kho, không `INSERT`/`UPDATE`/`DELETE`. Yêu cầu *"không truy
+cập thông tin tài chính"* **tự thoả** — `style_bom` không có cột giá nào.
+🔴 Yêu cầu *"không export, không copy"* **KHÔNG thi hành được ở `042`** — cần
+tầng Data Egress Control (EDD-04F) chưa dựng ⇒ `TD-31`.
+
+**`VR-005` · Accounting xem giá đã duyệt, không xem Cost Breakdown** — đây là
+phân quyền theo **CỘT**, mà **RLS chỉ lọc DÒNG**, và `GRANT SELECT (cột)` cấp
+theo **vai CSDL** trong khi mọi người dùng Monica đều là `authenticated`.
+⇒ Buộc phải dùng **phép chiếu** `v_costing_approved` — đúng khuôn Disclosure
+Projection `DL-057`. View **cố ý không `security_invoker`**; đã đăng ký ở
+[`SECURITY_DEFINER_REGISTRY.md`](docs/SECURITY_DEFINER_REGISTRY.md) §2.4 kèm ba
+nghĩa vụ. Đây là chỗ **đầu tiên** phá bất biến *"11/11 view invoker"* của `A001`.
+
+⚠️ **Cần Board xác nhận** view mới không thuộc phần *"không mở rộng phạm vi"* —
+ADR-018 §10.2 nêu cả phương án thay thế *(hoãn phần `ketoan`)*.
+
 ### 📄 Tài liệu
 
 - `docs/audit/MONICA_ONE_AUDIT_REPORT.md` — **khối đính chính §M2**. Phát biểu

@@ -197,14 +197,95 @@ lại thành nợ kiến trúc `TD-25` ở §9.3.
 
 ### 5.1 Phân tầng 22 bảng *(`activity_log` đã xử lý ở `041`)*
 
-**T1 · Thương mại — mật (4 bảng)**
+**T1 · Thương mại — mật (4 bảng)** — *sửa 05/08/2026 theo phán quyết `VR-004`
+và `VR-005` của Board*
 
-| Bảng | `SELECT` | `INSERT` · `UPDATE` |
+| Bảng | `SELECT` trên bảng gốc | `INSERT` · `UPDATE` |
 |---|---|---|
-| `costings` · `costing_items` · `inquiries` · `style_bom` | `superadmin` `giamdoc` `md` `ketoan` | `superadmin` `md` |
+| `costings` | `superadmin` `giamdoc` `md` | `superadmin` `md` |
+| `costing_items` | `superadmin` `giamdoc` `md` | `superadmin` `md` |
+| `inquiries` | `superadmin` `giamdoc` `md` | `superadmin` `md` |
+| `style_bom` | `superadmin` `giamdoc` `md` **+ `kho` `khotruong` `thukho` `ketoanvattu`** *(chỉ đọc — `VR-004`)* | `superadmin` `md` |
 
 `giamdoc` đọc mà không ghi — đúng vai người **duyệt**, và là điều kiện cần của
 `SOD-H*`: người lập giá không được là người duyệt giá.
+
+⚠️ **`ketoan` KHÔNG còn trong T1.** Bản nháp đầu cho `ketoan` đọc cả 4 bảng.
+Phán quyết `VR-005` hẹp hơn thế — xem §5.1.1.
+
+#### 5.1.1 🔴 `VR-005` là phân quyền theo CỘT — RLS không làm được
+
+Board phán quyết: *"Accounting được phép xem Approved Cost, Contribution Margin,
+Full Cost và giá đã được phê duyệt. Không được truy cập Cost Breakdown, Draft
+Costing, AI Simulation hoặc dữ liệu thương lượng."*
+
+Chiếu vào lược đồ thật (`015:111-137`):
+
+| Cột `costings` | Phán quyết | Vì sao |
+|---|---|---|
+| `quoted_price` · `margin_percent` | ✅ cho | giá đã duyệt · Contribution Margin |
+| `costing_no` `version` `currency` `quantity` `order_type` `customer_id` `style_id` `status` `approved_by` `approved_at` | ✅ cho | ngữ cảnh, không mang nội dung thương lượng |
+| **`target_price`** | ⛔ cấm | giá mục tiêu khách đưa ra — **dữ liệu thương lượng** |
+| **`notes`** · **`reject_reason`** | ⛔ cấm | lý do bác, trao đổi nội bộ — **dữ liệu thương lượng** |
+| **`inquiry_id`** | ⛔ cấm | trỏ thẳng vào hồ sơ hỏi giá |
+| Dòng `status <> 'APPROVED'` | ⛔ cấm | **Draft Costing** |
+| Toàn bộ `costing_items` | ⛔ cấm | bảng này **CHÍNH LÀ** Cost Breakdown |
+| Toàn bộ `inquiries` | ⛔ cấm | dữ liệu thương lượng |
+
+**Vấn đề:** lọc `status = 'APPROVED'` là lọc **dòng** — RLS làm được. Nhưng
+*"thấy `quoted_price`, không thấy `target_price`"* là lọc **cột**, và
+**RLS không lọc cột.**
+
+`GRANT SELECT (cột, cột)` có lọc cột, nhưng nó cấp theo **vai CSDL**. Mọi người
+dùng Monica — `md`, `ketoan`, `kho` — đều đăng nhập dưới **cùng một vai
+`authenticated`**; vai thật nằm trong claim JWT, không nằm ở tầng Postgres. Vì
+vậy `GRANT` theo cột **không phân biệt được `ketoan` với `md`**.
+
+⇒ Cách duy nhất thi hành đúng `VR-005`: **`ketoan` không chạm bảng gốc**, mà đọc
+một **phép chiếu** chỉ chứa cột được phép:
+
+```
+ketoan  ⛔ costings (bảng gốc)  ⛔ costing_items  ⛔ inquiries
+ketoan  ✅ v_costing_approved   ← chỉ 12 cột cho phép · chỉ status = 'APPROVED'
+```
+
+Đây **không phải phát minh mới**: nó đúng **Disclosure Projection** `DL-057`
+(EDD-03) — *"vai không chạm bảng gốc, chỉ đọc read model"*. `DL-057` viết cho
+vai NGOÀI; ADR này áp cùng khuôn cho một vai TRONG, vì yêu cầu có cùng hình dạng.
+
+⚠️ **View mặc định vượt mặt RLS** (CLAUDE.md §3). `v_costing_approved` **cố ý**
+để mặc định *(không `security_invoker`)* — nếu đặt `security_invoker = true` thì
+view chạy dưới quyền `ketoan`, mà `ketoan` bị cấm bảng gốc, nên view trả rỗng và
+phán quyết Board không thi hành được. Đánh đổi này **bắt buộc**, và kèm ba nghĩa vụ:
+
+1. Ghi vào [`SECURITY_DEFINER_REGISTRY.md`](../SECURITY_DEFINER_REGISTRY.md) kèm lý do và ADR
+2. `A001` *(view security)* chạy lại — nó tồn tại đúng để bắt loại view này
+3. View **tự mang bộ lọc** `WHERE status = 'APPROVED'` và tự giới hạn cột — không
+   dựa vào bất kỳ policy nào ở dưới
+
+#### 5.1.2 `VR-004` — phần thi hành được và phần KHÔNG
+
+Board: *"Warehouse được phép READ ONLY đối với Style BOM… Không được sửa,
+export, copy hoặc truy cập các thông tin tài chính."*
+
+| Yêu cầu | Thi hành ở đâu | Tình trạng |
+|---|---|---|
+| **READ ONLY** | `042` — policy `SELECT` cho 4 vai kho, ⛔ không `INSERT`/`UPDATE`/`DELETE` | ✅ làm được ngay |
+| **Không truy cập thông tin tài chính** | — | ✅ **tự thoả**: `style_bom` **không có cột giá nào**. Toàn bộ 14 cột là định mức kỹ thuật *(`consumption_per_pcs` · `wastage_percent` · `net_consumption` · `supplier` …)* |
+| **Không export, không copy** | Data Egress Control — EDD-04F `E1` `E6` | 🔴 **CHƯA CÓ.** Tầng này chưa được dựng |
+
+🔴 **Phải nói thẳng:** `042` thi hành được *"chỉ đọc"* và *"không có dữ liệu tài
+chính"*, nhưng **không** thi hành được *"không export, không copy"*. Ai đọc được
+màn hình thì chụp được màn hình và chép được nội dung — EDD-04F `P-ATTRIB` đã
+kết luận đúng điều đó, và giải pháp không phải ngăn tuyệt đối mà là **quy trách
+nhiệm**: watermark, nhật ký tải, audit trail. Toàn bộ tầng đó nằm ở Cổng D, chưa
+dựng. Ghi thành `TD-31`.
+
+> ⚠️ Một chỗ tôi tự quyết, báo để Board bác nếu sai: cột **`supplier`** trong
+> `style_bom` là **nguồn cung** — thông tin thương mại nhạy cảm, nhưng không phải
+> *"thông tin tài chính"* theo nghĩa Board nêu, và kho **cần** nó để nhận hàng.
+> Tôi giữ cột này cho kho. Muốn cắt thì phải chuyển `style_bom` sang phép chiếu
+> như `costings`, và tôi cần Board nói rõ.
 
 **T2 · Chứng từ vận hành (7 bảng)** — `SELECT`: mọi vai nội bộ
 
@@ -420,6 +501,7 @@ sao một bảng lại rộng hơn cùng tầng.
 | **`TD-27`** | Luật `.delete()` của arch test dùng **ngưỡng bằng hiện trạng** (`arch.test.mjs:66`) nên không chặn lời gọi mới, chỉ chặn lời gọi thứ 5 trở đi. Nên đổi sang danh sách miễn trừ tường minh theo `tệp:dòng` |
 | **`TD-28`** | `CLAUDE.md` §2.2 trích `SECURITY FREEZE` là *"Hiến pháp XI.1"* trong khi điều đó nằm ở `MONICA_CONSTITUTION.md` **bậc 4**. Trái quy tắc trích dẫn của chính CLAUDE.md §0 |
 | **`TD-29`** | `BUSINESS_KNOWLEDGE_BASE.md:463` *(bậc 0′, **ADOPTED**)* còn chứa phát biểu `VR-001` đã bị bác bỏ. Đã gắn đính chính tại chỗ; bản BKB kế tiếp phải viết lại dòng đó |
+| **`TD-31`** | `VR-004` cấm *"export, copy"* nhưng tầng **Data Egress Control** (EDD-04F `E1` `E6` · `P-ATTRIB`) **chưa dựng**. `042` chỉ thi hành được *"chỉ đọc"*. Watermark · nhật ký tải · audit trail nằm ở **Cổng D** |
 | **`TD-30`** | 🔴 **Sổ nợ kỹ thuật đã vỡ thành ba nơi đánh số độc lập.** `TECHNICAL_DEBT.md` *(sổ chính)* dừng ở `TD-13`; `ADR-010` cấp `TD-13` `TD-14` với **nghĩa khác**; `ADR-011` cấp `TD-15`; `EDD-06` §9.2 cấp `TD-16`…`TD-24`. ⇒ **`TD-13` đang mang hai nghĩa**, và `TD-14`…`TD-24` chưa bao giờ vào sổ chính |
 
 > ### 🔴 `TD-30` — vì sao khoản nợ này nguy hiểm hơn vẻ ngoài của nó
@@ -475,16 +557,50 @@ vi không phải 8 bảng mà là **23**.
 
 ## 10. Decision
 
-> ⏳ **CHƯA QUYẾT.** Mục này để trống cho tới khi Board phán quyết.
+### 10.1 Phán quyết Board — 05/08/2026
 
 | Trường | Giá trị |
 |---|---|
-| **Ngày phản biện độc lập** | |
-| **Ý kiến 🔴 còn treo** | *(phải là 0 mới trình được — `docs/review/README.md` R-2)* |
-| **`VR-004` trả lời** | |
-| **`VR-005` trả lời** | |
-| **Ngày Board phê duyệt** | |
-| **Phán quyết** | ⏳ chờ · ✅ duyệt · ⚠️ duyệt có điều kiện · ⛔ bác |
+| **Phán quyết** | ✅ **PHÊ DUYỆT VỀ NGUYÊN TẮC** — *"Tiếp tục chuẩn bị Migration 042 theo đúng Architecture Freeze"* |
+| **Ràng buộc kèm theo** | *"Không mở rộng phạm vi, không thay đổi Business Capability, Domain hoặc Architecture"* |
+| **SECURITY FREEZE** | 🔴 **GIỮ NGUYÊN** — Board không cắt `B2` |
+| **Ngày phản biện độc lập** | ⏳ **chưa thực hiện** — vẫn bắt buộc trước Sprint I-2 |
+| **Ý kiến 🔴 còn treo** | *(chưa mở hồ sơ phản biện)* |
+
+**`VR-004` — trả lời:**
+
+> *"Warehouse được phép READ ONLY đối với Style BOM để phục vụ cấp phát nguyên
+> phụ liệu. Không được sửa, export, copy hoặc truy cập các thông tin tài chính."*
+
+⇒ Thi hành ở §5.1 *(4 vai kho có `SELECT` trên `style_bom`)* và §5.1.2. **Một
+phần không thi hành được ở `042`** — *không export, không copy* cần tầng Data
+Egress Control chưa dựng ⇒ `TD-31`.
+
+**`VR-005` — trả lời:**
+
+> *"Accounting được phép xem Approved Cost, Contribution Margin, Full Cost và giá
+> đã được phê duyệt. Không được truy cập Cost Breakdown, Draft Costing, AI
+> Simulation hoặc dữ liệu thương lượng."*
+
+⇒ Thi hành ở §5.1.1. **Phán quyết này hẹp hơn bản nháp đầu của tôi** *(tôi cho
+`ketoan` đọc cả 4 bảng T1)* và **là phân quyền theo CỘT**, nên nó buộc ADR phải
+thêm một **phép chiếu** `v_costing_approved`.
+
+### 10.2 ⚠️ Điểm phải trình lại Board trước khi chạy `042`
+
+Board dặn *"không mở rộng phạm vi"*. Tôi đang thêm **một view mới** — cần nói rõ
+để Board xác nhận đây không phải điều Board cấm:
+
+| Câu hỏi | Trả lời của tôi |
+|---|---|
+| View mới có phải Business Capability mới không? | **Không.** Nó không tạo năng lực nghiệp vụ nào; nó là **lối đọc hẹp hơn** thay cho lối đọc rộng đang có |
+| Có đụng Domain hay Architecture Baseline không? | **Không.** Không Domain mới, không bảng mới, không cột mới, không đụng 149 Decision Log |
+| Vậy vì sao vẫn phải thêm? | Vì `VR-005` là phân quyền **theo cột**, mà RLS **chỉ lọc dòng**. Không có phép chiếu thì chỉ còn hai lựa chọn: cho `ketoan` thấy cả `target_price` *(trái phán quyết Board)*, hoặc cấm `ketoan` sạch `costings` *(cũng trái phán quyết Board)* |
+| Rủi ro của nó | View mặc định **vượt mặt RLS**. Bù bằng ba nghĩa vụ ở §5.1.1, trong đó `A001` là bài kiểm bắt buộc |
+
+🔴 **Nếu Board không muốn thêm view**, phương án thay thế duy nhất là **hoãn
+phần `ketoan`**: `042` cấm `ketoan` toàn bộ T1, và `VR-005` để lại Sprint sau.
+An toàn hơn, nhưng kế toán mất đường đọc giá đã duyệt. **Tôi cần Board chọn.**
 
 ---
 

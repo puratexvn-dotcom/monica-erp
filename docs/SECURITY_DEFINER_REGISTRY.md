@@ -107,6 +107,30 @@ Trạng thái đo ngày 02/08/2026, **sau** migration 038.
 
 ---
 
+### 2.4 ⚠️ VIEW CHẠY DƯỚI QUYỀN CHỦ HÀM — ⏳ ĐỀ XUẤT, CHƯA CHẠY
+
+`A001` bản 2 (02/08/2026) đo được **11/11 view đều `security_invoker`**. Đó là
+bất biến tốt, và mục này ghi nhận **chỗ đầu tiên phá nó** — kèm lý do, để không
+ai ba tháng sau tưởng là sơ suất.
+
+| view | migration | vì sao buộc phải chạy dưới quyền chủ hàm | ADR | trạng thái |
+|---|---|---|---|---|
+| `v_costing_approved` | **`042`** ⏳ *chưa chạy* | Phán quyết Board **`VR-005`** (05/08/2026) cho kế toán xem *giá đã duyệt · Contribution Margin* nhưng **cấm** *Cost Breakdown · Draft Costing · dữ liệu thương lượng*. Đó là phân quyền theo **CỘT**; **RLS chỉ lọc DÒNG**, và `GRANT SELECT (cột)` cấp theo **vai CSDL** — mà mọi người dùng Monica đều là `authenticated`, nên nó không phân biệt được `ketoan` với `md`. ⇒ `ketoan` bị cấm bảng gốc `costings` và đọc phép chiếu này. Đặt `security_invoker = true` ⇒ view chạy dưới quyền `ketoan` ⇒ bị `costings_read` chặn ⇒ **trả rỗng**, phán quyết Board không thi hành được | **ADR-018** §5.1.1 | ⏳ |
+
+**Ba nghĩa vụ bù lại — ADR-018 §5.1.1:**
+
+| # | Nghĩa vụ | Tình trạng |
+|---|---|---|
+| ① | Ghi vào sổ này kèm lý do và ADR | ✅ chính là mục này |
+| ② | Chạy lại **`A001`** *(view security)* sau khi `042` chạy | ⏳ chờ `042` |
+| ③ | View **tự mang** bộ lọc `status = 'APPROVED'` + tự giới hạn danh sách vai, không dựa vào policy nào ở dưới | ✅ đã viết vào `042` Mục 4 |
+
+🔴 **Cột trong view này là quyết định TIẾT LỘ, không phải chi tiết kỹ thuật.**
+Năm cột bị bỏ có chủ ý — `target_price` · `notes` · `reject_reason` ·
+`inquiry_id` · `created_by`. **Không thêm cột nếu chưa có phán quyết Board.**
+
+---
+
 ## 3. HAI LỚP BẢO VỆ ĐANG CHẠY
 
 | lớp | tệp | vai trò |
@@ -154,6 +178,7 @@ chối** vào bài kiểm hồi quy của migration đó.
 |---|---|
 | 02/08/2026 | Lập sổ. A001 phát hiện 13/14 hàm `anon` gọi được, 2 hàm ghi. `038` chạy → đo lại **0/14**. `031a` hồi quy lại **35/35** — không vai nội bộ nào bị vạ lây. |
 | 02/08/2026 | `038b` chạy. A001 bản 2 xác nhận: **19/19 hàm `anon` bị chặn · 19/19 ghim `search_path` · 11/11 view `invoker` · 0 view cho `anon` đọc.** |
+| 05/08/2026 | ⏳ **`042` đề xuất view `v_costing_approved` KHÔNG `security_invoker`** — chỗ đầu tiên phá bất biến *"11/11 view invoker"*. Buộc phải vậy vì phán quyết Board `VR-005` là phân quyền theo **cột**, thứ RLS không làm được. Đăng ký ở §2.4 kèm ba nghĩa vụ. **`A001` phải chạy lại ngay sau `042`.** |
 
 ## 6. RỦI RO CÒN LẠI — CHƯA ĐÓNG ĐƯỢC
 
