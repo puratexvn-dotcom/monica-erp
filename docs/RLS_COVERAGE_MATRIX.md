@@ -328,6 +328,26 @@ theo lược đồ** — nên A001 liệt kê **động**.
 | 02/08/2026 | **`031b` chạy · hồi quy 20/20.** Nhà thầu hết mù; Buyer thấy `order_items` 3/3. Quét 113 quan hệ bằng phiên Buyer thật: **0 rò rỉ**. | Claude |
 | 02/08/2026 | **`031c` + `031c2` chạy · hồi quy 13/13.** Nhà thầu hết thấy nhà thầu khác. Bản `031c` đầu **chặn phẳng thay vì khoanh vùng** — policy truy vấn `partners`, bảng mà chính đối tác không đọc được. Vá bằng hàm bắc cầu `SECURITY DEFINER`. → **Playbook K-3**. | Claude |
 | | *Còn chờ:* mở rộng `S001` cho 3 bảng `subcon_*` đang rỗng → rồi `031d` | |
+| 04/08/2026 | **`VR-001` đo xong bằng phiên đăng nhập thật** — [`audit/VR-001-KET-QUA.md`](audit/VR-001-KET-QUA.md). Đính chính một kết luận sai của Audit Report: người NGOÀI **không** rò `costings`/`style_bom` (đã có `buyer_denied` 018 + `subcon_denied` 025). Lỗ hổng thật ở phía **NỘI BỘ**: 23 bảng của `014`/`015` chạy bằng `authenticated_only` = `FOR ALL` + `GRANT ALL`. | Claude |
+| 04/08/2026 | **`041` — Security Hotfix `F-1`.** Thu hồi `UPDATE`/`DELETE`/`TRUNCATE` của `authenticated` + `anon` trên `activity_log`. Sổ kiểm toán trước đó **sửa và xoá được bởi mọi vai nội bộ** — vi phạm BDR-14 và K-1. ⏳ *Board chưa chạy — chờ chép kết quả khối kiểm tra về đây.* | Claude |
+
+### 🔴 F-2 — 22 bảng còn hở, chờ ADR-018
+
+`[VERIFIED 04/08/2026]` Vai `md` **xoá cứng được** cả 23 bảng dưới đây; `041`
+mới đóng bảng đầu tiên. Cột `GHI` để `🔴` cho tới khi migration của ADR-018 chạy.
+
+| bảng | nguồn policy | authenticated `DELETE` | ghi chú |
+|---|---|---|---|
+| `activity_log` | `015` | 🔴 → *chờ `041`* | **sổ kiểm toán** · BDR-14 |
+| `costings` · `costing_items` | `015` | 🔴 | **giá thành · biên lợi nhuận** |
+| `style_bom` | `015` | 🔴 | **định mức — bí mật kỹ thuật** |
+| `inquiries` | `015` | 🔴 | dữ liệu thương mại |
+| `customers` · `production_orders` · `material_requests` | `014` | 🔴 | |
+| 15 bảng MD còn lại *(xem `VR-001-KET-QUA.md` §4)* | `015` | 🔴 | |
+
+⚠️ **Cột ĐỌC của 23 bảng này là `⚪`, không phải `⛔`** — bảng đang rỗng, Điều
+V.1 cấm kết luận. Suy luận từ biểu thức policy nói rằng thủ kho đọc được
+`costings`, nhưng **suy luận không phải phép đo**. Đo lại sau Cổng C.
 
 > ### 🔑 K-3 — bài học đắt nhất của chặng 031c
 >

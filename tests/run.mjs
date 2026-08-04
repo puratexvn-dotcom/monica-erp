@@ -26,6 +26,10 @@ const BAI = [
   ['regression/seed-integrity.test.mjs', 'Toàn vẹn dữ liệu nền', true],
   ['security/anon-and-buyer.test.mjs', 'Quét anon + Buyer', true],
   ['security/rls-external.test.mjs', 'Phân quyền người ngoài', true],
+  // ⚠️ Bài dưới đây HỎNG CÓ CHỦ Ý cho tới khi migration thu hẹp
+  // `authenticated_only` được Board duyệt và chạy. Nó mô tả trạng thái ĐÍCH.
+  // Xanh sớm nghĩa là bài kiểm sai, không phải hệ thống đúng.
+  ['security/md-internal-scope.test.mjs', 'Phân quyền người trong', true],
 ];
 
 const ketQua = [];
