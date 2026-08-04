@@ -39,7 +39,7 @@
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { requireDb, scoreboard, sessionFactory, ROOT } from '../_lib/harness.mjs';
+import { requireDb, scoreboard, sessionFactory, boiCanh, ROOT } from '../_lib/harness.mjs';
 
 const { env, admin, anonClient, createClient } = requireDb();
 const s = scoreboard('MA TRẬN ĐỌC — VR-004 · VR-005');
@@ -91,6 +91,8 @@ try {
     console.log('   ⚠️ Bỏ qua KHÔNG phải là đạt (Hiến pháp V.1).');
     process.exit(0);
   }
+
+  await boiCanh(admin, { bang: ['costings', 'costing_items', 'inquiries', 'style_bom'] });
 
   const ma = randomUUID().slice(0, 8);
   const styleId = await gieo('styles', {

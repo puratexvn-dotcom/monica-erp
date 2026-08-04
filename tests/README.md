@@ -33,6 +33,46 @@ npm run verify        # typecheck + lint + test
 
 ---
 
+## 🔑 `P-MEASURE` — QUY TẮC THỨ NĂM, ĐẮT NHẤT
+
+> Board Directive 05/08/2026 mục 6. Toàn văn: `docs/ARCHITECTURE_BASELINE.md` §3.0.
+
+```
+① Đo trước, kết luận sau — suy diễn từ biểu thức policy KHÔNG phải bằng chứng
+② Mọi phép đo ghi rõ: trạng thái hệ thống · phiên bản migration · dữ liệu · điều kiện
+③ Kết luận CHỈ có giá trị với ĐÚNG trạng thái đã được đo
+```
+
+**Vế ① một mình không đủ.** Ngày 05/08/2026, một phép đo **đúng hoàn toàn về kỹ
+thuật** vẫn cho kết luận sai — vì nó đo một CSDL đã bị chính bản vá đang được
+kiểm chứng thay đổi, mà người đo không biết. Hệ quả: một kết luận **đúng** bị rút
+lại, và một lỗ hổng toàn phần nằm mở thêm nhiều giờ.
+
+### Bài kiểm chạm bảo mật phải gọi
+
+```js
+import { boiCanh, dauVan } from '../_lib/harness.mjs';
+
+await boiCanh(admin, { bang: ['costings', 'costing_items'] });   // TRƯỚC phép đo đầu
+dauVan('sửa giá chiết tính đã duyệt', '🔴 SỬA ĐƯỢC — CSDL đang mang `043`');
+```
+
+- **`boiCanh()`** in CSDL nào · thời điểm · **migration trong KHO** · số dòng
+- **`dauVan()`** ghi **CSDL thật đang làm gì** — không phải đạt/hỏng, mà là mô tả trạng thái
+- `ketThuc()` tự in nhắc: *"Kết luận trên CHỈ có giá trị với trạng thái đã ghi ở BỐI CẢNH ĐO"*
+
+🔑 **`boiCanh()` cố ý in migration trong KHO, không phải trong CSDL.** Hai thứ đó
+lệch nhau được. Đặt cạnh `dauVan()`, sự lệch hiện ra trong một cái liếc:
+
+```
+│ Migration trong KHO  51 tệp · mới nhất: … 042 · 044
+  🔎 sửa giá chiết tính ĐÃ DUYỆT    🔴 SỬA ĐƯỢC — CSDL đang mang `043`
+```
+
+Kho bảo `044`, CSDL hành xử như `043`. **Đó chính là thứ đã lọt qua mắt tôi.**
+
+---
+
 ## ⚠️ BỐN QUY TẮC MỌI BÀI KIỂM PHẢI THEO
 
 Cả bốn đều sinh ra từ **sự cố có thật**, không phải từ sách vở.

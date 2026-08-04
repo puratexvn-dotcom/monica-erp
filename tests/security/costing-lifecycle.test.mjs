@@ -29,7 +29,7 @@
 // lỗi `B-1`.
 // ============================================================================
 import { randomUUID } from 'node:crypto';
-import { requireDb, scoreboard, sessionFactory } from '../_lib/harness.mjs';
+import { requireDb, scoreboard, sessionFactory, boiCanh, dauVan } from '../_lib/harness.mjs';
 
 const { env, admin, createClient } = requireDb();
 const s = scoreboard('VÒNG ĐỜI CHIẾT TÍNH');
@@ -57,6 +57,8 @@ try {
     process.exit(0);
   }
 
+  await boiCanh(admin, { bang: ['costings', 'costing_items'] });
+
   const ma = randomUUID().slice(0, 8);
   const md = (await phien.tao('md', 'md')).client;
   // ⚠️ `costings_no_version_unique UNIQUE (costing_no, version)` — hai lời gọi
@@ -66,6 +68,34 @@ try {
     costing_no: `ZZLC-${ma}-${++dem}`, customer_id: khach.id, order_type: 'FOB',
     currency: 'USD', quantity: 100, quoted_price: 10, status: tt, ...them,
   });
+
+  // ─── DẤU VÂN — CSDL đang mang bản nào? ────────────────────────────────────
+  // Đây là phép đo lẽ ra phải có ở lần đo thứ hai ngày 05/08. Thiếu nó, tôi đã
+  // đo một CSDL mang `043` mà tưởng đang đo bản `042`, rồi rút lại một kết luận
+  // đúng. Hai dòng dưới phân biệt được ba trạng thái khác nhau của CSDL.
+  console.log('\nDẤU VÂN — CSDL đang mang bản nào');
+  {
+    const idFp = await moi('APPROVED', { approved_at: new Date().toISOString() });
+    const { error: eFp } = await md.from('costings')
+      .update({ quoted_price: 55 }).eq('id', idFp);
+    const { data: sauFp } = await admin.from('costings')
+      .select('quoted_price').eq('id', idFp).single();
+    dauVan('sửa giá chiết tính ĐÃ DUYỆT (có approved_at)',
+      Number(sauFp.quoted_price) === 55
+        ? '🔴 SỬA ĐƯỢC — CSDL đang mang `043`'
+        : `bị chặn (${eFp?.code ?? '0 dòng'}) — CSDL đang mang \`042\`/\`044\``);
+
+    await gieo('costing_items', {
+      costing_id: idFp, category: 'FABRIC', item_name: 'ZZ dấu vân',
+      unit: 'M', consumption: 1, unit_price: 2,
+    });
+    const dem2 = async (c) => (await c.from('costing_items')
+      .select('*', { count: 'exact', head: true }).eq('costing_id', idFp)).count ?? 0;
+    const [nAd, nMd] = [await dem2(admin), await dem2(md)];
+    dauVan('khoản mục của chiết tính ĐÃ DUYỆT',
+      `admin thấy ${nAd} · md thấy ${nMd}`
+      + (nAd !== nMd ? '  🔴 policy của `043` còn sót' : ''));
+  }
 
   // ══ A · PHÉP CHUYỂN HỢP LỆ PHẢI CHẠY ĐƯỢC ────────────────────────────────
   console.log('\nA · Phép chuyển HỢP LỆ — vế đối chứng, thiếu nó thì chặn phẳng cũng xanh');

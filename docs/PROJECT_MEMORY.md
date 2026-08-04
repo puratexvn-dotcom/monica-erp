@@ -22,13 +22,31 @@
 > `F-2` khép · ma trận đọc `90/90` · `A001` đạt · phản biện hậu kiểm xong
 > *(🔴 treo 0 · 🟠 treo 1 ⇒ `TD-32`)*.
 >
-> 🔑 **Bài học đắt nhất của chặng này nằm ở
-> [`docs/review/ADR-018-review.md`](review/ADR-018-review.md) Phụ lục:** bản phản
-> biện tự sinh ra một lỗi 🔴 **không tồn tại** kèm một migration `043` sẽ **làm
-> yếu** hệ thống — vì tôi đọc biểu thức policy rồi suy ra hành vi, **không chạy
-> một lệnh nào**. Một phép chạy 30 giây bác bỏ toàn bộ. ⇒ Mọi khẳng định về hành
-> vi policy phải có **một phép chạy đứng sau**, kể cả khẳng định trong văn bản đi
-> kiểm tra người khác.
+> ## 🔑 `P-MEASURE` — nguyên tắc kiểm chứng, sinh từ sự cố 05/08/2026
+>
+> Toàn văn ở [`ARCHITECTURE_BASELINE.md`](ARCHITECTURE_BASELINE.md) §3.0.
+>
+> ```
+> ① Đo trước, kết luận sau — suy diễn từ biểu thức policy KHÔNG phải bằng chứng
+> ② Mọi phép đo ghi rõ: trạng thái hệ thống · phiên bản migration · dữ liệu · điều kiện
+> ③ Kết luận CHỈ có giá trị với ĐÚNG trạng thái đã được đo
+> ```
+>
+> **Ba sai lầm liên tiếp trên cùng một vấn đề, cùng một ngày:**
+>
+> | | | |
+> |---|---|---|
+> | ① | Suy diễn từ biểu thức policy ⇒ ghi lỗi 🔴 `B-1`, soạn `043` | lỗi **không có thật** |
+> | ② | `043` được chạy. **Đo thật** ⇒ rút lại `B-1`, xoá tệp | đo **đúng kỹ thuật**, nhưng đo CSDL **đã bị chính bản vá của mình đổi** |
+> | ③ | Đo có kiểm soát trạng thái | `043` **đang mở lỗ hổng toàn phần** |
+>
+> 🔴 **Sai lầm ② là sai lầm đắt nhất, và nó đi lọt qua vế ①.** Phép đo hoàn toàn
+> đúng. Cái sai là **không biết mình đang đo cái gì**. Đó là lý do vế ② và ③ tồn
+> tại — và lý do `harness.mjs` có `boiCanh()` + `dauVan()`: biến nguyên tắc
+> thành **cơ chế**, không phải lời nhắc.
+>
+> Hồ sơ đầy đủ: [`review/ADR-018-review.md`](review/ADR-018-review.md) §B-1 và
+> Phụ lục · `supabase/migrations/044_restore_costing_lock.sql`.
 >
 > 🔴 **Mọi thay đổi kiến trúc từ nay đi qua [Architecture Change Procedure](enterprise-design/EDD-06-ARCHITECTURE-FREEZE-PACKAGE.md) — EDD-06 §10.**
 > ⛔ **Không được thay đổi kiến trúc trực tiếp bằng mã.** Phát hiện vấn đề khi lập trình

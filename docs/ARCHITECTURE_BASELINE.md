@@ -128,6 +128,51 @@
 
 # §3 · IMPLEMENTATION READY
 
+## 3.0 🔑 NGUYÊN TẮC KIỂM CHỨNG — `P-MEASURE`
+
+> **Ban hành:** Board Directive 05/08/2026 mục 6. Ràng buộc **mọi** thay đổi
+> chạm Security · RLS · Permission · Policy · Database.
+
+```
+① Đo trước, kết luận sau.
+   Suy diễn từ biểu thức policy KHÔNG phải bằng chứng.
+
+② Mọi phép đo phải ghi rõ: trạng thái hệ thống · phiên bản migration ·
+   dữ liệu kiểm thử · điều kiện đo.
+
+③ Kết luận CHỈ có giá trị với ĐÚNG trạng thái đã được đo.
+```
+
+### Vì sao vế ② và ③ tồn tại — sự cố 05/08/2026
+
+Vế ① một mình **không đủ**, và đây là bằng chứng:
+
+| | Hành động | Kết quả |
+|---|---|---|
+| ① | Đọc biểu thức policy `042`, **suy diễn** ra hành vi, ghi lỗi 🔴 `B-1`, soạn `043` | lỗi **không có thật** |
+| ② | `043` được chạy. **Đo thật** — thấy phép chuyển chạy được ⇒ rút lại `B-1`, xoá `043` | phép đo **đúng kỹ thuật**, nhưng đo một CSDL **đã bị chính bản vá của mình đổi** |
+| ③ | Đo có kiểm soát trạng thái | `043` **đang mở lỗ hổng toàn phần** |
+
+Sai lầm ② là sai lầm đắt nhất, và nó **đi lọt qua vế ①**: phép đo hoàn toàn
+đúng. Cái sai là **không biết mình đang đo cái gì**.
+
+### Thi hành bằng cơ chế, không bằng lời nhắc
+
+`tests/_lib/harness.mjs` cung cấp:
+
+| Hàm | Việc |
+|---|---|
+| `boiCanh()` | in **BỐI CẢNH ĐO** trước phép đo đầu: CSDL nào · thời điểm · **migration trong KHO** · số dòng từng bảng |
+| `dauVan()` | ghi **dấu vân hành vi** — CSDL thật đang làm gì, đối chiếu được với kho |
+| `ketThuc()` | in nhắc ở cuối: *"Kết luận trên CHỈ có giá trị với trạng thái đã ghi ở khối BỐI CẢNH ĐO"* |
+
+🔑 **`boiCanh()` in migration trong KHO, không phải trong CSDL** — có chủ ý. Hai
+thứ đó lệch nhau được, và ngày 05/08 chúng **đã** lệch. Đặt cạnh `dauVan()`, sự
+lệch hiện ra trong một cái liếc: kho ghi `044` là tệp mới nhất, dấu vân báo
+*"CSDL đang mang `043`"*.
+
+---
+
 ## 3.1 🔴 Ba cổng còn lại — Cổng B, C, D
 
 **Freeze đã có hiệu lực. Nhưng ba việc phải xong TRƯỚC dòng mã đầu tiên.**

@@ -24,7 +24,7 @@
 //
 // V.1 · Không kết luận trên bảng RỖNG. Ghi `⚪ chưa đo được`, không ghi `⛔`.
 // ============================================================================
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -76,6 +76,65 @@ export function requireDb() {
   };
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// BỐI CẢNH ĐO — nguyên tắc kiểm chứng, Board Directive 05/08/2026 mục 6
+// ════════════════════════════════════════════════════════════════════════════
+//
+// ─── VÌ SAO TỆP NÀY CÓ THÊM PHẦN NÀY ──────────────────────────────────────
+//
+// 05/08/2026, chuỗi ba sai lầm liên tiếp trên cùng một vấn đề:
+//   ① suy diễn từ biểu thức policy, không đo  → ghi một lỗi 🔴 không có thật
+//   ② ĐO THẬT, nhưng đo một CSDL đã bị chính bản vá của mình thay đổi mà không
+//      biết → rút lại một kết luận đúng
+//   ③ đo có kiểm soát → mới thấy bản vá đó đang mở một lỗ hổng toàn phần
+//
+// Sai lầm ② là sai lầm đắt nhất, và nó KHÔNG bị "đo trước, kết luận sau" chặn:
+// phép đo hoàn toàn đúng kỹ thuật. Cái sai là **không biết mình đang đo cái gì**.
+//
+// ⇒ Board ban hành: *"Mọi phép đo phải ghi rõ trạng thái hệ thống, phiên bản
+//   Migration, dữ liệu kiểm thử và điều kiện đo. Kết luận chỉ có giá trị đối với
+//   đúng trạng thái đã được đo."*
+//
+// Phần dưới đây biến nguyên tắc đó thành **cơ chế**, không phải lời nhắc: mọi
+// bài kiểm bảo mật in bối cảnh trước khi đo và nhắc lại giới hạn sau khi đo.
+
+/**
+ * In BỐI CẢNH ĐO trước khi chạy phép đo đầu tiên.
+ *
+ * ⚠️ Cột `migration trong KHO` đọc từ thư mục `supabase/migrations/`, tức là
+ * **kho tin gì** — KHÔNG phải CSDL có gì. Hai thứ đó lệch nhau được, và ngày
+ * 05/08/2026 chúng ĐÃ lệch: CSDL mang policy của `043` trong khi tệp `043` đã
+ * bị xoá khỏi kho. Chính vì vậy dòng này phải in ra: nó là nửa đối chiếu, nửa
+ * còn lại là `dauVan()` bên dưới.
+ */
+export async function boiCanh(admin, { bang = [] } = {}) {
+  const env = loadEnv();
+  const host = (() => { try { return new URL(env.url).host; } catch { return '(không rõ)'; } })();
+  const ds = readdirSync(resolve(ROOT, 'supabase', 'migrations'))
+    .filter((f) => f.endsWith('.sql')).sort();
+
+  console.log('┌─ BỐI CẢNH ĐO ' + '─'.repeat(58));
+  console.log(`│ CSDL              ${host}`);
+  console.log(`│ Thời điểm         ${new Date().toISOString()}`);
+  console.log(`│ Migration trong KHO  ${ds.length} tệp · mới nhất: ${ds.slice(-3).join(' · ')}`);
+  for (const t of bang) {
+    const { count, error } = await admin.from(t).select('*', { count: 'exact', head: true });
+    console.log(`│ ${t.padEnd(24)} ${error ? 'LỖI ' + error.code : (count ?? 0) + ' dòng'}`);
+  }
+  console.log('└' + '─'.repeat(72));
+}
+
+/**
+ * Ghi một DẤU VÂN hành vi — thứ CSDL thật đang làm, đối chiếu được với kho.
+ *
+ * Khác `ok()`: đây không phải phép kiểm đạt/hỏng mà là phép **mô tả trạng thái**.
+ * Nó tồn tại để khi đọc lại log ba tuần sau, người đọc biết kết luận hôm đó
+ * đứng trên nền nào — thay vì phải đoán như tôi đã đoán sai.
+ */
+export function dauVan(nhan, ketQua) {
+  console.log(`  🔎 ${nhan.padEnd(46)} ${ketQua}`);
+}
+
 // ─── Sổ điểm ────────────────────────────────────────────────────────────────
 export function scoreboard(ten) {
   let dat = 0, hong = 0;
@@ -101,6 +160,11 @@ export function scoreboard(ten) {
         + (dsChuaDo.length ? ` · ${dsChuaDo.length} chưa đo được` : ''));
       if (dsHong.length) { console.log('\nHỏng:'); for (const h of dsHong) console.log('  ⛔ ' + h); }
       if (dsChuaDo.length) console.log(`\n⚪ Chưa đo được: ${dsChuaDo.join(', ')}`);
+      // Board Directive 05/08/2026 mục 6. In ở CUỐI vì đây là chỗ người ta đọc
+      // rồi đi kể lại — và câu bị bỏ quên khi kể lại chính là câu này.
+      console.log('\n⚠️ Kết luận trên CHỈ có giá trị với trạng thái đã ghi ở khối'
+        + ' BỐI CẢNH ĐO đầu log.\n   Chạy lại sau bất kỳ migration nào — kể cả'
+        + ' migration của chính bài kiểm này.');
       console.log('═'.repeat(72));
       return hong;
     },

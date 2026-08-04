@@ -53,7 +53,7 @@
 // nghĩa là bài kiểm sai, không phải hệ thống đúng.
 // ============================================================================
 import { randomUUID } from 'node:crypto';
-import { requireDb, scoreboard, sessionFactory, dem } from '../_lib/harness.mjs';
+import { requireDb, scoreboard, sessionFactory, dem, boiCanh } from '../_lib/harness.mjs';
 
 const { env, admin, createClient } = requireDb();
 const s = scoreboard('KIỂM PHÂN QUYỀN NỘI BỘ — authenticated_only');
@@ -120,6 +120,8 @@ try {
   // ── Hai vai nội bộ, khác nhau ở chỗ CÓ NGHIỆP VỤ VỚI DỮ LIỆU NÀY HAY KHÔNG
   //    md  · merchandiser — sở hữu nghiệp vụ 23 bảng này ⇒ vế KHẲNG ĐỊNH (K-3)
   //    kho · thủ kho      — không liên quan giá thành    ⇒ vế PHỦ ĐỊNH
+  await boiCanh(admin, { bang: ['costings', 'activity_log'] });
+
   const md = await phien.tao('md', 'md');
   const kho = await phien.tao('kho', 'kho');
 
