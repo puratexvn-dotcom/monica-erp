@@ -141,6 +141,34 @@ ADR-018 §10.2 nêu cả phương án thay thế *(hoãn phần `ketoan`)*.
 | `B4` | Người thứ hai cho `SOD-H04` · `H05` · `H06` | Joseph |
 | `B5` | Thời hạn phản biện tối đa | Board |
 
-> ⚠️ **`npm run verify` đang ĐỎ, có chủ ý.** Bài kiểm mô tả trạng thái **đích**;
-> nó chỉ xanh sau khi `041` và migration của ADR-018 chạy. Xanh sớm nghĩa là bài
-> kiểm sai, không phải hệ thống đúng.
+> ⚠️ **`npm run verify` vẫn ĐỎ — nhưng chỉ còn 6 mục, và cả 6 là ngoại lệ có chủ
+> ý (`TD-25`).** Nó chỉ xanh hết sau khi 4 lời gọi `.delete()` trong mã ứng dụng
+> được chuyển sang xoá mềm và 6 bảng kia bị thu hồi nốt — cần một ADR riêng vì
+> `costing_items` phải thêm cột `deleted_at`.
+
+---
+
+## Kết quả thi hành trên CSDL thật — 05/08/2026
+
+| Migration | Chạy | Kết quả đo độc lập |
+|---|---|---|
+| **`042`** | ✅ 05/08 | `authenticated_only` **22 → 0** · `TRUNCATE` hở **22 → 0** · `DELETE` hở **22 → 6** · `buyer_denied`/`subcon_denied` nguyên vẹn · `v_costing_approved` dựng · hàm dựng tự dọn |
+| **`041`** | ✅ 05/08 | `activity_log` hết `UPDATE`/`DELETE`/`TRUNCATE`; `INSERT`/`SELECT` còn nguyên nên sổ cái **vẫn ghi nhận được**; `service_role` giữ nguyên |
+
+**Bài kiểm phân quyền nội bộ:** `0 đạt · 24 hỏng` → `16 đạt · 8 hỏng` → **`18 đạt · 6 hỏng`**.
+
+✅ **`F-1` đóng** *(BDR-14 thoả — sổ kiểm toán nay bất biến)* ·
+✅ **`F-2` đóng** *(trừ 6 ngoại lệ `TD-25`)*.
+
+### ⚠️ Ghi nhận để hồ sơ đúng
+
+- **`042` chạy trước hai điều kiện chính nó ghi ở đầu tệp** — Board chưa cắt
+  `B2`, ADR-018 chưa qua phản biện độc lập. Đó là quyền của Board; hệ quả là
+  **phản biện nay thành hậu kiểm**, và nếu nó phát hiện vấn đề thì phải quay lui
+  trên CSDL thật chứ không phải sửa trên giấy.
+- **Một dòng khối kiểm tra của `042` sai — lỗi của CSA.** Phép đếm
+  `Policy _read mới` thiếu bộ lọc theo bảng ⇒ trả `33` thay vì `22`. Truy vấn
+  đúng ở ADR-018 §10.3.1. Không ảnh hưởng kết luận: hai phép đo độc lập khác đã
+  chứng minh `042` đúng.
+- 🔴 **`A001` chưa chạy lại** — nghĩa vụ ② của `SECURITY_DEFINER_REGISTRY` §2.4,
+  vì `v_costing_approved` là view đầu tiên không `security_invoker`.

@@ -612,7 +612,7 @@ cho cùng một kết luận: **migration làm đúng thiết kế.**
 
 | Phép đo | Trước `042` | Sau `042` | Kỳ vọng |
 |---|---|---|---|
-| Bài kiểm nội bộ | `0 đạt · 24 hỏng` | **`16 đạt · 8 hỏng`** | — |
+| Bài kiểm nội bộ | `0 đạt · 24 hỏng` | **`16 đạt · 8 hỏng`** → **`18 đạt · 6 hỏng`** *(sau `041`)* | — |
 | Bảng còn `authenticated_only` | 22 | **0** | 0 ✅ |
 | Bảng còn hở `TRUNCATE` | 22 | **0** | 0 ✅ |
 | Bảng còn hở `DELETE` | 22 | **6** | 6 ✅ *(`TD-25`)* |
@@ -625,7 +625,10 @@ cho cùng một kết luận: **migration làm đúng thiết kế.**
 | Mục | Bảng | Vì sao |
 |---|---|---|
 | 6 × `[F-2]` | `costing_items` · `order_size_breakdown` · `md_documents` · `style_colorways` · `style_sizes` · `style_operations` | **6 ngoại lệ có chủ ý** của §6.2 — `TD-25`. Đúng thiết kế, không phải lỗi |
-| 2 × `[F-1]` | `activity_log` | 🔴 **`041` CHƯA CHẠY** — sổ kiểm toán vẫn sửa và xoá được |
+| ~~2 × `[F-1]`~~ | ~~`activity_log`~~ | ✅ **ĐÃ ĐÓNG** — `041` chạy 05/08/2026, đo lại còn `18 đạt · 6 hỏng` |
+
+⇒ **Không còn mục hỏng nào ngoài 6 ngoại lệ đã ghi thành `TD-25`.** Mọi thứ
+`042` đặt ra làm được đều đã làm được.
 
 #### 10.3.1 ⚠️ Một dòng trong khối kiểm tra của `042` SAI — lỗi của tôi
 

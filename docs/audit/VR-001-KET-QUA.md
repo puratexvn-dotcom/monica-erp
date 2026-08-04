@@ -8,7 +8,26 @@
 | **Người soạn** | Chief Solution Architect |
 | **Ngày** | 04/08/2026 |
 | **Nguồn bằng chứng** | ① `supabase/migrations/*.sql` ② **phiên đăng nhập thật trên CSDL đang chạy** |
-| **Trạng thái** | 🔴 **`[VERIFIED]` — F-1 và F-2 XÁC NHẬN TRÊN CSDL THẬT** |
+| **Trạng thái** | ✅ **ĐÃ VÁ 05/08/2026** — `F-1` đóng bằng `041`, `F-2` đóng bằng `042` |
+
+> ## ✅ HAI PHÁT HIỆN ĐÃ ĐÓNG — 05/08/2026
+>
+> | | Vá bằng | Đo lại |
+> |---|---|---|
+> | **`F-1`** sổ kiểm toán sửa được | `041_activity_log_immutable.sql` | 7/7 khối kiểm tra đúng · phiên đăng nhập thật xác nhận |
+> | **`F-2`** 23 bảng không phân tách nội bộ | `042_narrow_md_grants.sql` | `authenticated_only` còn **0** bảng · `TRUNCATE` còn hở **0** |
+>
+> Bài kiểm [`md-internal-scope`](../../tests/security/md-internal-scope.test.mjs)
+> đi từ **`0 đạt · 24 hỏng`** → **`16 đạt · 8 hỏng`** *(sau `042`)* →
+> **`18 đạt · 6 hỏng`** *(sau `041`)*.
+>
+> **6 mục hỏng còn lại là 6 ngoại lệ có chủ ý** — `TD-25`, ADR-018 §6.2. Chúng
+> hỏng vì bài kiểm mô tả trạng thái **đích**, còn `042` cố ý dừng trước 6 bảng
+> đó để không làm gãy 4 lời gọi `.delete()` đang chạy trong mã ứng dụng.
+>
+> ⏳ Còn treo: **`A001`** chưa chạy lại *(nghĩa vụ ② —
+> [`SECURITY_DEFINER_REGISTRY`](../SECURITY_DEFINER_REGISTRY.md) §2.4)* ·
+> **ADR-018 chưa qua phản biện độc lập**.
 
 > ✅ **`VR-001` ĐÃ TRẢ LỜI XONG.** Cổng B mục `B1` khép lại.
 >
