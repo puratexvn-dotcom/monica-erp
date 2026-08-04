@@ -95,7 +95,41 @@ Sáu mục ở ADR-018 §9.4. **Mục 1 đã thành hiện thực** — xem `B-1
 | **B-4** | Khối kiểm tra `042` có một phép đếm sai | 🟡 gợi ý | tự soi | ✅ đã ghi ADR-018 §10.3.1 |
 | **B-5** | *(để trống — chờ người phản biện độc lập)* | | ChatGPT | ⏳ |
 
-### ⛔ B-1 — TÔI ĐÃ SAI. Rút lại toàn bộ.
+> ## 🔴 ĐÍNH CHÍNH LẦN HAI — 05/08/2026, SAU KHI ĐO LẠI CÓ KIỂM SOÁT
+>
+> **Phần `B-1` dưới đây — cả bản gốc LẪN bản rút lại — đều dựng trên nền sai.**
+> Sự thật chỉ lộ ra ở lần đo thứ ba, và nó nghiêm trọng hơn cả hai:
+>
+> | Giai đoạn | Tôi kết luận | Thực tế |
+> |---|---|---|
+> | ① | `042` chặn `APPROVED → SUPERSEDED` ⇒ 🔴 `B-1`, soạn `043` | **suy diễn, không đo** |
+> | ② | Đo thấy phép chuyển chạy được ⇒ *"`B-1` do tôi bịa"*, xoá `043` | **`043` ĐÃ ĐƯỢC CHẠY lên CSDL** — tôi đo hệ thống đã bị chính bản vá của mình đổi, mà không biết |
+> | ③ | Đo có kiểm soát | 🔴 **`043` đang mở một lỗ hổng toàn phần** |
+>
+> **Phép đo quyết định** — vai `md`, phiên thật, chiết tính `APPROVED`:
+>
+> ```
+> approved_at = NULL   → UPDATE quoted_price → 42501, giá giữ 10   ✅
+> approved_at ĐÃ ĐẶT   → UPDATE quoted_price → KHÔNG LỖI, giá 777  🔴
+> ```
+>
+> `setCostingStatus` (`commercial.actions.ts:322`) đặt `approved_at` **cùng lúc**
+> với `status='APPROVED'`. Nên **mọi chiết tính duyệt thật đều sửa giá được**.
+> Lỗ hổng là **toàn phần**. Vi phạm Hiến pháp **Điều 8**.
+>
+> Và tác dụng phụ thứ hai của `043`: `costing_items` của chiết tính đã duyệt
+> **biến mất khỏi giao diện** — đo được, `md` **và** `superadmin` đều thấy `0`
+> khoản mục khi cha ở `APPROVED`/`SUPERSEDED`, vì `FOR ALL` áp lên cả `SELECT`.
+>
+> ⇒ **`044_restore_costing_lock.sql`** khôi phục nguyên văn policy của `042`.
+> ⛔ Chưa chạy — chờ Board.
+>
+> ⚠️ **Hệ quả: `B-1` có thể là lỗi THẬT.** Sau khi `044` chạy, nếu
+> `costing-lifecycle` báo đỏ đúng chỗ `APPROVED → SUPERSEDED` thì `B-1` được xác
+> lập **bằng bằng chứng** — và khi đó mới soạn bản vá, **qua ADR, không vá thẳng**.
+> Tôi **không** kết luận trước ở đây.
+
+### ⛔ B-1 — bản rút lại *(giữ nguyên theo Điều 43.7 — đọc kèm đính chính trên)*
 
 **Tôi đã kết luận `042` phá vỡ `reviseCosting` và soạn cả migration `043` để vá.
 Phép đo trên CSDL thật bác bỏ cả hai.**
@@ -250,11 +284,11 @@ mã, không đụng CSDL.
 
 | Trường | Giá trị |
 |---|---|
-| **Ý kiến 🔴 còn treo** | **0** — `B-1` đã tự bác bỏ bằng phép đo, `043` đã xoá |
+| **Ý kiến 🔴 còn treo** | **1** — lỗ hổng do `043` để lại đang MỞ trên CSDL. `044` soạn xong, ⛔ chưa chạy |
 | **Ý kiến 🟠 còn treo** | **1** — `B-2`, chuyển thành `TD-32` + ADR riêng |
 | **Thay đổi lên Implementation** | **Không đụng CSDL.** Chỉ vá tầng mã: `commercial.actions.ts` kiểm `error` **và** số dòng khớp |
-| **Điều kiện `R-2`** | ✅ **thoả** — 0 ý kiến 🔴 |
-| **Bài kiểm mới** | `tests/security/costing-lifecycle.test.mjs` — **`7 đạt · 0 hỏng`** |
+| **Điều kiện `R-2`** | ⛔ **KHÔNG thoả** — còn 1 ý kiến 🔴 |
+| **Bài kiểm mới** | `costing-lifecycle.test.mjs` — **`6 đạt · 1 hỏng`**, mục hỏng chính là lỗ hổng đang mở |
 | **Ngày Board phê duyệt** | |
 
 ### Câu hỏi mở — cần Board chạy một truy vấn

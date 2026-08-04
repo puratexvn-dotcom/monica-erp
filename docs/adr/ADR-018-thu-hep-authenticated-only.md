@@ -3,7 +3,7 @@
 | Trường | Giá trị |
 |---|---|
 | **Số hiệu** | ADR-018 |
-| **Trạng thái** | ✅ **ĐÃ ĐÓNG 05/08/2026** — Board phê duyệt · `042` đã chạy · phản biện hậu kiểm xong |
+| **Trạng thái** | 🔴 **MỞ LẠI 05/08/2026** — `042` đúng, nhưng migration `043` *(chưa qua ADR, đã chạy nhầm)* làm yếu nó. `044` chờ Board chạy |
 | **Hồ sơ phản biện** | [`docs/review/ADR-018-review.md`](../review/ADR-018-review.md) — 🔴 treo: **0** · 🟠 treo: **1** (`B-2` → `TD-32`) |
 | **Người soạn** | Chief Solution Architect |
 | **Phản biện độc lập** | ⏳ chưa thực hiện — bắt buộc theo [ADR-011](ADR-011-tham-quyen-kien-truc.md) §2.2 *(thay đổi RLS · policy · mô hình phân quyền)* |

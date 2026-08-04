@@ -62,9 +62,9 @@ try {
   // ⚠️ `costings_no_version_unique UNIQUE (costing_no, version)` — hai lời gọi
   // cùng trạng thái sẽ trùng khoá nếu chỉ lấy tên theo trạng thái. Đếm tăng dần.
   let dem = 0;
-  const moi = (tt) => gieo('costings', {
+  const moi = (tt, them = {}) => gieo('costings', {
     costing_no: `ZZLC-${ma}-${++dem}`, customer_id: khach.id, order_type: 'FOB',
-    currency: 'USD', quantity: 100, quoted_price: 10, status: tt,
+    currency: 'USD', quantity: 100, quoted_price: 10, status: tt, ...them,
   });
 
   // ══ A · PHÉP CHUYỂN HỢP LỆ PHẢI CHẠY ĐƯỢC ────────────────────────────────
@@ -88,12 +88,18 @@ try {
   // ══ B · PHÉP CẤM PHẢI BỊ CHẶN ────────────────────────────────────────────
   console.log('\nB · Phép CẤM — Hiến pháp Điều 8, chứng từ đã duyệt bất động');
 
-  const cGia = await moi('APPROVED');
+  // ⚠️ `approved_at` PHẢI được đặt. Bản đầu của bài kiểm này gieo `APPROVED` mà
+  // để `approved_at = NULL`, và vì thế **bỏ lọt** một lỗ hổng toàn phần: policy
+  // do `043` để lại cho sửa giá bất kỳ dòng nào có `approved_at`. Chiết tính
+  // duyệt thật LUÔN có `approved_at` (`commercial.actions.ts:322` đặt cùng lúc
+  // với `status`), nên dữ liệu gieo thiếu cột đó **không đại diện cho dòng
+  // thật** — và bài kiểm xanh trên một trạng thái không tồn tại ngoài đời.
+  const cGia = await moi('APPROVED', { approved_at: new Date().toISOString() });
   await md.from('costings').update({ quoted_price: 999.99 }).eq('id', cGia);
   const { data: sauGia } = await admin.from('costings')
     .select('quoted_price').eq('id', cGia).single();
-  s.ok('⭐ KHÔNG sửa được giá của chiết tính ĐÃ DUYỆT',
-    Number(sauGia.quoted_price) === 10, `giá thành ${sauGia.quoted_price}`);
+  s.ok('⭐ KHÔNG sửa được giá của chiết tính ĐÃ DUYỆT (có approved_at)',
+    Number(sauGia.quoted_price) === 10, `SỬA ĐƯỢC — giá thành ${sauGia.quoted_price}`);
 
   const cSup = await moi('SUPERSEDED');
   await md.from('costings').update({ status: 'DRAFT' }).eq('id', cSup);
