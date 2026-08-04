@@ -104,6 +104,29 @@ lệnh cùng cho ra một dòng `SUPERSEDED` mà một lệnh có sửa giá kè
 ⇒ **Phương án C là phương án duy nhất đủ diễn đạt.** Đây là kết luận về **giới
 hạn của công cụ**, không phải sở thích thiết kế.
 
+> ## ⛔ ĐÍNH CHÍNH — 05/08/2026, Architecture Review
+>
+> **Câu in đậm ngay trên là PHÁT BIỂU QUÁ MẠNH so với bằng chứng.**
+>
+> Cái chứng minh được `[PROVEN]` là: *không cặp `(USING, WITH CHECK)` **thuần
+> theo dòng** nào biểu diễn được quy tắc* — xem
+> [`ADR-019-architecture-review.md`](../review/ADR-019-architecture-review.md) §2.3,
+> chứng minh ba nhân chứng.
+>
+> Nhưng RLS **không bắt buộc** vị từ phải thuần theo dòng: biểu thức policy được
+> phép chứa **truy vấn con**, và một truy vấn con đọc ảnh MVCC trước-sửa thì
+> **thấy được `OLD`** — làm sụp tiền đề của định lý.
+>
+> Tôi **chưa đo được** lối đó *(cần dựng policy, Board đang cấm)* ⇒ nó là
+> **`[NO EVIDENCE]`**, **không phải đã bị loại**.
+>
+> ⚠️ Đây đúng loại lỗi tôi đã mắc hai lần với `B-1`: kết luận vượt quá phép đo.
+> Lần này bắt được **trước** khi có ai viết SQL.
+>
+> Phát biểu đúng: **Phương án B *(RLS + Trigger)* là phương án đủ diễn đạt và đã
+> có tiền lệ đo được trong hệ thống; Phương án A chưa bị loại và cần một phép đo
+> (`M1`) để kết luận.**
+
 ---
 
 ## 5. Recommendation
