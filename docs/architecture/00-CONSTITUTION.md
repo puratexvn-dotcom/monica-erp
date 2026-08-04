@@ -4,13 +4,13 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Version** | 1.5 |
+| **Version** | **1.6** |
 | **Status** | ✅ ADOPTED |
 | **Owner** | Joseph |
 | **Architecture Authority** | MONICA ONE Architecture Board |
 | **Effective Date** | 2026-08-02 |
-| **Last Updated** | 2026-08-03 |
-| **Latest Amendment** | [ADR-009 — Enterprise Design System](../adr/ADR-009-enterprise-design-system.md) |
+| **Last Updated** | **2026-08-04** |
+| **Latest Amendment** | [ADR-015](../adr/ADR-015-muoi-bon-business-workspace.md) · [ADR-016](../adr/ADR-016-executive-center-enterprise-control-center.md) · [ADR-017](../adr/ADR-017-trang-chu-hai-vung.md) |
 
 ## Revision History
 
@@ -77,6 +77,8 @@
 | **1.3** | **2026-08-03** | **Architecture Board** | **Quyết nghị chuẩn hoá PART VIII.** ① Board **PHÊ DUYỆT** cách đánh số **PART VIII** — không đánh số lại; khoảng vênh "PART VII" ở v1.2 khép lại. ② **Đổi tên Phần**: `ENTERPRISE DESIGN SYSTEM` → **`ENTERPRISE EXPERIENCE`**; neo mục lục cập nhật theo. ③ Board tuyên bố **Điều 44 và Điều 45** cùng thuộc Phần VIII. ⚠️ **Điều 45 CHƯA có nội dung** — Board chưa ban hành tiêu đề lẫn điều khoản, và người biên tập KHÔNG suy diễn nội dung Hiến pháp. Phần VIII hiện chỉ có Điều 44; **chờ Board ban hành Điều 45**. ④ Ghi nhận **TD-10 · Enterprise Typography Token System**. ⑤ Board chỉ thị **dừng việc làm lại giao diện theo từng trang**; mốc tiếp theo là **hoàn thiện Enterprise Design System**, sau đó mới nâng cấp toàn bộ Workspace bằng cùng một ngôn ngữ thị giác. |
 | **1.4** | **2026-08-03** | **Architecture Board** | **Quyết nghị Enterprise Design Language.** ① **PART VIII giữ nguyên.** ② Ban hành **Điều 45 — Reserved**: điều khoản để trống chính thức, chỉ Board mới được điền; ghi rõ **cấm mọi người thi hành, biên tập viên hay tác nhân tự động suy diễn nội dung**. Đây là lần đầu Hiến pháp có một Điều mang trạng thái *Reserved* — chỗ trống có tên tốt hơn một chỗ trống im lặng. ③ **Bộ chữ chính thức: Inter Variable**, tự lưu trữ qua `next/font/local`. ④ Trình tự thi hành được duyệt: **TD-08 → TD-10 → TD-07 → TD-09**. ⑤ Thêm **TD-11 · Enterprise Iconography System** và **TD-12 · Enterprise Motion System**. ⑥ Mục tiêu dài hạn: dựng **Enterprise Design Language** hoàn chỉnh, từ đó dẫn xuất ra Design System · Tokens · Components · Patterns và mọi Workspace tương lai. **Không cho phép làm lại giao diện theo từng trang cho tới khi nền móng Design System hoàn tất.** |
 | **1.5** | **2026-08-03** | **Architecture Board** | **Chỉ thị Enterprise Internationalization — MỨC CRITICAL.** ① **Ban hành Điều 45 · Enterprise Internationalization** (§45.1–§45.8), thay thế trạng thái *Reserved*: ba ngôn ngữ chính thức **ngang hàng** (Tiếng Việt · English · 简体中文); **ngôn ngữ hiến định là tiếng Anh**; **Từ vựng hiến định KHÔNG BAO GIỜ được dịch** — đó là bản sắc sản phẩm; mọi câu chữ khác phải localize; cấm chuỗi viết thẳng, dịch nội tuyến, rẽ nhánh theo ngôn ngữ, từ điển trùng lặp; định dạng theo locale; **cấm dịch dữ liệu nghiệp vụ** — dịch dữ liệu là làm sai lệch hồ sơ; tính năng mới không hỗ trợ đủ ba ngôn ngữ thì không được hợp nhất. ② **Mở rộng Điều 44** thêm năm khoản Board chỉ định: §44.8 Enterprise Design Language · §44.9 Colour Ownership Principle · §44.10 Component Identity · §44.11 Visual Hierarchy · §44.12 Premium User Experience; khoản Cưỡng chế dời thành §44.13. ⚠️ **Board chỉ thị "PART VII"**, nhưng PART VII là GOVERNANCE và PART VIII đã được chính Board phê duyệt ngày 03/08/2026 với chỉ thị *"do not renumber"* — nên Điều 44 và 45 **giữ nguyên ở PART VIII**. |
+
+| **1.6** | **2026-08-04** | **Architecture Board** | **BA TU CHÍNH SAU KIỂM TOÁN NHẤT QUÁN KIẾN TRÚC.** Nguồn: EDD-06 Architecture Consistency Audit phát hiện ba chỗ Enterprise Design *(bậc 2′)* mâu thuẫn Hiến pháp *(bậc 1)* — mâu thuẫn **thủ tục**, ⛔ không phải nội dung, vì Board đã phê duyệt các tài liệu chứa chúng. ① **[ADR-015](../adr/ADR-015-muoi-bon-business-workspace.md)** — §16.2 từ **11 lên 14 Business Workspace**, bổ sung `Product Development` · `Industrial Engineering` · `Procurement`; §1.3 và §5.3 cập nhật theo; Sample · Style · TechPack · BOM chuyển từ Điều 20 sang Product Development. ② **[ADR-016](../adr/ADR-016-executive-center-enterprise-control-center.md)** — Executive Center chính danh là **Enterprise Control Center**; §5.4 mở **một ngoại lệ CÓ TÊN** *(Workspace ⛔ không có Business Domain)* kèm câu cấm Workspace khác viện dẫn; Điều 18 bổ sung **§18.10 No Data Ownership** · **§18.11 No Operational Write Authority**. ③ **[ADR-017](../adr/ADR-017-trang-chu-hai-vung.md)** — §13.3 đổi tên thành **Homepage Structure**, trang chủ có **HAI vùng hiến định**: Work Zone *(mặc định mở khi đăng nhập)* + Business Operating System Launcher; §13.5 *(lọc theo quyền)* nâng thành **điều kiện thi hành**. Cùng ngày Board phê chuẩn **BKB v2.0 → ADOPTED** *(bậc 0′ có hiệu lực)* và **ADR-011 → APPROVED** *(thẩm quyền Chief Enterprise Architect)*. |
 
 ## Table of Contents
 
@@ -200,7 +202,7 @@
 - [Article 13. Homepage](#article-13-homepage)
   - [13.1 Constitutional Principle](#131-constitutional-principle)
   - [13.2 User Experience Objective](#132-user-experience-objective)
-  - [13.3 Business Operating System Launcher](#133-business-operating-system-launcher)
+  - [13.3 Homepage Structure](#133-homepage-structure)
   - [13.4 Information Simplicity](#134-information-simplicity)
   - [13.5 Workspace Visibility](#135-workspace-visibility)
   - [13.6 Consistency](#136-consistency)
@@ -259,6 +261,8 @@
   - [18.7 Constitutional Boundaries](#187-constitutional-boundaries)
   - [18.8 Commercial Principle](#188-commercial-principle)
   - [18.9 Constitutional Enforcement](#189-constitutional-enforcement)
+  - [18.10 No Data Ownership](#1810-no-data-ownership)
+  - [18.11 No Operational Write Authority](#1811-no-operational-write-authority)
 - [Article 19. Commercial](#article-19-commercial)
   - [19.1 Constitutional Principle](#191-constitutional-principle)
   - [19.2 Business Scope](#192-business-scope)
@@ -641,15 +645,20 @@ MONICA ONE is designed to manage the complete manufacturing lifecycle, including
 
 - Commercial
 - Merchandising
+- Product Development
+- Industrial Engineering
 - Planning
 - Production
 - Quality
+- Procurement
 - Warehouse
 - Shipment
 - Subcontract
 - Finance
 - Human Resources
 - Executive Center
+
+*(Amended by [ADR-015](../adr/ADR-015-muoi-bon-business-workspace.md) — v1.6)*
 
 All future business capabilities shall extend this platform instead of creating isolated systems.
 
@@ -915,14 +924,19 @@ Examples include:
 - Executive Center
 - Commercial
 - Merchandising
+- Product Development
+- Industrial Engineering
 - Planning
 - Production
 - Quality
+- Procurement
 - Warehouse
 - Shipment
 - Subcontract
 - Finance
 - Human Resources
+
+*(Amended by [ADR-015](../adr/ADR-015-muoi-bon-business-workspace.md) — v1.6)*
 
 ---
 
@@ -931,6 +945,12 @@ Examples include:
 A Business Domain is a distinct operational area of an enterprise with defined responsibilities, workflows and business data.
 
 Each Workspace represents one Business Domain.
+
+**Constitutional Exception.** The **Enterprise Control Center** is the single constitutional exception: it is a Business Workspace with no corresponding Business Domain. It owns no business data; it consumes the read models of other Business Domains.
+
+No other Workspace may invoke this exception without a dedicated Architecture Decision Record.
+
+*(Amended by [ADR-016](../adr/ADR-016-executive-center-enterprise-control-center.md) — v1.6)*
 
 ---
 
@@ -1660,15 +1680,23 @@ Users should not need training to understand where to start.
 
 ---
 
-### 13.3 Business Operating System Launcher
+### 13.3 Homepage Structure
 
 The Homepage serves as the unified entry point into the Business Operating System.
 
-It provides access to constitutional Business Workspaces, Global Services and Platform Services according to user authorization, assignment and operational context.
+It consists of **two constitutional zones**:
+
+**(a) The Work Zone** presents the work items requiring the user's attention across all Business Domains in which the user holds authorization. It is personal, dynamic, and shall be the default view upon sign-in. It owns no business data; it projects the state of the Business Domains.
+
+**(b) The Business Operating System Launcher** provides access to constitutional Business Workspaces, Global Services and Platform Services according to user authorization, assignment and operational context. It is structural, stable, and independent of daily operational state.
+
+Both zones are constitutional. Neither may be removed.
 
 Business Workspaces represent operational domains of the enterprise.
 
 The Homepage shall not be organized by organizational hierarchy, job titles or technical system modules.
+
+*(Amended by [ADR-017](../adr/ADR-017-trang-chu-hai-vung.md) — v1.6)*
 
 ---
 
@@ -1940,12 +1968,15 @@ Business Workspaces shall be organized according to Business Domains rather than
 
 The constitutional Business Workspaces are:
 
-- Executive Center
+- Executive Center *(Enterprise Control Center — see §5.4 and Article 18)*
 - Commercial
 - Merchandising
+- Product Development
+- Industrial Engineering
 - Planning
 - Production
 - Quality
+- Procurement
 - Warehouse
 - Shipment
 - Subcontract
@@ -1953,6 +1984,10 @@ The constitutional Business Workspaces are:
 - Human Resources
 
 Additional Business Workspaces may only be introduced through an approved Architecture Decision Record (ADR).
+
+Each Business Workspace carries an activation state — `ACTIVE`, `EMBEDDED` or `DORMANT` — determining whether it is presented to users and whether a dedicated role holder exists. Activation state is configuration; it shall never alter the constitutional Workspace boundaries defined in this Article.
+
+*(Amended by [ADR-015](../adr/ADR-015-muoi-bon-business-workspace.md) — v1.6)*
 
 ---
 
@@ -2257,6 +2292,30 @@ Executive Center is the constitutional leadership Workspace of MONICA ONE.
 No implementation shall transform Executive Center into a duplicate of operational Workspaces or a traditional KPI dashboard.
 
 Any proposal fundamentally changing the constitutional role of Executive Center requires approval from the Architecture Board through an ADR.
+
+---
+
+### 18.10 No Data Ownership
+
+Executive Center is constitutionally designated the **Enterprise Control Center**.
+
+Enterprise Control Center owns no Business Object.
+
+Every item of information presented within Enterprise Control Center originates from another Business Domain and shall remain traceable to the originating Business Object of that Domain.
+
+*(Introduced by [ADR-016](../adr/ADR-016-executive-center-enterprise-control-center.md) — v1.6)*
+
+---
+
+### 18.11 No Operational Write Authority
+
+Enterprise Control Center holds no authority to write operational business data.
+
+Every executive action originating in Enterprise Control Center shall be routed through the workflow of the Business Domain that owns the corresponding data.
+
+Executive decisions shall be recorded as decision records in their own right and shall never directly modify operational data.
+
+*(Introduced by [ADR-016](../adr/ADR-016-executive-center-enterprise-control-center.md) — v1.6)*
 
 ## Article 19. Commercial
 

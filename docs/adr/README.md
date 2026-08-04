@@ -18,6 +18,16 @@ Bắt buộc từ Migration 029 trở đi cho mọi thay đổi Domain Model ho�
 | [ADR-007](ADR-007-data-reconciliation.md) | Data Reconciliation — đối soát dữ liệu lịch sử | — | 🟡 **Chờ phê duyệt** |
 | [ADR-008](ADR-008-bundle-stage-vocabulary.md) | Từ vựng vòng đời bó bán thành phẩm — **tách trục** | `039` → `031d` | ✅ **Đã phê duyệt** *(Board, 02/08/2026 · Phương án D)* |
 | [ADR-009](ADR-009-enterprise-design-system.md) | Enterprise Design System — màu là thông tin, không phải trang trí | — *(Hiến pháp `1.2` · PART VIII · Điều 44)* | ✅ **Đã phê duyệt** *(Board, 03/08/2026)* |
+| [ADR-010](ADR-010-thu-bac-van-ban-chuan-tac.md) | Thứ bậc văn bản chuẩn tắc — chấm dứt tình trạng hai Hiến pháp | — | ⏳ **Chờ phê duyệt** · ⚠️ **đã thi hành trước lên 3 tệp `.md`** — xem ghi chú dưới |
+| [ADR-011](ADR-011-tham-quyen-kien-truc.md) | Thẩm quyền kiến trúc và phản biện độc lập bắt buộc | — | ⏳ **Chờ phê duyệt** · ghi nhận phán quyết Board 04/08/2026 |
+
+⚠️ **ADR-010 đã được thi hành một phần trước khi phê duyệt**, theo chỉ thị trực
+tiếp của Board ngày 04/08/2026 (*"dựng lại nền quản trị"*). Ba tệp bị chạm:
+`CLAUDE.md` · `docs/architecture/README.md` · `docs/MONICA_CONSTITUTION.md` — chỉ
+thêm khối ghi chú, **không migration, không đụng mã**. Lý do không chờ: hai tệp
+đầu đang chứa một phát biểu **sai sự thật** về bộ luật nào có hiệu lực, và mỗi
+phiên làm việc trôi qua là một phiên khởi động bằng tiền đề sai. Board bác ADR-010
+⇒ quay lui bằng cách gỡ ba khối ghi chú.
 
 ⚠️ ADR-001 nằm ở [`docs/assignment/`](../assignment/) vì viết trước khi thư mục
 này tồn tại. **Không di chuyển** — đường dẫn cũ đã nằm trong lịch sử git và trong

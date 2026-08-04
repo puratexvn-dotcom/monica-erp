@@ -24,32 +24,78 @@ Before any design, coding, refactoring or architecture decision:
 - Do NOT implement.
 - Request an ADR approval first.
 
-> ⚠️ **Tính tới 02/08/2026, [`docs/architecture/00-CONSTITUTION.md`](docs/architecture/00-CONSTITUTION.md)
-> mới là BỘ KHUNG — 12 chương rỗng, chưa có điều khoản nào.** Bộ luật ĐANG CÓ
-> HIỆU LỰC vẫn là [`docs/MONICA_CONSTITUTION.md`](docs/MONICA_CONSTITUTION.md)
-> (12 nguyên tắc, được bài kiểm kiến trúc mục ⑥ cưỡng chế phải tồn tại) cùng
-> [`docs/ENGINEERING_PLAYBOOK.md`](docs/ENGINEERING_PLAYBOOK.md).
+> ✅ **[`docs/architecture/00-CONSTITUTION.md`](docs/architecture/00-CONSTITUTION.md)
+> ĐÃ BAN HÀNH: `v1.5 · ADOPTED`, hiệu lực 02/08/2026 — 8 Phần · 45 Điều.**
+> Đây là **Hiến pháp duy nhất** (§43.9: *"the single constitutional source of
+> architectural authority"*).
 >
-> Nên hôm nay: đọc **cả hai**. Khi Architecture Board điền xong nội dung cho
-> `00-CONSTITUTION.md` và ban hành, mục này sẽ được cập nhật lại.
+> ⚠️ Ghi chú cũ ở chỗ này từng nói `00-CONSTITUTION.md` là "bộ khung rỗng" và
+> `MONICA_CONSTITUTION.md` mới đang có hiệu lực. **Ghi chú đó SAI** và đã khiến
+> mọi phiên làm việc khởi động bằng tiền đề sai. Đã sửa 04/08/2026 theo
+> [ADR-010](docs/adr/ADR-010-thu-bac-van-ban-chuan-tac.md).
+>
 > Mục lục thư mục: [`docs/architecture/README.md`](docs/architecture/README.md).
 
 ---
 
 ## 0. ĐỌC TRƯỚC KHI SINH DÒNG CODE ĐẦU TIÊN
 
-Dự án có một bộ luật nội bộ, và nó **thắng mọi mặc định** của bạn:
+> ### 🔒 ARCHITECTURE FROZEN · 2026-08-04
+>
+> Kiến trúc Monica ONE **đã được khoá** — [`docs/ARCHITECTURE_BASELINE.md`](docs/ARCHITECTURE_BASELINE.md).
+> Baseline `MONICA-ONE-BASELINE-2026-08-04` · Hiến pháp **v1.6** · BKB **v2.0 ADOPTED** ·
+> 15 tài liệu ADR · 14 EDD · **149 quyết định kiến trúc**.
+>
+> 🔴 **⛔ KHÔNG được thay đổi kiến trúc trực tiếp bằng mã.**
+> Phát hiện vấn đề kiến trúc khi lập trình ⇒ **cập nhật tài liệu TRƯỚC**, sau đó
+> mới sửa Implementation — [Architecture Change Procedure](docs/enterprise-design/EDD-06-ARCHITECTURE-FREEZE-PACKAGE.md) EDD-06 §10.
+>
+> ⛔ Ba điều cấm: sửa mã bù sai kiến trúc · thêm màn hình nhập liệu để né
+> `P-ZERODUP` · tắt bài kiểm để cho mã đi qua.
 
-| Tài liệu | Vai trò |
+> ### 🧠 BẮT ĐẦU TỪ ĐÂY: [`docs/PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md)
+>
+> **Project Memory là chỉ mục duy nhất của toàn bộ tri thức dự án** — 13 tài liệu
+> Enterprise Design, 149 quyết định kiến trúc, 29 Board Decision, 5 nguyên tắc
+> thiết kế, 14 Business Domain, và **13 khuyết tật đã biết chưa sửa**.
+>
+> Nó **không chứa tri thức mới** — nó cho biết tri thức nằm ở đâu. Đọc §10 *(lộ
+> trình nhập môn)* trước khi làm bất cứ việc gì; đọc §8 *(khuyết tật đã biết)*
+> trước khi viết dòng mã đầu tiên.
+>
+> 🔴 **Project Memory ⟷ tài liệu gốc mâu thuẫn ⇒ TÀI LIỆU GỐC THẮNG.**
+
+Dự án có một bộ luật nội bộ, và nó **thắng mọi mặc định** của bạn. Thứ bậc bảy
+bậc dưới đây do [ADR-010](docs/adr/ADR-010-thu-bac-van-ban-chuan-tac.md) ấn định
+— **bậc trên luôn thắng bậc dưới**:
+
+| Bậc | Tài liệu | Vai trò |
+|---|---|---|
+| **0** | Quyết định của Board | nguồn duy nhất của **sự thật nghiệp vụ** |
+| **0′** | [`docs/business/BUSINESS_KNOWLEDGE_BASE.md`](docs/business/BUSINESS_KNOWLEDGE_BASE.md) | tối cao về **nghiệp vụ** — ⏳ *đang là DRAFT, chờ Board duyệt* |
+| **1** | [`docs/architecture/00-CONSTITUTION.md`](docs/architecture/00-CONSTITUTION.md) | **Hiến pháp duy nhất** — 45 Điều · `v1.5 ADOPTED` |
+| **2** | [`docs/adr/`](docs/adr/) | quyết định kiến trúc — **bất biến, không sửa** |
+| **2′** | [`docs/enterprise-design/`](docs/enterprise-design/) | **Enterprise Design** — 13 tài liệu EDD · 149 Decision Log · chỉ mục ở [`PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md) |
+| **3** | [`docs/UI_UX_STANDARDS.md`](docs/UI_UX_STANDARDS.md) · [`docs/MUTATION_POLICY.md`](docs/MUTATION_POLICY.md) | Engineering Standards |
+| **4** | [`docs/MONICA_CONSTITUTION.md`](docs/MONICA_CONSTITUTION.md) · [`docs/ENGINEERING_PLAYBOOK.md`](docs/ENGINEERING_PLAYBOOK.md) | Approved Playbooks — 12 nguyên tắc + 34 quy tắc, **vẫn ràng buộc đầy đủ** |
+| **5** | [`docs/DOMAIN_GLOSSARY.md`](docs/DOMAIN_GLOSSARY.md) · audit · discovery | Technical Documentation |
+| **6** | mã nguồn · lược đồ CSDL | **thấp nhất — mã không bao giờ là nguồn chân lý** |
+
+⚠️ **Nghiệp vụ ⟷ Hiến pháp phân theo LĨNH VỰC, không theo thứ tự.** BKB tối cao
+về *cái gì là thật*; Hiến pháp tối cao về *phải xây thế nào*. Mâu thuẫn thật giữa
+hai bên ⇒ **DỪNG**, ghi vào
+[`NEEDS_CLARIFICATION.md`](docs/architecture/NEEDS_CLARIFICATION.md), Board phán
+quyết. Không tự chọn bên thắng.
+
+⚠️ **Ba bộ đánh số cùng tồn tại.** Trích dẫn phải nói rõ nguồn — `Điều IX` trần,
+không nguồn, là trích dẫn **không hợp lệ**:
+
+| Viết | Nghĩa |
 |---|---|
-| [`docs/MONICA_CONSTITUTION.md`](docs/MONICA_CONSTITUTION.md) | 12 nguyên tắc tối cao — **luôn thắng khi mâu thuẫn** |
-| [`docs/ENGINEERING_PLAYBOOK.md`](docs/ENGINEERING_PLAYBOOK.md) | 34 quy tắc kỹ thuật chi tiết thi hành 12 nguyên tắc |
-| [`docs/UI_UX_STANDARDS.md`](docs/UI_UX_STANDARDS.md) | bố cục, luồng dữ liệu, cấu trúc thư mục một phân hệ |
-| [`docs/DOMAIN_GLOSSARY.md`](docs/DOMAIN_GLOSSARY.md) | nghĩa nghiệp vụ của PO · Assignment · Partner… |
-| [`docs/adr/`](docs/adr/) | lý do của từng quyết định kiến trúc — **bất biến, không sửa** |
-
-⚠️ Hai tài liệu đầu **cùng đánh số La Mã I–XII**. Khi trích dẫn phải nói rõ nguồn:
-`Hiến pháp Điều IX` (Globalization) ≠ `Playbook Điều IX` (Event Driven).
+| `Hiến pháp Điều 43.3` | `00-CONSTITUTION.md` — số Ả Rập, bậc 1 |
+| `Playbook Điều XXX` | `ENGINEERING_PLAYBOOK.md` — số La Mã, bậc 4 |
+| `MOS Điều IX` | `MONICA_CONSTITUTION.md` — số La Mã, bậc 4 |
+| `BKB §12` | `BUSINESS_KNOWLEDGE_BASE.md` — bậc 0′ |
 
 **Nếu một yêu cầu mâu thuẫn với các tài liệu trên: DỪNG LẠI VÀ GIẢI THÍCH, không tự ý sửa kiến trúc.**
 
@@ -290,8 +336,13 @@ từ fork vì nó **ghi dữ liệu tạm lên CSDL thật**).
 
 ## 6. BỐN RÀNG BUỘC BẤT DI BẤT DỊCH VỀ GIAO DIỆN
 
-1. Trang chủ luôn đủ **12 phân hệ**; bottom nav luôn đủ **4 nút** (Bàn làm việc · Chat ·
-   Báo cáo · A.I). Mất một link là mất đường vào của cả một bộ phận.
+1. Trang chủ luôn đủ **19 Business App** (14 Workspace · 4 Global Service · 1 Platform);
+   bottom nav luôn đủ **5 nút** (Trang chủ · Business Communication · AI Assistant ·
+   Business Reporting · User Guidance — Hiến pháp §15.3–§15.8).
+   Mất một link là mất đường vào của cả một bộ phận.
+   > ⚠️ Sửa 04/08/2026 theo EDD-06 §2.6 `M-5` `M-6`. Ghi chú cũ *"12 phân hệ · 4 nút"*
+   > **SAI** — mã hiện có 16 thẻ (`app/home-modules.ts:135`), đích 19 theo EDD-01;
+   > Hiến pháp khai **năm** năng lực toàn cục, không phải bốn.
 2. **Không xoá logic hay file cũ.** Chỉ thêm, hoặc đổi đường dùng. File chưa gắn route vẫn
    giữ (`md-legacy-client.tsx`, `md-forms.tsx`…).
 3. **TypeScript strict, cấm `any`** — arch test bắt.

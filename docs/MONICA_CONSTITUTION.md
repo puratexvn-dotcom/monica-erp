@@ -1,6 +1,25 @@
 # MONICA MOS CONSTITUTION
 ## THE SUPREME ARCHITECTURE LAW · VERSION vFinal (Enterprise Grade)
 
+> ## ⚠️ GHI CHÚ ĐỊA VỊ — thêm 04/08/2026, không sửa nội dung bên dưới
+>
+> **Danh xưng *"THE SUPREME ARCHITECTURE LAW"* ở tiêu đề đã được thay thế từ
+> 02/08/2026.** Bộ luật tối cao hiện nay là
+> [`architecture/00-CONSTITUTION.md`](architecture/00-CONSTITUTION.md)
+> (`v1.5 · ADOPTED` · 45 Điều), theo chính §43.9 của văn bản đó:
+> *"the single constitutional source of architectural authority for MONICA ONE."*
+>
+> Tài liệu này giữ địa vị **bậc 4 · Approved Playbooks** theo
+> [ADR-010](adr/ADR-010-thu-bac-van-ban-chuan-tac.md).
+>
+> **Xuống bậc KHÔNG phải mất hiệu lực.** 12 nguyên tắc dưới đây **vẫn ràng buộc
+> đầy đủ**; địa vị bậc 4 chỉ trả lời câu hỏi *"khi mâu thuẫn với Hiến pháp thì ai
+> thắng"*. Riêng **Điều XXX (phân quyền theo Assignment)** giữ nguyên mức ƯU TIÊN
+> TỐI CAO, đã được Hiến pháp v0.31 xác nhận là hợp hiến.
+>
+> Tiêu đề và toàn văn **giữ nguyên, không sửa một chữ** — Hiến pháp §43.7 cấm
+> viết lại lịch sử. Trích dẫn tài liệu này bằng tiền tố `MOS Điều <số La Mã>`.
+
 > Ban hành 01/08/2026 · thay thế bản 1.0 gồm 34 điều.
 > Bản cũ **không bị xoá** — toàn văn ở [ENGINEERING_PLAYBOOK.md](ENGINEERING_PLAYBOOK.md).
 >
