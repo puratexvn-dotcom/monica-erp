@@ -15,10 +15,19 @@
 
 ---
 
-## Sprint I-1 · An toàn — 04/08/2026
+## Sprint I-1 · An toàn — 04–05/08/2026 · ✅ **HOÀN TẤT**
 
 **Điều kiện ra của Sprint (Baseline §3.2):** `pg_policies` trên CSDL thật cho
-thấy nhóm bảng MD đã thu hẹp. **Chưa đạt** — xem *Còn treo*.
+thấy nhóm bảng MD đã thu hẹp.
+
+**Đạt tới đâu:** phần **chẩn đoán** khép trọn vẹn — lỗ hổng đã đo `[VERIFIED]`,
+đã vá `F-1`, đã soạn ADR cho `F-2`. Phần **thi hành trên CSDL** chưa đạt và
+**không thể đạt trong Sprint này**: nó cần Board chạy `041`, cắt vòng khoá
+`B2`, và phê duyệt ADR-018. Cả ba đều ngoài thẩm quyền CSA.
+
+> ⚠️ **Không ghi `✅` cho phần chưa đo được.** Điều kiện ra nguyên văn nói *"trên
+> CSDL thật"*; chừng nào `041` và `042` chưa chạy thì câu đó chưa đúng. Sprint
+> đóng vì **đã làm hết phần làm được**, không phải vì đã đạt đích.
 
 ### 🔴 Bảo mật
 
@@ -53,6 +62,27 @@ thấy nhóm bảng MD đã thu hẹp. **Chưa đạt** — xem *Còn treo*.
   - Kết quả lần đầu: **0 đạt · 24 hỏng · 4 chưa đo được**. Đỏ **có chủ ý**.
   - Nhãn `[F-1]` / `[F-2]` để đọc được tiến độ sau khi `041` chạy.
 
+### 📐 Quyết định kiến trúc
+
+- **[ADR-018](docs/adr/ADR-018-thu-hep-authenticated-only.md)** ⏳ **chờ phản
+  biện + Board phê duyệt** — thu hẹp `authenticated_only` trên 23 bảng. Đủ chín
+  mục Board yêu cầu. **ADR đầu tiên sau khi đóng băng** ⇒ đi qua Architecture
+  Change Procedure, không thuộc baseline. Migration `042` ⛔ chưa viết.
+- Hai câu hỏi chặn trước khi viết `042`: **`VR-004`** *(kho có cần đọc
+  `style_bom` không)* · **`VR-005`** *(`ketoan` có cần đọc `costings` không)*.
+
+### 🔢 Kỷ luật số hiệu — ba va chạm trong một dự án
+
+| Lần | Va chạm | Xử lý |
+|---|---|---|
+| 1 | `BDR-14` · `BDR-15` — Board và CSA cùng cấp | số Board giữ · số CSA → `BDR-18` `BDR-19` |
+| 2 | `VR-002` · `VR-003` — BKB *(bậc 0′)* và CSA | số BKB giữ · số CSA → `VR-004` `VR-005` |
+| 3 | `TD-18`…`TD-22` — EDD-06 *(bậc 2′)* và CSA | số EDD giữ · số CSA → `TD-25`…`TD-29` |
+
+Nguyên nhân chung: **không có sổ cấp số tập trung.** Thứ bậc văn bản giải quyết
+xung đột *nội dung*, không giải quyết xung đột *số hiệu*. Ghi thành `TD-30`,
+**đề nghị Board quyết riêng**.
+
 ### 📄 Tài liệu
 
 - `docs/audit/MONICA_ONE_AUDIT_REPORT.md` — **khối đính chính §M2**. Phát biểu
@@ -71,8 +101,10 @@ thấy nhóm bảng MD đã thu hẹp. **Chưa đạt** — xem *Còn treo*.
 
 | # | Việc | Ai |
 |---|---|---|
-| `B2` | 🔴 Cắt vòng khoá SECURITY FREEZE | **Board** |
-| — | Chạy `041` trên SQL Editor, chép khối kiểm tra về hồ sơ | **Board** |
+| — | 🔴 **Chạy `041`** trên SQL Editor, chép khối kiểm tra về hồ sơ | **Board** |
+| — | 🔴 **Phê duyệt ADR-018** *(sau phản biện độc lập)* + trả lời `VR-004` · `VR-005` | **Board** |
+| `B2` | 🔴 Cắt vòng khoá SECURITY FREEZE — **không cắt thì `042` không chạy được** | **Board** |
+| `TD-30` | Lập sổ cấp số tập trung cho `TD` · `VR` · `BDR` | Board quyết |
 | `B3` | Gộp ba chuỗi ADR *(chạm `00-CONSTITUTION.md:75` ⇒ không tự làm)* | CSA → Board |
 | `B4` | Người thứ hai cho `SOD-H04` · `H05` · `H06` | Joseph |
 | `B5` | Thời hạn phản biện tối đa | Board |
