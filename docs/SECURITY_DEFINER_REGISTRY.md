@@ -122,12 +122,35 @@ ai ba tháng sau tưởng là sơ suất.
 | # | Nghĩa vụ | Tình trạng |
 |---|---|---|
 | ① | Ghi vào sổ này kèm lý do và ADR | ✅ chính là mục này |
-| ② | Chạy lại **`A001`** *(view security)* sau khi `042` chạy | ⏳ chờ `042` |
+| ② | Chạy lại **`A001`** *(view security)* sau khi `042` chạy | ✅ **05/08/2026 — ĐẠT** *(xem dưới)* |
 | ③ | View **tự mang** bộ lọc `status = 'APPROVED'` + tự giới hạn danh sách vai, không dựa vào policy nào ở dưới | ✅ đã viết vào `042` Mục 4 |
 
 🔴 **Cột trong view này là quyết định TIẾT LỘ, không phải chi tiết kỹ thuật.**
 Năm cột bị bỏ có chủ ý — `target_price` · `notes` · `reject_reason` ·
 `inquiry_id` · `created_by`. **Không thêm cột nếu chưa có phán quyết Board.**
+
+#### `A001` sau `042` — chạy 05/08/2026, **ĐẠT**
+
+| Phép đo | Kết quả | |
+|---|---|---|
+| View thiếu `security_invoker` — **CHƯA ĐĂNG KÝ** | **0 / 12** | ✅ |
+| View chạy quyền chủ hàm — **ĐÃ ĐĂNG KÝ** | `v_costing_approved` | ⚠️ đúng dự kiến |
+| **View cho `anon` đọc** | **0** | ✅ ⭐ |
+| Hàm `SECDEF` mà `anon` gọi được | **0 / 20** | ✅ |
+| Hàm `SECDEF` chưa ghim `search_path` | **0** | ✅ |
+
+⭐ **Dòng đáng giá nhất là `View cho anon đọc = 0`.** Một view chạy quyền chủ
+hàm *mà `anon` đọc được* là lỗ hổng nặng nhất `A001` có thể gặp — nó vượt mặt
+RLS **và** không cần đăng nhập. `v_costing_approved` được che hai lớp: `REVOKE
+ALL … FROM anon` viết thẳng trong `042`, và quyền mặc định của vai `postgres`
+*(vai chủ khi chạy SQL Editor)* vốn không cấp gì cho `anon`.
+
+⚠️ **Rủi ro Mục 4 vẫn còn — 3 vai cấp mặc định cho `anon`** *(`supabase_admin`
+tạo bảng · hàm · sequence)*. Đây là **tồn đọng có sẵn**, đã ghi ở §6 và ở
+`038c`: `ALTER DEFAULT PRIVILEGES` chỉ áp cho đối tượng do **một vai cụ thể**
+tạo, và ta không đủ quyền đổi mặc định của `supabase_admin`. **Không phải do
+`042` sinh ra.** Đối tượng do `postgres` tạo — tức mọi thứ migration dựng lên —
+đều sạch, A001 xác nhận bằng ba dòng `postgres tạo … ✅`.
 
 ---
 
@@ -178,6 +201,7 @@ chối** vào bài kiểm hồi quy của migration đó.
 |---|---|
 | 02/08/2026 | Lập sổ. A001 phát hiện 13/14 hàm `anon` gọi được, 2 hàm ghi. `038` chạy → đo lại **0/14**. `031a` hồi quy lại **35/35** — không vai nội bộ nào bị vạ lây. |
 | 02/08/2026 | `038b` chạy. A001 bản 2 xác nhận: **19/19 hàm `anon` bị chặn · 19/19 ghim `search_path` · 11/11 view `invoker` · 0 view cho `anon` đọc.** |
+| 05/08/2026 | ✅ **`A001` chạy lại sau `042` — ĐẠT.** `0/12` view chưa đăng ký · `0` view cho `anon` đọc · `0/20` hàm `anon` gọi được · `0` hàm thiếu `search_path`. Nghĩa vụ ② khép. `A001` được sửa để phân biệt **view chưa đăng ký** *(⛔)* với **ngoại lệ có ADR** *(⚠️, in tên)* — bằng danh sách **đích danh**, không phải ngưỡng, nên view thứ hai sinh do sơ suất vẫn ném lỗi như cũ | Claude |
 | 05/08/2026 | ⏳ **`042` đề xuất view `v_costing_approved` KHÔNG `security_invoker`** — chỗ đầu tiên phá bất biến *"11/11 view invoker"*. Buộc phải vậy vì phán quyết Board `VR-005` là phân quyền theo **cột**, thứ RLS không làm được. Đăng ký ở §2.4 kèm ba nghĩa vụ. **`A001` phải chạy lại ngay sau `042`.** |
 
 ## 6. RỦI RO CÒN LẠI — CHƯA ĐÓNG ĐƯỢC

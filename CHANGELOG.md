@@ -170,5 +170,16 @@ ADR-018 §10.2 nêu cả phương án thay thế *(hoãn phần `ketoan`)*.
   `Policy _read mới` thiếu bộ lọc theo bảng ⇒ trả `33` thay vì `22`. Truy vấn
   đúng ở ADR-018 §10.3.1. Không ảnh hưởng kết luận: hai phép đo độc lập khác đã
   chứng minh `042` đúng.
-- 🔴 **`A001` chưa chạy lại** — nghĩa vụ ② của `SECURITY_DEFINER_REGISTRY` §2.4,
-  vì `v_costing_approved` là view đầu tiên không `security_invoker`.
+- ✅ **`A001` đã chạy lại — ĐẠT.** Nghĩa vụ ② khép. `0/12` view chưa đăng ký ·
+  **`0` view cho `anon` đọc** · `0/20` hàm `SECDEF` `anon` gọi được · `0` hàm
+  thiếu `search_path`. `A001` được sửa để phân biệt view **chưa đăng ký** với
+  **ngoại lệ có ADR** — bằng danh sách **đích danh**, không phải ngưỡng.
+- ✅ **Ma trận đọc `VR-004`/`VR-005` — `90 đạt · 0 hỏng`.** 14 vai × 5 đối
+  tượng, có dữ liệu gieo tạm nên số 0 là kết luận thật. Soi cả mức **cột**
+  *(5 cột thương lượng không tồn tại trong phép chiếu)* và mức **dòng**
+  *(`DRAFT` không lộ, `APPROVED` vẫn thấy)*.
+- ⚠️ **Tồn đọng có sẵn, không do `042`:** 3 vai còn cấp quyền mặc định cho
+  `anon` *(`supabase_admin` tạo bảng · hàm · sequence)*. Đã ghi từ trước ở
+  `SECURITY_DEFINER_REGISTRY` §6 và `038c` — ta không đủ quyền đổi mặc định của
+  `supabase_admin`. Đối tượng do `postgres` tạo *(mọi thứ migration dựng)* đều
+  sạch.
