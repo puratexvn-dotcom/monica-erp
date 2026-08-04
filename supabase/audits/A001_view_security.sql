@@ -42,11 +42,17 @@ v_rows AS (
          || CASE WHEN v.opts ILIKE '%security_barrier=true%' THEN ' + barrier' ELSE '' END
          || CASE WHEN has_table_privilege('anon', v.oid, 'SELECT')
                  THEN ' · anon ĐỌC ĐƯỢC' ELSE '' END        AS chi_tiet,
-         CASE WHEN v.opts NOT ILIKE '%security_invoker=true%'
-                   THEN '⛔ CỬA SAU — vượt mặt RLS'
-              WHEN has_table_privilege('anon', v.oid, 'SELECT')
+         -- ⚠️ `anon đọc được` xét TRƯỚC: ngoại lệ đích danh được miễn phần
+         -- `security_invoker`, nhưng KHÔNG được miễn phần `anon`. Một view
+         -- chạy quyền chủ hàm MÀ anon đọc được là lỗ hổng nặng nhất có thể có
+         -- ở tệp này, và nó phải đỏ kể cả khi tên nằm trong danh sách miễn.
+         CASE WHEN has_table_privilege('anon', v.oid, 'SELECT')
                    THEN '⛔ anon đọc được'
-              ELSE '✅' END                                  AS danh_gia
+              WHEN v.opts ILIKE '%security_invoker=true%'
+                   THEN '✅'
+              WHEN v.relname::text = ANY (ARRAY['v_costing_approved'])
+                   THEN '⚠️ chủ hàm — ĐÃ ĐĂNG KÝ (ADR-018 §5.1.1)'
+              ELSE '⛔ CỬA SAU — vượt mặt RLS' END           AS danh_gia
     FROM v
 ),
 -- ── 2. VIEW đọc bảng nào, bảng đó có RLS không ─────────────────────────────
@@ -125,11 +131,24 @@ tat_ca AS (
 ket_luan AS (
   SELECT '0 · KẾT LUẬN' AS muc, k.doi_tuong, k.chi_tiet, k.danh_gia
     FROM (VALUES
-      ('View thiếu security_invoker',
-       (SELECT COUNT(*)::TEXT FROM v WHERE opts NOT ILIKE '%security_invoker=true%')
+      -- ⚠️ HAI DÒNG, KHÔNG PHẢI MỘT. Xem ghi chú "NGOẠI LỆ ĐÍCH DANH" ở cổng
+      -- pass/fail cuối tệp: view CHƯA đăng ký là lỗ hổng; view ĐÃ đăng ký là
+      -- quyết định có hồ sơ. Gộp hai thứ đó vào một con số là cách tốt nhất để
+      -- một lỗ hổng thật lẩn vào giữa những ngoại lệ hợp lệ.
+      ('🔴 View thiếu security_invoker — CHƯA ĐĂNG KÝ',
+       (SELECT COUNT(*)::TEXT FROM v
+         WHERE opts NOT ILIKE '%security_invoker=true%'
+           AND relname::text <> ALL (ARRAY['v_costing_approved']))
          || ' / ' || (SELECT COUNT(*)::TEXT FROM v),
-       CASE WHEN (SELECT COUNT(*) FROM v WHERE opts NOT ILIKE '%security_invoker=true%') = 0
+       CASE WHEN (SELECT COUNT(*) FROM v
+                   WHERE opts NOT ILIKE '%security_invoker=true%'
+                     AND relname::text <> ALL (ARRAY['v_costing_approved'])) = 0
             THEN '✅' ELSE '⛔ CÓ CỬA SAU' END),
+      ('⚠️ View chạy quyền chủ hàm — ĐÃ ĐĂNG KÝ, có ADR',
+       (SELECT COALESCE(string_agg(relname::text, ', ' ORDER BY relname), '(không có)')
+          FROM v WHERE opts NOT ILIKE '%security_invoker=true%'
+                   AND relname::text = ANY (ARRAY['v_costing_approved'])),
+       '⚠️ soi lại mỗi vòng — SECURITY_DEFINER_REGISTRY §2.4'),
       ('View cho anon đọc',
        (SELECT COUNT(*)::TEXT FROM v WHERE has_table_privilege('anon', oid, 'SELECT')),
        CASE WHEN (SELECT COUNT(*) FROM v WHERE has_table_privilege('anon', oid, 'SELECT')) = 0
@@ -172,12 +191,56 @@ ORDER BY muc,
 -- ⛔ CỔNG PASS/FAIL — NÉM LỖI, KHÔNG CHỈ IN RA
 -- ────────────────────────────────────────────────────────────────────────────
 -- Báo cáo thì người ta lướt qua. Cổng thì không.
+--
+-- ─── NGOẠI LỆ ĐÍCH DANH — ĐỌC KỸ TRƯỚC KHI THÊM TÊN VÀO ĐÂY ────────────────
+--
+-- Danh sách dưới đây KHÔNG phải cách nới lỏng A001. Nó là cách làm cho A001
+-- CHÍNH XÁC HƠN.
+--
+-- Ngưỡng kiểu "cho phép tối đa N view" sẽ nuốt luôn view thứ N+1 sinh ra do sơ
+-- suất. Danh sách ĐÍCH DANH thì không: thêm bất kỳ view nào ngoài tên đã ghi,
+-- A001 vẫn ném lỗi như cũ. Cái được nới là **một cái tên cụ thể có hồ sơ**,
+-- không phải một con số.
+--
+-- ⛔ Ba điều cấm của EDD-06 vẫn nguyên giá trị, trong đó có "tắt bài kiểm để
+--    cho mã đi qua". Thêm tên vào đây mà không đủ ba điều kiện dưới CHÍNH LÀ
+--    điều đó.
+--
+-- Muốn thêm một tên, bắt buộc đủ CẢ BA:
+--   ① một mục ở `docs/SECURITY_DEFINER_REGISTRY.md` §2.4, nêu VÌ SAO
+--      `security_invoker` không dùng được — không phải "vì tiện"
+--   ② một ADR đã được Board phê duyệt
+--   ③ view TỰ mang bộ lọc phạm vi, không dựa vào policy nào ở dưới
+--
+-- `v_costing_approved` — ADR-018 §5.1.1 · phán quyết Board `VR-005` 05/08/2026.
+--   Kế toán được xem giá đã duyệt và Contribution Margin, bị cấm Cost Breakdown
+--   và dữ liệu thương lượng. Đó là phân quyền theo CỘT, mà RLS chỉ lọc DÒNG và
+--   `GRANT SELECT (cột)` cấp theo VAI CSDL — trong khi mọi người dùng Monica
+--   đều là `authenticated`. Đặt `security_invoker = true` ⇒ view chạy dưới
+--   quyền `ketoan`, mà `ketoan` bị `costings_read` cấm bảng gốc ⇒ view trả
+--   RỖNG ⇒ phán quyết Board không thi hành được.
+--
 DO $$
-DECLARE v_view INT; v_anon_view INT; v_fn INT; v_path INT;
+DECLARE
+  v_view INT; v_anon_view INT; v_fn INT; v_path INT;
+  v_mien_da_mat INT;
+  -- Sửa danh sách này ở ĐÚNG MỘT CHỖ: nó dùng lại ở phần báo cáo bên trên.
+  v_mien TEXT[] := ARRAY['v_costing_approved'];
 BEGIN
   SELECT COUNT(*) INTO v_view FROM pg_class
    WHERE relnamespace = 'public'::regnamespace AND relkind IN ('v','m')
-     AND COALESCE(array_to_string(reloptions, ','), '') NOT ILIKE '%security_invoker=true%';
+     AND COALESCE(array_to_string(reloptions, ','), '') NOT ILIKE '%security_invoker=true%'
+     AND relname::text <> ALL (v_mien);
+
+  -- Ngoại lệ đã biến mất khỏi CSDL thì phải gỡ tên khỏi danh sách. Một dòng
+  -- miễn trừ cho view không còn tồn tại là chỗ trống chờ ai đó vô tình tạo lại
+  -- một view trùng tên và được miễn trừ mà không ai xét.
+  SELECT COUNT(*) INTO v_mien_da_mat
+    FROM unnest(v_mien) AS m(ten)
+   WHERE NOT EXISTS (
+     SELECT 1 FROM pg_class
+      WHERE relnamespace = 'public'::regnamespace AND relkind IN ('v','m')
+        AND relname::text = m.ten);
 
   SELECT COUNT(*) INTO v_anon_view FROM pg_class
    WHERE relnamespace = 'public'::regnamespace AND relkind IN ('v','m')
@@ -193,7 +256,14 @@ BEGIN
           OR NOT EXISTS (SELECT 1 FROM unnest(proconfig) x WHERE x LIKE 'search_path=%'));
 
   IF v_view > 0 THEN
-    RAISE EXCEPTION 'A001 HỎNG — % view KHÔNG bật security_invoker (vượt mặt RLS).', v_view;
+    RAISE EXCEPTION 'A001 HỎNG — % view KHÔNG bật security_invoker (vượt mặt RLS) '
+      'và KHÔNG nằm trong danh sách ngoại lệ đích danh. Xem ghi chú ngay trên '
+      'khối này: cần một mục ở SECURITY_DEFINER_REGISTRY §2.4 + một ADR đã '
+      'phê duyệt + view tự mang bộ lọc.', v_view;
+  END IF;
+  IF v_mien_da_mat > 0 THEN
+    RAISE EXCEPTION 'A001 HỎNG — % tên trong danh sách ngoại lệ KHÔNG còn tồn tại. '
+      'Gỡ tên đó khỏi A001 và khỏi SECURITY_DEFINER_REGISTRY §2.4.', v_mien_da_mat;
   END IF;
   IF v_anon_view > 0 THEN
     RAISE EXCEPTION 'A001 HỎNG — % view CHO anon ĐỌC.', v_anon_view;
