@@ -65,7 +65,7 @@ nào có phản biện độc lập.** Hiến pháp **Điều 4** · ADR-011 §2
 
 | Điều kiện ra *(§3.2)* | Trạng thái |
 |---|---|
-| `test:arch` có đủ **5 phép kiểm mới** | 🟠 **4/5** — ⑫ *(vốn từ, `TD-03`)* · ⑬ *(miễn trừ xoá cứng, `TD-27`)* · ⑭ *(màn hình tự tính, `G6`)* · ⑯ *(hồ sơ 6 cổng, EDD-05 §1.1)*. Còn **⑮** `request_id` |
+| `test:arch` có đủ **5 phép kiểm mới** | ✅ **5/5 ĐẠT** — ⑫ *(vốn từ, `TD-03`)* · ⑬ *(miễn trừ xoá cứng, `TD-27`)* · ⑭ *(màn hình tự tính, `G6`)* · ⑮ *(sổ `request_id`, ADR-003)* · ⑯ *(hồ sơ 6 cổng, EDD-05 §1.1)* |
 | **MD có bài kiểm nghiệp vụ** | ✅ **ĐẠT** — 59 phép đo |
 
 **Phase 1 🔒 ĐÃ KHOÁ 05/08/2026** — [`SPRINT_I2_PHASE1_REPORT.md`](planning/SPRINT_I2_PHASE1_REPORT.md).
@@ -317,7 +317,7 @@ Bộ kiểm phép chiếu · bài kiểm rò chéo tenant/đối tác/**tương 
 |---|---|---|
 | **I-0** | 🔴 **Phê chuẩn** | Cổng B hoàn tất |
 | **I-1** | 🔴 **An toàn** | `pg_policies` trên CSDL thật cho thấy 8 bảng đã thu hẹp |
-| **I-2** | **Lưới an toàn** — 🔵 **ĐANG CHẠY · Phase 1 🔒 · Phase 2 ~75%** | `test:arch` có đủ 5 phép kiểm mới *(**4/5**)* · MD có bài kiểm nghiệp vụ *(**✅ đạt**)* |
+| **I-2** | **Lưới an toàn** — 🔵 **ĐANG CHẠY · Phase 1 🔒** | ✅ `test:arch` có đủ 5 phép kiểm mới *(**5/5**)* · ✅ MD có bài kiểm nghiệp vụ ⇒ **cả hai điều kiện ra ĐÃ ĐẠT** |
 | **I-3** | **Nền tảng** | Bài kiểm rò chéo tenant + chéo đối tác xanh |
 | **I-4** | **Vòng đời đơn hàng** | Một đơn **huỷ được trọn vẹn** có bằng chứng |
 | **I-5** | **Ranh giới Workspace** | ⛔ **0 route mang tên chức danh** |

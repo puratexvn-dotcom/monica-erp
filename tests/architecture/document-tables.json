@@ -1,0 +1,91 @@
+{
+  "_tai_lieu": [
+    "SỔ ĐĂNG KÝ REQUEST_ID — ADR-003 · Playbook XXXIV · Sprint I-2 Phase 2 · B2-3.",
+    "",
+    "CLAUDE.md §2.5: 'request_id UUID + unique index BẮT BUỘC trên mọi bảng chứng",
+    "từ lập-mới-được.' Sinh khoá lúc MỞ biểu mẫu, không lúc BẤM. Service phải bắt",
+    "23505 và trả về DÒNG CŨ với ok:true.",
+    "",
+    "─── VÌ SAO CẦN ─────────────────────────────────────────────────────────",
+    "`retry: 0` ở tầng ứng dụng chỉ chặn 1 trong 4 đường gửi trùng. Ba đường còn",
+    "lại — bấm hai lần, trình duyệt gửi lại, hai tab — CHỈ CSDL chặn được.",
+    "Hai lần INSERT = HAI SỐ NGHIỆP VỤ THẬT, không thu hồi được, và KHÔNG ngoại",
+    "lệ nào nổ ra (029c dòng 8-9).",
+    "",
+    "─── BA Ô ───────────────────────────────────────────────────────────────",
+    "  daCo               đã có cột + CHỈ MỤC DUY NHẤT trong kho migration",
+    "  choMigration033    ADR-003 §120 đã khai, chờ migration 033",
+    "  mienTrong          KHÔNG phải chứng từ lập-mới-được — kèm LÝ DO",
+    "",
+    "🔑 CỘT MỘT MÌNH KHÔNG CHẶN ĐƯỢC GÌ. Phải có CHỈ MỤC DUY NHẤT MỘT PHẦN",
+    "   (`WHERE request_id IS NOT NULL`) thì CSDL mới từ chối lần gửi thứ hai.",
+    "   Phép kiểm ⑮ đòi CẢ HAI.",
+    "",
+    "─── 🔴 GIỚI HẠN CÓ TÊN — ĐỌC TRƯỚC KHI TIN CON SỐ ──────────────────────",
+    "Sổ này phủ các bảng ADR-003 NÊU TÊN, cộng mọi bảng có `request_id` trong",
+    "kho. Nó KHÔNG phải một lượt rà toàn bộ ~88 Business Object để hỏi 'bảng nào",
+    "còn là chứng từ lập-mới-được mà chưa ai nghĩ tới'.",
+    "",
+    "⇒ ⑮ chứng minh: các bảng ĐÃ ĐƯỢC NHẬN DIỆN đang được theo dõi đúng, và",
+    "  KHÔNG bảng nào tuột khỏi sổ. Nó KHÔNG chứng minh danh sách đã ĐỦ.",
+    "  Lượt rà đủ 88 aggregate thuộc Cổng C — cần dữ liệu chủ mới biết bảng nào",
+    "  thật sự có người lập chứng từ.",
+    "",
+    "─── BÁNH CÓC ───────────────────────────────────────────────────────────",
+    "`choMigration033` CHỈ ĐƯỢC NGẮN ĐI. Chuyển một bảng sang `daCo` mà kho chưa",
+    "có cột + chỉ mục ⇒ HỎNG. Sổ này RỖNG ở ô đó là đích.",
+    "",
+    "⚠️ 033 nằm SAU vòng khoá SECURITY FREEZE (B2 chưa cắt — GPR-001 A-3), nên ô",
+    "   `choMigration033` sẽ đứng nguyên 7 bảng cho tới khi Board cắt băng.",
+    "   Board Decision A-6 (cách hiểu A): nợ CÓ TÊN không làm phép kiểm mất tư",
+    "   cách hoàn thành."
+  ],
+
+  "daCo": [
+    {
+      "bang": "assignments",
+      "migration": "029c",
+      "chiMuc": "uq_assignments_request_id",
+      "lyDo": "Sinh `assignment_no` từ `nextval` — hai lần INSERT là hai số nghiệp vụ thật, không thu hồi được."
+    },
+    {
+      "bang": "assignment_daily_reports",
+      "migration": "029c",
+      "chiMuc": "uq_assignment_daily_reports_request_id",
+      "lyDo": "Báo cáo ngày của nhà thầu — gửi trùng làm sản lượng cộng đôi."
+    }
+  ],
+
+  "choMigration033": [
+    { "bang": "orders", "lyDo": "ADR-003 §120 — có dữ liệu thật và mã đang chạy" },
+    { "bang": "shipments", "lyDo": "ADR-003 §120" },
+    { "bang": "subcon_orders", "lyDo": "ADR-003 §120" },
+    { "bang": "subcon_receipt_logs", "lyDo": "ADR-003 §120" },
+    { "bang": "qa_logs", "lyDo": "ADR-003 §120" },
+    { "bang": "capa_logs", "lyDo": "ADR-003 §120" },
+    { "bang": "financial_records", "lyDo": "ADR-003 §120" }
+  ],
+
+  "mienTrong": [
+    {
+      "bang": "activity_log",
+      "lyDo": "Sổ cái CHỈ-GHI-THÊM. Ghi trùng một dòng nhật ký là vô hại; chặn nó lại mới nguy hiểm vì có thể làm MẤT một dòng kiểm toán. K-1 + BDR-14."
+    },
+    {
+      "bang": "stock_movements",
+      "lyDo": "Sổ cái chuyển động kho, chỉ-ghi-thêm. Chống trùng thuộc về chứng từ SINH RA nó (`inbound_receipts` · `outbound_issues`), không thuộc dòng sổ."
+    },
+    {
+      "bang": "wh_audit_log",
+      "lyDo": "Nhật ký kho, chỉ-ghi-thêm. Cùng lý do với `activity_log`."
+    },
+    {
+      "bang": "order_milestones",
+      "lyDo": "Mốc tiến độ sinh theo mẫu lịch khi tạo đơn, KHÔNG do người dùng lập từng cái. Chống trùng nằm ở `orders`."
+    },
+    {
+      "bang": "costing_items",
+      "lyDo": "Bảng CON của `costings` — chống trùng thuộc chứng từ cha. Và 046 đã khoá nó khi cha đã duyệt."
+    }
+  ]
+}

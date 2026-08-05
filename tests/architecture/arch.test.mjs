@@ -778,4 +778,93 @@ if (soCong) {
   }
 }
 
+// ── 15. SỔ ĐĂNG KÝ `request_id` — `⑮` · ADR-003 · Playbook XXXIV ───────────
+//
+// CLAUDE.md §2.5: *"`request_id UUID` + unique index **bắt buộc** trên mọi bảng
+// chứng từ lập-mới-được."*
+//
+// ─── VÌ SAO ─────────────────────────────────────────────────────────────
+// `retry: 0` ở tầng ứng dụng chỉ chặn **1 trong 4** đường gửi trùng. Ba đường
+// còn lại — bấm hai lần · trình duyệt gửi lại · hai tab — **chỉ CSDL chặn
+// được**. Hai lần `INSERT` = **hai số nghiệp vụ thật**, ⛔ không thu hồi được,
+// và ⛔ **không ngoại lệ nào nổ ra**.
+//
+// 🔑 **CỘT MỘT MÌNH ⛔ KHÔNG CHẶN ĐƯỢC GÌ.** Phải có **chỉ mục duy nhất một
+//    phần** *(`WHERE request_id IS NOT NULL`)* thì CSDL mới từ chối lần gửi thứ
+//    hai. Mục này đòi **cả hai** — đó là phần dễ quên nhất.
+//
+// ⚠️ Phép kiểm đọc **KHO**, ⛔ không đọc CSDL đang chạy — `P-MEASURE` vế ②.
+console.log('\n⑮ SỔ ĐĂNG KÝ request_id — ADR-003 · Playbook XXXIV');
+
+const duongDanCT = join(ROOT, 'tests/architecture/document-tables.json');
+const soCT = existsSync(duongDanCT) ? JSON.parse(doc(duongDanCT)) : null;
+s.ok('Sổ đăng ký request_id tồn tại', soCT !== null,
+  'thiếu tests/architecture/document-tables.json');
+
+if (soCT) {
+  // Gom toàn văn migration MỘT LẦN — ⑦ đã đọc thư mục này, ⛔ không quét lại cây.
+  const thuMucMig = join(ROOT, 'supabase/migrations');
+  const sqlToanBo = existsSync(thuMucMig)
+    ? readdirSync(thuMucMig).filter((f) => f.endsWith('.sql')).sort()
+        .map((f) => doc(join(thuMucMig, f))).join('\n')
+    : '';
+
+  /** Bảng đã được cấp `request_id` trong KHO — qua hàm khuôn chuẩn `029c`,
+   *  hoặc bằng `ADD COLUMN` viết thẳng. */
+  function daCapTrongKho(bang) {
+    const quaHam = new RegExp(`mos_add_request_id\\(\\s*'${bang}'\\s*\\)`).test(sqlToanBo);
+    const vietThang = new RegExp(
+      `ALTER\\s+TABLE\\s+(?:IF\\s+EXISTS\\s+)?(?:public\\.)?${bang}\\b[\\s\\S]{0,200}?ADD\\s+COLUMN[\\s\\S]{0,80}?request_id`, 'i',
+    ).test(sqlToanBo);
+    return quaHam || vietThang;
+  }
+
+  // ① Bảng khai `daCo` phải THẬT SỰ có trong kho — cột VÀ chỉ mục duy nhất
+  const thieuCap = [];
+  for (const m of soCT.daCo) {
+    if (!daCapTrongKho(m.bang)) { thieuCap.push(`${m.bang} (⛔ không thấy cấp cột)`); continue; }
+    // 🔑 Chỉ mục duy nhất là phần CHẶN THẬT. Cột không có nó = bày ra một ô rỗng.
+    if (!m.chiMuc || !sqlToanBo.includes(m.chiMuc)) {
+      thieuCap.push(`${m.bang} (⛔ không thấy chỉ mục ${m.chiMuc ?? '—'})`);
+    }
+  }
+  s.ok(`Bảng khai \`daCo\` có ĐỦ cột + chỉ mục duy nhất (${soCT.daCo.length})`,
+    thieuCap.length === 0, thieuCap.join(' · '));
+
+  // ② Bảng còn ở `choMigration033` ⛔ KHÔNG được đã có cột — nếu có thì sổ lạc hậu
+  const daCoNhungConCho = soCT.choMigration033
+    .filter((m) => daCapTrongKho(m.bang))
+    .map((m) => m.bang);
+  s.ok(`Bảng chờ \`033\` chưa được cấp (${soCT.choMigration033.length} bảng)`,
+    daCoNhungConCho.length === 0,
+    `đã cấp rồi — chuyển sang daCo: ${daCoNhungConCho.join(' · ')}`);
+
+  // ③ Mọi bảng ĐƯỢC CẤP trong kho phải có mặt ở `daCo` — bắt lúc ai đó cấp
+  //    `request_id` cho một bảng mà quên ghi sổ.
+  const trongDaCo = new Set(soCT.daCo.map((m) => m.bang));
+  const capNgoaiSo = [...sqlToanBo.matchAll(/mos_add_request_id\(\s*'([a-z0-9_]+)'\s*\)/g)]
+    .map((x) => x[1]).filter((b) => !trongDaCo.has(b));
+  s.ok('KHÔNG bảng nào được cấp request_id mà ⛔ không ghi sổ',
+    capNgoaiSo.length === 0, `chưa ghi sổ: ${[...new Set(capNgoaiSo)].join(' · ')}`);
+
+  // ④ Một bảng ⛔ không được nằm ở hai ô cùng lúc
+  const moiO = [soCT.daCo, soCT.choMigration033, soCT.mienTrong].map((o) => o.map((m) => m.bang));
+  const tatCa = moiO.flat();
+  const trungO = tatCa.filter((b, i) => tatCa.indexOf(b) !== i);
+  s.ok(`Mỗi bảng nằm ở ĐÚNG MỘT ô (${tatCa.length} mục)`,
+    trungO.length === 0, `trùng ô: ${[...new Set(trungO)].join(' · ')}`);
+
+  // ⑤ Mọi mục phải có LÝ DO — mục ⛔ không lý do là mục đã bị nhét vào cho qua
+  const thieuLyDo = [...soCT.daCo, ...soCT.choMigration033, ...soCT.mienTrong]
+    .filter((m) => !m.lyDo).map((m) => m.bang);
+  s.ok('Mọi mục có LÝ DO', thieuLyDo.length === 0, thieuLyDo.join(' · '));
+
+  console.log(`   ↻ đã cấp ${soCT.daCo.length} · chờ 033 ${soCT.choMigration033.length} · miễn trừ ${soCT.mienTrong.length}`);
+  console.log('   ⚠️ ⑮ đọc KHO, ⛔ KHÔNG đọc CSDL đang chạy — P-MEASURE vế ②.');
+  console.log('      Và nó KHÔNG chứng minh danh sách đã ĐỦ: lượt rà 88 aggregate thuộc Cổng C.');
+  if (soCT.choMigration033.length > 0) {
+    console.log(`   🔴 ${soCT.choMigration033.length} bảng chứng từ vẫn gửi trùng được — chờ 033, mà 033 chờ cắt B2.`);
+  }
+}
+
 process.exit(s.ketThuc() ? 1 : 0);
