@@ -193,5 +193,15 @@
     "emptyTitle": "Chưa có việc nào cần bạn xử lý",
     "emptyHint": "Khi có việc được giao, nó sẽ hiện ở đây.",
     "loading": "Đang tải việc của bạn…"
+  },
+  "forbidden": {
+    "eyebrow": "Lỗi 403",
+    "title": "Bạn không có quyền vào khu vực này",
+    "bodyWithPath": "thuộc phân hệ của bộ phận khác.",
+    "bodyNoPath": "Phân hệ bạn vừa mở thuộc quyền quản lý của bộ phận khác.",
+    "contact": "Nếu đây là nhầm lẫn trong phân quyền, vui lòng liên hệ Quản trị hệ thống.",
+    "signedInAs": "Tài khoản đang đăng nhập:",
+    "backToMine": "Về phân hệ của tôi",
+    "pathLabel": "Đường dẫn"
   }
 }

@@ -193,5 +193,15 @@
     "emptyTitle": "暂无需要您处理的工作",
     "emptyHint": "分配给您的工作将显示在这里。",
     "loading": "正在加载您的工作…"
+  },
+  "forbidden": {
+    "eyebrow": "错误 403",
+    "title": "您无权进入该区域",
+    "bodyWithPath": "属于其他部门的工作空间。",
+    "bodyNoPath": "您打开的工作空间由其他部门管理。",
+    "contact": "如果这是权限设置错误，请联系系统管理员。",
+    "signedInAs": "当前登录账号：",
+    "backToMine": "返回我的工作空间",
+    "pathLabel": "路径"
   }
 }

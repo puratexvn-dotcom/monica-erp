@@ -43,7 +43,6 @@
     "app/error.tsx",
     "app/login/form.tsx",
     "app/top-navbar.tsx",
-    "app/unauthorized/page.tsx",
     "app/update-password/form.tsx",
     "app/update-password/page.tsx",
     "components/ai-sheet.tsx",

@@ -193,5 +193,15 @@
     "emptyTitle": "Nothing needs your attention",
     "emptyHint": "Assigned work will appear here.",
     "loading": "Loading your work…"
+  },
+  "forbidden": {
+    "eyebrow": "Error 403",
+    "title": "You do not have access to this area",
+    "bodyWithPath": "belongs to another department’s workspace.",
+    "bodyNoPath": "The workspace you opened is managed by another department.",
+    "contact": "If this is a permission mistake, please contact the System Administrator.",
+    "signedInAs": "Signed in as:",
+    "backToMine": "Back to my workspace",
+    "pathLabel": "Path"
   }
 }

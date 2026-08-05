@@ -39,7 +39,7 @@
     "trần bằng một quyết định NHÌN THẤY ĐƯỢC trong diff.",
     "Trần chỉ được HẠ XUỐNG."
   ],
-  "tranChuaDanhGia": 18,
+  "tranChuaDanhGia": 17,
   "hoSo": [
     {
       "route": "(dashboard)/admin",
@@ -129,7 +129,18 @@
     {
       "route": "unauthorized",
       "ten": "403 — Không đủ quyền",
-      "trangThai": "CHUA_DANH_GIA"
+      "trangThai": "DA_DANH_GIA",
+      "ngay": "2026-08-05",
+      "nguoiPhan": "Chief Solution Architect (đề xuất) · Board (phê duyệt EPIC UI-1)",
+      "nguon": "commit UI-1.4 phần dư — nối i18n cho trang 403",
+      "cong": {
+        "G1": "ĐẠT — không trường nhập liệu nào.",
+        "G2": "ĐẠT.",
+        "G3": "ĐẠT — hai nút: về phân hệ của mình, hoặc đăng xuất. Đăng xuất là <form method=post>, KHÔNG phải <Link>: nó đổi trạng thái nên không được nằm sau một GET.",
+        "G4": "ĐẠT — chỉ lộ đường dẫn NGƯỜI DÙNG VỪA GÕ, không lộ danh sách phân hệ khác. Nhãn vai lấy từ chính phiên của họ.",
+        "G5": "ĐẠT — trang này KHÔNG phải kiểm soát; nó là thông báo SAU khi middleware đã chặn. Cố ý không dùng AuthBackdrop để trông khác cánh cửa vào, tránh người dùng tưởng chỉ cần đăng nhập lại.",
+        "G6": "ĐẠT — không tính chỉ số nào."
+      }
     },
     {
       "route": "update-password",
