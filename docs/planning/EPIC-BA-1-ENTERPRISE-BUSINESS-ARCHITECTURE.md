@@ -250,4 +250,221 @@ trong số đó **chưa có người thứ hai** — Cổng B mục `B4`, chờ 
 - `lib/rbac.ts` · `TD-26` · `TD-32` · `KD-6` · `TC-1`
 - [`EPIC-UX-1`](EPIC-UX-1-PRODUCT-EXPERIENCE-ARCHITECTURE.md) §1.2 — Department ⟷ Workspace
 
+---
+---
+
+# §8 · REVISION 2 — BOARD DIRECTIVE 05/08/2026
+
+> ⚠️ **§0–§7 GIỮ NGUYÊN VĂN** *(Điều 43.7)*. Revision 2 **thêm vào**.
+
+## 8.1 Board đã cung cấp — hai khoảng trống của Rev 1 được lấp
+
+| # | Rev 1 ghi | Rev 2 |
+|---|---|---|
+| 1 | 🔴 Organization Structure — **cần Joseph** | ✅ **Board cấp dữ liệu khởi đầu** — §8.2 |
+| 2 | 🔴 Department Catalog — **cần Joseph** | ✅ **dẫn xuất từ §8.2** — §8.3 |
+| 6 | 🔴 *"Workspace cho từng phòng ban"* — phải đọc lại | ✅ **Board xác nhận `Department ⛔ ≠ Workspace`** |
+| — | — | 🆕 **Module Catalog** — §8.5 |
+| — | — | 🆕 **User Profile & Settings** — §8.7 |
+
+## 8.2 ORGANIZATION STRUCTURE — thiết kế MỞ RỘNG ĐƯỢC
+
+### 8.2.1 Dữ liệu khởi đầu Board cấp
+
+```
+CEO
+├── Giám đốc Sản xuất
+│     ├── Merchandising · QA · Warehouse
+│     └── Cutting · Sewing · Production Planning
+├── Trưởng phòng Kinh doanh
+│     └── Sales · Sales Admin · Customer Service
+├── Kế toán
+├── Nhân sự
+├── IT
+└── Administration
+```
+
+### 8.2.2 🔑 Nguyên tắc: sơ đồ tổ chức là **DỮ LIỆU**, ⛔ không phải mã
+
+Board dặn *"thiết kế theo hướng mở rộng, ⛔ không hard-code vào kiến trúc"*.
+Đây là cách thi hành điều đó.
+
+| # | Nguyên tắc | Vì sao |
+|---|---|---|
+| `O-1` | **Cây tổ chức lưu thành DỮ LIỆU, tự tham chiếu** — `Unit(id, parentId, name, kind)` | Thêm một phòng = **thêm một dòng**, ⛔ không phải một lần deploy |
+| `O-2` | **⛔ KHÔNG giới hạn số tầng.** Hôm nay 3, ngày mai có thể 5 *(Tổ → Chuyền → Xưởng)* | Nhà máy thứ hai sẽ thêm một tầng |
+| `O-3` | **`kind` phân biệt**: `COMPANY` · `DIVISION` · `DEPARTMENT` · `TEAM` · `LINE` | Cùng một cây, nhiều loại nút — ⛔ không cần bảng thứ hai |
+| `O-4` | 🔴 **⛔ KHÔNG bao giờ suy quyền từ cây tổ chức** | Quyền đi từ **Assignment** *(Playbook Điều XXX)*. Suy từ cây là buộc phần bền vào phần hay đổi |
+| `O-5` | **Có `hieuLucTu` / `hieuLucDen`** | Tái cơ cấu ⛔ không được xoá lịch sử — chứng từ cũ phải tra được phòng ban **lúc đó** |
+
+⚠️ `O-5` là điều dễ bỏ sót nhất. ⛔ Không có nó, một lần tái cơ cấu sẽ khiến mọi
+báo cáo lịch sử **kể sai** ai đã làm gì.
+
+### 8.2.3 Ba câu hỏi ⛔ dữ liệu khởi đầu chưa trả lời
+
+| # | Câu hỏi | Vì sao quan trọng |
+|---|---|---|
+| `OQ-1` | **Cutting · Sewing** là phòng ban, hay **tổ sản xuất** dưới một xưởng? | Quyết định `kind` và số tầng |
+| `OQ-2` | **Kế toán · Nhân sự · IT · Administration** báo cáo thẳng CEO, hay qua một Giám đốc Hành chính? | Ảnh hưởng RACI cột `A` |
+| `OQ-3` | **Bao nhiêu nhà máy / địa điểm?** | Nếu > 1, cây cần thêm tầng `SITE` **ngay từ đầu** |
+
+## 8.3 DEPARTMENT CATALOG — dẫn xuất
+
+| # | Department | Thuộc | Workspace phục vụ *(nhiều–nhiều)* |
+|---|---|---|---|
+| 1 | Merchandising | GĐ Sản xuất | `D2` Merchandising · `D1` Commercial · `D3` Product Dev |
+| 2 | QA | GĐ Sản xuất | `D7` Quality |
+| 3 | Warehouse | GĐ Sản xuất | `D9` Warehouse · `D8` Procurement |
+| 4 | Cutting | GĐ Sản xuất | `D6` Manufacturing |
+| 5 | Sewing | GĐ Sản xuất | `D6` Manufacturing |
+| 6 | Production Planning | GĐ Sản xuất | `D5` Planning · `D4` Industrial Engineering |
+| 7 | Sales | TP Kinh doanh | `D1` Commercial |
+| 8 | Sales Admin | TP Kinh doanh | `D1` Commercial · `D2` Merchandising |
+| 9 | Customer Service | TP Kinh doanh | `D1` Commercial |
+| 10 | Kế toán | CEO | `D12` Finance |
+| 11 | Nhân sự | CEO | `D13` People |
+| 12 | IT | CEO | *(Platform Services)* |
+| 13 | Administration | CEO | *(Platform Services)* |
+
+🔑 **Bảng cột 4 chứng minh `Department ⛔ ≠ Workspace`:** `Cutting` và `Sewing`
+là **hai phòng ban** dùng **chung một** Workspace `D6`; `Merchandising` là **một
+phòng ban** dùng **ba** Workspace.
+
+⚠️ **`D10` Logistics · `D11` Subcontract ⛔ chưa có phòng ban nào nhận.** Hoặc
+Monica ⛔ chưa có bộ phận đó, hoặc nó nằm trong một phòng ở trên. **`OQ-4`** —
+cần Joseph.
+
+## 8.4 🔴 KHOẢNG CÁCH ĐO ĐƯỢC: 13 phòng ban ⟷ 14 vai đăng nhập
+
+| Phòng ban *(§8.3)* | Vai trong `lib/rbac.ts` |
+|---|---|
+| Merchandising | `md` |
+| QA | `qa` |
+| Warehouse | `kho` · `khotruong` · `thukho` · `ketoanvattu` |
+| Cutting | `totruongcat` |
+| Sewing | `totruongmay` |
+| Production Planning | ⛔ **KHÔNG CÓ VAI** |
+| Sales · Sales Admin · Customer Service | ⛔ **KHÔNG CÓ VAI** |
+| Kế toán | `ketoan` |
+| Nhân sự | ⛔ **KHÔNG CÓ VAI** |
+| IT · Administration | `superadmin` |
+| — | `giamdoc` · `hoanthanh` · `subcon` · `buyer` |
+
+**⇒ Sáu phòng ban ⛔ không có vai nào để đăng nhập:** Production Planning ·
+Sales · Sales Admin · Customer Service · Nhân sự · *(và `hoanthanh` là một vai
+⛔ không ánh xạ vào phòng ban nào ở §8.2)*.
+
+🔑 Đây là **phát hiện mới của Rev 2**, và nó giải thích `UI-F4`: Homepage khai
+19 App nhưng chỉ 10 App có route — vì **gần một nửa doanh nghiệp chưa có vai
+trong hệ thống**.
+
+⇒ Ghi thành **`BA-1`**: khoảng cách tổ chức ⟷ phân quyền. Trình Board.
+
+## 8.5 🆕 MODULE CATALOG — lớp trung gian
+
+### 8.5.1 Vì sao nó là lớp trung gian đúng chỗ
+
+```
+Business Architecture  (Department · Capability)
+          ▼
+   ┌──────────────┐
+   │ MODULE       │ ← MỘT nơi khai: ai vào, vào đâu, thấy gì
+   │ CATALOG      │
+   └──────────────┘
+          ▼
+Permission → Navigation → Workspace → Software Architecture
+```
+
+🔑 Ngày nay bốn thứ ấy khai ở **bốn nơi rời nhau**: `home-modules.ts` *(nhãn)* ·
+`rbac.ts` *(quyền)* · cây thư mục `app/` *(route)* · `screen-gates.json` *(hồ
+sơ)*. **Module Catalog gộp chúng về một sổ.**
+
+### 8.5.2 Sổ — trạng thái hiện tại `[MEASURED]`
+
+| Module | Department | Workspace | Vai chính | Vai phụ | Route | Nhóm |
+|---|---|---|---|---|---|---|
+| Executive Center | *(CEO)* | `D14` | `giamdoc` | `superadmin` | `/giam-doc` 🔴 | Điều hành |
+| Commercial | Sales | `D1` | ⛔ **thiếu** | `buyer` | `/buyer` 🔴 | Thương mại |
+| Merchandising | Merchandising | `D2` | `md` | `giamdoc` | `/md` | Thương mại |
+| Planning | Production Planning | `D5` | ⛔ **thiếu** | — | ⛔ **chưa có** | Sản xuất |
+| Production | Sewing | `D6` | `totruongmay` | `totruongcat` | `/to-truong-may` 🔴 | Sản xuất |
+| Quality | QA | `D7` | `qa` | — | `/qa` | Sản xuất |
+| Warehouse | Warehouse | `D9` | `kho` | `khotruong` `thukho` `ketoanvattu` | `/kho` | Cung ứng |
+| Shipment | Warehouse | `D10` | `kho` | `khotruong` | `/xuat-hang` | Cung ứng |
+| Subcontract | ⛔ **thiếu** | `D11` | `subcon` | 6 vai nội bộ 🔴 | `/subcon` 🔴 | Cung ứng |
+| Finance | Kế toán | `D12` | `ketoan` | `ketoanvattu` | `/ke-toan` | Tài chính |
+| Human Resources | Nhân sự | `D13` | ⛔ **thiếu** | — | ⛔ **chưa có** | Con người |
+| Business Reporting | *(toàn cục)* | — | mọi vai | — | ⛔ **chưa có** | Dịch vụ |
+| Business Communication | *(toàn cục)* | — | mọi vai | — | ⛔ **chưa có** | Dịch vụ |
+| AI Assistant | *(toàn cục)* | — | mọi vai | — | ⛔ **chưa có** | Dịch vụ |
+| Documents | *(toàn cục)* | — | mọi vai | — | ⛔ **chưa có** | Dịch vụ |
+| Platform Services | IT | — | `superadmin` | — | `/admin` | Nền tảng |
+
+🔴 = khuyết tật đã ghi: route mang tên chức danh *(`NV-1`)* · `/subcon` chung
+người trong lẫn ngoài *(`KD-6`)*.
+
+### 8.5.3 Ba khoảng trống sổ này lộ ra
+
+| # | Khoảng trống |
+|---|---|
+| `MC-1` | **4 Module ⛔ không có vai chính** — Commercial · Planning · HR · *(và Subcontract ⛔ không có phòng ban)* |
+| `MC-2` | **6 Module ⛔ chưa có route** — khớp đúng 6 thẻ `COMING_SOON` ở `home-modules.ts` |
+| `MC-3` | **Nhóm điều hướng ⛔ chưa tồn tại trong mã** — cột cuối là **đề xuất**, ⛔ chưa thi hành |
+
+## 8.6 NAVIGATION GROUP — chuẩn bị cho 19 → 30 Module
+
+| Nhóm | Module |
+|---|---|
+| **Điều hành** | Executive Center |
+| **Thương mại** | Commercial · Merchandising |
+| **Sản xuất** | Planning · Production · Quality |
+| **Cung ứng** | Warehouse · Shipment · Subcontract · *(Procurement)* |
+| **Tài chính** | Finance |
+| **Con người** | Human Resources |
+| **Dịch vụ** | Reporting · Communication · AI · Documents |
+| **Nền tảng** | Platform Services |
+
+⚠️ **⛔ Chưa dựng nhóm lên màn hình hôm nay.** Hiến pháp §13.3 cấm tổ chức
+Homepage theo **sơ đồ tổ chức**; nhóm ở đây theo **miền năng lực** nên ⛔ không
+vi phạm — nhưng ở 16 ô, một lưới phẳng vẫn đọc tốt hơn. **Bật nhóm khi vượt ~20
+ô.**
+
+## 8.7 🆕 USER PROFILE & SETTINGS — nền tảng dùng chung
+
+| Mục | Ghi chú kiến trúc |
+|---|---|
+| Avatar | ⛔ Chưa có bảng lưu — cần **migration** ⇒ **DỪNG** |
+| **Đổi mật khẩu** | ✅ **ĐÃ CÓ** — `/update-password`, dùng lại được |
+| Thông tin cá nhân | Đọc từ `profiles`; sửa gì được thì **Board quyết** |
+| **Ngôn ngữ** | ✅ **ĐÃ CÓ** — `lib/i18n`, đang lưu `localStorage` |
+| Thông báo | ⛔ Chưa có Domain sở hữu |
+| **Thiết bị đăng nhập** | 🔴 Cần Supabase session API |
+| **Đăng xuất** | ✅ **ĐÃ CÓ** — `/auth/signout` |
+
+### 8.7.1 Ba quyết định kiến trúc cần Board
+
+| # | Câu hỏi | Vì sao |
+|---|---|---|
+| `UP-1` | **Ngôn ngữ lưu ở `localStorage` hay hồ sơ người dùng?** | Hôm nay đổi máy là mất. Lưu vào hồ sơ ⇒ **cần migration** |
+| `UP-2` | **Người dùng tự sửa được gì?** | Họ tên là **dữ liệu nhân sự**. Cho tự sửa ⇒ hồ sơ nhân sự ⛔ không còn tin được |
+| `UP-3` | **Avatar lưu ở đâu** — Supabase Storage? | Cần migration + policy ⇒ SECURITY FREEZE |
+
+🔴 **Bốn trong bảy mục cần migration** ⇒ User Profile ⛔ **không** khởi động
+được cho tới khi Board cắt `B2`.
+
+## 8.8 CẬP NHẬT §7 — cần Board / Joseph
+
+| # | Cần gì | Ai | Trạng thái |
+|---|---|---|---|
+| `Q-1` | Sơ đồ tổ chức | Joseph | ✅ **ĐÃ CẤP** — còn `OQ-1`…`OQ-4` |
+| `Q-2` | Ai giữ vai nào | Joseph | 🔴 còn thiếu |
+| `Q-3` | `Department ⛔ ≠ Workspace` | Board | ✅ **XÁC NHẬN** |
+| `Q-4` | `SOD-H04·05·06` | Joseph | 🔴 còn thiếu |
+| `Q-5` | `TD-32` ai duyệt chiết tính | Board | 🔴 còn thiếu |
+| 🆕 `Q-6` | **6 phòng ban ⛔ không có vai đăng nhập** *(§8.4)* | Board | 🔴 **mới** |
+| 🆕 `Q-7` | `OQ-1`…`OQ-4` — tầng tổ chức · Logistics/Subcontract thuộc phòng nào | Joseph | 🔴 **mới** |
+| 🆕 `Q-8` | `UP-1`…`UP-3` — User Profile | Board | 🔴 **mới** |
+
+---
+
 > **Trạng thái:** ⏳ trình Board. ⛔ Chưa viết một dòng mã nào.

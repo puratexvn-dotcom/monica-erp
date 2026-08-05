@@ -6,7 +6,178 @@
 | **Thẩm quyền** | Board Directive BA-1 & UX-1 *(Revised)* — 05/08/2026 |
 | **Vai trò** | Chief Solution Architect — **phản biện**, ⛔ không bảo vệ thiết kế hiện tại |
 | **Ràng buộc** | ⛔ **Không viết Production Code** |
-| **Kết luận** | 🟠 **Khuyến nghị Phương án C** · 🔴 **4 điểm va chạm văn bản bậc 1 — cần Board quyết** |
+| **Kết luận Rev 1** | ~~Khuyến nghị Phương án C~~ — **Board BÁC 05/08/2026** |
+| **Kết luận có hiệu lực** | ✅ **Phương án D** *(Board Directive Rev 2)* — xem **§7** |
+
+---
+
+# §7 · REVISION 2 — BOARD DIRECTIVE 05/08/2026
+
+> ⚠️ **§0–§6 GIỮ NGUYÊN VĂN.** Hiến pháp Điều 43.7 cấm viết lại lịch sử.
+> Revision 2 **thêm vào**, ⛔ không sửa.
+
+## 7.1 Board bác gì — và tôi tiếp thu
+
+| # | Đề xuất Rev 1 của tôi | Phán quyết Board |
+|---|---|---|
+| `R1-a` | **Hai bề mặt** — Showcase *(khách)* ⟷ Launcher *(nhân viên)* | 🔴 **BÁC.** MONICA ONE chỉ có **MỘT** Homepage |
+| `R1-b` | Homepage **lọc theo quyền** *(§13.5)* | 🔴 **BÁC.** Launcher **⛔ không đồng nghĩa** Permission — hiện **toàn bộ**, kiểm quyền **lúc MỞ** |
+| `R1-c` | Work Zone ở lại Homepage dạng **dải gọn** *(lối ①)* | 🔴 **BÁC.** Homepage **⛔ không hiển thị Dashboard** |
+| `R1-d` | `Department ⛔ ≠ Workspace` | ✅ **DUYỆT** — giữ nguyên nguyên tắc |
+
+**Tôi tiếp thu `R1-a` và `R1-b`.** Lập luận của Board đúng ở chỗ tôi bỏ sót:
+**hai bề mặt là hai thứ phải nuôi**, và bề mặt ít người xem sẽ **chết dần**.
+Một Homepage duy nhất ⛔ không bao giờ lệch khỏi chính nó.
+
+## 7.2 ✅ PHƯƠNG ÁN D — kiến trúc có hiệu lực
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  HOMEPAGE  —  MỘT bản duy nhất cho MỌI người                │
+│  Lưới App · Icon · Tên Module · một dòng mô tả              │
+│  Hiện ĐỦ mọi Module — ⛔ KHÔNG lọc, ⛔ KHÔNG ẩn              │
+│  ⛔ KHÔNG Dashboard · ⛔ KHÔNG KPI · ⛔ KHÔNG biểu đồ        │
+└───────────────────────────┬─────────────────────────────────┘
+                            │ bấm một Module
+                            ▼
+              ┌──────────────────────────┐
+              │  đã đăng nhập?           │
+              └──────┬────────────┬──────┘
+                  ⛔ chưa         ✅ rồi
+                     ▼            │
+              ┌────────────┐      │
+              │   LOGIN    │──────┤
+              └────────────┘      ▼
+                          ┌───────────────────┐
+                          │  có quyền Module? │
+                          └────┬─────────┬────┘
+                            ✅ có     ⛔ không
+                               ▼         ▼
+                        ┌───────────┐ ┌──────────────┐
+                        │ WORKSPACE │ │ UNAUTHORIZED │
+                        │ việc·KPI· │ │  403         │
+                        │ biểu đồ·  │ └──────────────┘
+                        │ thông báo │
+                        └───────────┘
+```
+
+## 7.3 🔴 HAI ĐIỀU KHOẢN BẬC 1 PHẢI TU CHÍNH TRƯỚC KHI VIẾT MÃ
+
+> Board đã quyết **hai lần**; tôi thi hành. Nhưng phương án D ⛔ **không thi hành
+> được bằng mã** cho tới khi hai điều khoản dưới đây được tu chính — vì mã sẽ
+> **mâu thuẫn trực tiếp** với văn bản bậc 1 đang có hiệu lực.
+>
+> ⚠️ Đây là **thủ tục**, ⛔ không phải phản đối. Đúng trình tự EDD-06 §10:
+> **cập nhật tài liệu → ADR → rồi mới mã**. Tài liệu này là bước một.
+
+| # | Điều khoản | Nguyên văn | Phương án D |
+|---|---|---|---|
+| `TC-A` | **§13.3** | *"two **constitutional** zones: (a) Work Zone … **default view upon sign-in** … Both zones are constitutional. **Neither may be removed**"* | Homepage ⛔ **không** còn Work Zone |
+| `TC-B` | **§13.5** | *"The Homepage shall display **only** the … Services that the authenticated user **is authorized to access**. Users shall **not be distracted by inaccessible** … Workspaces"* | Homepage hiện **toàn bộ**, kể cả thứ ⛔ không có quyền |
+
+⇒ **Cần một ADR tu chính §13.3 và §13.5.** ⛔ Tôi không tự soạn — ADR mới là
+điều kiện dừng Board đã đặt.
+
+## 7.4 🔑 `TC-A` có một lời giải KHÔNG mất năng lực
+
+**Điều §13.3 thật sự bảo vệ ⛔ không phải vị trí, mà là NĂNG LỰC:**
+
+> *"work items requiring the user's attention **across ALL Business Domains** in
+> which the user holds authorization"*
+
+⚠️ **Dời Work Zone vào Workspace làm mất chính năng lực đó.** Một Merchandiser
+có `/md` + `/orders` + `/subcon` sẽ có **ba danh sách việc rời nhau**, và ⛔
+**không nơi nào** trả lời *"tổng cộng hôm nay tôi phải làm gì"*.
+
+Người dùng ⛔ không quên việc ở Workspace họ mở. Họ quên việc ở Workspace họ
+**⛔ không mở hôm nay** — và đó đúng là việc bị trễ.
+
+### Lời giải: **Work Zone là NĂNG LỰC TOÀN CỤC, ⛔ không phải vùng của Homepage**
+
+🔑 **Board đã tự thiết kế sẵn lối vào cho nó** — nút **`Work`** đứng **đầu tiên**
+trong bottom nav *(cả Homepage lẫn trong Module)*.
+
+```
+Homepage       Work · Chat · Monica · AI · Guide
+Trong Module   Work · Chat · Report · AI · Guide
+               └──► MỘT Work Zone hợp nhất, mở được từ MỌI màn hình
+```
+
+| | Homepage sạch | Work Zone hợp nhất |
+|---|---|---|
+| Phương án D nguyên bản | ✅ | 🔴 mất — vỡ thành N danh sách |
+| **D + `Work` toàn cục** | ✅ | ✅ **giữ** |
+
+⇒ Tu chính §13.3 khi đó **nhỏ và có nguyên tắc**: *Work Zone là **năng lực toàn
+cục** mở được từ mọi màn hình, thay vì một **vùng** nhúng trong Homepage.*
+Homepage sạch đúng ý Board; năng lực hiến định ⛔ không mất.
+
+**Đề nghị:** ADR tu chính §13.3 theo hướng này, ⛔ không theo hướng xoá.
+
+## 7.5 Đánh giá khách quan mô hình *"hiện toàn bộ, kiểm quyền lúc mở"*
+
+Board yêu cầu đánh giá khách quan. Đây là đánh giá.
+
+### Ưu điểm — thật, và tôi đã đánh giá thấp ở Rev 1
+
+| # | Ưu điểm |
+|---|---|
+| `A-1` | **Quy mô sản phẩm thấy được ngay** — 19 ô nói *"đây là hệ điều hành"*, 3 ô nói *"đây là một công cụ nội bộ"* |
+| `A-2` | **Bán hàng và demo ⛔ không cần dựng bản riêng** — bản khách thấy **đúng** bản nhân viên dùng. ⛔ Không có *"bản demo"* để lệch |
+| `A-3` | **Nhân viên mới hiểu doanh nghiệp trong vài giây** — thấy cả tổ chức, ⛔ không chỉ góc của mình |
+| `A-4` | **⛔ Không có hai bề mặt để trôi khỏi nhau** — điểm mạnh nhất, và là chỗ Rev 1 của tôi yếu |
+| `A-5` | **Thêm Module = thêm một ô.** ⛔ Không phải cập nhật hai nơi |
+
+### Nhược điểm — cũng thật, và phải giảm nhẹ
+
+| # | Nhược điểm | Mức | Giảm nhẹ đề nghị |
+|---|---|---|---|
+| `N-1` | **Đường cụt lặp lại**: bấm → login → `403`. Thủ kho bấm QA đi **ba bước** để nhận một lời từ chối | 🔴 | **Làm nổi bật** Module có quyền · mờ phần còn lại. ⛔ **Không ẩn** — Board cấm ẩn, và làm mờ ⛔ không phải ẩn |
+| `N-2` | **`403` thành màn hình lưu lượng cao** | 🟠 | Trang 403 phải nói **liên hệ ai**. *(Đã nối i18n ở `UI-1.4`; cần bổ sung lối liên hệ)* |
+| `N-3` | **`UI-F1` ⛔ không đóng** — khách vẫn đọc được bản đồ vận hành | 🟠 | **Rủi ro được CHẤP NHẬN CÓ CHỦ Ý**, đánh đổi lấy giá trị bán hàng. Ghi vào `GPR` như **giới hạn có tên**, ⛔ không phải lỗ hổng im lặng |
+| `N-4` | **Route lộ tên chức danh** — `/giam-doc` · `/to-truong-may` trên thanh địa chỉ, nay khách cũng thấy | 🟠 | Sprint **I-5** — `N-1` của BA-1 §6.3 |
+| `N-5` | **19 → 30 ô thành bức tường** | 🟡 | Nhóm theo Navigation Group *(Module Catalog §8.6)* khi vượt ~20 |
+
+### 🔑 Điểm mấu chốt về `N-1`
+
+**Làm mờ ⛔ KHÔNG phải ẩn.** Board cấm *ẩn* Module; Board ⛔ **không** cấm phân
+biệt thị giác. Chỉ thị Rev 1 của Board thậm chí đã nói: *"làm nổi bật các module
+được cấp quyền"*.
+
+⇒ Hiện **toàn bộ** + **nổi bật thứ mở được** thoả **cả hai**: khách thấy trọn hệ
+sinh thái, nhân viên tìm ra bộ phận của mình **⛔ không phải đọc 19 ô**.
+
+⚠️ Điều này ⛔ **không** làm `TC-B` biến mất — §13.5 nói *"display **only**"*,
+và làm mờ vẫn là **display**. Tu chính vẫn cần.
+
+## 7.6 Trade-off của Homepage dạng Launcher — bảng cuối
+
+| Chiều | Được | Mất |
+|---|---|---|
+| **Bán hàng · Demo** | 🟢 **rất mạnh** | — |
+| **Onboarding** | 🟢 mạnh | — |
+| **Người dùng hằng ngày** | — | 🟠 một cú bấm mỗi sáng · rủi ro đường cụt |
+| **Bảo trì** | 🟢 **một bề mặt** | — |
+| **Bảo mật** | — | 🟠 `UI-F1` chấp nhận có chủ ý |
+| **Mở rộng** | 🟢 tới ~20 ô | 🟡 quá 20 cần nhóm |
+| **Hiến pháp** | — | 🔴 **cần tu chính §13.3 · §13.5** |
+
+## 7.7 Đề xuất cuối cùng của Chief Solution Architect
+
+```
+✅ CHẤP NHẬN Phương án D — Homepage DUY NHẤT, hiện toàn bộ Module
+
+Kèm BA điều kiện, ⛔ không phải phản đối mà là để D đứng vững:
+
+ ① ADR tu chính §13.3 + §13.5   ⇒ BẮT BUỘC trước khi viết mã
+ ② Work Zone thành NĂNG LỰC TOÀN CỤC sau nút `Work`
+    ⇒ giữ danh sách việc HỢP NHẤT xuyên Domain — thứ §13.3 thật sự bảo vệ
+ ③ Hiện toàn bộ + LÀM NỔI BẬT thứ có quyền
+    ⇒ Board cấm ẨN, ⛔ không cấm phân biệt. Giảm `N-1` mà ⛔ không mất `A-1`
+
+⚠️ `UI-F1` chuyển từ "lỗ hổng phải đóng" sang "GIỚI HẠN CÓ TÊN, Board chấp nhận
+   để đổi lấy giá trị bán hàng". Ghi vào GPR-001 — ⛔ không im lặng.
+```
 
 ---
 
