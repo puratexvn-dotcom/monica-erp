@@ -1,62 +1,39 @@
 import { getCutTickets, getOptionsForCutting, createCutTicket } from './actions'
+import CatShell from './cat-shell'
+import { getCatCommandCenter } from './_services/command-center.service'
+
+// ============================================================================
+// CUTTING WORKSPACE — Blueprint tầng ⑤
+//
+// ⚠️ Bản trước cộng bằng **bốn lệnh `.reduce`** ngay trong thân component và tự
+// viết phép tính hao hụt — trong khi `cuttingWastePercent` **đã có sẵn** ở
+// `lib/garment-math.ts`. Nay màn hình chỉ còn **bày ra**.
+//
+// 🔑 `Product Constitution §4.1`: Workspace ⛔ **KHÔNG đọc trực tiếp Business
+//    Data**. Mọi phán đoán đi qua Command Center.
+//
+// ⚠️ Biểu mẫu lập phiếu **giữ nguyên**, dựng ở Server Component rồi truyền vào
+// khung qua `children` — nhờ vậy `createCutTicket` vẫn là Server Action gắn
+// thẳng vào `<form action={…}>`.
+// ============================================================================
 
 export const dynamic = 'force-dynamic'
 
-export default async function CuttingDashboardPage() {
+export default async function CuttingPage() {
+  const cc = await getCatCommandCenter()
+
+  // ⚠️ Hai lời gọi này phục vụ BẢNG và BIỂU MẪU — dữ liệu trình bày chi tiết,
+  // ⛔ không phải phán đoán nghiệp vụ, nên chúng ⛔ không đi qua Command Center.
   const tickets = await getCutTickets()
   const { orders, rolls } = await getOptionsForCutting()
 
-  // Thống kê metrics
-  const totalActualPcs = tickets.reduce((sum, t) => sum + t.total_actual_pcs, 0)
-  const totalFabricUsed = tickets.reduce((sum, t) => sum + Number(t.total_fabric_used_m), 0)
-  const totalRemnants = tickets.reduce((sum, t) => sum + Number(t.remnant_length_m), 0)
-  const totalDefects = tickets.reduce((sum, t) => sum + Number(t.defect_length_m), 0)
-
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-          Quản Lý Bàn Cắt & Phối Kiện (Cutting & Bundle Management)
-        </h1>
-        <p className="text-sm text-slate-500">
-          Theo dõi tiến độ bàn cắt, kiểm soát hao hụt vải đầu tấm và phát hành mã vạch Phối kiện (Bundles).
-        </p>
-      </div>
-
-      {/* METRICS METERS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Tổng Bán Thành Phẩm Cắt</p>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">
-            {totalActualPcs.toLocaleString()} <span className="text-sm font-normal text-slate-500">pcs</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Tổng Vải Đã Trải</p>
-          <p className="text-2xl font-extrabold text-blue-600 mt-2">
-            {totalFabricUsed.toLocaleString()} <span className="text-sm font-normal text-slate-500">m</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Vải Đầu Tấm Thu Hồi</p>
-          <p className="text-2xl font-extrabold text-emerald-600 mt-2">
-            {totalRemnants.toLocaleString()} <span className="text-sm font-normal text-slate-500">m</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Vải Lỗi Cắt Bỏ</p>
-          <p className="text-2xl font-extrabold text-rose-600 mt-2">
-            {totalDefects.toLocaleString()} <span className="text-sm font-normal text-slate-500">m</span>
-          </p>
-        </div>
-      </div>
-
+    <CatShell viec={cc.viec} kpi={cc.kpi} loi={cc.loi}>
       {/* GRID CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* BẢNG NHẬT KÝ BÀN CẮT & PHỐI KIỆN (2 COLS) */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="nhat-ky-cat" className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-24">
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
             <h2 className="text-base font-semibold text-slate-800">Nhật Ký Phiếu Cắt & Thẻ Phối Kiện (Bundles)</h2>
           </div>
@@ -123,8 +100,11 @@ export default async function CuttingDashboardPage() {
           </div>
         </div>
 
-        {/* FORM NHẬP BÀN CẮT MỚI (1 COL) */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-fit">
+        {/* FORM NHẬP BÀN CẮT MỚI (1 COL)
+            `id="lap-phieu-cat"` — neo của `G-19`: việc *"⛔ chưa lập phiếu cắt
+            nào hôm nay"* dẫn **thẳng tới đây**, tức tới nơi **làm cho việc đó
+            biến mất**. */}
+        <div id="lap-phieu-cat" className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-fit scroll-mt-24">
           <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
             Lập Phiếu Bàn Cắt
           </h2>
@@ -326,6 +306,6 @@ export default async function CuttingDashboardPage() {
           </form>
         </div>
       </div>
-    </div>
+    </CatShell>
   )
 }

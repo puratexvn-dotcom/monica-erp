@@ -260,6 +260,13 @@
       "chuyenNhieuLoi": "{chuyen} has the most defects today ({soLoi} pcs) — re-inspect first.",
       "loiLapLai": "Defect “{loai}” recurred in {soLan} reports — consider opening a CAPA.",
       "onDinh": "{soPhieu} inspection(s) recorded, nothing abnormal so far."
+    },
+    "cat": {
+      "chuaLapPhieu": "No cut ticket today — sewing lines will run short of pieces.",
+      "vuotHaoHut": "Fabric waste {tyLe}% is above the {nguong}% threshold — cut fabric cannot be recovered.",
+      "catThieu": "Ticket {maPhieu} is {thieu} pieces short of plan.",
+      "vuotDinhMuc": "Ticket {maPhieu} used {vuot} m over allowance.",
+      "onDinh": "{soPhieu} cut ticket(s) created, nothing abnormal so far."
     }
   },
   "qa": {
@@ -275,5 +282,16 @@
     "moNhatKy": "Open inspection log",
     "ghiPhieuNgay": "Record an inspection now",
     "khuyenNghiChuyen": "{chuyen} accounts for {soLoi} of {tong} defects today — review that line first."
+  },
+  "cat": {
+    "tongBtp": "Cut pieces",
+    "vaiDaTrai": "Fabric laid",
+    "dauTam": "End bits",
+    "tyLeHaoHut": "Waste rate",
+    "nhatKy": "Cut ticket log",
+    "lapPhieu": "Create cut ticket",
+    "moNhatKy": "Open cut log",
+    "nguon": "from {soPhieu} cut ticket(s)",
+    "khuyenNghiVuot": "Ticket {maPhieu} used {vuot} m over allowance — review that marker first."
   }
 }

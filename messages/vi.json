@@ -260,6 +260,13 @@
       "chuyenNhieuLoi": "{chuyen} đang nhiều lỗi nhất hôm nay ({soLoi} sp) — ưu tiên kiểm lại.",
       "loiLapLai": "Lỗi “{loai}” lặp lại ở {soLan} phiếu — cân nhắc mở CAPA.",
       "onDinh": "Đã ghi {soPhieu} phiếu kiểm, chưa có dấu hiệu bất thường."
+    },
+    "cat": {
+      "chuaLapPhieu": "Chưa lập phiếu cắt nào hôm nay — chuyền may sắp thiếu bán thành phẩm.",
+      "vuotHaoHut": "Hao hụt vải {tyLe}% vượt ngưỡng {nguong}% — vải đã cắt không lấy lại được.",
+      "catThieu": "Phiếu {maPhieu} cắt thiếu {thieu} sản phẩm so với kế hoạch.",
+      "vuotDinhMuc": "Phiếu {maPhieu} dùng vượt định mức {vuot} m vải.",
+      "onDinh": "Đã lập {soPhieu} phiếu cắt, chưa có dấu hiệu bất thường."
     }
   },
   "qa": {
@@ -275,5 +282,16 @@
     "moNhatKy": "Mở nhật ký kiểm",
     "ghiPhieuNgay": "Ghi phiếu kiểm ngay",
     "khuyenNghiChuyen": "{chuyen} chiếm {soLoi}/{tong} lỗi hôm nay — rà chuyền đó trước."
+  },
+  "cat": {
+    "tongBtp": "Bán thành phẩm cắt",
+    "vaiDaTrai": "Vải đã trải",
+    "dauTam": "Đầu tấm",
+    "tyLeHaoHut": "Tỷ lệ hao hụt",
+    "nhatKy": "Nhật ký phiếu cắt",
+    "lapPhieu": "Lập phiếu cắt",
+    "moNhatKy": "Mở nhật ký cắt",
+    "nguon": "từ {soPhieu} phiếu cắt",
+    "khuyenNghiVuot": "Phiếu {maPhieu} dùng vượt định mức {vuot} m — rà sơ đồ phiếu đó trước."
   }
 }
