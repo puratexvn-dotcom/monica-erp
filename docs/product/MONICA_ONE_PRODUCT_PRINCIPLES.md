@@ -7,6 +7,59 @@
 | **Vai trò** | **Danh sách đối chiếu** — mỗi tính năng mới soi qua đây trước khi thiết kế |
 | **Trạng thái** | ⏳ chờ Board khoá cùng Product Constitution |
 
+# §0 · 🔑 PHÉP THỬ BA GIẢM — CỔNG ĐỨNG TRƯỚC CẢ 28 NGUYÊN TẮC
+
+> **Board, 05/08/2026:**
+> *"Mọi tính năng mới phải giúp người dùng **giảm số lần phải suy nghĩ**, **giảm
+> số lần phải hỏi người khác**, hoặc **giảm số lần phải nhập liệu**. Nếu một
+> tính năng ⛔ không giảm được **ít nhất một** trong ba điều đó, phải **xem xét
+> lại giá trị** của tính năng trước khi phát triển."*
+
+```
+                    ┌─────────────────────────────────┐
+Ý tưởng tính năng ─►│  Giảm SUY NGHĨ?                 │
+                    │  Giảm HỎI NGƯỜI KHÁC?           │─► ⛔ cả ba KHÔNG
+                    │  Giảm NHẬP LIỆU?                │      ⇒ DỪNG, xét lại
+                    └────────────┬────────────────────┘         giá trị
+                                 │ ít nhất MỘT "có"
+                                 ▼
+                       28 nguyên tắc bên dưới
+                                 │
+                                 ▼
+                          P-MEASURE · test · CI
+```
+
+## 0.1 Vì sao phép thử này mạnh hơn cả 28 nguyên tắc cộng lại
+
+28 nguyên tắc trả lời *"tính năng này làm **ĐÚNG** ⛔ không?"*.
+Ba Giảm trả lời *"tính năng này **CÓ ĐÁNG LÀM** ⛔ không?"*.
+
+⚠️ **Câu thứ hai được hỏi ít hơn hẳn, và tốn kém hơn hẳn khi bỏ qua.** Một tính
+năng sai nguyên tắc thì hỏng lúc rà soát. Một tính năng **⛔ không đáng làm**
+thì **được duyệt, được xây, được kiểm, được giao** — rồi nằm đó, và **⛔ không
+ai dám gỡ** vì nó *"đang chạy tốt"*.
+
+## 0.2 Ba Giảm ánh xạ thẳng vào ba lời hứa của sản phẩm
+
+| Giảm | Điều nó xoá | Khoản Product Constitution |
+|---|---|---|
+| **Suy nghĩ** | *"tôi phải làm gì bây giờ?"* | §4 · §15 ② — Workspace trả lời sẵn |
+| **Hỏi người khác** | *"anh ơi cái này tới đâu rồi?"* | §13 — xoá văn hoá *"xin cho"* |
+| **Nhập liệu** | *"nhớ nhiều · nhập nhiều · sợ sai"* | §7 — AI soạn, người xác nhận |
+
+🔑 **Ba Giảm ⛔ không phải khẩu hiệu năng suất. Nó là §13 viết dưới dạng đo
+được.**
+
+## 0.3 ⚠️ Phép thử này **⛔ KHÔNG** biện minh cho việc bỏ bước
+
+*"Bỏ màn hình xác nhận"* giảm được số lần bấm — và **vi phạm `P20`** *(người
+xác nhận là người chịu trách nhiệm)*.
+
+⇒ **Ba Giảm là cổng VÀO, ⛔ không phải giấy miễn trừ.** Qua được nó rồi vẫn
+phải qua đủ 28 nguyên tắc và toàn bộ `P-MEASURE`.
+
+---
+
 > **Cách dùng:** trước khi viết dòng mã đầu tiên của một tính năng, đọc 28 dòng
 > dưới đây và trả lời: *"tính năng này vi phạm điều nào ⛔ không?"*
 > Vi phạm **một** điều ⇒ **dừng**, ⛔ không phải *"cân nhắc lại"*.
@@ -78,6 +131,8 @@
 | **P25** | 🔴 **AI ⛔ KHÔNG BAO GIỜ thấy nhiều hơn người mà nó phục vụ** | AI trả lời câu hỏi mà người dùng ⛔ không có quyền hỏi |
 | **P26** | **AI ưu tiên tri thức NỘI BỘ trước Internet** | trả lời bằng kiến thức chung khi công ty đã có SOP |
 | **P27** | **AI Memory phục vụ NGƯỜI DÙNG, ⛔ không phục vụ người quản lý họ** | cấp trên đọc được bộ nhớ AI của cấp dưới |
+| **P29** | 🔴 **AI trao đổi `Reference`, ⛔ KHÔNG trao đổi DỮ LIỆU.** Mỗi AI tự đọc bằng quyền của **chính người nó đại diện** | AI-A lấy dữ liệu **hộ** AI-B |
+| **P30** | 🔴 **`Context` mang ngữ cảnh CÔNG VIỆC, ⛔ KHÔNG BAO GIỜ mang ngữ cảnh CON NGƯỜI** | AI-CEO hỏi AI-nhân-viên *"người này làm việc thế nào?"* |
 
 ## VIII · TRIẾT LÝ *(P28)*
 
@@ -91,12 +146,13 @@
 
 ⚠️ Ghi ở đây vì chúng ⛔ **không** phải rủi ro tương lai — chúng đang mở:
 
-| Nguyên tắc | Bị đe doạ bởi | Gỡ bằng |
+| Nguyên tắc | Trạng thái sau Rev 2 | Còn lại gì |
 |---|---|---|
-| **P25** | 🔴 **AI Network §12** — AI QA đẩy thông tin sang AI Merchandising vượt qua ranh giới `MODULE_ACCESS` | `ADR-027` |
-| **P27** | 🔴 **AI Memory §10** — hồ sơ hành vi nhân viên, ⛔ chưa ai quyết ai đọc được | Board quyết `G-9` |
-| **P11** | 🔴 `ADR-021` đề nghị **thêm** mục thứ **sáu**; Product Constitution nói **đúng năm** | `ADR-021` sửa |
-| **P14** | 🔴 §45.3 cấm dịch tên Module ⇒ công nhân đọc `Subcontract` | `ADR-028` |
+| **P25** · **P29** | ✅ **Board đã gỡ** — Context Passing: mỗi AI đọc bằng quyền của **chính người nó đại diện** | 🟠 `ADR-027` thu hẹp còn **luật của kênh `Reference`** *(`AI-4` `AI-5` `AI-6`)* |
+| **P27** · **P30** | ✅ **Board đã gỡ** — AI Memory ⛔ không phải hồ sơ nhân viên, ⛔ không cho quản lý truy cập **trực tiếp** | 🔴 phải chặn **truy cập GIÁN TIẾP** qua Context Passing — `P30` |
+| **P14** | ✅ **Board đã quyết** — giữ tên nghiệp vụ chuẩn; `Tagline` + `Business Value` gánh phần dễ hiểu | ✅ **đã thi hành** — `UI-2`/`UI-3` hiện tagline tiếng Việt ở **mọi khổ màn** |
+| **P11** | 🟠 **một nửa** — `Home` ⛔ không bị xoá mà **đổi tên** thành `Monica`; đúng 5 mục | 🔴 từ **Workspace ⛔ không còn nút về Launcher** — `Product Constitution §17.1` |
+| **P12** | 🔴 **mới phát sinh** — `EP-2` *("từ mọi màn hình phải về được Homepage")* đang bị chính §6 làm hỏng | Board chọn phương án `A` / `B` / `C` ở `§17.1` |
 
 ---
 

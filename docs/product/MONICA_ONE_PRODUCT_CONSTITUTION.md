@@ -2,9 +2,9 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Phiên bản** | **v1.0** |
-| **Ban hành** | Board — 05/08/2026 |
-| **Trạng thái** | ⏳ **CHỜ BOARD KHOÁ** — xem `§0.3` |
+| **Phiên bản** | **v1.0 · Rev 2** |
+| **Ban hành** | Board — 05/08/2026 · **Rev 2** cùng ngày |
+| **Trạng thái** | ⏳ **CHỜ BOARD KHOÁ** — xem `§0.3` · `§17` |
 | **Vai trò** | Tài liệu **cấp cao nhất của SẢN PHẨM** |
 | **⛔ KHÔNG thay thế** | Hiến pháp *(`00-CONSTITUTION.md`)* · ADR · BA-1 · UX-1 |
 | **Đối chiếu** | [`PRODUCT_CONSTITUTION_GAP_ANALYSIS.md`](PRODUCT_CONSTITUTION_GAP_ANALYSIS.md) — **14 khoảng lệch** |
@@ -122,17 +122,80 @@ Homepage → Chọn Module → Login (nếu ⛔ chưa xác thực) → Workspace
 
 ---
 
-# §6 · BOTTOM NAVIGATION — **ĐÚNG 5 MỤC**
+# §6 · BOTTOM NAVIGATION — **ĐÚNG 5 MỤC** *(Rev 2)*
 
-| Ở Homepage | Trong Workspace / Module |
-|---|---|
-| Work · Chat · **Monica** · AI · Guide | Work · Chat · **Report** · AI · Guide |
+| Vị trí | Ở Homepage | Trong Workspace / Module |
+|---|---|---|
+| 1 | **Work** | **Work** |
+| 2 | **Chat** | **Chat** |
+| 3 | **Monica** | **Report** |
+| 4 | **AI** | **AI** |
+| 5 | **Guide** | **Guide** |
 
-> **Luôn chỉ có 5 mục. ⛔ Không tăng thêm. ⛔ Không thay đổi vị trí.
-> Người dùng ⛔ không phải học lại.**
+> **Luôn chỉ có 5 mục. ⛔ Không thêm mục thứ sáu. ⛔ Không có `Home`.**
+> **`Monica` CHÍNH LÀ Application Launcher.**
 
-⚠️ Xem `G-1` và `G-14` ở Gap Analysis — khoản này va chạm Hiến pháp §15.3 và có
-một thuật ngữ *(`Monica`)* ⛔ chưa được định nghĩa.
+🔑 **Board đã giải `G-1` ①:** `Home` ⛔ **không bị xoá** — nó được **đổi tên**
+thành `Monica`. Lối về Launcher vẫn là một năng lực hiến định, chỉ mang tên
+thương hiệu.
+
+🔴 **`G-1` ② vẫn còn, và Rev 2 làm nó rõ hơn — xem `§17.1`.**
+
+---
+
+# §17 · MỘT ĐIỂM CÒN MỞ SAU REV 2
+
+## 17.1 🔴 Từ Workspace ⛔ KHÔNG còn nút về Launcher
+
+Đọc đúng bảng §6 ở trên:
+
+```
+Ở Homepage    slot 3 = Monica  ⇒ đang Ở Launcher rồi. Nút này ⛔ không đi đâu cả.
+Trong Workspace slot 3 = Report ⇒ ⛔ KHÔNG có nút nào về Launcher.
+```
+
+⚠️ **`Monica` chỉ xuất hiện ở nơi ⛔ không cần nó, và vắng mặt ở nơi cần.**
+
+Điều này va `EP-2` *(UX-1 §12.5)*: *"nút về Homepage phải có ở **mọi**
+Workspace, nếu ⛔ không Homepage thôi là **điểm vào** và chỉ còn là **trang đăng
+nhập**"* — và va cả §2 của chính tài liệu này *(Homepage là **Entry Point** của
+toàn hệ thống)*.
+
+**Hai cách đọc, Board chọn một:**
+
+| | Cách đọc | Hệ quả |
+|---|---|---|
+| **A** | **Hai danh sách bị đảo** — đúng phải là: Homepage có `Report`, Workspace có `Monica` | ⇒ `Monica` đưa người dùng **về Launcher** từ mọi Workspace ✅ · nhưng `Report` trên Homepage thì báo cáo **cái gì**, khi Homepage ⛔ không có ngữ cảnh nghiệp vụ? |
+| **B** | **`Monica` có mặt ở CẢ HAI**, và `Report` là mục **thứ sáu** trong Workspace | ⇒ vi phạm *"đúng 5 mục"* 🔴 |
+| **C** | **Slot 3 đổi theo ngữ cảnh** như bảng hiện tại, và lối về Launcher đi qua **logo trên thanh đầu**, ⛔ không qua thanh dưới | ⇒ giữ đúng 5 mục · giữ `EP-2` · nhưng phải **ghi ra chữ**, vì hiện ⛔ không văn bản nào nói vậy |
+
+⇒ **Tôi khuyến nghị `C`** — nó là cách duy nhất giữ **cả ba** ràng buộc *(đúng
+5 mục · slot ⛔ không đổi vai · luôn về được Launcher)* mà ⛔ không phải đảo gì.
+Logo thương hiệu là lối về trang chủ ở **mọi sản phẩm web**; người dùng ⛔ không
+phải học nó.
+
+⚠️ **⛔ Không tự chọn.** Ghi vào đây, chờ Board.
+
+## 17.2 ⚠️ `AI CEO nhận báo cáo tổng hợp` — ⛔ chưa chạy được, và ⛔ không phải vì AI
+
+`§12` Rev 2 chốt: **mỗi AI đọc bằng quyền của người nó đại diện**. Đúng và sạch.
+Nhưng áp vào ví dụ của chính `§12`:
+
+```
+MODULE_ACCESS.giamdoc = ['/giam-doc', '/orders', '/subcon']
+```
+
+⇒ **`giamdoc` ⛔ KHÔNG có quyền đọc dữ liệu QA.** Nên `AI CEO` — đọc bằng quyền
+`giamdoc` — cũng **⛔ không đọc được**, và *"báo cáo tổng hợp"* ở cuối chuỗi
+**⛔ không dựng được**.
+
+🔑 **Đây ⛔ KHÔNG phải khuyết tật của Context Passing.** Kiến trúc đúng. Vấn đề
+là **ma trận phân quyền hiện tại ⛔ không cho Giám đốc thấy chất lượng** — một
+phát hiện **nghiệp vụ**, ⛔ không phải kỹ thuật, và nó đã tồn tại **từ trước khi
+có AI**.
+
+⇒ Mở rộng `MODULE_ACCESS` là **thay đổi Permission Model** ⇒ **cần Board + ADR**.
+⛔ Không được làm âm thầm nhân danh *"để AI chạy được"*.
 
 ---
 
@@ -181,7 +244,7 @@ một thuật ngữ *(`Monica`)* ⛔ chưa được định nghĩa.
 
 ---
 
-# §10 · AI MEMORY
+# §10 · AI MEMORY *(Rev 2)*
 
 > Mỗi AI Assistant có **bộ nhớ dài hạn riêng của người dùng**. ⛔ Không chỉ nhớ
 > hội thoại — mà **học** từ: lịch sử thao tác · lịch sử báo cáo · lỗi thường
@@ -189,6 +252,34 @@ một thuật ngữ *(`Monica`)* ⛔ chưa được định nghĩa.
 >
 > Mục tiêu: **AI ngày càng hiểu người dùng**, ⛔ không phải ngày càng nhiều dữ
 > liệu.
+
+## 10.1 🔴 AI Memory **⛔ KHÔNG PHẢI HỒ SƠ NHÂN VIÊN** *(Board, Rev 2)*
+
+> AI Memory là **bộ nhớ cá nhân của AI Assistant** — để **cá nhân hoá cách
+> hướng dẫn, giải thích và hỗ trợ**.
+>
+> - ⛔ **KHÔNG** dùng để **giám sát** nhân viên.
+> - ⛔ **KHÔNG** cho quản lý hoặc CEO **truy cập trực tiếp**.
+
+## 10.2 ⚠️ Và ⛔ không được truy cập **GIÁN TIẾP** qua Context Passing
+
+Board cấm truy cập **trực tiếp**. Nhưng `§12` vừa mở một kênh **giữa các AI** —
+và nếu ⛔ không chặn, kênh đó là đường vòng:
+
+```
+AI CEO  ──"cho tôi bối cảnh về người này"──►  AI của nhân viên
+        ◄──── tóm tắt thói quen · lỗi thường gặp · tiến bộ ────
+```
+
+⇒ **⛔ Không một byte nào của AI Memory được đi qua Context Passing.**
+
+🔑 Ranh giới sắc gọn: Context Passing mang **ngữ cảnh CÔNG VIỆC** *(đơn hàng
+nào · lỗi gì · mốc nào)*. Nó **⛔ KHÔNG BAO GIỜ** mang **ngữ cảnh CON NGƯỜI**
+*(ai hay sai chỗ nào · ai tiến bộ ra sao)*.
+
+⚠️ ⛔ Không có ranh giới này, `§13` *("⛔ không xây phần mềm để kiểm soát nhân
+viên")* hỏng **⛔ không phải bằng một quyết định**, mà bằng **một tính năng
+tiện tay**.
 
 ---
 
@@ -202,7 +293,7 @@ một thuật ngữ *(`Monica`)* ⛔ chưa được định nghĩa.
 
 ---
 
-# §12 · AI NETWORK
+# §12 · AI NETWORK — **CONTEXT PASSING ARCHITECTURE** *(Rev 2)*
 
 ```
 AI QA phát hiện lỗi → AI Merchandising biết khách bị ảnh hưởng
@@ -212,7 +303,51 @@ AI QA phát hiện lỗi → AI Merchandising biết khách bị ảnh hưởng
 
 > Đây là **mạng lưới AI**, ⛔ không phải nhiều chatbot độc lập.
 
-🔴 Xem `G-8` — khoản này là **rủi ro an ninh lớn nhất của toàn tài liệu**.
+## 12.1 🔴 KIẾN TRÚC CHÍNH THỨC *(Board, Rev 2)*
+
+> - AI **chỉ trao đổi `Context` · `Intent` · `Reference`.**
+> - **Mỗi AI tự đọc dữ liệu bằng CHÍNH QUYỀN của người dùng mà nó đại diện.**
+> - ⛔ **Không AI nào được đọc dữ liệu THAY AI khác.**
+> - ⛔ **Không tạo đường vòng vượt RLS.**
+
+## 12.2 ✅ Vì sao lời giải này **thật sự** đóng lỗ
+
+```
+❌ Mô hình chia sẻ quyền:  AI-QA đọc `orders` HỘ AI-MD
+                           ⇒ AI trở thành SECURITY DEFINER BIẾT NÓI
+                           ⇒ lỗ khoét xuyên RLS, ⛔ không ghi Registry được
+
+✅ Context Passing:        AI-QA gửi THAM CHIẾU "lỗi ở đơn #123"
+                           AI-MD tự đọc #123 BẰNG QUYỀN của người dùng MD
+                           ⇒ RLS chạy ĐÚNG MỘT LẦN, dưới ĐÚNG một chủ thể
+```
+
+🔑 **Điểm then chốt: `Reference` là một CON TRỎ, ⛔ không phải DỮ LIỆU.** Người
+⛔ không có quyền cầm con trỏ đó thì **đọc ⛔ không ra gì** — RLS vẫn là hàng
+rào, và nó ⛔ **không bị hỏi vòng qua ai cả**.
+
+⇒ Nó cũng khớp **`PA-1`**: AI nằm ở tầng **trải nghiệm**; hàng rào vẫn ở bậc
+⑤⑥⑦, **⛔ không dời đi đâu**.
+
+## 12.3 ⚠️ Ba điều `ADR-027` vẫn phải chốt
+
+Kiến trúc đúng ⛔ **không** tự nó thành hiện thực đúng. Ba chỗ còn hở:
+
+| # | Vấn đề | Vì sao quan trọng |
+|---|---|---|
+| `AI-4` | **Bản thân `Reference` là thông tin.** *"Đơn #123 có lỗi QA"* để lộ **sự TỒN TẠI** của một bản ghi, kể cả khi người nhận ⛔ không đọc được nội dung | Rò **siêu dữ liệu** ⛔ khác rò **dữ liệu**, nhưng vẫn là rò |
+| `AI-5` | **Ai được gửi `Reference` cho ai?** ⛔ Không có luật, mạng lưới thành **kênh nhắn tin ⛔ không ai rà** | Chính là chỗ `MO-5` cảnh báo: một cột được mượn dần |
+| `AI-6` | **`Context` ⛔ KHÔNG được mang nội dung AI Memory** — xem `§10.2` | ⛔ Không có vế này, `§13` hỏng bằng một tính năng tiện tay |
+
+⇒ **`ADR-027` thu hẹp**: từ *"AI có phá RLS ⛔ không"* — Board đã trả lời **⛔
+không** — xuống *"luật của kênh `Reference`"*. **Nhỏ hơn nhiều, và vẫn bắt
+buộc.**
+
+## 12.4 ⚠️ Ví dụ ở đầu §12 ⛔ chưa chạy được — lý do ⛔ không nằm ở AI
+
+Xem **`§17.2`**: `giamdoc` hiện ⛔ **không có quyền đọc dữ liệu QA**, nên
+`AI CEO` cũng ⛔ không. Đó là chuyện của **ma trận phân quyền**, ⛔ không phải
+của AI — và nó đã đúng như vậy **từ trước khi có AI**.
 
 ---
 

@@ -4,8 +4,62 @@
 |---|---|
 | **Đối chiếu** | `Product Constitution v1.0` ⟷ Hiến pháp v1.6 · Baseline · 18 ADR · BA-1 · UX-1 · mã đang chạy |
 | **Ngày đo** | 05/08/2026 · nhánh `main` · sau `dbec0d9d` |
-| **Kết quả** | **14 khoảng lệch** — 3 🔴 · 7 🟠 · 4 🟢 |
+| **Kết quả ban đầu** | **14 khoảng lệch** — 3 🔴 · 7 🟠 · 4 🟢 |
+| **Sau Board Rev 2** | **3 🔴 ĐÃ GỠ** · **2 🔴 MỚI** phát sinh · 6 🟠 còn · 5 🟢 |
 | **Chỉ thị** | Board: *"⛔ **không sửa ngay**. Ghi thành danh sách."* — tài liệu này **⛔ không đề xuất sửa mã** |
+
+---
+
+# §-1 · BẢNG TRẠNG THÁI SAU BOARD REV 2 *(đọc trước)*
+
+| # | Khoảng lệch | Trước | Sau Rev 2 |
+|---|---|---|---|
+| `G-3` | AI Network vượt RLS | 🔴🔴 | ✅ **GỠ** — **Context Passing**: `Reference` là **con trỏ**, ⛔ không phải dữ liệu; mỗi AI đọc bằng **quyền của chính người nó đại diện** ⇒ RLS chạy **đúng một lần, dưới đúng một chủ thể** |
+| `G-9` | AI Memory = hồ sơ nhân viên | 🔴 | ✅ **GỠ** — bộ nhớ **cá nhân hoá cách hướng dẫn**; ⛔ không giám sát; ⛔ không cho quản lý truy cập trực tiếp |
+| `G-2` | Tên Module ⛔ không ai hiểu | 🔴 | ✅ **QUYẾT** — giữ tên nghiệp vụ chuẩn; `Tagline` + `Business Value` gánh phần dễ hiểu. **Đã thi hành**: `UI-2`/`UI-3` hiện tagline tiếng Việt ở **mọi khổ màn** |
+| `G-1` ① | `Home` bị xoá khỏi thanh dưới | 🔴 | ✅ **GỠ** — `Home` ⛔ không bị xoá, nó **đổi tên** thành `Monica` |
+| `G-1` ② | Slot 3 đổi vai giữa hai màn | 🔴 | 🔴 **CÒN, và Rev 2 làm rõ hơn** ⇒ **`G-15`** |
+| — | — | — | 🔴 **`G-15` MỚI** · 🟠 **`G-16` MỚI** — xem dưới |
+
+## 🔴 `G-15` · Từ Workspace ⛔ KHÔNG còn nút về Launcher
+
+```
+Homepage    slot 3 = Monica  ⇒ đang Ở Launcher. Nút này ⛔ không đi đâu cả.
+Workspace   slot 3 = Report  ⇒ ⛔ KHÔNG có nút nào về Launcher.
+```
+
+⚠️ **`Monica` chỉ có mặt ở nơi ⛔ không cần nó, và vắng ở nơi cần.** Va `EP-2`
+và va §2 *(Homepage là **Entry Point**)*. Ba phương án `A`/`B`/`C` ở
+[`Product Constitution §17.1`](MONICA_ONE_PRODUCT_CONSTITUTION.md) —
+**khuyến nghị `C`** *(về Launcher qua logo thanh đầu)*: cách **duy nhất** giữ
+được **cả ba** ràng buộc mà ⛔ không đảo gì.
+
+## 🟠 `G-16` · Context Passing mở một kênh **⛔ chưa có luật**
+
+Board đóng đường vòng **dữ liệu**. Ba chỗ còn hở, `ADR-027` phải chốt:
+
+| # | Vấn đề |
+|---|---|
+| `AI-4` | **`Reference` tự nó là thông tin** — *"đơn #123 có lỗi QA"* để lộ **sự TỒN TẠI** của bản ghi, kể cả khi người nhận ⛔ đọc được nội dung. Rò **siêu dữ liệu** ⛔ khác rò dữ liệu, nhưng vẫn là rò |
+| `AI-5` | **Ai được gửi `Reference` cho ai?** ⛔ Không có luật ⇒ mạng lưới thành **kênh nhắn tin ⛔ không ai rà** |
+| `AI-6` | 🔴 **`Context` ⛔ KHÔNG được mang nội dung AI Memory.** Board cấm quản lý truy cập **trực tiếp**; ⛔ không có vế này thì `AI-CEO` hỏi `AI-nhân-viên` là **đường vòng gián tiếp**, và §13 hỏng ⛔ không phải bằng một quyết định mà bằng **một tính năng tiện tay** |
+
+🔑 **`ADR-027` thu hẹp mạnh**: từ *"AI có phá RLS ⛔ không"* — đã trả lời **⛔
+không** — xuống *"luật của kênh `Reference`"*. **Nhỏ hơn nhiều, và vẫn bắt
+buộc.**
+
+## 🟠 `G-17` · Ví dụ §12 ⛔ chưa chạy được — và lý do ⛔ không nằm ở AI
+
+`MODULE_ACCESS.giamdoc = ['/giam-doc', '/orders', '/subcon']` ⇒ **`giamdoc` ⛔
+không đọc được dữ liệu QA** ⇒ `AI CEO` cũng ⛔ không ⇒ *"báo cáo tổng hợp"* ở
+cuối chuỗi §12 **⛔ dựng được**.
+
+🔑 **⛔ Không phải khuyết tật của Context Passing** — kiến trúc đúng. Đây là
+phát hiện **nghiệp vụ**: ma trận phân quyền hiện tại **⛔ không cho Giám đốc
+thấy chất lượng**, và điều đó đúng **từ trước khi có AI**.
+
+⇒ Mở rộng `MODULE_ACCESS` là **thay đổi Permission Model** ⇒ **Board + ADR**.
+⛔ Không được làm âm thầm nhân danh *"để AI chạy được"*.
 
 ---
 
