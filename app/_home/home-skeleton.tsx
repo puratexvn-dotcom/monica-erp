@@ -1,4 +1,4 @@
-import { SO_O_MOI_NHOM } from '@/lib/mos/registry/business-apps';
+import { SO_BUSINESS_APP } from '@/lib/mos/registry/business-apps';
 
 // ============================================================================
 // KHUNG CHỜ CỦA TRANG CHỦ
@@ -19,7 +19,7 @@ import { SO_O_MOI_NHOM } from '@/lib/mos/registry/business-apps';
 function OCho() {
   return (
     <div className="flex flex-col items-center p-2">
-      <div className="h-[68px] w-[68px] animate-pulse rounded-[28%] bg-slate-200/70 sm:h-[120px] sm:w-[120px]" />
+      <div className="h-[84px] w-[84px] animate-pulse rounded-[28%] bg-slate-200/70 sm:h-[144px] sm:w-[144px]" />
       <div className="mt-2.5 h-3 w-3/4 animate-pulse rounded bg-slate-200/60 sm:mt-4" />
       <div className="mt-1.5 h-2.5 w-1/2 animate-pulse rounded bg-slate-200/40" />
     </div>
@@ -28,22 +28,19 @@ function OCho() {
 
 export default function HomeSkeleton() {
   return (
-    <div aria-hidden="true" className="mx-auto flex max-w-5xl flex-col gap-y-9 pt-28 sm:gap-y-14 sm:pt-36">
-      {/* 🔴 REV 3 — SỐ Ô ĐỌC TỪ REGISTRY, ⛔ KHÔNG VIẾT CỨNG.
+    <div aria-hidden="true" className="mx-auto max-w-5xl pt-28 sm:pt-36">
+      {/* 🔴 REV 4 — PHẲNG THEO NỘI DUNG THẬT.
 
-          Bản trước tôi viết cứng `[1, 3, 7, 2, 1, 8]` ngay tại đây — và đó đúng
-          thứ Board cấm ở Rev 3. Thêm một Business App là khung chờ **lệch**
-          khỏi nội dung thật, mà cú lệch đó **⛔ không phép kiểm nào bắt được**:
-          nó chỉ hiện ra thành một **cú nhảy bố cục** ⛔ không ai truy được
-          nguyên nhân. */}
-      {SO_O_MOI_NHOM.map((soO, nhom) => (
-        <div key={nhom}>
-          <div className="mb-3 h-2.5 w-24 animate-pulse rounded bg-slate-200/50 sm:mb-5" />
-          <div className="grid grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">
-            {Array.from({ length: soO }, (_, i) => <OCho key={i} />)}
-          </div>
-        </div>
-      ))}
+          Khung chờ phải là **cùng hình dạng** với thứ sắp thay nó. Rev 2 chia
+          sáu nhóm nên khung chờ cũng chia sáu; Rev 4 phẳng nên khung chờ
+          phẳng. Lệch hình là **cú nhảy bố cục** đúng lúc người dùng vừa bắt
+          đầu nhìn.
+
+          🔑 Số ô đọc từ `SO_BUSINESS_APP` — thêm một Business App là khung
+          chờ **tự dài ra**, ⛔ không ai phải nhớ sửa. */}
+      <div className="grid grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">
+        {Array.from({ length: SO_BUSINESS_APP }, (_, i) => <OCho key={i} />)}
+      </div>
     </div>
   );
 }

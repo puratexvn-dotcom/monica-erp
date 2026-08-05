@@ -345,5 +345,29 @@
     "attention": "Needs attention",
     "action": "Action required",
     "update": "New updates"
+  },
+  "workIntent": {
+    "executive": "See the whole picture and approve",
+    "crm": "Track customers and quotations",
+    "commercial": "Track customer orders",
+    "merchandising": "Coordinate styles and consumption",
+    "planning": "Plan capacity and schedules",
+    "production": "Monitor the whole factory",
+    "cuttingLeader": "Create cut tickets and track waste",
+    "sewingLeader": "Record hourly output and handle incidents",
+    "finishingLeader": "Track output and packing",
+    "quality": "Record inspections and handle defects",
+    "subcontract": "Assign and receive subcontract work",
+    "warehouse": "Receive, issue and count materials",
+    "warehouseFinished": "Manage finished goods awaiting shipment",
+    "shipment": "Pack cartons and prepare documents",
+    "finance": "Reconcile payables and costing",
+    "costing": "Break down and approve prices",
+    "humanResources": "Manage people and attendance",
+    "reporting": "Pull evidence-backed reports",
+    "communication": "Discuss against an order",
+    "ai": "Ask AI and let it do the work",
+    "documents": "Look up documents and tech packs",
+    "platform": "Provision accounts and access"
   }
 }

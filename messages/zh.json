@@ -345,5 +345,29 @@
     "attention": "需留意",
     "action": "有待处理事项",
     "update": "有新更新"
+  },
+  "workIntent": {
+    "executive": "掌握全局并审批",
+    "crm": "跟进客户与报价",
+    "commercial": "跟进客户订单",
+    "merchandising": "协调款号与用量",
+    "planning": "排产能与计划",
+    "production": "监控全厂",
+    "cuttingLeader": "开裁剪单并跟踪损耗",
+    "sewingLeader": "录入小时产量并处理异常",
+    "finishingLeader": "跟踪出货与包装",
+    "quality": "录入检验单并处理疵点",
+    "subcontract": "外发与回收加工",
+    "warehouse": "原料收发与盘点",
+    "warehouseFinished": "管理待出运成品",
+    "shipment": "装箱与制单",
+    "finance": "对账应付与成本",
+    "costing": "核算与审批价格",
+    "humanResources": "管理人员与考勤",
+    "reporting": "拉取带凭证的报表",
+    "communication": "围绕订单沟通",
+    "ai": "向 AI 提问并交办",
+    "documents": "查阅文件与 Tech pack",
+    "platform": "开通账号与权限"
   }
 }

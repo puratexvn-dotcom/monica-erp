@@ -109,9 +109,9 @@ export default function AppCard({
   // Bóng của BIỂU TƯỢNG, không phải của hộp. Hai lớp: một lớp sát để bắt mép,
   // một lớp toả rộng và thấp để nó có vẻ đang nổi trên mặt trang.
   const iconShadow =
-    'shadow-[0_2px_4px_-1px_rgba(16,24,40,0.10),0_12px_24px_-8px_rgba(16,24,40,0.18)]';
+    'shadow-[0_2px_6px_-1px_rgba(16,24,40,0.14),0_16px_32px_-10px_rgba(16,24,40,0.26)]';
   const iconShadowHover =
-    'group-hover:shadow-[0_4px_8px_-2px_rgba(16,24,40,0.12),0_20px_36px_-10px_rgba(16,24,40,0.26)]';
+    'group-hover:shadow-[0_6px_12px_-2px_rgba(16,24,40,0.18),0_28px_48px_-12px_rgba(16,24,40,0.34)]';
 
   // ─── TOOLTIP — nơi DUY NHẤT `Business Value` được hiện ────────────────────
   //
@@ -155,9 +155,9 @@ export default function AppCard({
             vẫn là mỏ neo rõ ràng — đúng cỡ biểu tượng trên màn hình chính điện
             thoại. */}
         <span
-          className={`flex h-[68px] w-[68px] items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-[120px] sm:w-[120px] ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
+          className={`flex h-[84px] w-[84px] items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-[144px] sm:w-[144px] ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
         >
-          <Icon className="h-[34px] w-[34px] sm:h-[60px] sm:w-[60px]" strokeWidth={1.6} aria-hidden="true" />
+          <Icon className="h-[40px] w-[40px] sm:h-[70px] sm:w-[70px]" strokeWidth={1.75} aria-hidden="true" />
         </span>
 
         {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt

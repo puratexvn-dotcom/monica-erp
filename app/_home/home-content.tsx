@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-import { MODULES_THEO_NHOM } from '../home-modules';
+import { MODULES } from '@/lib/mos/registry/business-apps';
 import AppCard from './app-card';
 import { modulePermissionState } from '@/lib/mos/capability/visible-modules';
 import type { Role } from '@/lib/rbac';
@@ -257,41 +257,37 @@ export default function HomeContent({
             một ô.
             Khe DỌC ngược lại vẫn phải rộng: tên App có thể xuống ba dòng ở khổ
             hẹp, thiếu khoảng dọc thì chữ hàng trên chạm biểu tượng hàng dưới. */}
-        {/* ═══ 🔴 REV 2 — CHIA THEO SÁU KHU VỰC NGHIỆP VỤ ═══════════════════
-            Board: *"nhóm các Business App theo **khu vực nghiệp vụ** thay vì
-            chỉ xếp thành lưới đều nhau… người dùng sẽ định vị nhanh hơn rất
-            nhiều mà vẫn giữ đúng tinh thần Launcher."*
+        {/* ═══ 🔴 REV 4 — MỘT LƯỚI PHẲNG, ⛔ KHÔNG CÒN NHÓM ═══════════════
+            Board Rev 4: *"⛔ Không chia thành từng vùng. ⛔ Không có tiêu đề…
+            ⛔ Không có bất kỳ đường phân cách nào… Toàn bộ Business Apps nằm
+            **liên tục trên một lưới thống nhất**. Người dùng chỉ cần **cuộn
+            xuống như đang xem màn hình điện thoại**."*
 
-            🔑 Và lý do nó **càng ngày càng đúng**: một lưới phẳng 16 ô còn quét
-            được; **22 ô** thì mắt phải **đọc từng ô**. Chia nhóm biến bài toán
-            *"tìm trong 22"* thành *"chọn 1 trong 6, rồi tìm trong 3"*.
+            ⚠️ Đây là **đảo ngược Rev 2**, và Board đảo chính đề xuất của
+            mình. Tôi đã dựng sáu nhóm có tiêu đề ở Rev 2 theo gợi ý đó.
 
-            ⚠️ Nhóm ở đây là **khu vực NGHIỆP VỤ** *(việc gì đang diễn ra)*,
-            ⛔ **không** phải sơ đồ tổ chức — §13.3 cấm tổ chức trang chủ theo
-            *"organizational hierarchy"*. `BA-1 §8.6` đã chốt hướng này.
+            🔑 Lập luận Rev 4 mạnh hơn, và nó nằm ở **phép so sánh gốc**:
+            màn hình chính điện thoại **⛔ không có tiêu đề nhóm nào cả** —
+            ⛔ không "Mạng xã hội", ⛔ không "Công cụ". Nó chỉ là **một lưới
+            liên tục**, và ⛔ chưa ai từng lạc trên đó. Tiêu đề nhóm biến một
+            **Launcher** thành một **mục lục**, và mục lục thì phải ĐỌC.
 
-            ⚠️ Tiêu đề nhóm cố ý **rất nhẹ** *(chữ nhỏ, xám nhạt)*: nó là **mốc
-            định vị**, ⛔ không phải nội dung. Tiêu đề đậm sẽ giành mất sự chú ý
-            của chính thứ nó đang giới thiệu. */}
-        <div className="mx-auto flex max-w-5xl flex-col gap-y-9 sm:gap-y-14">
-          {MODULES_THEO_NHOM.map(({ nhom, apps }) => (
-            <div key={nhom}>
-              <h2 className={`${TYPE.overline} mb-3 px-0.5 text-slate-400 sm:mb-5`}>
-                {t(`appGroup.${nhom}` as never)}
-              </h2>
-              {/* 🔑 Cả 22 App, ⛔ KHÔNG lọc. Quyền đi vào `state`, ⛔ không đi
-                  vào việc có mặt hay vắng mặt. */}
-              <div className="grid grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">
-                {apps.map((mod) => (
-                  <AppCard
-                    key={mod.id}
-                    mod={mod}
-                    state={modulePermissionState(role, mod)}
-                    live={mucSong[mod.id] ?? null}
-                  />
-                ))}
-              </div>
-            </div>
+            ⚠️ **Thứ tự nhóm thì GIỮ NGUYÊN.** `MODULES` vẫn xếp theo dòng
+            chảy đơn hàng *(quyết định → bán → làm → chứa → giao → đỡ)*, nên
+            App cùng khâu vẫn **nằm cạnh nhau**. Mất tiêu đề ⛔ không có
+            nghĩa mất trật tự — nó chỉ có nghĩa **trật tự thôi tự xưng tên**.
+
+            🔑 Và màu vẫn theo nhóm *(Rev 2)*, nên **mắt vẫn thấy cụm** dù
+            ⛔ không còn chữ nào nói ra. Đó đúng cách màn hình điện thoại
+            hoạt động. */}
+        <div className="mx-auto grid max-w-5xl grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">
+          {MODULES.map((mod) => (
+            <AppCard
+              key={mod.id}
+              mod={mod}
+              state={modulePermissionState(role, mod)}
+              live={mucSong[mod.id] ?? null}
+            />
           ))}
         </div>
       </section>

@@ -10,6 +10,7 @@ import type { ModuleKey } from '@/lib/design/tokens';
 // Chỉ nhập KIỂU — bị xoá lúc biên dịch, nên tệp này vẫn dùng được ở Server
 // Component dù `lib/i18n.tsx` là module phía client.
 import type { DictionaryKey } from '@/lib/i18n';
+import type { Role } from '@/lib/rbac';
 
 // ============================================================================
 // BUSINESS APP REGISTRY — NGUỒN CHÂN LÝ DUY NHẤT VỀ "DOANH NGHIỆP CÓ GÌ"
@@ -93,8 +94,38 @@ interface ModuleBase {
   icon: LucideIcon;
   /** Khoá tra màu. **Dùng chung trong một nhóm** — xem khối chú thích đầu tệp. */
   key: ModuleKey;
-  /** Khu vực nghiệp vụ — quyết định ô nằm ở khu nào trên trang chủ. */
+  /**
+   * Khu vực nghiệp vụ. `Rev 4` bỏ tiêu đề nhóm khỏi màn hình, nhưng trường
+   * này **giữ nguyên**: nó vẫn quyết định **thứ tự** trên lưới và **màu** của
+   * ô, và tầng AI sẽ cần nó để hiểu App nào cùng một khâu.
+   */
   group: NhomKey;
+  /**
+   * **Ai là người dùng chính** của App này.
+   *
+   * 🔑 Dành cho **AI Assistant**: khi người dùng hỏi *"tôi nên vào đâu"*, AI
+   * cần biết App nào **viết cho vai của họ** — chứ ⛔ không chỉ App nào họ
+   * **có quyền** mở. Hai câu đó khác nhau: `superadmin` có quyền mở mọi thứ
+   * và **⛔ không phải người dùng chính** của App nào.
+   *
+   * ⚠️ 🔴 **ĐÂY ⛔ KHÔNG PHẢI MỘT NGUỒN PHÂN QUYỀN.** Nguồn duy nhất vẫn là
+   * `MODULE_ACCESS` qua `canAccess()`. Trường này **mô tả**, ⛔ không **cho
+   * phép** — và ⛔ không dòng mã nào được đọc nó để quyết định cho vào hay
+   * chặn.
+   *
+   * 🔑 Vì sao phải nói ra: `TD-42` sinh ra đúng từ một bảng **trông có thẩm
+   * quyền** mà **⛔ không điều khiển gì**. Bốn bảng RBAC ở `001` vẫn nằm đó
+   * làm bằng chứng. ⛔ Đừng tạo cái thứ hai.
+   */
+  primaryUser: Role | null;
+  /**
+   * **Người dùng vào đây để LÀM GÌ** — một cụm động từ, ⛔ không phải mô tả.
+   *
+   * 🔑 Cũng dành cho AI: `workIntent` là thứ khớp được với câu người dùng gõ
+   * *("tôi cần ghi sản lượng")*, trong khi `name` và `descKey` thì ⛔ không —
+   * chúng nói App **là gì**, ⛔ không nói người ta **làm gì** với nó.
+   */
+workIntent: DictionaryKey;
 }
 
 /** App **đã có route** — bấm được. */
@@ -118,70 +149,70 @@ export type ModuleItem = ModuleReady | ModuleComingSoon;
 // ─── ① ĐIỀU HÀNH ────────────────────────────────────────────────────────────
 const DIEU_HANH: ModuleItem[] = [
   { id: 'executive', name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive', valueKey: 'appValue.executive',
-    status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive', group: 'dieuHanh' },
+    status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive', group: 'dieuHanh', primaryUser: 'giamdoc', workIntent: 'workIntent.executive' },
 ];
 
 // ─── ② KINH DOANH ───────────────────────────────────────────────────────────
 const KINH_DOANH: ModuleItem[] = [
   { id: 'crm', name: 'CRM', descKey: 'appDesc.crm', shortKey: 'appShort.crm', valueKey: 'appValue.crm',
-    status: 'COMING_SOON', icon: Contact, key: 'commercial', group: 'kinhDoanh' },
+    status: 'COMING_SOON', icon: Contact, key: 'commercial', group: 'kinhDoanh', primaryUser: null, workIntent: 'workIntent.crm' },
   { id: 'commercial', name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
-    status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial', group: 'kinhDoanh' },
+    status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial', group: 'kinhDoanh', primaryUser: 'buyer', workIntent: 'workIntent.commercial' },
   { id: 'merchandising', name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising', valueKey: 'appValue.merchandising',
-    status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising', group: 'kinhDoanh' },
+    status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising', group: 'kinhDoanh', primaryUser: 'md', workIntent: 'workIntent.merchandising' },
 ];
 
 // ─── ③ SẢN XUẤT ─────────────────────────────────────────────────────────────
 const SAN_XUAT: ModuleItem[] = [
   { id: 'planning', name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning', valueKey: 'appValue.planning',
-    status: 'COMING_SOON', icon: CalendarRange, key: 'planning', group: 'sanXuat' },
+    status: 'COMING_SOON', icon: CalendarRange, key: 'planning', group: 'sanXuat', primaryUser: null, workIntent: 'workIntent.planning' },
   { id: 'production', name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production', valueKey: 'appValue.production',
-    status: 'COMING_SOON', icon: Factory, key: 'production', group: 'sanXuat' },
+    status: 'COMING_SOON', icon: Factory, key: 'production', group: 'sanXuat', primaryUser: null, workIntent: 'workIntent.production' },
   { id: 'cuttingLeader', name: 'Cutting Leader', descKey: 'appDesc.cuttingLeader', shortKey: 'appShort.cuttingLeader', valueKey: 'appValue.cuttingLeader',
-    status: 'READY', href: '/to-truong-cat', icon: Scissors, key: 'production', group: 'sanXuat' },
+    status: 'READY', href: '/to-truong-cat', icon: Scissors, key: 'production', group: 'sanXuat', primaryUser: 'totruongcat', workIntent: 'workIntent.cuttingLeader' },
   { id: 'sewingLeader', name: 'Sewing Leader', descKey: 'appDesc.sewingLeader', shortKey: 'appShort.sewingLeader', valueKey: 'appValue.sewingLeader',
-    status: 'READY', href: '/to-truong-may', icon: Shirt, key: 'production', group: 'sanXuat' },
+    status: 'READY', href: '/to-truong-may', icon: Shirt, key: 'production', group: 'sanXuat', primaryUser: 'totruongmay', workIntent: 'workIntent.sewingLeader' },
   { id: 'finishingLeader', name: 'Finishing Leader', descKey: 'appDesc.finishingLeader', shortKey: 'appShort.finishingLeader', valueKey: 'appValue.finishingLeader',
-    status: 'READY', href: '/hoan-thanh', icon: PackageCheck, key: 'production', group: 'sanXuat' },
+    status: 'READY', href: '/hoan-thanh', icon: PackageCheck, key: 'production', group: 'sanXuat', primaryUser: 'hoanthanh', workIntent: 'workIntent.finishingLeader' },
   { id: 'quality', name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality', valueKey: 'appValue.quality',
-    status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality', group: 'sanXuat' },
+    status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality', group: 'sanXuat', primaryUser: 'qa', workIntent: 'workIntent.quality' },
   { id: 'subcontract', name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract', valueKey: 'appValue.subcontract',
-    status: 'READY', href: '/subcon', icon: Users, key: 'subcontract', group: 'sanXuat' },
+    status: 'READY', href: '/subcon', icon: Users, key: 'subcontract', group: 'sanXuat', primaryUser: 'subcon', workIntent: 'workIntent.subcontract' },
 ];
 
 // ─── ④ KHO VẬN ──────────────────────────────────────────────────────────────
 const KHO_VAN: ModuleItem[] = [
   { id: 'warehouse', name: 'Raw Material Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse', valueKey: 'appValue.warehouse',
-    status: 'READY', href: '/kho', icon: Package, key: 'warehouse', group: 'khoVan' },
+    status: 'READY', href: '/kho', icon: Package, key: 'warehouse', group: 'khoVan', primaryUser: 'kho', workIntent: 'workIntent.warehouse' },
   { id: 'warehouseFinished', name: 'Finished Goods Warehouse', descKey: 'appDesc.warehouseFinished', shortKey: 'appShort.warehouseFinished', valueKey: 'appValue.warehouseFinished',
-    status: 'COMING_SOON', icon: Warehouse, key: 'warehouse', group: 'khoVan' },
+    status: 'COMING_SOON', icon: Warehouse, key: 'warehouse', group: 'khoVan', primaryUser: null, workIntent: 'workIntent.warehouseFinished' },
 ];
 
 // ─── ⑤ HẬU CẦN ──────────────────────────────────────────────────────────────
 const HAU_CAN: ModuleItem[] = [
   { id: 'shipment', name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment', valueKey: 'appValue.shipment',
-    status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment', group: 'hauCan' },
+    status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment', group: 'hauCan', primaryUser: 'kho', workIntent: 'workIntent.shipment' },
 ];
 
 // ─── ⑥ HỖ TRỢ ───────────────────────────────────────────────────────────────
 const HO_TRO: ModuleItem[] = [
   { id: 'finance', name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance', valueKey: 'appValue.finance',
-    status: 'READY', href: '/ke-toan', icon: Wallet, key: 'finance', group: 'hoTro' },
+    status: 'READY', href: '/ke-toan', icon: Wallet, key: 'finance', group: 'hoTro', primaryUser: 'ketoan', workIntent: 'workIntent.finance' },
   { id: 'costing', name: 'Costing', descKey: 'appDesc.costing', shortKey: 'appShort.costing', valueKey: 'appValue.costing',
-    status: 'COMING_SOON', icon: Calculator, key: 'finance', group: 'hoTro' },
+    status: 'COMING_SOON', icon: Calculator, key: 'finance', group: 'hoTro', primaryUser: null, workIntent: 'workIntent.costing' },
   { id: 'humanResources', name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources', valueKey: 'appValue.humanResources',
-    status: 'COMING_SOON', icon: IdCard, key: 'humanResources', group: 'hoTro' },
+    status: 'COMING_SOON', icon: IdCard, key: 'humanResources', group: 'hoTro', primaryUser: null, workIntent: 'workIntent.humanResources' },
   { id: 'reporting', name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting', valueKey: 'appValue.reporting',
-    status: 'COMING_SOON', icon: PieChart, key: 'reporting', group: 'hoTro' },
+    status: 'COMING_SOON', icon: PieChart, key: 'reporting', group: 'hoTro', primaryUser: null, workIntent: 'workIntent.reporting' },
   { id: 'communication', name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication', valueKey: 'appValue.communication',
-    status: 'COMING_SOON', icon: MessagesSquare, key: 'communication', group: 'hoTro' },
+    status: 'COMING_SOON', icon: MessagesSquare, key: 'communication', group: 'hoTro', primaryUser: null, workIntent: 'workIntent.communication' },
   // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2).
   { id: 'ai', name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai', valueKey: 'appValue.ai',
-    status: 'COMING_SOON', icon: Sparkles, key: 'ai', group: 'hoTro' },
+    status: 'COMING_SOON', icon: Sparkles, key: 'ai', group: 'hoTro', primaryUser: null, workIntent: 'workIntent.ai' },
   { id: 'documents', name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents', valueKey: 'appValue.documents',
-    status: 'COMING_SOON', icon: FileText, key: 'documents', group: 'hoTro' },
+    status: 'COMING_SOON', icon: FileText, key: 'documents', group: 'hoTro', primaryUser: null, workIntent: 'workIntent.documents' },
   { id: 'platform', name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform', valueKey: 'appValue.platform',
-    status: 'READY', href: '/admin', icon: SlidersHorizontal, key: 'platform', group: 'hoTro' },
+    status: 'READY', href: '/admin', icon: SlidersHorizontal, key: 'platform', group: 'hoTro', primaryUser: 'superadmin', workIntent: 'workIntent.platform' },
 ];
 
 /**

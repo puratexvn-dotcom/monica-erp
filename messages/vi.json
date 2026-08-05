@@ -345,5 +345,29 @@
     "attention": "Cần chú ý",
     "action": "Có việc cần xử lý",
     "update": "Có cập nhật mới"
+  },
+  "workIntent": {
+    "executive": "Xem toàn cảnh và phê duyệt",
+    "crm": "Theo khách hàng và báo giá",
+    "commercial": "Theo đơn hàng của khách",
+    "merchandising": "Điều phối mã hàng và định mức",
+    "planning": "Xếp kế hoạch và năng lực chuyền",
+    "production": "Theo dõi toàn xưởng",
+    "cuttingLeader": "Lập phiếu cắt và theo hao hụt",
+    "sewingLeader": "Ghi sản lượng giờ và xử lý sự cố",
+    "finishingLeader": "Theo hàng ra và đóng gói",
+    "quality": "Ghi phiếu kiểm và xử lý lỗi",
+    "subcontract": "Giao việc và nhận hàng gia công",
+    "warehouse": "Nhập, xuất và kiểm tồn nguyên liệu",
+    "warehouseFinished": "Quản thành phẩm chờ xuất",
+    "shipment": "Đóng thùng và làm chứng từ",
+    "finance": "Đối soát công nợ và giá thành",
+    "costing": "Chiết tính và duyệt giá",
+    "humanResources": "Quản nhân sự và chấm công",
+    "reporting": "Lấy báo cáo có bằng chứng",
+    "communication": "Trao đổi theo đơn hàng",
+    "ai": "Hỏi và nhờ AI làm giúp",
+    "documents": "Tra tài liệu và tech pack",
+    "platform": "Cấp tài khoản và phân quyền"
   }
 }
