@@ -224,5 +224,44 @@
     "ai": "用日常语言提问，答案来自工厂的真实数据。",
     "documents": "Tech pack 版本正确 — 没有人按旧版开缝。",
     "platform": "权限跟随所指派的工作 — 可撤销、可稽核。"
+  },
+  "workspace": {
+    "eyebrow": "工作空间",
+    "today": "我今天需要做什么？",
+    "todayEmpty": "尚未测得 — 今天的数据还没有到。",
+    "kpi": "指标",
+    "quickActions": "快捷操作",
+    "calendar": "日历与临近节点",
+    "alerts": "预警",
+    "recent": "最近动态",
+    "needsData": "该区块已设计完成但暂无数据 — 它需要一张尚未建立的表。此处不放虚构数据。",
+    "globalServices": "全局服务",
+    "globalServicesHint": "这四项服务面向所有工作空间，将与底部导航一同开放。",
+    "backHome": "返回首页",
+    "svc": {
+      "chat": "按工作沟通",
+      "report": "一键报表",
+      "ai": "AI 助手",
+      "guide": "使用指引"
+    }
+  },
+  "work": {
+    "qa": {
+      "chuaKiem": "今天尚未记录任何检验单 — 产线在没有质量数据的情况下运行。",
+      "vuotNguong": "疵点率 {tyLe}% 超过 {nguong}% 阈值 — 需停下来排查产线。",
+      "chuyenNhieuLoi": "{chuyen} 今日疵点最多（{soLoi} 件）— 优先复检。",
+      "loiLapLai": "疵点“{loai}”在 {soLan} 张单中重复出现 — 考虑开立 CAPA。",
+      "onDinh": "已记录 {soPhieu} 张检验单，暂未发现异常。"
+    }
+  },
+  "qa": {
+    "tongKiem": "检验总数",
+    "dat": "合格",
+    "loi": "疵点数",
+    "tyLeLoi": "疵点率",
+    "nhatKy": "每小时检验记录",
+    "ghiPhieu": "记录检验单",
+    "xemDon": "订单",
+    "sp": "件"
   }
 }

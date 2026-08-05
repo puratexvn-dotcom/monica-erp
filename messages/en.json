@@ -224,5 +224,44 @@
     "ai": "Ask in plain language; answers come from the factory’s real data.",
     "documents": "The right tech pack version — nobody sews from an old one.",
     "platform": "Access follows the assignment — revocable and auditable."
+  },
+  "workspace": {
+    "eyebrow": "Workspace",
+    "today": "What do I need to do today?",
+    "todayEmpty": "Not measured yet — today’s data has not arrived.",
+    "kpi": "Metrics",
+    "quickActions": "Quick actions",
+    "calendar": "Calendar & upcoming milestones",
+    "alerts": "Alerts",
+    "recent": "Recent activity",
+    "needsData": "This block is designed but has no data yet — it needs a table that does not exist. No mock figures here.",
+    "globalServices": "Global services",
+    "globalServicesHint": "These four serve every workspace. They open together with the Bottom Navigation.",
+    "backHome": "Back to Home",
+    "svc": {
+      "chat": "Work-linked chat",
+      "report": "One-tap report",
+      "ai": "AI assistant",
+      "guide": "Guidance"
+    }
+  },
+  "work": {
+    "qa": {
+      "chuaKiem": "No inspection recorded today — lines are running with no quality data.",
+      "vuotNguong": "Defect rate {tyLe}% is above the {nguong}% threshold — stop and review the line.",
+      "chuyenNhieuLoi": "{chuyen} has the most defects today ({soLoi} pcs) — re-inspect first.",
+      "loiLapLai": "Defect “{loai}” recurred in {soLan} reports — consider opening a CAPA.",
+      "onDinh": "{soPhieu} inspection(s) recorded, nothing abnormal so far."
+    }
+  },
+  "qa": {
+    "tongKiem": "Inspected",
+    "dat": "Passed",
+    "loi": "Defects",
+    "tyLeLoi": "Defect rate",
+    "nhatKy": "Hourly inspection log",
+    "ghiPhieu": "Record inspection",
+    "xemDon": "Orders",
+    "sp": "pcs"
   }
 }

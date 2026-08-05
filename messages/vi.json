@@ -224,5 +224,44 @@
     "ai": "Hỏi bằng tiếng Việt, trả lời dựa trên dữ liệu thật của nhà máy.",
     "documents": "Tech pack đúng phiên bản, không ai may theo bản cũ.",
     "platform": "Cấp quyền theo việc được giao — thu hồi được và rà soát được."
+  },
+  "workspace": {
+    "eyebrow": "Không gian làm việc",
+    "today": "Hôm nay tôi cần làm gì?",
+    "todayEmpty": "Chưa đo được — dữ liệu của hôm nay chưa về.",
+    "kpi": "Chỉ số",
+    "quickActions": "Việc làm nhanh",
+    "calendar": "Lịch & mốc sắp tới",
+    "alerts": "Cảnh báo",
+    "recent": "Hoạt động gần đây",
+    "needsData": "Khối này đã thiết kế xong nhưng chưa có dữ liệu — nó cần một bảng chưa được tạo. Không dựng số liệu giả ở đây.",
+    "globalServices": "Dịch vụ toàn cục",
+    "globalServicesHint": "Bốn dịch vụ này dùng chung cho mọi phân hệ. Sẽ mở cùng Bottom Navigation.",
+    "backHome": "Về Trang chủ",
+    "svc": {
+      "chat": "Trao đổi theo việc",
+      "report": "Báo cáo một chạm",
+      "ai": "Trợ lý AI",
+      "guide": "Hướng dẫn"
+    }
+  },
+  "work": {
+    "qa": {
+      "chuaKiem": "Chưa ghi phiếu kiểm nào hôm nay — chuyền đang chạy mà không có số liệu chất lượng.",
+      "vuotNguong": "Tỷ lệ lỗi {tyLe}% vượt ngưỡng {nguong}% — cần dừng lại rà chuyền.",
+      "chuyenNhieuLoi": "{chuyen} đang nhiều lỗi nhất hôm nay ({soLoi} sp) — ưu tiên kiểm lại.",
+      "loiLapLai": "Lỗi “{loai}” lặp lại ở {soLan} phiếu — cân nhắc mở CAPA.",
+      "onDinh": "Đã ghi {soPhieu} phiếu kiểm, chưa có dấu hiệu bất thường."
+    }
+  },
+  "qa": {
+    "tongKiem": "Tổng kiểm",
+    "dat": "Đạt chuẩn",
+    "loi": "Số lượng lỗi",
+    "tyLeLoi": "Tỷ lệ lỗi",
+    "nhatKy": "Nhật ký kiểm hàng theo giờ",
+    "ghiPhieu": "Ghi phiếu kiểm",
+    "xemDon": "Đơn hàng",
+    "sp": "sp"
   }
 }

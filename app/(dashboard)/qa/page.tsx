@@ -1,4 +1,28 @@
 import { getQAReports, getOrdersForSelect, createQAReport } from './actions'
+import QaShell from './qa-shell'
+import { kpiQA, duLieuQAHomNay } from '@/lib/mos/calculators/qa-kpi.calculator'
+import { viecCuaQA, NGUONG_TY_LE_LOI } from '@/lib/mos/workspace/qa-work-items'
+import type { KpiItem } from '@/components/workspace/blocks'
+
+// ============================================================================
+// QA WORKSPACE — MÀN HÌNH MẪU CỦA KHUNG WORKSPACE
+//
+// ═══ ⚠️ PHÉP TÍNH ĐÃ RỜI KHỎI MÀN HÌNH ═════════════════════════════════
+// Bản trước cộng bằng bốn lệnh `.reduce` ngay trong thân component, và tự viết
+// `(loi/kiem)*100` — trong khi `defectRatePercent` **đã có sẵn** ở
+// `lib/garment-math.ts` từ lâu. Tức công thức ngành may có **hai bản** trong
+// cùng một kho, và bản ở màn hình thì ⛔ không ai kiểm được.
+//
+// Nay: `kpiQA()` cộng, `viecCuaQA()` chiếu việc. Cả hai là **hàm thuần**, kiểm
+// được ⛔ không cần CSDL, ⛔ không cần React. Màn hình chỉ còn **bày ra**.
+//
+// 🔑 Đây cũng là điều phép kiểm `⑭` đòi: màn hình ⛔ **không tự tính số nghiệp
+//    vụ**.
+//
+// ⚠️ Biểu mẫu ghi phiếu và bảng nhật ký **giữ nguyên**, dựng ở Server
+// Component rồi truyền vào khung qua `children` — nhờ vậy `createQAReport`
+// vẫn là Server Action gắn thẳng vào `<form action={…}>`.
+// ============================================================================
 
 export const dynamic = 'force-dynamic'
 
@@ -6,54 +30,26 @@ export default async function QADashboardPage() {
   const reports = await getQAReports()
   const orders = await getOrdersForSelect()
 
-  // Tính toán nhanh số liệu QA thực tế
-  const totalInspected = reports.reduce((sum, r) => sum + r.inspected_qty, 0)
-  const totalPassed = reports.reduce((sum, r) => sum + r.passed_qty, 0)
-  const totalDefects = reports.reduce((sum, r) => sum + r.defect_qty, 0)
-  const defectRate = totalInspected > 0 ? ((totalDefects / totalInspected) * 100).toFixed(1) : '0.0'
+  const k = kpiQA(reports)
+  const viec = viecCuaQA(duLieuQAHomNay(reports))
+
+  // ⚠️ `tyLeLoi` là con số DUY NHẤT ở đây mang **phán quyết** — nó nói *"đạt"*
+  // hay *"⛔ không đạt"*, nên nó là con số duy nhất được tô theo trạng thái.
+  // Tô màu ba KPI còn lại sẽ làm màu thôi mang nghĩa.
+  const kpi: KpiItem[] = [
+    { id: 'kiem', labelKey: 'qa.tongKiem', giaTri: k.tongKiem.toLocaleString('vi-VN'), donVi: 'sp' },
+    { id: 'dat', labelKey: 'qa.dat', giaTri: k.tongDat.toLocaleString('vi-VN'), donVi: 'sp' },
+    { id: 'loi', labelKey: 'qa.loi', giaTri: k.tongLoi.toLocaleString('vi-VN'), donVi: 'sp' },
+    {
+      id: 'ty-le',
+      labelKey: 'qa.tyLeLoi',
+      giaTri: `${k.tyLeLoi.toFixed(1)}%`,
+      trangThai: k.tyLeLoi > NGUONG_TY_LE_LOI ? 'critical' : 'healthy',
+    },
+  ]
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Kiểm Soát Chất Lượng (QA/QC Hourly Audit)
-          </h1>
-          <p className="text-sm text-slate-500">
-            Ghi nhận sản lượng kiểm tra theo giờ, tỷ lệ lỗi chuyền may và bằng chứng hình ảnh.
-          </p>
-        </div>
-      </div>
-
-      {/* THỐNG KÊ METRICS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Tổng Kiểm Tra</p>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">
-            {totalInspected.toLocaleString()} <span className="text-sm font-normal text-slate-500">sp</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Đạt Chuẩn (Passed)</p>
-          <p className="text-2xl font-extrabold text-emerald-600 mt-2">
-            {totalPassed.toLocaleString()} <span className="text-sm font-normal text-slate-500">sp</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Số Lượng Lỗi</p>
-          <p className="text-2xl font-extrabold text-rose-600 mt-2">
-            {totalDefects.toLocaleString()} <span className="text-sm font-normal text-slate-500">sp</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Tỷ Lệ Lỗi (Defect Rate)</p>
-          <p className={`text-2xl font-extrabold mt-2 ${parseFloat(defectRate) > 3 ? 'text-rose-600' : 'text-emerald-600'}`}>
-            {defectRate}%
-          </p>
-        </div>
-      </div>
-
+    <QaShell viec={viec} kpi={kpi}>
       {/* GRID CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LIST QA REPORTS (2 COLS) */}
@@ -258,6 +254,6 @@ export default async function QADashboardPage() {
           </form>
         </div>
       </div>
-    </div>
+    </QaShell>
   )
 }
