@@ -180,6 +180,273 @@ Kèm BA điều kiện, ⛔ không phải phản đối mà là để D đứng 
 ```
 
 ---
+---
+
+# §8 · REVISION 3 — KIỂM CHỨNG LẠI CHÍNH LUẬN ĐIỂM CỦA TÔI
+
+> Board yêu cầu: *"Chỉ đề xuất sửa Constitution nếu **chứng minh được** điều
+> khoản hiện tại ⛔ không còn đáp ứng."*
+>
+> Tôi đọc lại **toàn bộ Điều 13 và Điều 15**, ⛔ không chỉ hai khoản tôi đã trích
+> ở Rev 2. Kết quả **đổi hẳn kết luận** — và nó đổi theo hướng **có lợi cho
+> Board**.
+
+## 8.1 🔴 PHÁT HIỆN: §13.1 ⟷ §13.3 MÂU THUẪN **NỘI TẠI**
+
+Rev 2 tôi trích §13.3 rồi kết luận *"phương án D va chạm Hiến pháp"*. **Tôi đã
+⛔ không đọc §13.1.** Đây là nguyên văn:
+
+> ### §13.1 Constitutional Principle
+> *"Its **sole purpose** is to direct users to the appropriate Business
+> Workspace, Global Service or Platform Service quickly, clearly and
+> confidently.*
+> ***The Homepage is not a dashboard.***
+> ***The Homepage is not a reporting center.***
+> ***The Homepage is not an analytics portal.***
+> ***The Homepage is a Business Operating System Launcher."***
+
+⇒ **Phương án D của Board ⛔ KHÔNG mâu thuẫn Hiến pháp. Nó LÀ §13.1, gần như
+nguyên văn.**
+
+Và §13.3(a) khai một **Work Zone** *"personal, dynamic … presents the work items
+requiring the user's attention"* — đó chính là định nghĩa của một **dashboard cá
+nhân**, thứ §13.1 nói **ba lần** rằng Homepage ⛔ không phải.
+
+| | Nguồn | Ban hành | Nói gì |
+|---|---|---|---|
+| **§13.1** | Hiến pháp **v1.0** — 02/08/2026 | gốc | Homepage **là Launcher**, **⛔ không phải dashboard** |
+| **§13.3** | **ADR-017** → v1.6 — 04/08/2026 | tu chính sau | Homepage **gồm hai vùng**, một vùng **là dashboard cá nhân** |
+
+🔑 **`ADR-017` đã đưa mâu thuẫn vào Hiến pháp**, và ⛔ không ai phát hiện — kể cả
+tôi, khi thi hành nó ở `UI-1.5`.
+
+## 8.2 Trả lời thẳng câu hỏi Board
+
+> *"Chuyển Work Zone vào nút `Work` có thực sự cần sửa Constitution, hay chỉ là
+> thay đổi kiến trúc UI?"*
+
+**Trả lời: CẦN sửa — nhưng ⛔ không phải để bẻ Hiến pháp theo ý Board, mà để
+SỬA MỘT MÂU THUẪN ĐÃ CÓ SẴN.** Và phạm vi sửa **nhỏ hơn** tôi nói ở Rev 2.
+
+Ba khoản, xét từng khoản một:
+
+| Khoản | Nguyên văn ràng buộc | Phương án D | Phán quyết |
+|---|---|---|---|
+| **§13.1** | *"Homepage **is** a Business Operating System Launcher … **is not a dashboard**"* | Homepage = Launcher, ⛔ không dashboard | ✅ **KHỚP — ⛔ không cần sửa** |
+| **§13.3** | *"consists of **two** constitutional zones … Work Zone … **shall be the default view upon sign-in** … Neither may be removed"* | Homepage 1 vùng; đăng nhập vào **Workspace** | 🔴 **CẦN SỬA** |
+| **§15.3** | *"The constitutional capabilities **are**: Home · Business Communication · AI Assistant · Business Reporting · User Guidance"* | thêm **`Work`** vào thanh dưới | 🟠 **CẦN SỬA — bổ sung danh mục** |
+
+### 8.2.1 Vì sao §13.3 **⛔ không** né được bằng lập luận UI
+
+Tôi đã thử ba lối lách, và **cả ba đều thất bại**:
+
+| # | Lối lách | Vì sao thất bại |
+|---|---|---|
+| ① | *"Nút `Work` nằm trên Homepage ⇒ vùng đó vẫn 'có mặt'"* | **Một cái nút ⛔ không phải một vùng.** *"Zone"* trong ngôn ngữ bố cục là một **miền của trang**, ⛔ không phải một lối vào |
+| ② | *"'Neither may be **removed**' nghĩa là ⛔ không xoá khỏi SẢN PHẨM, ⛔ không phải khỏi Homepage"* | Câu trước đó định nghĩa chúng là *"zones **of the Homepage**"*. Nhưng đây **thật sự mơ hồ** — ⛔ không kết luận được bằng câu này |
+| ③ | *"⛔ Không đổi hành vi đăng nhập"* | 🔴 **Chết ở đây.** §13.3(a): *"**shall be the default view upon sign-in**"*. Phương án D đưa người dùng vào **Workspace** sau đăng nhập. Vế này **tường minh, hành vi, ⛔ không mơ hồ** |
+
+🔑 **Khoản ràng buộc thật là *"default view upon sign-in"*, ⛔ không phải *"neither
+may be removed"*.** Rev 2 tôi neo vào câu sai — câu mơ hồ — thay vì câu quyết
+định. **Kết luận đúng, lý do sai.** Board đã đúng khi bắt tôi chứng minh lại.
+
+⚠️ Và điều này quan trọng: **vế ③ vỡ dù Work Zone ở ĐÂU.** Ngay cả khi giữ
+nguyên Work Zone trên Homepage, phương án D vẫn đưa người dùng vào Workspace sau
+đăng nhập. ⇒ **§13.3 phải sửa bất kể vị trí Work Zone.** Câu hỏi *"bottom nav
+hay Homepage"* ⛔ **không** phải cái quyết định.
+
+### 8.2.2 §15.3 — sửa nhỏ, bổ sung
+
+§15.1 nói thanh dưới là *"the platform's most frequently used **global
+capabilities**"* và *"**is not a Workspace launcher**"*.
+
+**Work Zone ⛔ không phải Workspace** — nó là phép chiếu **xuyên mọi Domain**.
+⇒ Đặt nó vào thanh dưới **đúng tinh thần §15.1**.
+
+Nhưng §15.3 liệt kê **năm** năng lực bằng câu *"The constitutional capabilities
+**are**"* — một câu **định nghĩa**, ⇒ danh mục **đóng**. Thêm `Work` là **bổ
+sung danh mục**, cần tu chính, nhưng là loại tu chính **cộng thêm**, ⛔ không
+phải loại lật ngược.
+
+## 8.3 ⇒ ĐỀ NGHỊ SỬA ĐỔI — thu hẹp so với Rev 2
+
+| Rev 2 tôi nói | **Rev 3 sau khi chứng minh** |
+|---|---|
+| Sửa **§13.3 + §13.5** | Sửa **§13.3 + §15.3**, ⛔ **không** sửa §13.5 nữa — xem 8.3.1 |
+| Lý do: *"neither may be removed"* | Lý do: ***"default view upon sign-in"*** — vế tường minh |
+| Khung: Board đổi Hiến pháp | Khung: **sửa mâu thuẫn `ADR-017` đưa vào** |
+
+### 8.3.1 🔴 §13.5 — tôi rút lại một phần
+
+Rev 2 tôi ghi §13.5 là `TC-B` phải tu chính. Đọc lại nguyên văn:
+
+> *"The Homepage shall display **only** the … Services that the authenticated
+> user is authorized to access. Users shall **not be distracted by
+> inaccessible** or unrelated Workspaces or Services."*
+
+Vế này **vẫn mâu thuẫn** với *"hiện toàn bộ Module"* — tôi **⛔ không rút lại**
+điều đó. Nhưng nó **⛔ không liên quan** tới câu hỏi Board đặt ra ở lượt này
+*(Work Zone ⟷ bottom nav)*. Đó là **hai tu chính độc lập**:
+
+| Tu chính | Vì | Ai hưởng lợi |
+|---|---|---|
+| **A** · §13.3 + §15.3 | Work Zone ra khỏi Homepage, vào thanh dưới | sửa mâu thuẫn §13.1 |
+| **B** · §13.5 | Homepage hiện **toàn bộ** Module | bán hàng · demo · onboarding |
+
+⇒ Board có thể duyệt **A** mà ⛔ chưa quyết **B**, hoặc ngược lại. **⛔ Không
+gói chung.**
+
+---
+
+# §9 · HOMEPAGE INFORMATION ARCHITECTURE — Rev 3
+
+## 9.1 Ba tầng, ba câu hỏi, ba nơi
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│ HOMEPAGE            "MONICA ONE là gì · doanh nghiệp có gì"   │
+│ Brand + Application Launcher                                  │
+│ ⛔ KHÔNG dashboard · KHÔNG KPI · KHÔNG biểu đồ · KHÔNG số      │
+└───────────────────────────────────────────────────────────────┘
+        │ bấm Module                    ┌──────────────────────┐
+        ▼                                │ WORK  (thanh dưới)  │
+┌──────────────────┐                     │ "tổng hôm nay tôi   │
+│  LOGIN nếu cần   │                     │  phải làm gì"       │
+└────────┬─────────┘                     │ xuyên MỌI Domain    │
+         ▼                               └──────────┬───────────┘
+┌───────────────────────────────────────────────────┴───────────┐
+│ WORKSPACE           "làm việc đó ở đâu"                       │
+│ Dashboard · KPI · Task · Chart · Thông báo — theo QUYỀN       │
+└───────────────────────────────────────────────────────────────┘
+```
+
+## 9.2 Cấu trúc thông tin Homepage — bốn tầng, ⛔ không hơn
+
+| # | Tầng | Nội dung | ⛔ Không được có |
+|---|---|---|---|
+| 1 | **Thanh đầu** | Lời Chúa · logo · chọn ngôn ngữ · *(đã đăng nhập: avatar)* | thông báo · số liệu |
+| 2 | **Brand** | wordmark · một dòng nói MONICA ONE là gì | KPI · lời chào theo buổi |
+| 3 | **Launcher** | lưới App — icon · tên · **một dòng mô tả** | biểu đồ · số · trạng thái vận hành |
+| 4 | **Chân + thanh dưới** | thương hiệu · `Work · Chat · Monica · AI · Guide` | — |
+
+🔑 **Tầng 3 là trái tim.** Board mô tả đúng: *icon · tên · một dòng mô tả*. Đó
+cũng chính là mô hình *"màn hình điện thoại"* — thứ **⛔ không cần dạy**.
+
+## 9.3 Một dòng mô tả — quy tắc viết
+
+Board cho ví dụ: *"📦 Kho — Quản lý nhập • xuất • tồn"*. Rút ra chuẩn:
+
+| Quy tắc | Vì sao |
+|---|---|
+| **3–5 từ, cách nhau bằng `•`** | quét mắt, ⛔ không đọc |
+| **Danh từ nghiệp vụ, ⛔ không động từ marketing** | *"Nhập • Xuất • Tồn"* ⛔ không phải *"Tối ưu hoá chuỗi cung ứng"* |
+| **⛔ Không viết tắt nội bộ** | khách và nhân viên mới ⛔ không giải mã được |
+| **Đi qua i18n** | Điều 45 — 3 ngôn ngữ |
+| **Tên Module ⛔ KHÔNG dịch** | §45.3 — từ vựng hiến định |
+
+⚠️ **Bản `shortKey` hiện có ⛔ không dùng lại được nguyên si** — nó viết cho ô
+điện thoại 80px, tối ưu cho **ngắn**, ⛔ không cho **hiểu**. Cần một lớp mô tả
+**thứ ba**: `tagline` — 3–5 từ, dạng `A • B • C`.
+
+---
+
+# §10 · SÁU GÓC NHÌN NGOÀI BẢO MẬT VÀ UX
+
+Board yêu cầu đánh giá Homepage dưới sáu góc nhìn. Đây là phần tôi thiếu ở Rev 1
+và là lý do khuyến nghị Rev 1 của tôi hẹp.
+
+| Góc nhìn | Điều họ hỏi | Homepage-Launcher trả lời thế nào | Mức |
+|---|---|---|---|
+| **Sales** | *"Sản phẩm này lớn cỡ nào?"* | 19 ô nói **"hệ điều hành"**; 3 ô nói *"một công cụ nội bộ"*. Câu trả lời nằm ở **một khung nhìn**, ⛔ không cần lời | 🟢 **rất mạnh** |
+| **Demo** | *"Cho tôi xem 5 phút"* | Bản khách thấy **đúng** bản nhân viên dùng. ⛔ Không có *"bản demo"* để lệch, ⛔ không có dữ liệu giả để lộ | 🟢 **rất mạnh** |
+| **Investor** | *"Đây là sản phẩm hay một dự án nội bộ?"* | Lưới có **nhóm năng lực** + nhãn *"Sắp có"* cho thấy **lộ trình**, ⛔ không chỉ hiện trạng. Đây là thứ nhà đầu tư mua | 🟢 **mạnh** |
+| **Customer** *(buyer)* | *"Nhà máy này quản lý được không?"* | Thấy QA · Warehouse · Shipment · Subcontract tồn tại **như năng lực có tên** ⇒ tín hiệu **trưởng thành vận hành** | 🟢 **mạnh** |
+| **Recruitment** | *"Vào đây tôi làm việc với cái gì?"* | Ứng viên thấy **hệ thống thật**, ⛔ không phải lời hứa. Tuyển IT/vận hành đều dùng được | 🟡 **trung bình** |
+| **Onboarding** | *"Bộ phận tôi ở đâu?"* | Thấy **toàn tổ chức** rồi tự định vị. Nhưng 19 ô ⇒ người mới phải **quét cả lưới** | 🟡 **trung bình — cần làm nổi bật** |
+
+## 10.1 🔑 Hai góc nhìn yếu nhất chỉ vào **cùng một** biện pháp
+
+**Recruitment** và **Onboarding** đều yếu vì cùng một lý do: **19 ô ngang hàng
+⇒ ⛔ không có điểm neo.**
+
+⇒ Biện pháp: **làm nổi bật Module người dùng có quyền** *(và với khách: nổi bật
+nhóm năng lực)*. Đây **đúng thứ Board đã nói ở Directive Rev 1** — *"làm nổi bật
+các module được cấp quyền"* — và nó **⛔ không phải ẩn**.
+
+🔑 **Một biện pháp, sửa được cả hai góc nhìn yếu nhất, ⛔ không mất gì ở bốn góc
+mạnh.** Đây là khuyến nghị có tỷ lệ lợi/hại tốt nhất trong cả tài liệu.
+
+## 10.2 Điều sáu góc nhìn **⛔ không** nói tới
+
+⚠️ **⛔ Không góc nào trong sáu góc là "người dùng hằng ngày".** Sales · Demo ·
+Investor · Customer · Recruitment · Onboarding đều là **người xem một lần**.
+
+Người vận hành mở hệ thống **250 lần mỗi năm**. Với họ, Launcher là **một cú bấm
+thừa mỗi sáng**.
+
+⇒ **Đó chính là lý do nút `Work` ở thanh dưới quan trọng**: nó cho người dùng
+hằng ngày một đường tắt **⛔ không làm hỏng** Homepage của sáu góc nhìn kia.
+
+**Homepage phục vụ người xem một lần. Thanh dưới phục vụ người dùng mỗi ngày.**
+Hai khán giả, hai bề mặt — nhưng lần này là **hai bề mặt ĐÚNG CHỖ**, ⛔ không
+phải hai Homepage như đề xuất đã bị bác ở Rev 1.
+
+---
+
+# §11 · TRADE-OFF · TÁC ĐỘNG ADR · KHUYẾN NGHỊ
+
+## 11.1 Tác động tới ADR và Baseline
+
+| Văn bản | Tác động |
+|---|---|
+| **ADR-017** | 🔴 **PHẢI SỬA** — nó đưa §13.3 vào và **tạo mâu thuẫn với §13.1**. Cần một ADR mới *(đề nghị `ADR-021`)* **thay thế** phần §13.3 |
+| **Hiến pháp §13.3** | 🔴 tu chính — Work Zone thành **năng lực toàn cục**, bỏ *"default view upon sign-in"* |
+| **Hiến pháp §15.3** | 🟠 tu chính — bổ sung `Work` vào danh mục năng lực |
+| **Hiến pháp §13.5** | 🟠 tu chính **RIÊNG** — nếu Board chốt *"hiện toàn bộ Module"* |
+| **Hiến pháp §13.1** | ✅ **⛔ KHÔNG đụng** — phương án D chính là §13.1 |
+| **ADR-015** | ✅ **⛔ KHÔNG đụng** — `Department ⛔ ≠ Workspace` đã xác nhận |
+| **`ARCHITECTURE_BASELINE`** | 🟠 ghi nhận ADR mới sau khi Board duyệt |
+| **`screen-gates.json`** | 🟠 mục `/` phải đánh giá lại — `G4` đổi khi Homepage hiện toàn bộ |
+
+## 11.2 Trade-off — bảng cuối cùng
+
+| Chiều | Homepage-Launcher *(D)* | Cái phải trả |
+|---|---|---|
+| Sales · Demo · Investor · Customer | 🟢 **rất mạnh** | — |
+| Recruitment · Onboarding | 🟡 trung bình | ⇒ **làm nổi bật** thứ có quyền |
+| Người dùng hằng ngày | 🟠 một cú bấm thừa | ⇒ nút **`Work`** thanh dưới |
+| Bảo trì | 🟢 **một bề mặt** | — |
+| Bảo mật | 🟠 `UI-F1` — giới hạn **có tên** | Board chấp nhận có chủ ý |
+| Hiến pháp | — | 🔴 **2 tu chính** *(+1 nếu chốt §13.5)* |
+
+## 11.3 Khuyến nghị cuối cùng
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  KHUYẾN NGHỊ Rev 3 — Chief Solution Architect                         ║
+║                                                                       ║
+║  ✅ PHƯƠNG ÁN D ĐÚNG, VÀ ĐÚNG HƠN TÔI TƯỞNG.                          ║
+║     §13.1 nói nguyên văn: "The Homepage IS a Business Operating       ║
+║     System Launcher … is NOT a dashboard."                            ║
+║     Board ⛔ không đề xuất đổi Hiến pháp — Board đang KHÔI PHỤC nó.    ║
+║                                                                       ║
+║  🔴 VẤN ĐỀ THẬT: ADR-017 đưa §13.3 vào và tạo mâu thuẫn với §13.1.    ║
+║     ⇒ Cần ADR-021 SỬA MÂU THUẪN, ⛔ không phải "bẻ luật theo ý Board". ║
+║                                                                       ║
+║  Ba việc, xếp theo thứ tự:                                            ║
+║   ① ADR-021 · tu chính §13.3 + §15.3   ⇒ Work Zone thành năng lực     ║
+║      toàn cục sau nút `Work`. BẮT BUỘC trước khi viết mã.             ║
+║   ② Làm nổi bật Module có quyền        ⇒ sửa cả Recruitment lẫn       ║
+║      Onboarding, ⛔ không mất gì ở 4 góc nhìn mạnh                     ║
+║   ③ §13.5 quyết RIÊNG                  ⇒ ⛔ không gói chung với ①      ║
+║                                                                       ║
+║  ⚠️ Tôi rút lại cách diễn đạt ở Rev 2: khoản ràng buộc thật là        ║
+║     "default view upon sign-in", ⛔ không phải "neither may be removed".║
+║     Kết luận cũ ĐÚNG, lý do SAI. Board đã đúng khi bắt chứng minh lại. ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
 
 # §0 · BỐN ĐIỂM VA CHẠM VỚI HIẾN PHÁP — ĐỌC TRƯỚC
 

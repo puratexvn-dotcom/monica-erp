@@ -468,3 +468,246 @@ vi phạm — nhưng ở 16 ô, một lưới phẳng vẫn đọc tốt hơn. *
 ---
 
 > **Trạng thái:** ⏳ trình Board. ⛔ Chưa viết một dòng mã nào.
+
+---
+---
+
+# §9 · REVISION 3 — ROLE ARCHITECTURE *(tách khỏi Organization)*
+
+## 9.1 🔴 Vấn đề gốc: dự án đang trộn **hai trục độc lập** vào một
+
+Board yêu cầu *"tách biệt Role Architecture với Organization"*. Đây ⛔ không phải
+việc dọn tài liệu — nó sửa một **lỗi mô hình** đang có thật trong mã.
+
+| Trục | Trả lời câu hỏi | Thay đổi khi | Nguồn hiện tại |
+|---|---|---|---|
+| **ORGANIZATION** | *"Người này **NGỒI ĐÂU** trong doanh nghiệp?"* | tái cơ cấu · điều chuyển | ⛔ **chưa tồn tại** |
+| **ROLE** | *"Người này **LÀM ĐƯỢC GÌ** trong hệ thống?"* | đổi việc · thăng chức | `lib/rbac.ts` |
+
+⚠️ **Hai trục thay đổi với tần suất khác nhau và vì lý do khác nhau.** Buộc
+chúng vào nhau ⇒ mỗi lần tái cơ cấu phòng ban là một lần **phân quyền tự đổi
+theo** — thứ ⛔ không ai yêu cầu và ⛔ không ai rà.
+
+🔑 **Playbook Điều XXX đã ra luật đúng cho việc này:** quyền đi qua
+**Assignment**, ⛔ không qua chức danh. Assignment chính là **điểm giao** của hai
+trục — và là nơi **DUY NHẤT** chúng được phép gặp nhau.
+
+## 9.2 Chuỗi năm bậc
+
+```
+   ROLE ──────► CAPABILITY ──────► WORKSPACE ──────► PERMISSION ──────► ACTION
+"tôi là ai"   "tôi làm được gì"   "làm ở đâu"    "trên dữ liệu nào"   "thao tác"
+     │                                                    ▲
+     │  ⛔ KHÔNG suy quyền                                 │ SCOPE
+     ▼                                                    │
+ DEPARTMENT ◄──── ORGANIZATION ────► ASSIGNMENT ──────────┘
+"tôi ngồi đâu"    (cây đơn vị)      "Monica giao gì cho tôi"
+```
+
+| Bậc | Định nghĩa | Ví dụ | Nơi khai |
+|---|---|---|---|
+| **Role** | nhóm năng lực **mặc định** — ⛔ không phải quyền | `md` | `lib/rbac.ts` |
+| **Department** | đơn vị tổ chức người đó thuộc về | Merchandising | ⛔ chưa có |
+| **Capability** | năng lực nghiệp vụ, **⛔ không gắn màn hình** | *Quản lý đơn hàng* | 🔴 **⛔ chưa có** |
+| **Workspace** | bề mặt vận hành của một Domain | `/md` | cây `app/` |
+| **Permission** | phán quyết trên **một tài nguyên cụ thể** | *sửa PO #123* | `lib/mos/permission/` |
+
+### 9.2.1 Năm luật của Role Architecture
+
+| # | Luật | Hậu quả nếu vi phạm |
+|---|---|---|
+| `RA-1` | **Role ⛔ KHÔNG suy từ Department** | Kế toán trưởng và kế toán viên **cùng phòng, khác quyền** — suy từ phòng ban ⇒ ⛔ không phân biệt nổi |
+| `RA-2` | **Department ⛔ KHÔNG suy từ Role** | Một người **kiêm nhiệm** được. Ép 1-1 ⇒ ⛔ không mô tả nổi thực tế nhà máy |
+| `RA-3` | **Permission ⛔ KHÔNG suy từ Role** | Role cho *"vào được `/md`"*; nó **⛔ không** cho *"sửa PO của khách hàng X"* — cái đó là **Assignment** |
+| `RA-4` | **Capability là tầng ĐỆM giữa Role và Workspace** | ⛔ Không có nó, mỗi lần tách/gộp màn hình là một lần sửa `MODULE_ACCESS` ⇒ **quyền đổi vì lý do kỹ thuật** |
+| `RA-5` | **Có Actor ⛔ KHÔNG nằm trên cây tổ chức** | `subcon` · `buyer` — xem §9.4 |
+
+⚠️ **`RA-4` là bậc dự án đang thiếu, và nó tốn tiền thật.** Hiện `MODULE_ACCESS`
+ánh xạ **Role → đường dẫn URL**:
+
+```ts
+md: ['/md', '/orders', '/subcon']
+```
+
+⇒ **Quyền đang được khai bằng ĐƯỜNG DẪN.** Đổi cấu trúc thư mục = đổi phân
+quyền. Đó là để **quyết định kỹ thuật điều khiển quyết định nghiệp vụ** — đúng
+thứ thứ bậc bậc-6 *("mã ⛔ không bao giờ là nguồn chân lý")* cấm.
+
+⇒ Ghi **`TD-40`**: `MODULE_ACCESS` nên là `Role → Capability`, và
+`Capability → Route` khai riêng. ⛔ **Không sửa ở EPIC này** — là thay đổi
+Permission Model ⇒ **cần ADR riêng**.
+
+## 9.3 Bằng chứng đo được: `Department ⟷ Workspace` là **nhiều–nhiều**
+
+Board đã chốt `Department ⛔ ≠ Workspace` ở Rev 2. Rev 3 bổ sung **số đo** lấy
+thẳng từ `MODULE_ACCESS`, ⛔ không phải lập luận thiết kế:
+
+| Chiều | Số đo | Kết luận |
+|---|---|---|
+| `md` → `/md` `/orders` `/subcon` | **1 vai ⇒ 3 Workspace** | một phòng dùng **nhiều** Workspace |
+| `kho` → `/kho` `/xuat-hang` `/subcon` | **1 vai ⇒ 3 Workspace** | như trên |
+| `/subcon` ⇐ `md` `kho` `totruongmay` `giamdoc` | **1 Workspace ⇐ 4 vai** | một Workspace phục vụ **nhiều** phòng |
+
+⇒ Ràng buộc 1-1 sẽ **phá vỡ mã đang chạy hôm nay**, ⛔ không phải rủi ro tương lai.
+
+## 9.4 Ánh xạ Vai ⟷ Phòng ban *(bảng tra — ⛔ KHÔNG phải ràng buộc)*
+
+| Vai | Phòng ban | Workspace chính | Ghi chú |
+|---|---|---|---|
+| `superadmin` | IT | `*` | ⚠️ **⛔ không phải vai nghiệp vụ** — cấm dùng chạy việc hằng ngày |
+| `giamdoc` | Ban Giám đốc | `/giam-doc` | + `/orders` `/subcon` |
+| `md` | Merchandising | `/md` | + `/orders` `/subcon` |
+| `qa` | QA/QC | `/qa` | |
+| `totruongcat` | Sản xuất — Cắt | `/to-truong-cat` | |
+| `totruongmay` | Sản xuất — May | `/to-truong-may` | + `/subcon` |
+| `hoanthanh` | Sản xuất — Hoàn thành | `/hoan-thanh` | 🔴 **⛔ không khớp phòng ban nào ở §8.3** |
+| `kho` | Kho | `/kho` | + `/xuat-hang` `/subcon`; 3 vai kho chung route, phân biệt ở `WH_PERMISSIONS` |
+| `ketoan` | Kế toán | `/ke-toan` | |
+| `subcon` | ⚠️ **NGOÀI tổ chức** | `/subcon` | đối tác — ⛔ không có ô nào trên cây đơn vị |
+| `buyer` | ⚠️ **NGOÀI tổ chức** | `/buyer` | như trên |
+
+🔴 **`RA-5` là bằng chứng mạnh nhất cho việc tách trục.** `subcon` và `buyer` là
+**người thật, đăng nhập thật, có quyền thật — và ⛔ KHÔNG có ô nào trên sơ đồ tổ
+chức Monica.** Bất kỳ mô hình nào bắt *"quyền phải suy từ vị trí trong tổ chức"*
+đều **⛔ không biểu diễn nổi hai vai này**.
+
+⇒ `Actor.partnerId` phân giải từ `partner_accounts` *(có `is_active`)* —
+⛔ **không** từ claim JWT. Claim ⛔ không đổi khi quan hệ đối tác chấm dứt.
+
+---
+
+# §10 · MODULE IDENTITY STANDARD
+
+## 10.1 Chín trường bắt buộc cho **mỗi** Module
+
+| # | Trường | Nguồn chân lý | Trạng thái |
+|---|---|---|---|
+| 1 | `key` | `ModuleKey` — `lib/design/tokens.ts` | ✅ có |
+| 2 | `name` | `home-modules.ts` — ⛔ **KHÔNG dịch** *(§45.3)* | ✅ có |
+| 3 | `icon` | `home-modules.ts` — `lucide-react` | ✅ có |
+| 4 | `identity` *(màu)* | `MODULE_IDENTITY` — 16 dải | ✅ có |
+| 5 | `tagline` | 3–5 từ, khuôn `A • B • C` | 🔴 **thiếu** |
+| 6 | `businessValue` | một câu: Module này giúp doanh nghiệp việc gì | 🔴 **thiếu** |
+| 7 | `status` | `'READY' \| 'COMING_SOON'` | ✅ có *(UI-1.2)* |
+| 8 | `route` | union phân biệt — `COMING_SOON` ⛔ **không có** trường này | ✅ có |
+| 9 | `capability` | xem `RA-4` | 🔴 **thiếu** |
+
+## 10.2 Bảng nhận diện 16 Module *(màu đọc thẳng từ `MODULE_IDENTITY`)*
+
+| `key` | Sắc nhận diện | `chart` | Phòng ban | Trạng thái |
+|---|---|---|---|---|
+| `executive` | indigo | `#6366f1` | Ban Giám đốc | ✅ READY |
+| `commercial` | orange | `#f97316` | Kinh doanh | ✅ READY |
+| `merchandising` | red | `#ef4444` | Merchandising | ✅ READY |
+| `planning` | teal | `#14b8a6` | Kế hoạch SX | 🟠 COMING SOON |
+| `production` | blue | `#3b82f6` | Sản xuất | ✅ READY |
+| `quality` | emerald | `#10b981` | QA/QC | ✅ READY |
+| `warehouse` | green | `#22c55e` | Kho | ✅ READY |
+| `shipment` | cyan | `#06b6d4` | Xuất hàng | ✅ READY |
+| `subcontract` | purple | `#a855f7` | Gia công ngoài | ✅ READY |
+| `finance` | amber | `#f59e0b` | Kế toán | ✅ READY |
+| `humanResources` | rose | `#f43f5e` | Nhân sự | 🟠 COMING SOON |
+| `reporting` | slate | `#64748b` | *(toàn cục)* | 🟠 COMING SOON |
+| `communication` | sky | `#0ea5e9` | *(toàn cục)* | 🟠 COMING SOON |
+| `ai` | violet→fuchsia | `#d946ef` | *(toàn cục)* | 🟠 COMING SOON |
+| `documents` | stone | `#78716c` | *(toàn cục)* | 🟠 COMING SOON |
+| `platform` | violet | `#8b5cf6` | IT | ✅ READY |
+
+⚠️ **`TD-41` — `ai` và `platform` trùng `primary: text-violet-600`.** Chú thích
+trong mã nói *"sắc nhận diện là fuchsia — ⛔ KHÔNG dùng lại purple của
+Subcontract"*, và điều đó **đúng** cho `secondary` · `badge` · `chart`. Nhưng
+**`primary` thì trùng.** Ở ô Launcher — nơi thường chỉ hiện **một** màu — hai App
+này **⛔ không phân biệt được bằng mắt**.
+
+Đây đúng thứ `tokens.ts` gọi là *"định danh vĩnh viễn … muốn đổi phải qua ADR
+(Điều 44.6)"* ⇒ **trình Board, ⛔ không tự sửa.**
+
+## 10.3 Ba luật của Module Identity
+
+| # | Luật | Vì sao |
+|---|---|---|
+| `MI-a` | **Màu là ĐỊNH DANH, ⛔ không phải trang trí** | người dùng học *"xanh lá = Kho"* bằng mắt trong vài ngày; đổi màu = **xoá thứ họ đã học** |
+| `MI-b` | **`tagline` nói NGHIỆP VỤ · `businessValue` nói GIÁ TRỊ** | *"Nhập • Xuất • Tồn"* cho người vận hành; *"Biết chính xác còn bao nhiêu vải trước khi cắt"* cho Sales và Investor |
+| `MI-c` | **`COMING_SOON` ⛔ KHÔNG được có `route`** | ép bằng **union phân biệt**, ⛔ không bằng `href: null`. Đã thi hành ở `UI-1.2` |
+
+🔑 **`MI-b` là mắt xích Homepage đang thiếu.** Sáu khán giả ở `UX-1 §10` *(Sales
+· Demo · Investor · Customer · Recruitment · Onboarding)* **⛔ không đọc được
+`tagline` vận hành** — họ cần `businessValue`. **Một Module, hai câu, hai khán
+giả.**
+
+## 10.4 🔴 `MC-4` — bốn nguồn, bốn con số
+
+| Nguồn | Số Module |
+|---|---|
+| `MODULE_IDENTITY` | **16** dải màu |
+| `home-modules.ts` | **16** thẻ — 10 READY · 6 COMING_SOON |
+| Hiến pháp §15 · EDD-01 | **19** Business App |
+| `MODULE_ACCESS` | **13** đường dẫn phân biệt |
+
+⇒ ⛔ **Không** nguồn nào trong bốn là sổ cái chính thức. `Module Catalog` §8.5
+phải trở thành nguồn đó — và khi ấy **16 / 19 / 13** phải do **Board** hoà giải,
+⛔ không để mã tự chọn.
+
+---
+
+# §11 · TỔNG HỢP BA-1 Rev 3
+
+## 11.1 Vấn đề phát hiện *(mới ở Rev 3)*
+
+| # | Vấn đề | Mức |
+|---|---|---|
+| `TD-40` | `MODULE_ACCESS` khai quyền bằng **đường dẫn URL** ⇒ đổi thư mục = đổi phân quyền | 🔴 cao |
+| `MC-4` | Bốn nguồn khai Module cho **bốn con số**: 16 / 16 / 19 / 13 | 🔴 cao |
+| `RA-4` | Thiếu tầng **Capability** giữa Role và Workspace | 🔴 cao |
+| `TD-41` | `ai` ⟷ `platform` trùng `primary` violet ⇒ ⛔ không phân biệt ở ô Launcher | 🟠 vừa |
+| `MI-b` | Thiếu `tagline` **và** `businessValue` — Homepage ⛔ không nói được với 6 khán giả | 🟠 vừa |
+
+## 11.2 Giả định bị bác bỏ *(Rev 3)*
+
+| Giả định | Ai nêu | Phán quyết |
+|---|---|---|
+| *"Phương án D mâu thuẫn Hiến pháp"* | **tôi**, Rev 2 | 🔴 **BÁC** — §13.1 nói **nguyên văn** Homepage **là** Launcher, **⛔ không phải** dashboard |
+| *"Cần sửa §13.3 vì 'neither may be removed'"* | **tôi**, Rev 2 | 🔴 **BÁC LÝ DO** — khoản ràng buộc thật là *"default view upon sign-in"*. **Kết luận đúng, lý do sai** |
+| *"Cần 3 tu chính: §13.3 + §13.5 + §15.3"* | **tôi**, Rev 2 | 🟠 **THU HẸP** — §13.3 + §15.3 là **một gói**; §13.5 quyết **riêng** |
+| *"Role ⇒ Department là 1-1"* | ngầm định trong mã | 🔴 **BÁC** — đo được **nhiều–nhiều**; `subcon`/`buyer` **⛔ không có phòng ban** |
+
+## 11.3 Tác động tới ADR · Baseline
+
+| Văn bản | Tác động |
+|---|---|
+| **ADR-017** | 🔴 nguồn của mâu thuẫn §13.1 ⟷ §13.3 |
+| **`ADR-021`** *(đề nghị)* | 🔴 tu chính §13.3 + §15.3 — **BẮT BUỘC trước khi viết mã** |
+| **`ADR-022`** *(đề nghị, RIÊNG)* | 🟠 tu chính §13.5 — chỉ khi Board chốt *"hiện toàn bộ Module"* |
+| **`ADR-023`** *(đề nghị, SAU)* | 🟠 tầng Capability — gỡ `TD-40`. ⛔ **Không** thuộc EPIC này |
+| **ADR-015** | ✅ ⛔ không đụng — `Department ⛔ ≠ Workspace` nay có **bằng chứng đo được** |
+| **`ARCHITECTURE_BASELINE`** | 🟠 cập nhật sau khi Board duyệt |
+| **`SECURITY FREEZE`** | ⚠️ User Profile 4/7 mục cần migration ⇒ **⛔ chưa mở được** |
+
+## 11.4 Khuyến nghị cuối cùng
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  ① CHỐT ADR-021 TRƯỚC mọi dòng mã Homepage.                          ║
+║     Nó ⛔ không "bẻ luật theo ý Board" — nó SỬA mâu thuẫn mà ADR-017   ║
+║     đã đưa vào Hiến pháp. Đây là điều kiện dừng Board đã TỰ ĐẶT.      ║
+║                                                                       ║
+║  ② TÁCH TRỤC: Organization ⟂ Role, gặp nhau DUY NHẤT ở Assignment.    ║
+║     `subcon` và `buyer` là bằng chứng ⛔ không bác được: người thật,   ║
+║     quyền thật, ⛔ KHÔNG có ô nào trên sơ đồ tổ chức.                  ║
+║                                                                       ║
+║  ③ BỔ SUNG `tagline` + `businessValue` cho 16 Module.                 ║
+║     Rẻ nhất, tác động rộng nhất — thứ DUY NHẤT ở Rev 3 phục vụ được   ║
+║     CẢ SÁU khán giả Board nêu, ⛔ không migration, ⛔ không đổi         ║
+║     Security, ⛔ không đổi Permission.                                 ║
+║                                                                       ║
+║  ④ ⛔ CHƯA sửa `MODULE_ACCESS` (TD-40) — là thay đổi Permission Model ║
+║     ⇒ cần ADR riêng ⇒ ⛔ không nằm trong EPIC tài liệu này.            ║
+║                                                                       ║
+║  ⑤ HOÀ GIẢI 16 / 19 / 13 (MC-4). Ba con số đang cùng tồn tại và       ║
+║     ⛔ KHÔNG con số nào có thẩm quyền. Đây là việc của Board.          ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+> **Trạng thái Rev 3:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
