@@ -18,7 +18,7 @@ import { scoreboard } from '../_lib/harness.mjs';
 import {
   canSeeModule, visibleModules, modulePermissionState, moduleClickable,
 } from '../../lib/mos/capability/visible-modules.ts';
-import { ALL_ROLES, ROLE_HOME, MODULE_ACCESS, canAccess } from '../../lib/rbac.ts';
+import { ALL_ROLES, ROLE_HOME, MODULE_ACCESS, canAccess, isProtectedPath } from '../../lib/rbac.ts';
 
 const s = scoreboard('LỌC BUSINESS APP THEO QUYỀN');
 
@@ -216,6 +216,44 @@ console.log('\n⑪ CÙNG MỘT BỘ LUẬT VỚI `canAccess` — ⛔ không ph�
     (v) => modulePermissionState(v, READY(ROLE_HOME[v])) !== 'AUTHORIZED');
   s.ok('Mọi vai thấy ROLE_HOME của mình ở trạng thái AUTHORIZED',
     nhaLech.length === 0, nhaLech.join(' · '));
+}
+
+console.log('\n⑫ 🔴 LUỒNG BOARD CHỈ ĐỊNH — bấm Module ⇒ Login ⇒ Workspace');
+{
+  // Board `Build Mode v1`: *"click Module → Login; sau Login → Workspace của
+  // Module"*.
+  //
+  // ⚠️ Luồng đó có **một mắt xích thầm lặng**: `middleware.ts` chỉ đá sang
+  // `/login?next=…` khi đường dẫn nằm trong `PROTECTED_PREFIXES`. Một Module
+  // `READY` trỏ tới route **⛔ không được bảo vệ** sẽ mở thẳng ra cho khách —
+  // ⛔ không qua Login, ⛔ không qua `guard.ts`. Trang vẫn dựng, build vẫn
+  // xanh, và ⛔ không ai biết.
+  //
+  // Và nó hỏng thêm một nấc nữa: `safeNext()` ở `app/login/actions.ts` **loại
+  // bỏ** mọi `?next=` ⛔ không phải route được bảo vệ. Nên kể cả khi tới được
+  // Login, người dùng đăng nhập xong sẽ bị đá về `ROLE_HOME` — ⛔ **không**
+  // quay lại ô họ vừa bấm.
+  //
+  // 🔑 `PROTECTED_PREFIXES` vì vậy ⛔ không chỉ là danh sách bảo mật — nó là
+  //    **điều kiện để luồng sản phẩm của Board chạy đúng**.
+  const HREF_READY = ['/giam-doc', '/buyer', '/md', '/to-truong-may', '/qa',
+    '/kho', '/xuat-hang', '/subcon', '/ke-toan', '/admin'];
+
+  const hoLot = HREF_READY.filter((h) => !isProtectedPath(h));
+  s.ok(`Cả ${HREF_READY.length} Module READY đều là route ĐƯỢC BẢO VỆ`,
+    hoLot.length === 0,
+    `${hoLot.join(' · ')} — khách bấm vào sẽ mở THẲNG, ⛔ không qua Login`);
+
+  // Chiều ngược lại: trang chủ phải công khai, nếu ⛔ không thì Launcher ⛔
+  // không bao giờ tới được mắt khách — và toàn bộ lý do hiện 16 ô sụp đổ.
+  s.ok('Trang chủ `/` KHÔNG bị bảo vệ — khách vào được Launcher',
+    isProtectedPath('/') === false);
+
+  // Mỗi Module READY phải có ÍT NHẤT MỘT vai mở được. Một ô sáng mà ⛔ không
+  // vai nào vào nổi là một ô dẫn thẳng vào 403 với **mọi** người dùng.
+  const moCoi = HREF_READY.filter((h) => !ALL_ROLES.some((v) => canAccess(v, h)));
+  s.ok('Mọi Module READY có ≥ 1 vai mở được',
+    moCoi.length === 0, `${moCoi.join(' · ')} — ô dẫn thẳng vào 403 với MỌI vai`);
 }
 
 process.exit(s.ketThuc() ? 1 : 0);
