@@ -699,11 +699,24 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 
 > 🔑 **Board Decision 05/08/2026 — Foundation tách làm hai.**
 > **Technical Foundation ✅ COMPLETE** *(0 Technical Blocker —
-> [`TFC-001`](audit/TECHNICAL_FOUNDATION_CERTIFICATE.md))* ·
-> **Governance 🟠 PENDING** *(24 mục —
-> [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md))*.
+> [`TFC-001`](audit/TECHNICAL_FOUNDATION_CERTIFICATE.md) **R1**)* ·
+> **Governance 🟠 PENDING** *(**26** mục —
+> [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) **R1**)*.
 > **⛔ Tài liệu · ADR · certificate chưa xong ⛔ KHÔNG chặn Sprint.** Chỉ
-> **Technical Blocker** mới chặn. Sổ đầy đủ 24 mục ở `GPR-001` §6.
+> **Technical Blocker** mới chặn. Sổ đầy đủ ở `GPR-001` §6.
+>
+> 🔒 **Sprint I-2 Phase 1 ĐÃ KHOÁ 05/08/2026** — commit `6ee3dd24` · `19ca85be`.
+> **Phase 2 ⏳ chờ Board mở**:
+> [kế hoạch](planning/SPRINT_I2_PHASE2_PLAN.md) ·
+> [backlog](planning/SPRINT_I2_PHASE2_BACKLOG.md).
+>
+> 🔴 **Board cần trả lời `A-6` trước khi mở Phase 2:** *"5 phép kiểm mới"* nghĩa
+> là **chạy và xanh**, hay **xanh và ⛔ không còn nợ**? Cách hiểu thứ hai làm
+> **I-2 ⛔ không ra được** — nó bị chặn bởi `B2`, một thứ nằm **ngoài** Sprint.
+>
+> 🔴 **Technical Condition: 3 → 5.** `TC-4` *(`orders.status` ⛔ không ràng buộc
+> `CHECK`)* và `TC-5` *(mã ⛔ không biểu diễn nổi lô đã huỷ)* là chỗ lệch **có
+> sẵn** từ `002` và `024` — phép kiểm ⑫ chỉ làm chúng **nhìn thấy được**.
 
 ---
 ---
@@ -793,7 +806,8 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | **Quy tắc chặn cứng SoD** | **9** |
 | **Khuyết tật đã biết chưa sửa** | **11** *(13 − `KD-2` − `KD-3` đã đóng 05/08)* |
 | **Mục còn mở** | **11** *(⛔ 0 chặn Freeze · ⛔ 0 chặn Sprint I-2)* |
-| **Khoản nợ quản trị** | **24** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) |
+| **Khoản nợ quản trị** | **26** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) R1 *(2 đã trả · 2 mới)* |
+| **Technical Condition** | **5** — `TC-1`…`TC-5`; 3 chặn **Cổng C** |
 | **Phép đo tĩnh** *(⛔ không cần CSDL)* | **110** — 51 kiến trúc + 59 nghiệp vụ MD |
 
 ---

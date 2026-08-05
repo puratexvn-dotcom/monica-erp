@@ -68,8 +68,31 @@ nào có phản biện độc lập.** Hiến pháp **Điều 4** · ADR-011 §2
 | `test:arch` có đủ **5 phép kiểm mới** | 🟠 **1/5** — mục ⑫ *(vốn từ trạng thái, `TD-03`)* |
 | **MD có bài kiểm nghiệp vụ** | ✅ **ĐẠT** — 59 phép đo |
 
-**Phase 1 ✅ HOÀN TẤT** — [`SPRINT_I2_PHASE1_REPORT.md`](planning/SPRINT_I2_PHASE1_REPORT.md).
-Phase 2: 4 phép kiểm còn lại · bộ kiểm Warehouse · `TD-18`.
+**Phase 1 🔒 ĐÃ KHOÁ 05/08/2026** — [`SPRINT_I2_PHASE1_REPORT.md`](planning/SPRINT_I2_PHASE1_REPORT.md).
+**Phase 2 ⏳ chờ Board mở** — [`SPRINT_I2_PHASE2_PLAN.md`](planning/SPRINT_I2_PHASE2_PLAN.md) ·
+[`SPRINT_I2_PHASE2_BACKLOG.md`](planning/SPRINT_I2_PHASE2_BACKLOG.md).
+
+## 0.5 🔴 Technical Condition: 3 → 5
+
+Phép kiểm ⑫ *(Phase 1)* lộ ra **hai chỗ lệch có sẵn từ migration `002` và `024`**
+— ⛔ không phải khuyết tật mới, chỉ là **nay nhìn thấy được**:
+
+| # | Nội dung | Chặn |
+|---|---|---|
+| **`TC-4`** | `orders.status` ⛔ **không có ràng buộc `CHECK`** — vốn từ chỉ sống trong một dòng chú thích liệt kê 4 giá trị, mã khai 6 | 🔴 **Cổng C** |
+| **`TC-5`** | Mã ⛔ **không biểu diễn nổi một lô hàng đã huỷ** — `SHIPMENT_FLOW` thiếu `CANCELLED` | 🔴 **Sprint I-7** |
+
+⇒ **`TC-1` · `TC-3` · `TC-4` cùng chặn Cổng C**, cùng một lý do: *khuyết tật vô
+hại khi bảng rỗng*. Nạp dữ liệu chủ là lúc cả ba đồng loạt trở thành thật.
+
+## 0.6 🔴 Board cần trả lời trước khi mở Phase 2
+
+> **"5 phép kiểm mới" *(§3.2)* nghĩa là 5 phép kiểm CHẠY VÀ XANH, hay xanh **và**
+> ⛔ KHÔNG CÒN NỢ trong sổ?**
+
+`GPR-001` `A-6`. Cách hiểu **B** ⇒ **I-2 ⛔ không ra được**, vì phép kiểm ⑮ cần
+migration `033`, mà `033` nằm sau vòng khoá `B2` **chưa cắt**. Đề nghị chốt **A**
+và ghi thẳng vào §3.2.
 
 ---
 

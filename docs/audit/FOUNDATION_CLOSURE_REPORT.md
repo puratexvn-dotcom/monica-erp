@@ -85,6 +85,46 @@ ghi rõ như vậy.
 
 ---
 
+# REVISION 3 — SAU SPRINT I-2 PHASE 1 · 2026-08-05
+
+## R3.1 Những gì đã đổi kể từ Revision 2
+
+| Hạng mục §B | Trạng thái nay |
+|---|---|
+| `D-1`…`D-6` *(`PROJECT_MEMORY` lệch)* | ✅ **ĐÓNG** — v1.1 |
+| `D-7` *(`ARCHITECTURE_BASELINE` lệch)* | ✅ **ĐÓNG** — tu chính R1 |
+| `D-11` *(`CHANGELOG` dừng ở `042`)* | ✅ **ĐÓNG** |
+| `KD-2` · `KD-3` *(§B.5)* | ✅ **ĐÓNG** |
+| `V-4` *(MD ⛔ không bài kiểm nghiệp vụ)* | ✅ **MỞ HẠNG MỤC** — 59 phép đo |
+| `V-5` *(`TD-03` ⛔ không phép kiểm vốn từ)* | ✅ **ĐÓNG** — `arch.test.mjs` ⑫, canh **36 bộ** |
+| `TD-17` *(§B.5)* | ✅ **ĐÓNG** — vá tận gốc |
+| `D-8` `D-9` `D-10` `D-12`…`D-16` | 🟠 **CÒN NGUYÊN** — `GPR-001` §0.2 |
+| `TC-1` · `TC-2` · `TC-3` | 🟠 **CÒN NGUYÊN** |
+
+## R3.2 🔴 Hai chỗ lệch mới đo được — và một điều phải nói rõ
+
+Phép kiểm ⑫ *(sinh ra để trả `V-5`)* lộ ra **`VT-1`** và **`VT-2`** — nay là
+**`TC-4`** và **`TC-5`** trong `TFC-001` §0.5.
+
+> 🔑 **Chúng ⛔ KHÔNG phải khuyết tật mới.** Chúng đã có sẵn từ migration `002`
+> và `024`. Cái mới là **ta nhìn thấy chúng**.
+>
+> Đây đúng là điều `FCR-001` §F mục 3 đã cảnh báo: *"khuyết tật ⛔ không được ghi
+> ở đâu thì audit này ⛔ không thấy"*. Dựng một phép kiểm là cách duy nhất để
+> chuyển khuyết tật từ **⛔ không thấy** sang **có tên**.
+
+⇒ Số Technical Condition đi từ **3 lên 5**. Đó ⛔ **không** phải hệ thống xấu đi.
+
+## R3.3 Kết luận Revision 3 — ⛔ KHÔNG ĐỔI
+
+```
+✅ Technical Foundation   COMPLETE  ·  0 Technical Blocker      (TFC-001 R1)
+🟠 Governance Foundation  PENDING   ·  26 mục · 0 chặn I-2      (GPR-001 R1)
+🔒 Sprint I-2 Phase 1     KHOÁ 05/08/2026
+```
+
+---
+
 ## §0 · BỐI CẢNH ĐO
 
 > Bắt buộc theo `P-MEASURE` vế ②. Kết luận trong tài liệu này **chỉ có giá trị

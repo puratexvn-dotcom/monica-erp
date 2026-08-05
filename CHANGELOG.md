@@ -15,7 +15,20 @@
 
 ---
 
-## Sprint I-2 · Lưới an toàn — Phase 1 — 05/08/2026 · ✅ **PHASE 1 HOÀN TẤT**
+## Sprint I-2 · Lưới an toàn — Phase 1 — 05/08/2026 · 🔒 **ĐÃ KHOÁ**
+
+> 🔒 **KHOÁ 05/08/2026** — Board Directive mục 5. Commit `6ee3dd24` · `19ca85be`,
+> đã push. ⛔ **Phase 1 đóng: sửa tiếp là hạng mục Phase 2, ⛔ không sửa ở đây.**
+> Dấu khoá đầy đủ: [`SPRINT_I2_PHASE1_REPORT.md`](docs/planning/SPRINT_I2_PHASE1_REPORT.md).
+>
+> **Bốn loại kết quả, ⛔ đọc lẫn nhau là sai:**
+>
+> | Loại | Nội dung |
+> |---|---|
+> | ✅ **Đã hoàn thành** | `P1-1` `P1-2` `P1-3` · `test:arch` 43 → **51** · phép đo tĩnh 43 → **110** |
+> | ⚠️ **Chưa nghiệm thu** | truy vấn `order_milestones` **chưa chạy trên CSDL thật** · CI Node 22 **chưa chạy thử** |
+> | ⏳ **Technical Debt** | `TC-1`…**`TC-5`** · `TD-18` · `TD-27` · `VT-1`…`VT-8` |
+> | 🟠 **Governance Pending** | **26 mục** — `GPR-001`. ⛔ Không chặn Sprint; **`A-6` chặn ĐIỀU KIỆN RA của I-2** |
 
 **Thẩm quyền khởi động:** Board Decision 05/08/2026 — tách Foundation thành
 **Technical** và **Governance**; chỉ Technical Blocker mới chặn Sprint. Chứng

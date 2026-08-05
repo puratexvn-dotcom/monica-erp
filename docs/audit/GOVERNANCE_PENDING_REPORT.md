@@ -7,7 +7,68 @@
 | **Thẩm quyền** | **Board Decision 05/08/2026** — *"Nếu Governance còn thiếu, phát hành Governance Pending Report. Không chặn Sprint I-2 chỉ vì tài liệu, ADR hoặc certificate chưa hoàn tất."* |
 | **Người lập** | Chief Solution Architect |
 | **Hồ sơ song hành** | [`TECHNICAL_FOUNDATION_CERTIFICATE.md`](TECHNICAL_FOUNDATION_CERTIFICATE.md) — `TFC-001` ✅ ĐẠT |
-| **Trạng thái** | 🟠 **GOVERNANCE PENDING** — 5 nhóm · 24 mục · ⛔ **0 mục chặn Sprint I-2** |
+| **Trạng thái** | 🟠 **GOVERNANCE PENDING** — 5 nhóm · **26 mục** *(24 + 2 mới)* · ⛔ **0 mục chặn Sprint I-2** |
+| **Tu chính** | **R1 · 2026-08-05** — sau Sprint I-2 Phase 1. Xem §0 |
+
+---
+
+# §0 · TU CHÍNH R1 — SAU SPRINT I-2 PHASE 1
+
+## 0.1 Hai mục ĐÃ TRẢ
+
+| # | Mục | Trạng thái |
+|---|---|---|
+| `B-1` | **`PROJECT_MEMORY` lệch khỏi hiện thực** | ✅ **TRẢ 05/08** — **v1.1**, sửa 5 nhóm mâu thuẫn theo `PM-4` |
+| `B-2` | **`ARCHITECTURE_BASELINE` ⛔ không mô tả hệ thống hiện tại** | ✅ **TRẢ 05/08** — **tu chính R1**; §1 Certificate Board đã ký **giữ nguyên văn** *(Điều 43.7)* |
+
+`B-5` **trả một nửa**: `CHANGELOG` ✅ · `docs/adr/README.md` ⛔ **còn stale**
+*(thiếu ADR-019·020, còn ghi `042` "chưa viết")*.
+
+## 0.2 Bảy mục CÒN NGUYÊN — ⛔ và Board chưa giao
+
+> Board Directive 05/08 liệt kê **sáu** tài liệu phải đồng bộ. Bảy mục dưới đây
+> **⛔ không nằm trong danh sách đó**, nên tôi **⛔ không tự mở rộng phạm vi**.
+> Ghi ở đây để chúng ⛔ không trôi.
+
+| # | Mục | Mức |
+|---|---|---|
+| `B-3` | `MIGRATION_INDEX` — ⛔ **không dòng nào cho `043`**, số hiệu **đã tiêu thụ trên CSDL sản xuất** rồi thu hồi; thiếu cả `040`…`046` | 🔴 |
+| `B-4` | `RLS_COVERAGE_MATRIX` — dừng ở `042`; ⛔ không ghi `044`·`045`·`046` *(tầng trigger nay là một phần bề mặt bảo vệ ghi)* | 🔴 |
+| `B-5′` | `docs/adr/README.md` — mục lục thiếu ADR-019·020 | 🔴 |
+| `B-6` | `CLAUDE.md` — bảng thứ bậc ghi Hiến pháp **`v1.5`**, khối Freeze cùng tệp ghi **v1.6** | 🔴 |
+| `B-7` | `TECHNICAL_DEBT` — nợ vỡ **5 nơi cấp số**, `TD-25`…`TD-33` ⛔ không có trong sổ | 🔴 |
+| `B-8` | `review/README.md` — sổ hồ sơ ghi *"(chưa có)"* trong khi đã có **2 hồ sơ** | 🟠 |
+| `B-9`·`B-10` | `SPRINT_2_PLAN` trích *"ADR-014"* *(số đặt chỗ)* · `BKB:463` còn phát biểu đã bị bác | 🟠 |
+
+## 0.3 🔴 HAI MỤC QUẢN TRỊ MỚI — phát hiện khi lập kế hoạch Phase 2
+
+| # | Mục | Chủ | Chặn |
+|---|---|---|---|
+| **`A-6`** | 🔴 **Board phải định nghĩa *"5 phép kiểm mới"*** — *chạy và xanh*, hay *xanh **và** ⛔ không còn nợ trong sổ*? | **Board** | 🔴 **Điều kiện ra Sprint I-2** |
+| **`C-4`** | 🟠 **`request_id` ⛔ không trả được nợ** — ADR-003 khai 7 bảng thuộc migration `033`; `033` nằm sau vòng khoá `B2` **chưa cắt** | **Board** *(qua `A-3`)* | 🟠 phép kiểm ⑮ đứng ở nợ 7 bảng |
+
+### Vì sao `A-6` là mục QUẢN TRỊ, ⛔ không phải kỹ thuật
+
+Phép kiểm ⑮ sẽ **chạy đúng, xanh đúng**, và **ghi rõ 7 bảng còn nợ**. Câu hỏi
+duy nhất là *"nợ **có tên** có được tính là đạt ⛔ không"*.
+
+| Cách hiểu | Hệ quả |
+|---|---|
+| **A · chạy và xanh** *(đề nghị)* | ✅ Phase 2 đạt điều kiện ra |
+| **B · xanh và ⛔ không nợ** | ⛔ **Sprint I-2 ⛔ KHÔNG RA ĐƯỢC** — bị chặn bởi `B2`, một thứ **nằm ngoài Sprint** |
+
+Cả **bốn** cơ chế bánh cóc đang chạy — ⑨ màu · ⑩ chữ · ⑫ vốn từ, và ⑬ ⑭ sắp có —
+đều **đã** trả lời **`A`**. Đề nghị Board chốt `A` và ghi vào Baseline §3.2 để
+lần sau ⛔ không phải hỏi lại.
+
+## 0.4 Sổ cập nhật
+
+```
+26 mục  ·  2 đã trả (B-1 · B-2)  ·  1 trả một nửa (B-5)
+        ·  2 mục MỚI (A-6 · C-4)
+⛔ 0 mục chặn Sprint I-2 Phase 2
+🔴 8 mục chặn Cổng C  ·  4 mục chặn Sprint I-4  ·  1 mục chặn ĐIỀU KIỆN RA I-2 (A-6)
+```
 
 ---
 

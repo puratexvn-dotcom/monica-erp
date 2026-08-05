@@ -7,8 +7,49 @@
 | **Thẩm quyền khởi động** | **Board Decision 05/08/2026** — *"Không chặn Sprint I-2 chỉ vì tài liệu, ADR hoặc certificate chưa hoàn tất"* |
 | **Điều kiện tiền đề** | [`TFC-001`](../audit/TECHNICAL_FOUNDATION_CERTIFICATE.md) ✅ — **0 Technical Blocker** |
 | **Ngày** | 2026-08-05 |
-| **Trạng thái** | ✅ **PHASE 1 HOÀN TẤT — Board phê duyệt 05/08/2026** |
-| **Commit** | `6ee3dd24` — 13 tệp · +2001 / −14 |
+| **Trạng thái** | 🔒 **KHOÁ — 2026-08-05** *(Board Directive 05/08/2026 mục 5)* |
+| **Commit** | `6ee3dd24` *(mã · bài kiểm)* · `19ca85be` *(tài liệu nền)* |
+
+---
+
+```
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║              🔒  S P R I N T   I - 2   ·   P H A S E   1  🔒            ║
+║                          Đ Ã   K H O Á                                   ║
+║                                                                          ║
+║   Ngày khoá      2026-08-05                                              ║
+║   Thẩm quyền     Board Directive 05/08/2026 mục 5                       ║
+║   Commit         6ee3dd24 · 19ca85be   (đã push origin/main)            ║
+║   Bối cảnh đo    mnxatxbadgrrolwpmxne · 2026-08-05                      ║
+║   Migration      54 tệp — ⛔ KHÔNG migration nào chạy trong Phase 1       ║
+║                                                                          ║
+║   ──────────────────────────────────────────────────────────────────    ║
+║   ✅ ĐÃ HOÀN THÀNH — đo được, đo lại được                                ║
+║      P1-1  TD-17 · KD-3   hai màn hình nay ra CÙNG con số               ║
+║      P1-2  TD-03          phép kiểm vốn từ · canh 36 bộ                 ║
+║      P1-3  V-4 · KD-11    bộ kiểm nghiệp vụ MD · 59 phép đo             ║
+║      test:arch  43 → 51 đạt · 0 hỏng                                    ║
+║      phép đo tĩnh  43 → 110                                             ║
+║                                                                          ║
+║   ⚠️ CHƯA NGHIỆM THU — ⛔ KHÔNG được đọc là đã xong                      ║
+║      truy vấn order_milestones chưa chạy trên CSDL thật                 ║
+║      CI Node 22 chưa chạy thử                                           ║
+║                                                                          ║
+║   ⏳ TECHNICAL DEBT — có tên, có chủ, có Sprint đích                     ║
+║      TC-1 TC-2 TC-3 TC-4 TC-5 · TD-18 TD-27 · VT-1…VT-8                ║
+║                                                                          ║
+║   🟠 GOVERNANCE PENDING — ⛔ KHÔNG chặn Sprint  (Board 05/08)            ║
+║      26 mục · GPR-001 · trong đó A-6 chặn ĐIỀU KIỆN RA của I-2          ║
+║                                                                          ║
+║   ──────────────────────────────────────────────────────────────────    ║
+║   ⛔ Phase 1 ĐÓNG. Sửa tiếp ⇒ hạng mục Phase 2, ⛔ không sửa ở đây.       ║
+║                                                                          ║
+║   Chief Solution Architect   ✅ ký · 2026-08-05                           ║
+║   Board                      ✅ phê duyệt · 2026-08-05                    ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+```
 
 ---
 

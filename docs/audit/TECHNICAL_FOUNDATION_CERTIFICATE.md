@@ -9,6 +9,84 @@
 | **Hồ sơ nguồn** | [`FOUNDATION_CLOSURE_REPORT.md`](FOUNDATION_CLOSURE_REPORT.md) Revision 2 |
 | **Hồ sơ song hành** | [`GOVERNANCE_PENDING_REPORT.md`](GOVERNANCE_PENDING_REPORT.md) — `GPR-001` |
 | **Kết luận** | ✅ **TECHNICAL FOUNDATION COMPLETE** — 0 Technical Blocker |
+| **Tu chính** | **R1 · 2026-08-05** — sau Sprint I-2 Phase 1. Xem §0 |
+
+---
+
+# §0 · TU CHÍNH R1 — SAU SPRINT I-2 PHASE 1
+
+> ⚠️ **Chứng nhận gốc bên dưới GIỮ NGUYÊN VĂN.** Khối này **thêm vào**, ⛔ không
+> sửa — cùng nguyên tắc `L-7`: chứng nhận gắn với **một trạng thái đã đo**, và
+> trạng thái đã đổi thì phải nói rõ **đổi thế nào**.
+
+## 0.1 ⛔ Không migration nào chạy ⇒ chứng nhận VẪN CÒN HIỆU LỰC
+
+`L-7` nói chứng nhận hết hiệu lực **sau bất kỳ migration nào**. Sprint I-2
+Phase 1 ⛔ **không** chạy migration nào — chỉ sửa mã ứng dụng và thêm bài kiểm.
+⇒ **Bề mặt bảo mật ⛔ không đổi**, và toàn bộ §4.2 · §4.3 · §4.4 vẫn đúng.
+
+## 0.2 Số đo đã ĐỔI — đo lại 05/08/2026
+
+| Phép đo | Chứng nhận gốc | **Sau Phase 1** |
+|---|---|---|
+| `test:arch` | 43 đạt · 0 hỏng | ✅ **51 đạt · 0 hỏng** |
+| Bài kiểm nghiệp vụ MD | ⛔ **⛔ KHÔNG CÓ** | ✅ **59 đạt · 0 hỏng** |
+| Tổng phép đo tĩnh | 43 | **110** |
+| `npm test` | 8/9 | **9/10** |
+| `md-internal-scope` | 18 đạt · **6 hỏng** | 18 đạt · **6 hỏng** — ⛔ **không hồi quy** |
+
+## 0.3 Ba Technical Condition — trạng thái ⛔ KHÔNG ĐỔI
+
+| # | Trạng thái | Vì sao ⛔ không đổi |
+|---|---|---|
+| `TC-1` | 🟠 **CÒN NGUYÊN** | 4 lời gọi `.delete()` vẫn sống; cần thêm `deleted_at` cho `costing_items` ⇒ **đổi lược đồ ⇒ ADR** |
+| `TC-2` | 🟠 **CÒN NGUYÊN** | Phase 1 ⛔ không khai thêm aggregate nào — vẫn **2/88** |
+| `TC-3` | 🟠 **CÒN NGUYÊN** | `saveSizeBreakdown` cần RPC ⇒ **migration** |
+
+🔴 **Cả ba vẫn chặn Cổng C và Sprint I-4.** Phase 1 xong ⛔ **không** làm chúng
+nhẹ đi một chút nào — nó làm **lưới an toàn dày hơn**, ⛔ không làm **hệ thống
+đúng hơn**.
+
+## 0.4 Hai khuyết tật đã đóng — `KD-2` · `KD-3`
+
+| # | Trước | Nay |
+|---|---|---|
+| `KD-2` | 🔴 8 bảng MD ⛔ không policy thu hẹp | ✅ **ĐÓNG** — `042` đã chạy, `authenticated_only` **22 → 0**. 6 bảng còn `DELETE` là `TC-1` |
+| `KD-3` | 🔴 `po-twin:132` hằng số `0` | ✅ **ĐÓNG** — luật đếm dời sang calculator dùng chung, **hai màn hình gọi cùng một hàm** |
+
+## 0.5 🔴 Bảy chỗ lệch MỚI ĐO ĐƯỢC — ⛔ không phải khuyết tật mới
+
+> Phase 1 ⛔ **không tạo ra** chúng. Chúng **đã có sẵn**; nay có phép kiểm nên
+> **nhìn thấy được**. Đây là điều một chứng nhận trung thực phải ghi.
+
+| # | Lệch | Mức | Là Technical Blocker? |
+|---|---|---|---|
+| `VT-1` | **`orders.status` ⛔ KHÔNG có ràng buộc `CHECK`** — bảng trung tâm hệ thống | 🔴 | ⛔ **Không** — `TB-a`·`TB-b`·`TB-c` đều không. ⇒ **`TC-4`** |
+| `VT-2` | **`shipments.status` có `CANCELLED`, mã ⛔ không** | 🔴 | ⛔ **Không** ⇒ **`TC-5`** |
+| `VT-3`…`VT-8` | lệch hai chiều · trùng tên · ⛔ không ràng buộc · 17 bảng | 🟠🟡 | ⛔ Không ⇒ Technical Debt |
+
+### Hai Technical Condition MỚI
+
+| # | Nội dung | Chặn |
+|---|---|---|
+| **`TC-4`** | `orders.status` ⛔ không ràng buộc — vốn từ chỉ sống trong **một dòng chú thích** liệt kê **4** giá trị, mã khai **6**. Dữ liệu rác ghi được vào cột trạng thái của **mọi đơn hàng** | 🔴 **Cổng C** |
+| **`TC-5`** | Mã ⛔ **không biểu diễn nổi một lô hàng đã huỷ** — `SHIPMENT_FLOW` thiếu `CANCELLED` trong khi `026b` tồn tại đúng để canh phép huỷ | 🔴 **Sprint I-7** *(Order-to-Cash)* |
+
+🔑 **`TC-4` gia nhập nhóm `TC-1`·`TC-3` — cùng chặn Cổng C, cùng một lý do:**
+*khuyết tật vô hại khi bảng rỗng*. **Nạp dữ liệu chủ là thời điểm cả ba đồng
+loạt trở thành thật.** Đề nghị Board xử **một lượt**.
+
+## 0.6 Kết luận R1
+
+```
+✅ TECHNICAL FOUNDATION VẪN COMPLETE
+   0 Technical Blocker cho Sprint I-2 Phase 2
+
+🟠 Technical Condition: 3 → 5   (TC-1 · TC-2 · TC-3 · TC-4 · TC-5)
+   TC-4 và TC-5 là chỗ lệch CÓ SẴN, nay MỚI ĐO ĐƯỢC.
+   Đo được nhiều hơn ⛔ không có nghĩa là hệ thống xấu đi —
+   nó có nghĩa là ta ⛔ không còn mù ở hai chỗ đó.
+```
 
 ---
 
