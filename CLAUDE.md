@@ -376,3 +376,50 @@ thì **hiện mã gốc**, không để trống.
   `predev`/`prebuild`, nhưng nhớ khi chạy tay).
 - **`retry: 0` ở tầng ứng dụng chỉ chặn 1 trong 4 đường gửi trùng.** Ba đường còn lại — bấm
   hai lần, trình duyệt gửi lại, hai tab — chỉ CSDL chặn được (⇒ `request_id`).
+
+## 8. QUY TRÌNH MIGRATION — BẢN TƯƠNG THÍCH
+
+> **Phán quyết kiến trúc 05/08/2026.** Một SOP 5 bước từng được đề xuất và
+> **ĐÃ BỊ HUỶ BỎ TOÀN BỘ** — nó giả định một hạ tầng không tồn tại *(staging
+> local)* và vi phạm trực tiếp Hiến pháp **Điều 4**, ADR-011 §2.2, `AC-1`.
+> Mục này là bản thay thế đã được chấp thuận. Đọc **cùng §3**, ⛔ không thay §3.
+
+### 8.1 ⛔ Bốn điều KHÔNG làm — và vì sao
+
+| ⛔ Không | Vì sao |
+|---|---|
+| **Tự động sinh migration khi có lệnh**, ⛔ không chờ ADR | Hiến pháp **Điều 4** · §3 *("không ngoại lệ")* |
+| **Tự chạy migration lên CSDL** | ⛔ **Không có staging.** `.env.local` trỏ **một** CSDL và đó là **CSDL THẬT**. ⛔ Không docker-compose · ⛔ không `supabase/config.toml`. Người dùng tự chạy ở SQL Editor — §3 |
+| **Sinh file `_down.sql` cho mọi migration** | Nhiều thao tác là **cửa một chiều CÓ CHỦ Ý** — `041` thu hồi `TRUNCATE` trên sổ kiểm toán, `029b` thu hồi xoá cứng, `045`/`046` dựng bất biến *(`K-1`)*. Một tệp `_down` cho chúng là **lời hứa sai** |
+| 🔴 **Tự refactor RLS/Index để đạt ngưỡng hiệu năng** | ADR-011 §2.2 xếp RLS vào diện **bắt buộc phản biện độc lập**; `AC-1` cấm sửa mã để bù. Đổi mô hình phân quyền lấy tốc độ, ⛔ không ai rà — đúng cơ chế sinh ra `F-2` |
+
+### 8.2 ✅ Mỗi migration phải mang ba khối
+
+| # | Khối | Nội dung |
+|---|---|---|
+| ① | **Impact Analysis** | bảng/cột/policy/hàm bị chạm · ai mất quyền gì · màn hình nào đổi hành vi |
+| ② | **Tính đảo ngược** | ⛔ **thay cho `_down.sql`.** Khai đúng một trong ba: `ĐẢO ĐƯỢC` *(kèm cách)* · `ĐẢO MỘT PHẦN` *(kèm phần ⛔ không đảo được)* · `MỘT CHIỀU` *(kèm **lý do thiết kế**)* |
+| ③ | **Khối tự kiểm** | câu `SELECT` cuối tệp in ra kỳ vọng ⟷ thực tế. Khuôn đã có ở `045` · `046` |
+
+🔑 **Phát biểu Tính đảo ngược trung thực hơn một tệp `_down` giả.** Nó buộc
+người soạn nói rõ *"cái này ⛔ không lùi được, và đây là lý do"* — thay vì để
+người sau phát hiện lúc cần lùi.
+
+### 8.3 Hiệu năng — ĐO và BÁO CÁO, ⛔ không tự sửa
+
+```
+Ngân sách tham chiếu   < 300ms mỗi truy vấn
+Công cụ                npm run bench   ← phép ĐO, luôn thoát 0
+Vượt ngân sách         GHI VÀO BÁO CÁO và trình Board.
+                       ⛔ KHÔNG tự đổi RLS · ⛔ KHÔNG tự thêm index.
+```
+
+⚠️ **`300ms` là ngân sách tham chiếu, ⛔ chưa có cơ sở đo** — `V-8` ghi chi phí
+trigger `045`/`046` **chưa từng đo**.
+
+### 8.4 🔴 Điều kiện tiên quyết còn hiệu lực
+
+| | |
+|---|---|
+| **SECURITY FREEZE** *(`MOS §XI.1`)* | 🔴 **CÒN HIỆU LỰC** — `B2` chưa cắt *(`GPR-001` `A-3`)*. ⛔ **Không migration mới nào được khởi tạo** |
+| **Nạp dữ liệu khối lượng lớn** | 🔴 Đó **chính là Cổng C** — chặn bởi `TC-1` · `TC-3` · `TC-4`. Ba khuyết tật *"vô hại khi bảng rỗng"* trở thành thật đúng lúc có dữ liệu |
