@@ -56,7 +56,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
 | [TD-34](#td-34) | `cut-ticket-basket.tsx` tự tính chỉ số — **ngoại lệ CÓ CHỦ Ý** của phép kiểm ⑭ | 🟡 | mở | Board Decision `Đ-3` · 05/08/2026 |
-| [TD-35](#td-35) | 🔴 `deleteStyleChild` còn chào lối xoá `style_bom` — **quyền đã bị `042` thu hồi** | 🔴 | mở | Sprint I-2 Phase 2 · `B2-1` |
+| [TD-35](#td-35) | ~~`deleteStyleChild` còn chào lối xoá `style_bom`~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board `Đ-3′` · lối ① |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -745,8 +745,9 @@ giải một cách hệ thống thay vì vá từng chỗ.
 
 | | |
 |---|---|
-| **Mức** | 🔴 mở — **lỗi lộ ra với NGƯỜI DÙNG**, ⛔ không phải nợ thẩm mỹ |
+| **Mức** | 🟢 **✅ ĐÃ TRẢ 05/08/2026** — Board phê duyệt **lối ①** |
 | **Phát hiện** | Sprint I-2 Phase 2 · `B2-1` — **lúc lập sổ miễn trừ xoá cứng** |
+| **Đã trả** | Sprint I-2 Phase 2 · sau `B2-1` — xem §*Đã trả thế nào* cuối mục |
 | **Nơi** | [`style.actions.ts:205-211`](../app/(dashboard)/md/_actions/style.actions.ts) · [`style-detail-sheet.tsx:32,97`](../components/md/style/style-detail-sheet.tsx) |
 | **Vi phạm** | ⛔ Không vi phạm điều nào — đây là **hệ quả chưa được dọn** của ADR-018 |
 
@@ -804,15 +805,40 @@ luận trên bảng rỗng**.
 
 ⇒ Đề nghị **①** ngay *(sửa lỗi đã đo, được phép trong freeze)*, **③** khi trả `TC-1`.
 
-### Vì sao chưa trả
+### ✅ ĐÃ TRẢ THẾ NÀO — 05/08/2026, lối ①
 
-Board Directive 05/08/2026: *"⛔ Không sửa ngoài hạng mục đang thực hiện."*
-`B2-1` là **dựng phép kiểm ⑬**, ⛔ không phải sửa `style.actions.ts`. Ghi sổ,
-trình Board.
+Board phê duyệt **lối ①** ngay sau báo cáo `B2-1`.
 
-### Sprint đích
+| Tệp | Thay đổi |
+|---|---|
+| `style.actions.ts:205` | `'style_bom'` **gỡ khỏi kiểu union** của tham số `table` |
+| `style-detail-sheet.tsx` | 🆕 `type SectionXoaDuoc = Exclude<Section, 'bom'>` · `TABLE_OF` mất khoá `bom` · `remove()` nhận `SectionXoaDuoc` |
+| `style-detail-sheet.tsx:337` | Nút `<DeleteBtn>` ở hàng định mức → **ô trống có `title` giải thích** |
+| `delete-exemptions.json` | `bang` của `style.actions.ts`: **4 → 3** bảng |
 
-**I-2 Phase 2** *(lối ①, nếu Board cho phép)* hoặc **cùng lượt `TC-1`** *(lối ③)*.
+🔑 **Trình biên dịch là thứ cưỡng chế, ⛔ không phải trí nhớ.** Ngay sau khi gỡ
+`'style_bom'` khỏi kiểu, `tsc` báo đúng một lỗi:
+
+```
+style-detail-sheet.tsx(337,86): error TS2345:
+  Argument of type '"bom"' is not assignable to parameter of type 'SectionXoaDuoc'.
+```
+
+Đó **chính là chỗ hỏng**, và nó tự lộ ra ⛔ không cần ai đi tìm. Khai
+`Exclude<Section, 'bom'>` thay vì gõ tay ba khoá ⇒ **Section mới thêm về sau sẽ
+⛔ không tự lọt vào danh sách xoá được** — trình biên dịch bắt phải quyết định.
+
+**Vì sao ⛔ không để nút rồi bắt lỗi cho đẹp:** một nút bấm vào là báo lỗi phân
+quyền **tệ hơn ⛔ không có nút** — nó hứa một việc hệ thống ⛔ không làm được.
+
+**⛔ Không đụng:** kiến trúc · mô hình phân quyền · policy · migration. Đây là
+**gỡ một lối gọi mà CSDL đã cấm**, ⛔ không phải đổi quyền.
+
+### Còn lại gì
+
+Xoá mềm cho `style_bom` vẫn là đích cuối — cần cột `deleted_at` ⇒ **ADR riêng**,
+gộp vào lượt trả `TC-1`. `TD-35` đóng phần *"giao diện chào việc ⛔ không làm
+được"*; nó ⛔ **không** đóng phần *"⛔ không xoá được dòng định mức sai"*.
 
 ---
 

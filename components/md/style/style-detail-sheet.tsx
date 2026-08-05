@@ -29,11 +29,20 @@ const SECTIONS: Array<{ key: Section; label: string; icon: typeof Palette }> = [
   { key: 'bom', label: 'Định mức NPL', icon: Layers },
 ];
 
-const TABLE_OF: Record<Section, 'style_colorways' | 'style_sizes' | 'style_operations' | 'style_bom'> = {
+/** Mục xoá cứng ĐƯỢC — `TD-35`.
+ *
+ *  `bom` bị loại: ADR-018 §6.2 giữ quyền `DELETE` cho đúng sáu bảng và
+ *  `style_bom` ⛔ không nằm trong số đó, nên `042` đã thu hồi quyền. Giao diện
+ *  ⛔ không được chào một nút mà cơ sở dữ liệu chắc chắn từ chối.
+ *
+ *  🔑 Khai bằng `Exclude<…>` thay vì gõ tay ba khoá: thêm một Section mới về
+ *  sau sẽ **⛔ không tự lọt** vào đây — trình biên dịch bắt phải quyết định. */
+type SectionXoaDuoc = Exclude<Section, 'bom'>;
+
+const TABLE_OF: Record<SectionXoaDuoc, 'style_colorways' | 'style_sizes' | 'style_operations'> = {
   colorways: 'style_colorways',
   sizes: 'style_sizes',
   operations: 'style_operations',
-  bom: 'style_bom',
 };
 
 export default function StyleDetailSheet({
@@ -91,7 +100,7 @@ export default function StyleDetailSheet({
 
   if (!style) return null;
 
-  async function remove(sec: Section, id: string, label: string) {
+  async function remove(sec: SectionXoaDuoc, id: string, label: string) {
     if (!window.confirm(`Xoá "${label}"? Thao tác này không hoàn tác được.`)) return;
     setBusy(id);
     const res = await deleteStyleChild(TABLE_OF[sec], id);
@@ -324,8 +333,14 @@ export default function StyleDetailSheet({
                         <td className={`${tdCls} tabular-nums font-semibold text-slate-900`}>
                           {fmtNum(b.net_consumption)} {b.unit}
                         </td>
-                        <td className={tdCls}>
-                          <DeleteBtn busy={busy === b.id} onClick={() => void remove('bom', b.id, b.item_name)} />
+                        {/* ⚠️ TD-35 — KHÔNG có nút xoá ở đây, và đó là CÓ CHỦ Ý.
+                            `042` đã thu hồi quyền `DELETE` trên `style_bom`
+                            (ADR-018 §6.2). Nút cũ vẫn hiện và bấm vào trả lỗi
+                            phân quyền — tệ hơn không có nút, vì nó hứa một việc
+                            hệ thống không làm được. Giữ ô trống để bảng không
+                            lệch cột; `title` nói vì sao. */}
+                        <td className={`${tdCls} text-slate-300`} title="Định mức NPL không xoá được — sửa dòng hoặc khai lại mã hàng.">
+                          —
                         </td>
                       </tr>
                     ))}

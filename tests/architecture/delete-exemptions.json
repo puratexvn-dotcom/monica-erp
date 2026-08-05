@@ -55,11 +55,11 @@
     {
       "tep": "app/(dashboard)/md/_actions/style.actions.ts",
       "ham": "deleteStyleChild",
-      "bang": ["style_colorways", "style_sizes", "style_operations", "style_bom"],
+      "bang": ["style_colorways", "style_sizes", "style_operations"],
       "soLuong": 1,
       "dong": 211,
-      "no": "TD-25 · TD-35",
-      "lyDo": "Bảng con của mã hàng. ⚠️ Hàm nhận TÊN BẢNG ĐỘNG `from(table)` nên MỘT lời gọi phủ BỐN bảng. Ba bảng đầu nằm trong 6 ngoại lệ TD-25; `style_bom` thì KHÔNG — xem TD-35."
+      "no": "TD-25",
+      "lyDo": "Bảng con của mã hàng. Hàm nhận TÊN BẢNG ĐỘNG `from(table)` nên MỘT lời gọi phủ BA bảng — cả ba đều nằm trong 6 ngoại lệ TD-25. ✅ TD-35 ĐÃ TRẢ 05/08/2026: `style_bom` gỡ khỏi kiểu union và khỏi TABLE_OF, vì 042 đã thu hồi quyền DELETE trên nó (ADR-018 §6.2). Nay trình biên dịch chặn lối gọi sai, không phải người dùng phát hiện lúc bấm nút."
     }
   ]
 }

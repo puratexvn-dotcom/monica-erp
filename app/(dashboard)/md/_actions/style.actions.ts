@@ -202,7 +202,20 @@ export async function addStyleBom(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteStyleChild(
-  table: 'style_colorways' | 'style_sizes' | 'style_operations' | 'style_bom',
+  // ⚠️ `style_bom` ĐÃ BỊ GỠ khỏi kiểu này — `TD-35`, Board Decision 05/08/2026.
+  //
+  // ADR-018 §6.2 giữ quyền `DELETE` cho ĐÚNG SÁU bảng, và `style_bom` KHÔNG
+  // nằm trong số đó ⇒ migration `042` đã thu hồi quyền. Trước bản vá, giao diện
+  // vẫn chào nút "Xoá" ở tab Định mức NPL, và người dùng bấm vào sẽ nhận **lỗi
+  // phân quyền** thay vì một thông báo nghiệp vụ.
+  //
+  // 🔑 Giữ `style_bom` trong kiểu union là để trình biên dịch NÓI DỐI: nó xác
+  // nhận một lối gọi mà cơ sở dữ liệu chắc chắn từ chối. Gỡ khỏi kiểu ⇒ mọi nơi
+  // gọi sai bị bắt lúc BIÊN DỊCH, không phải lúc người dùng bấm nút.
+  //
+  // ⛔ KHÔNG cấp lại quyền `DELETE` cho `style_bom` — đi ngược ADR-018 đã chạy.
+  // Xoá mềm là đích cuối, và nó cần cột `deleted_at` ⇒ ADR riêng, gộp `TC-1`.
+  table: 'style_colorways' | 'style_sizes' | 'style_operations',
   id: string,
 ): Promise<ActionResult> {
   const g = await guard();

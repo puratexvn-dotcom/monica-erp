@@ -17,6 +17,42 @@
 
 ## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
 
+### 🐛 `TD-35` · Giao diện chào nút xoá mà CSDL đã cấm — ✅ **ĐÃ TRẢ**
+
+Board phê duyệt **lối ①** ngay sau báo cáo `B2-1`.
+
+**Vấn đề:** `deleteStyleChild` nhận tên bảng động và kiểu union còn chứa
+`'style_bom'`; giao diện gọi được. Nhưng ADR-018 §6.2 giữ `DELETE` cho **đúng
+sáu bảng** và `style_bom` ⛔ không nằm trong số đó ⇒ `042` **đã thu hồi quyền**.
+Người dùng bấm *"Xoá"* ở tab Định mức NPL nhận **lỗi phân quyền**, ⛔ không phải
+thông báo nghiệp vụ.
+
+**Giải pháp — để trình biên dịch cưỡng chế, ⛔ không dựa vào trí nhớ:**
+
+| Tệp | Thay đổi |
+|---|---|
+| `style.actions.ts` | `'style_bom'` **gỡ khỏi kiểu union** |
+| `style-detail-sheet.tsx` | 🆕 `type SectionXoaDuoc = Exclude<Section, 'bom'>` · `TABLE_OF` mất khoá `bom` |
+| `style-detail-sheet.tsx:337` | `<DeleteBtn>` ở hàng định mức → **ô trống có `title` giải thích** |
+| `delete-exemptions.json` | `bang`: **4 → 3** |
+
+🔑 Gỡ khỏi kiểu xong, `tsc` báo **đúng một lỗi** — và đó **chính là chỗ hỏng**:
+
+```
+style-detail-sheet.tsx(337,86): error TS2345:
+  Argument of type '"bom"' is not assignable to parameter of type 'SectionXoaDuoc'.
+```
+
+Khai `Exclude<Section, 'bom'>` thay vì gõ tay ba khoá ⇒ **Section mới thêm về
+sau ⛔ không tự lọt** vào danh sách xoá được.
+
+> ⛔ **Không đụng** kiến trúc · mô hình phân quyền · policy · migration. Đây là
+> **gỡ một lối gọi mà CSDL đã cấm**, ⛔ không phải đổi quyền.
+
+**Còn lại:** xoá mềm cho `style_bom` vẫn là đích cuối — cần `deleted_at` ⇒ ADR
+riêng, gộp lượt trả `TC-1`. `TD-35` đóng phần *"giao diện chào việc ⛔ không làm
+được"*, ⛔ **không** đóng phần *"⛔ không xoá được dòng định mức sai"*.
+
 ### ⑬ `B2-1` · `.delete()` — ngưỡng đếm → **danh sách miễn trừ tường minh** — ✅ **HOÀN TẤT**
 
 Trả **`TD-27`**. Phép kiểm mới **thứ hai** của Sprint I-2 ⇒ điều kiện ra `E-1`
