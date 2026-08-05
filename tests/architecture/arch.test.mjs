@@ -899,10 +899,13 @@ console.log('\n⑰ MODULE IDENTITY — câu chữ đủ ba ngôn ngữ · BA-1 �
 const BA_NGON_NGU = ['vi', 'en', 'zh'];
 const duongDanTuDien = (ma) => join(ROOT, `messages/${ma}.json`);
 const duTuDien = BA_NGON_NGU.every((m) => existsSync(duongDanTuDien(m)));
-const duongDanSoApp = join(ROOT, 'app/home-modules.ts');
+// ⚠️ Rev 3: dữ liệu thật đã xuống `lib/mos/registry/`; `app/home-modules.ts`
+// nay chỉ là lớp tương thích. Đọc nhầm tệp ⇒ phép kiểm thấy 0 Module và vẫn
+// XANH nếu ai đó nới điều kiện — nên nó phải trỏ ĐÚNG NGUỒN.
+const duongDanSoApp = join(ROOT, 'lib/mos/registry/business-apps.ts');
 
 s.ok('Đủ ba tệp từ điển messages/{vi,en,zh}.json', duTuDien);
-s.ok('Sổ đăng ký Business App tồn tại', existsSync(duongDanSoApp));
+s.ok('Business App Registry tồn tại', existsSync(duongDanSoApp));
 
 if (duTuDien && existsSync(duongDanSoApp)) {
   const tuDien = Object.fromEntries(

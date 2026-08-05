@@ -339,5 +339,11 @@
     "khoVan": "Kho vận",
     "hauCan": "Hậu cần",
     "hoTro": "Hỗ trợ"
+  },
+  "liveState": {
+    "normal": "Bình thường",
+    "attention": "Cần chú ý",
+    "action": "Có việc cần xử lý",
+    "update": "Có cập nhật mới"
   }
 }

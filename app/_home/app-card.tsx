@@ -5,7 +5,8 @@ import { Lock } from 'lucide-react';
 
 import type { ModuleItem } from '../home-modules';
 import type { PermissionState } from '@/lib/mos/capability/visible-modules';
-import { MODULE_SURFACE, GLASS } from '@/lib/design/tokens';
+import type { LiveStateOrNull } from '@/lib/mos/registry/live-state';
+import { MODULE_SURFACE, GLASS, STATUS } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
 
@@ -45,13 +46,39 @@ import { useLanguage } from '@/lib/i18n';
 // tên ứng dụng, và đó chính là lý do nó trông thoáng.
 // ============================================================================
 
+/** Bốn màu chấm sống — lấy từ THẺ TRẠNG THÁI, ⛔ không viết màu thẳng.
+ *
+ *  ⚠️ Bản nháp đầu tôi viết `bg-emerald-600` ngay tại đây và **bánh cóc màu bắt
+ *  ngay** *(nợ 106 → 107)*. Đúng thứ nó sinh ra để chặn: bốn màu này nói về
+ *  **TRẠNG THÁI**, mà trạng thái thì đã có thẻ riêng — dùng lại thì đổi một
+ *  lần là đổi khắp nơi, viết thẳng thì mỗi chỗ trôi một kiểu.
+ *
+ *  🔑 Và nó khớp **đúng ngữ nghĩa**: chấm trên trang chủ với chip trạng thái
+ *  trong Workspace nay **cùng một màu cho cùng một ý**. */
+const MAU_SONG: Record<NonNullable<LiveStateOrNull>, string> = {
+  normal: STATUS.healthy.dot,
+  attention: STATUS.warning.dot,
+  action: STATUS.critical.dot,
+  update: STATUS.inProgress.dot,
+};
+
 export default function AppCard({
   mod,
   state,
+  live = null,
 }: {
   mod: ModuleItem;
   /** Trạng thái quyền của ô với NGƯỜI ĐANG XEM — `UI-3` · ADR-022. */
   state: PermissionState;
+  /**
+   * Mức sống của App — `Rev 3`. `null`/bỏ trống ⇒ **⛔ không có chấm**.
+   *
+   * ⚠️ Ô này **⛔ không tự quyết** có được hiện chấm hay không. Cổng quyền
+   * nằm ở `docMucSong()` phía máy chủ *(`LS-1`)*, nơi dữ liệu của App mà
+   * người xem ⛔ không mở được **⛔ chưa từng bị đọc**. Lọc ở đây thì đã
+   * muộn: dữ liệu **đã rời khỏi CSDL** và đã qua ranh giới mạng.
+   */
+  live?: LiveStateOrNull;
 }) {
   const { t } = useLanguage();
   const Icon = mod.icon;
@@ -179,6 +206,25 @@ export default function AppCard({
             {/* Trình đọc màn hình phải NGHE được điều mắt thấy. ⛔ Không có
                 dòng này, ô mờ với họ chỉ là một ô bình thường. */}
             <span className="sr-only">{t('home.noAccess')}</span>
+          </span>
+        )}
+
+        {/* 🔴 REV 3 — CHẤM SỐNG. Board: *"Chỉ MỘT CHẤM MÀU là đủ."*
+
+            ⚠️ MỘT CHẤM, ⛔ KHÔNG PHẢI MỘT CON SỐ. Chấm nói *"có việc"* và
+            CHỈ ĐƯỜNG; con số nói *"47 việc"* và bắt người dùng ĐỌC rồi SUY
+            — lúc đó trang chủ đã thành Dashboard, thứ §2 phủ nhận ba lần.
+            Ranh giới nằm đúng ở đây (LS-2).
+
+            🔑 Chấm chỉ tới được đây khi docMucSong() đã cho qua cổng quyền.
+            Ô ⛔ KHÔNG tự quyết — và đó là lý do một chấm đỏ trên ô Kho ⛔
+            không bao giờ lọt ra mắt khách. */}
+        {live && (
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white sm:-bottom-1 sm:-right-1 sm:h-4 sm:w-4 ${MAU_SONG[live]}`}
+            title={t(`liveState.${live}` as never)}
+          >
+            <span className="sr-only">{t(`liveState.${live}` as never)}</span>
           </span>
         )}
       </span>

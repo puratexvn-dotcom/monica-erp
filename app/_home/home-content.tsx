@@ -7,6 +7,7 @@ import { MODULES_THEO_NHOM } from '../home-modules';
 import AppCard from './app-card';
 import { modulePermissionState } from '@/lib/mos/capability/visible-modules';
 import type { Role } from '@/lib/rbac';
+import type { LiveStateOrNull } from '@/lib/mos/registry/live-state';
 import { useLanguage } from '@/lib/i18n';
 import { TYPE } from '@/lib/design/typography';
 import { LOGO_LETTER_COLORS, LOGO_LETTER_SHADOW, LOGO_COLORS } from '@/lib/brand';
@@ -28,9 +29,12 @@ import { LOGO_LETTER_COLORS, LOGO_LETTER_SHADOW, LOGO_COLORS } from '@/lib/brand
 
 export default function HomeContent({
   role,
+  mucSong = {},
 }: {
   /** Vai của người đang đăng nhập. `null` = **chưa đăng nhập**. */
   role: Role | null;
+  /** Mức sống theo `id` App — đã qua cổng quyền ở máy chủ *(`LS-1`)*. */
+  mucSong?: Record<string, LiveStateOrNull>;
 }) {
   const { t } = useLanguage();
 
@@ -283,6 +287,7 @@ export default function HomeContent({
                     key={mod.id}
                     mod={mod}
                     state={modulePermissionState(role, mod)}
+                    live={mucSong[mod.id] ?? null}
                   />
                 ))}
               </div>

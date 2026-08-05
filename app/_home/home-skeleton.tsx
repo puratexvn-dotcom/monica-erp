@@ -1,3 +1,5 @@
+import { SO_O_MOI_NHOM } from '@/lib/mos/registry/business-apps';
+
 // ============================================================================
 // KHUNG CHỜ CỦA TRANG CHỦ
 //
@@ -27,10 +29,14 @@ function OCho() {
 export default function HomeSkeleton() {
   return (
     <div aria-hidden="true" className="mx-auto flex max-w-5xl flex-col gap-y-9 pt-28 sm:gap-y-14 sm:pt-36">
-      {/* Sáu nhóm, số ô đúng như thật — 1 · 3 · 7 · 2 · 1 · 8. Dựng đúng số ô
-          thì chiều cao khung chờ **bằng** chiều cao thật, và trang ⛔ không co
-          giãn lúc đổi. */}
-      {[1, 3, 7, 2, 1, 8].map((soO, nhom) => (
+      {/* 🔴 REV 3 — SỐ Ô ĐỌC TỪ REGISTRY, ⛔ KHÔNG VIẾT CỨNG.
+
+          Bản trước tôi viết cứng `[1, 3, 7, 2, 1, 8]` ngay tại đây — và đó đúng
+          thứ Board cấm ở Rev 3. Thêm một Business App là khung chờ **lệch**
+          khỏi nội dung thật, mà cú lệch đó **⛔ không phép kiểm nào bắt được**:
+          nó chỉ hiện ra thành một **cú nhảy bố cục** ⛔ không ai truy được
+          nguyên nhân. */}
+      {SO_O_MOI_NHOM.map((soO, nhom) => (
         <div key={nhom}>
           <div className="mb-3 h-2.5 w-24 animate-pulse rounded bg-slate-200/50 sm:mb-5" />
           <div className="grid grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">

@@ -1,5 +1,6 @@
 import HomeContent from './home-content';
 import { getSessionUser } from '@/lib/auth/session';
+import { docMucSong } from './live-state.service';
 
 // ============================================================================
 // THÂN TRANG CHỦ — TÁCH RA ĐỂ TRANG CHỦ ⛔ KHÔNG CHỜ PHIÊN
@@ -28,5 +29,15 @@ import { getSessionUser } from '@/lib/auth/session';
 
 export default async function HomeBody() {
   const phien = await getSessionUser();
-  return <HomeContent role={phien?.role ?? null} />;
+  const role = phien?.role ?? null;
+
+  // ⚠️ Đo mức sống **SAU** khi biết vai — ⛔ không song song được với nó:
+  // cổng quyền `LS-1` cần chính cái vai đó để quyết **App nào được đọc**.
+  //
+  // 🔑 Nhưng nó ⛔ **không** làm trang chậm thêm bao nhiêu: người dùng
+  //    thường chỉ mở được **2–3** trong 22 App, nên đây là 2–3 lời gọi
+  //    **chạy song song**, ⛔ không phải 22 lời gọi tuần tự.
+  const mucSong = await docMucSong(role);
+
+  return <HomeContent role={role} mucSong={mucSong} />;
 }

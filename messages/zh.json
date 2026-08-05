@@ -339,5 +339,11 @@
     "khoVan": "仓储",
     "hauCan": "物流",
     "hoTro": "支持"
+  },
+  "liveState": {
+    "normal": "正常",
+    "attention": "需留意",
+    "action": "有待处理事项",
+    "update": "有新更新"
   }
 }

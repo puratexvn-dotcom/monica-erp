@@ -339,5 +339,11 @@
     "khoVan": "Warehousing",
     "hauCan": "Logistics",
     "hoTro": "Support"
+  },
+  "liveState": {
+    "normal": "Normal",
+    "attention": "Needs attention",
+    "action": "Action required",
+    "update": "New updates"
   }
 }
