@@ -75,6 +75,31 @@ bảng còn nợ chờ `033`. Ghi vào [Baseline §0.6](../ARCHITECTURE_BASELINE
 🔑 **Chạy lại TRƯỚC khi push, ⛔ không phải sau.** Đẩy một CI đỏ là điều tệ nhất
 có thể làm ngay lúc vừa mở rộng độ phủ — nó sẽ dạy đúng bài học ngược lại.
 
+### ✅ Nghiệm thu trên CI THẬT — lượt **#49** `c45e92a4` · `[MEASURED]`
+
+```
+JOB  Kiểm tra tĩnh    SUCCESS  45s
+JOB  Kiểm tra sống    SUCCESS  34s
+     ✅ Toàn vẹn dữ liệu nền
+     ✅ Phân quyền người dùng bên ngoài
+     ✅ Ma trận đọc VR-004 · VR-005        ← MỚI
+     ✅ Ma trận ghi (UPDATE)               ← MỚI
+     ✅ Vòng đời chiết tính                ← MỚI
+     ✅ A001 runtime — bề mặt phơi ra      ← MỚI
+```
+
+| | Trước `CI-1` | **Sau `CI-1`** |
+|---|---|---|
+| `kiem-tra-song` | ~28s · 2 bài bảo mật | **34s · 6 bài bảo mật** |
+| Phép đo bảo mật tự động | ~40 | **~228** |
+
+🔑 **+188 phép đo bảo mật, chỉ tốn thêm ~6 giây.** Đây là lý do `CI-1` đáng làm
+ngay thay vì xếp vào nợ: chi phí gần bằng không, còn cái nó che khuất thì
+⛔ không đo được.
+
+⇒ **Bốn bước mới hiện RIÊNG trên giao diện GitHub** — đúng quyết định thiết kế
+①: hỏng bài nào đọc được ngay, ⛔ không phải mở log.
+
 ## 0.3 🟠 `CI-2` — rủi ro mới, ⛔ chưa xử
 
 `concurrency.cancel-in-progress` huỷ lượt đang chạy khi có push mới. Bài kiểm

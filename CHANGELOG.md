@@ -78,6 +78,13 @@ từng chạy tự động**: `md-internal-scope` · `md-read-matrix` · `md-upd
    sống sót 20 migration. Cho chạy kiểu *"cảnh báo"* ⇒ tạo tiền lệ **bài kiểm
    được phép đỏ**, trái `AC-3`. ⇒ Nó vào CI **cùng lượt** với việc trả `TC-1`.
 
+**✅ Nghiệm thu trên CI thật — lượt #49 `c45e92a4`:** cả hai job `SUCCESS`; bốn
+bước mới hiện **riêng** trên giao diện. `kiem-tra-song` **28s → 34s**.
+
+> 🔑 **+188 phép đo bảo mật tự động, chỉ tốn thêm ~6 giây.** Đó là lý do `CI-1`
+> đáng làm ngay thay vì xếp vào nợ: chi phí gần bằng không, còn thứ nó che
+> khuất thì ⛔ không đo được.
+
 ### 🟠 `CI-2` — rủi ro mới, ⛔ chưa xử
 
 `concurrency.cancel-in-progress` huỷ lượt đang chạy khi có push mới. Bài kiểm
