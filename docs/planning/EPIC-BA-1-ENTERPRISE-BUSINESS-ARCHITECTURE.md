@@ -1044,3 +1044,390 @@ nó là **thứ luôn đúng, nay được nói ra**.
 ---
 
 > **Trạng thái Rev 4:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
+
+---
+---
+
+# §17 · REVISION 5 — 🔴 ĐÍNH CHÍNH REV 4 TRƯỚC ĐÃ
+
+> Để dựng Business Object Layer tôi phải liệt kê **bảng thật**. Phép đo đó lật
+> lại **ba phát biểu của chính tôi ở Rev 4**. Board sắp khoá hai tài liệu này
+> làm nền Enterprise Architecture ⇒ đính chính phải đứng **trước** phần mới.
+
+## 17.1 Nguyên nhân sai: tôi tìm **sai tên bảng**
+
+Rev 4 tôi tìm `notification|calendar|user_profile|signature|avatar`, ⛔ không thấy
+gì, rồi kết luận *"⛔ không có bảng nào"*. Bảng thật tên **`profiles`**, ⛔ không
+phải `user_profile`. **Một chữ, và nó làm hỏng ba kết luận.**
+
+⚠️ Đây đúng thứ `P-MEASURE` cảnh báo: **một phép đo âm tính chỉ chứng minh
+được điều đã hỏi**, ⛔ không chứng minh được điều ⛔ chưa hỏi. Lần này tôi hỏi sai
+câu.
+
+## 17.2 Ba đính chính
+
+| # | Rev 4 nói | **Sự thật đo được** |
+|---|---|---|
+| ① | *"Organization Structure ⛔ **chưa tồn tại**"* | 🔴 **SAI.** `departments(id, code, name, **parent_id → chính nó**)` **ĐÃ CÓ** từ `001_core_schema.sql` — đúng **cây tự tham chiếu** tôi đề xuất ở `O-1` |
+| ② | *"`Department` trong Profile **cần migration**"* | 🔴 **SAI.** `profiles(id → auth.users, employee_code, full_name, **department_id**, is_active)` **ĐÃ CÓ** |
+| ③ | *"**7/10** trường Profile cần migration"* | 🟠 **SAI SỐ.** Đúng là **6/10** — xem 17.4 |
+
+## 17.3 🔴 PHÁT HIỆN LỚN NHẤT REV 5: **HAI MÔ HÌNH PHÂN QUYỀN CÙNG TỒN TẠI**
+
+`001_core_schema.sql` đã dựng **một mô hình phân quyền hoàn chỉnh trong CSDL**:
+
+```sql
+roles(id, code, name, description)
+permissions(id, code, module)        -- module: 'WAREHOUSE' · 'SEWING' · 'QA'
+role_permissions(role_id, permission_id)   -- N:N
+user_roles(user_id, role_id)               -- N:N
+```
+
+Và **`lib/rbac.ts` ⛔ không biết chúng tồn tại.**
+
+| | **Mô hình A** — `lib/rbac.ts` | **Mô hình B** — CSDL `001` |
+|---|---|---|
+| Vai lưu ở | `app_metadata.role` — **một chuỗi** | bảng `user_roles` — **N:N** |
+| Một người có | 🔴 **ĐÚNG MỘT** vai | ✅ **NHIỀU** vai |
+| Vai là | **mã cứng** — union 14 giá trị | **dữ liệu** — thêm được ⛔ không cần deploy |
+| Quyền khai bằng | **tiền tố URL** | **mã quyền + `module`** |
+| Ai thi hành | middleware · `guard.ts` | 🔴 **⛔ KHÔNG AI** |
+
+### 17.3.1 Bằng chứng Mô hình B ⛔ **không** phải hàng rào
+
+```
+Chuỗi `user_roles` | `role_permissions` xuất hiện trong migrations:
+   → CHỈ `001_core_schema.sql`.
+   → ⛔ KHÔNG một policy RLS nào ở BẤT KỲ migration nào tham chiếu chúng.
+```
+
+⇒ **`TD-42` · MÔ HÌNH PHÂN QUYỀN MA.** Bốn bảng trông **đầy thẩm quyền**, nằm
+trong lược đồ lõi, và **⛔ không điều khiển gì cả**.
+
+⚠️ **Đây là loại khuyết tật nguy hiểm nhất trong tài liệu này.** Một người sau
+sẽ mở `role_permissions`, thêm một dòng, và **tin rằng phân quyền vừa thay đổi**.
+⛔ **Không có gì thay đổi.** Hàng rào thật vẫn là RLS ở bậc ⑦ và `guard.ts` ở
+bậc ⑤ — cả hai đều ⛔ **không đọc** bốn bảng đó.
+
+### 17.3.2 🔑 Hệ quả cho `ADR-023` — **rẻ hơn Board tưởng**
+
+Board duyệt hướng *"Capability Layer"*. **Nó ⛔ không phải xây mới.**
+`permissions(code, **module**)` đã là **đúng hình dạng** của tầng Capability —
+gom quyền theo **năng lực** *(`WAREHOUSE` · `SEWING` · `QA`)*, ⛔ không theo
+đường dẫn.
+
+⇒ `ADR-023` đổi từ *"xây một tầng mới"* thành ***"quyết số phận một tầng đã có
+mà ⛔ không ai nối dây"*** — và đó là câu hỏi **rẻ hơn nhiều**.
+
+### 17.3.3 ⚠️ Mô hình A ⛔ **không** biểu diễn được kiêm nhiệm
+
+`app_metadata.role` là **một chuỗi** ⇒ một người **đúng một vai**. Nhưng:
+
+- `RA-2` §9.2.1 nói người **kiêm nhiệm được** — thực tế nhà máy;
+- `Q-12` §12.2 ghi `giamdoc` phủ **ba** vị trí điều hành.
+
+⇒ **Mô hình A ⛔ KHÔNG có chỗ để biểu diễn hai điều đó.** Mô hình B thì có
+*(`user_roles` là N:N)*. Đây là **lý do kiến trúc**, ⛔ không phải sở thích, để
+Board ⛔ không xoá bốn bảng đó đi. ⇒ **`Q-14`**
+
+## 17.4 Bảng User Profile — **đo lại**
+
+| # | Trường | Trạng thái thật | Migration |
+|---|---|---|---|
+| 2 | Password | ✅ Supabase Auth | ✅ KHÔNG |
+| 9 | Role | ✅ `app_metadata.role` — **chỉ đọc** | ✅ KHÔNG |
+| 8 | **Department** | ✅ **`profiles.department_id` ĐÃ CÓ** ← *đính chính* | ✅ **KHÔNG** — chỉ cần **nối dây** |
+| 3 | Language | 🟠 có `lib/i18n`, ⛔ không lưu vào `profiles` | 🟠 thêm **cột** |
+| 1 | Avatar | ⛔ ⛔ không có | 🔴 CÓ + Storage |
+| 4 | Theme | ⛔ ⛔ không có | 🔴 CÓ — `UP-5` |
+| 5 | Notification | ⛔ ⛔ không có | 🔴 CÓ |
+| 6 | Signature | ⛔ ⛔ không có | 🔴 CÓ — `UP-4` |
+| 7 | Contact | ⛔ ⛔ không có trên `profiles` | 🔴 CÓ |
+| 10 | Manager | ⛔ ⛔ không có `manager_id` | 🔴 CÓ |
+
+**⇒ 3 đã có · 1 một phần · 6 cần migration** *(Rev 4 ghi 7 — sai 1)*.
+
+## 17.5 ⚠️ `departments` **ĐÃ CÓ CẤU TRÚC** — nhưng ⛔ chưa kết luận được về DỮ LIỆU
+
+`S001_business_baseline.sql` gieo **17 bảng nghiệp vụ** *(orders · styles ·
+cut_tickets · assignments · shipments…)* và **⛔ KHÔNG gieo `departments`,
+`profiles`, `employees`**.
+
+⇒ Theo **`V.1`** *(⛔ không kết luận trên bảng rỗng)*: tôi khẳng định **cấu trúc
+tồn tại**, và ⛔ **không** khẳng định gì về **nội dung**. Cây 16 đơn vị Board cung
+cấp ở §12.1 **có chỗ để chứa**, nhưng **⛔ chưa đo được là đã có ai trong đó
+chưa**. ⇒ **`Q-15`**
+
+## 17.6 ⚠️ `employees` ⟷ `profiles` là **hai loại người khác nhau**
+
+| Bảng | Là ai | Có tài khoản? |
+|---|---|---|
+| `profiles` | người **đăng nhập hệ thống** | ✅ khoá ngoại tới `auth.users` |
+| `employees` | **công nhân xưởng** — thợ may, thợ trải vải | ⛔ **KHÔNG** |
+
+🔑 **Điều này ⛔ không phải trùng lặp — nó đúng.** Hàng nghìn công nhân có **sản
+lượng, chấm công, lỗi** ghi vào hệ thống mà **⛔ không bao giờ đăng nhập**. Bất
+kỳ đề xuất nào *"gộp hai bảng cho gọn"* sẽ ép cấp tài khoản cho toàn xưởng.
+⇒ Ghi vào tài liệu để ⛔ không ai gộp.
+
+---
+
+# §18 · BUSINESS OBJECT LAYER
+
+## 18.1 Chuỗi đầy đủ — Role **⛔ không** còn ở trung tâm
+
+```
+Business Object → Business Process → Capability → Workspace → Role ⊕ Assignment → Permission
+   "cái gì tồn tại"   "chảy thế nào"  "làm được gì"  "làm ở đâu"    "tôi là ai"      "được gì
+                                                                   + được giao gì"   trên DÒNG này"
+```
+
+⚠️ **Tôi bổ sung `⊕ Assignment` vào chuỗi Board đưa ra.** Lý do — và đây là góp ý
+⛔ không phải phản đối:
+
+> Chuỗi `… → Workspace → Role → Permission` vẫn để **Role là tiếng nói cuối cùng**
+> về quyền. Playbook **Điều XXX** cấm đúng điều đó: *"Vai trò chỉ là nhóm quyền
+> **mặc định**"*. ⛔ Không có `Assignment` trong chuỗi, ta **tái lập chính lỗi
+> Board đang muốn tránh**, chỉ lùi nó xuống một bậc.
+
+⇒ **Role cho MẶC ĐỊNH. Assignment cho PHẠM VI. Permission là giao của hai.**
+
+## 18.2 Hai mô hình **⛔ không** cạnh tranh — chúng **vuông góc**
+
+| | Chuỗi Business Object *(§18)* | Chuỗi 7 bậc *(§15)* |
+|---|---|---|
+| Trả lời | *"cái gì **tồn tại** và ai chịu trách nhiệm"* | *"**chặn** ở đâu"* |
+| Loại | **bản thể** | **thực thi** |
+| Gặp nhau ở | 🔑 **Business Object *chính là* thứ bậc ⑦ (RLS) bảo vệ** | |
+
+🔑 **RLS ⛔ không bảo vệ "vai" hay "màn hình" — nó bảo vệ DÒNG của một Business
+Object.** Đó là chỗ hai mô hình khớp vào nhau, và là lý do cả hai đều cần thiết.
+
+## 18.3 Danh mục Business Object — dựng từ **85 bảng thật**
+
+| Business Process | Business Object *(gốc tổng hợp)* | Bảng thật |
+|---|---|---|
+| **Tiếp nhận nhu cầu** | `Inquiry` · `Customer` | `inquiries` · `customers` · `customer_contacts` |
+| **Phát triển mẫu** | `Style` · `Sample` | `styles` · `style_bom` · `style_colorways` · `style_sizes` · `style_operations` · `sample_submissions` |
+| **Định giá** | `Costing` | `costings` · `costing_items` |
+| **Chốt đơn** | `Order` | `orders` · `order_items` · `order_size_breakdown` · `order_milestones` |
+| **Mua nguyên phụ liệu** | `PurchaseOrder` · `Supplier` | `purchase_orders` · `purchase_order_items` · `suppliers` |
+| **Nhập kho** | `InboundReceipt` · `Material` | `inbound_receipts` · `inbound_receipt_items` · `materials` · `material_lots` · `material_inspections` · `fabric_rolls` |
+| **Quản lý tồn** | `Stock` · `WarehouseTopology` | `stock_levels` · `stock_movements` · `stock_adjustments` · `stock_counts` · `stock_reservations` · `warehouses` · `wh_zones` · `wh_racks` · `wh_bins` |
+| **Xuất kho SX** | `OutboundIssue` · `MaterialRequest` | `outbound_issues` · `outbound_issue_items` · `material_requests` |
+| **Cắt** | `CutTicket` | `cut_tickets` · `cut_bundles` · `cut_ticket_rolls` · `cut_attachments` |
+| **May** | `ProductionOrder` | `production_orders` · `daily_production_logs` · `hourly_production_logs` · `sewing_lines` · `needle_break_logs` |
+| **Hoàn thành** | `FinishingLog` | `finishing_logs` |
+| **Kiểm chất lượng** | `QaAuditReport` · `DefectCatalog` | `qa_audit_reports` · `qa_defects` · `defect_catalog` · `capa_logs` |
+| **Gia công ngoài** | `SubconOrder` · `Subcontractor` | `subcon_orders` · `subcon_issue_logs` · `subcon_receipt_logs` · `subcontractors` |
+| **Đóng gói · Giao** | `Shipment` · `Carton` | `shipments` · `shipment_cartons` · `cartons` |
+| **Giao việc** *(xuyên suốt)* | `Assignment` | `assignments` · `assignment_bundles` · `assignment_daily_reports` · `assignment_commercial_terms` |
+| **Đối tác** *(xuyên suốt)* | `Partner` | `partners` · `partner_accounts` · `partner_permissions` · `buyer_accounts` |
+| **Nhân sự xưởng** | `Employee` · `Attendance` | `employees` · `attendance_logs` |
+| **Tổ chức · Người dùng** | `Organization` · `UserProfile` | `departments` · `profiles` · `roles` · `user_roles` · `permissions` · `role_permissions` |
+| **Kiểm toán** *(nền tảng)* | `ActivityLog` | `activity_log` · `wh_audit_log` · `mos_aggregate_immutability` |
+| **Quản trị thay đổi** | `ChangeRequest` · `RiskAssessment` | `change_requests` · `risk_assessments` |
+| **Trao đổi · Hồ sơ** | `Communication` · `Attachment` | `communications` · `attachments` · `md_comments` · `md_documents` |
+
+**≈ 26 Business Object trên 21 Business Process.**
+
+## 18.4 Bốn luật của Business Object Layer
+
+| # | Luật | Vì sao |
+|---|---|---|
+| `BO-1` | **Mỗi Business Object có ĐÚNG MỘT Business Process sở hữu** *(process **tạo ra** nó)*; process khác chỉ **ĐỌC** | hai process cùng ghi ⇒ hai nguồn chân lý cho **cùng một sự thật** |
+| `BO-2` | **Business Object là thứ RLS bảo vệ** | nối §18 với §15 bậc ⑦ — xem 18.2 |
+| `BO-3` | 🔑 **Định nghĩa một Business Object ⛔ KHÔNG được nhắc tới VAI TRÒ** | phải nhắc tới vai để định nghĩa một đối tượng ⇒ **đối tượng đó ⛔ chưa được định nghĩa xong**. Đây là **phép thử** giữ Role khỏi trung tâm |
+| `BO-4` | **`Permission = Role ⊕ Assignment`**, ⛔ không phải `Role` một mình | Điều XXX — xem 18.1 |
+
+### 18.4.1 🔑 `BO-3` là phép thử, và nó **bắt được lỗi thật ngay hôm nay**
+
+Áp `BO-3` vào `MODULE_ACCESS`:
+
+```
+/subcon  ⇐ md · kho · totruongmay · giamdoc
+```
+
+Hôm nay `/subcon` được định nghĩa bằng câu *"bốn vai này vào được"*. Theo `BO-3`
+đó là **định nghĩa chưa xong**. Định nghĩa đúng là: *`SubconOrder` là Business
+Object của Business Process **Gia công ngoài***; bốn vai kia chỉ là **hệ quả**
+của việc process đó chạm vào bốn Capability.
+
+⇒ Đảo chiều này chính là điều Board yêu cầu ở mục ①, và `TD-40` là **cùng một
+vấn đề nhìn từ tầng thực thi**.
+
+---
+
+# §19 · MODULE OWNERSHIP
+
+## 19.1 `Business Owner` là gì — và ⛔ **không** phải gì
+
+> **Business Owner = người quyết định LUẬT NGHIỆP VỤ của Module và THỨ TỰ ƯU
+> TIÊN phát triển nó.**
+
+| ⛔ **KHÔNG** phải | Vì sao |
+|---|---|
+| ⛔ người quản lý trực tiếp | Board đã nói rõ. Sở hữu đi theo **năng lực**, ⛔ không theo sơ đồ báo cáo |
+| ⛔ người dùng Module nhiều nhất | Thủ kho dùng `/kho` mỗi ngày nhưng ⛔ không quyết luật nhập xuất |
+| ⛔ người có quyền cao nhất trong Module | 🔴 xem `MO-1` |
+| ⛔ chủ sở hữu kỹ thuật | IT sở hữu **cách chạy**; Business Owner sở hữu **chạy cái gì** |
+
+## 19.2 Bốn luật
+
+| # | Luật | Vì sao |
+|---|---|---|
+| `MO-1` | 🔴 **Ownership là TRÁCH NHIỆM, ⛔ KHÔNG phải ĐẶC QUYỀN. Cấm suy quyền từ ownership** | ⛔ Không có luật này, *"chủ Module"* sẽ dần thành *"tài khoản vượt mọi RLS trong Module"* — đúng một `superadmin` thứ hai, mọc lên **mười sáu lần** |
+| `MO-2` | **Owner gắn vào Business Process; Module KẾ THỪA** | Module **tách/gộp được**; Business Process bền hơn. Gắn thẳng vào Module ⇒ mỗi lần tách Module là một lần tranh chấp sở hữu |
+| `MO-3` | **Mỗi Module ĐÚNG MỘT Owner** | hai chủ = ⛔ không chủ nào |
+| `MO-4` | **Khai bằng ĐƠN VỊ TỔ CHỨC trước, con người sau** | người nghỉ việc; đơn vị bền hơn. Đơn vị là **mặc định**, người là **chỉ định** |
+
+## 19.3 Bảng sở hữu 16 Module
+
+| Module | Business Process sở hữu | **Business Owner** *(đơn vị)* |
+|---|---|---|
+| `executive` | Điều hành | **CEO** |
+| `commercial` | Tiếp nhận nhu cầu · Chốt đơn | **Director Business** |
+| `merchandising` | Phát triển mẫu · Định giá | **Merchandising** |
+| `planning` | Hoạch định năng lực | **Planning** |
+| `production` | Cắt · May · Hoàn thành | **Director Production** |
+| `quality` | Kiểm chất lượng | **QA** |
+| `warehouse` | Nhập · Tồn · Xuất | **Warehouse** |
+| `shipment` | Đóng gói · Giao | 🔴 **⛔ KHÔNG CÓ** — `Q-10` |
+| `subcontract` | Gia công ngoài | 🔴 **⛔ KHÔNG CÓ** — `Q-11` |
+| `finance` | Định giá · Công nợ | **Finance** |
+| `humanResources` | Nhân sự xưởng | **HR** |
+| `reporting` | *(toàn cục)* | **CEO** — ⚠️ `Q-16` |
+| `communication` | *(toàn cục)* | **Administration** — ⚠️ `Q-16` |
+| `ai` | *(toàn cục)* | **IT** — ⚠️ `Q-16` |
+| `documents` | *(toàn cục)* | **Administration** — ⚠️ `Q-16` |
+| `platform` | Nền tảng | **IT** |
+
+### 19.3.1 🔴 Hai Module **đang chạy thật** mà ⛔ không ai chịu trách nhiệm
+
+`shipment` và `subcontract` ⛔ **không có đơn vị nào trên cây tổ chức** *(`Q-10`
+`Q-11`, §12.2.2)*. Rev 4 tôi ghi đó là *"thiếu ô trên sơ đồ"*. **Ownership cho
+thấy nó nặng hơn thế:**
+
+```
+/xuat-hang và /subcon đang CHẠY THẬT, có dữ liệu THẬT, có 4 vai dùng.
+Và ⛔ KHÔNG AI quyết định luật nghiệp vụ của chúng.
+```
+
+⇒ Khi hai Module này cần đổi quy tắc, **⛔ không có ai để hỏi** — quyết định sẽ
+rơi vào tay người **viết mã**, tức bậc 6 của thứ bậc văn bản. ⇒ **`Q-10` `Q-11`
+nâng từ 🟠 lên 🔴.**
+
+### 19.3.2 ⚠️ `Q-16` — bốn Global Service khó gán chủ
+
+`reporting` · `communication` · `ai` · `documents` phục vụ **mọi** phòng ban ⇒
+⛔ không phòng nào tự nhiên là chủ. Bốn gán ở trên là **đề xuất**, ⛔ không phải
+kết luận. Board cần chốt.
+
+---
+
+# §20 · MODULE IDENTITY STANDARD *(hợp nhất — 10 trường)*
+
+## 20.1 Bảy trường Board yêu cầu ⊕ ba trường Rev 3
+
+| # | Trường | Nguồn | Trạng thái |
+|---|---|---|---|
+| 1 | **Icon** | `home-modules.ts` — `lucide-react` | ✅ có |
+| 2 | **Color** | `MODULE_IDENTITY` — 16 dải | ✅ có · ⚠️ `TD-41` |
+| 3 | **Module Name** | `home-modules.ts` — ⛔ **KHÔNG dịch** *(§45.3)* | ✅ có |
+| 4 | **Department** | `Module Catalog` §8.5 ⊕ **Owner** §19.3 | 🟠 tài liệu có, mã ⛔ chưa |
+| 5 | **Business Value** | một câu — cho Sales · Investor | 🔴 **thiếu** |
+| 6 | **Tagline** | 3–5 từ, `A • B • C` — cho người vận hành | 🔴 **thiếu** |
+| 7 | **Permission State** | **tính lúc dựng trang** — xem 20.2 | 🔴 **thiếu** |
+| 8 | `key` | `ModuleKey` | ✅ có |
+| 9 | `route` | union phân biệt — `COMING_SOON` ⛔ không có trường này | ✅ có |
+| 10 | `capability` | `permissions.module` — §17.3.2 | 🟠 **CSDL có, ⛔ chưa nối** |
+
+## 20.2 `Permission State` — bốn giá trị
+
+| Giá trị | Khi nào | Hiện thế nào | Bấm thì sao |
+|---|---|---|---|
+| `AUTHORIZED` | đã đăng nhập **và** có quyền | **nổi bật** — đủ màu | mở Workspace |
+| `UNAUTHORIZED` | đã đăng nhập, ⛔ không quyền | **làm mờ** — ⛔ **KHÔNG ẨN** | → 403 *(`EP-3`)* |
+| `COMING_SOON` | ⛔ chưa có route | nhãn *"Sắp có"* · ⛔ không bấm được | — |
+| `ANONYMOUS` | ⛔ chưa đăng nhập | bình thường, ⛔ không phân biệt | → `/login` |
+
+⚠️ **`ANONYMOUS` ⛔ KHÔNG được suy thành `UNAUTHORIZED`.** Với khách, hệ thống
+**⛔ không biết** họ sẽ có quyền gì ⇒ làm mờ là **nói dối**. Mọi ô hiện như nhau.
+
+🔑 **`Permission State` nằm ở bậc ③ — TRẢI NGHIỆM, ⛔ không phải AN NINH
+*(`PA-1`)*.** Vì vậy tính nó ở client là **an toàn**: nó ⛔ **chưa bao giờ** là
+hàng rào. Hàng rào là bậc ⑤ ⑥ ⑦. Đây chính là `PA-2` — và `Permission State` là
+**cơ chế thực thi** quyết định *"hiện toàn bộ + làm nổi bật"* của Board:
+**làm mờ ⛔ ≠ ẩn.**
+
+---
+
+# §21 · TỔNG HỢP Rev 5
+
+## 21.1 Vấn đề phát hiện
+
+| # | Vấn đề | Mức |
+|---|---|---|
+| `TD-42` | 🔴 **Mô hình phân quyền MA** — 4 bảng RBAC trong `001`, ⛔ **không policy RLS nào** dùng. Người sau sẽ sửa chúng và **tin rằng quyền đã đổi** | 🔴 **cao** |
+| `Q-10` `Q-11` | **`shipment` · `subcontract` chạy thật, ⛔ KHÔNG AI sở hữu** — nâng từ 🟠 | 🔴 **cao** |
+| `Q-14` | Mô hình A *(một vai/người)* **⛔ không biểu diễn được kiêm nhiệm**; Mô hình B thì có | 🟠 vừa |
+| `Q-15` | `departments` **có cấu trúc**, ⛔ **chưa đo được dữ liệu** *(`V.1`)* | 🟠 vừa |
+| `Q-16` | 4 Global Service ⛔ không có chủ tự nhiên | 🟠 vừa |
+| — | `employees` ⟷ `profiles` là **hai loại người** — ghi để ⛔ không ai gộp | 🟢 ghi nhận |
+
+## 21.2 Giả định bị bác bỏ *(Rev 5 — cả ba đều của tôi)*
+
+| Giả định | Phán quyết |
+|---|---|
+| *"Organization Structure ⛔ chưa tồn tại"* | 🔴 **SAI** — `departments.parent_id` đã có từ `001` |
+| *"`Department` trong Profile cần migration"* | 🔴 **SAI** — `profiles.department_id` đã có |
+| *"7/10 trường Profile cần migration"* | 🟠 **SAI SỐ** — đúng là **6/10** |
+| *"Capability Layer phải xây mới"* | 🟠 **SAI** — `permissions(code, module)` đã đúng hình dạng, chỉ **⛔ chưa nối dây** |
+
+**Nguyên nhân chung: tôi tìm sai tên bảng** *(`user_profile` ⟷ `profiles`)*.
+Một phép đo âm tính chỉ chứng minh được **điều đã hỏi**.
+
+## 21.3 Tác động ADR
+
+| ADR | Cập nhật sau Rev 5 |
+|---|---|
+| **`ADR-023`** | 🔑 **rẻ hơn nhiều** — ⛔ không "xây tầng Capability" mà **"quyết số phận tầng đã có"**. Kèm `TD-42` |
+| **`ADR-021`** | ⛔ không đổi — §13.3 + §15.3 + §13.1 |
+| **`ADR-022`** | ⛔ không đổi — §13.5, quyết riêng |
+| **`ADR-024`** | ⛔ không đổi — Signature versioning |
+| **`ADR-025`** *(mới, đề nghị)* | 🟠 **Module Ownership** — `MO-1` là điều khoản an ninh, ⛔ không chỉ là quản trị |
+
+## 21.4 Khuyến nghị cuối cùng — Rev 5
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  ① XỬ LÝ `TD-42` TRƯỚC KHI KHOÁ BA-1.                                ║
+║     Bốn bảng RBAC trông đầy thẩm quyền và ⛔ không điều khiển gì. Một  ║
+║     tài liệu nền Enterprise Architecture ⛔ KHÔNG được để lại một mô   ║
+║     hình phân quyền ma — người sau sẽ sửa nó và tin là quyền đã đổi.  ║
+║     Ba đường: nối dây · xoá bỏ · hoặc GHI RÕ "⛔ chưa dùng" ngay       ║
+║     trong lược đồ. Đường thứ ba rẻ nhất và phải làm NGAY.             ║
+║                                                                       ║
+║  ② `MO-1` PHẢI VÀO ADR, ⛔ KHÔNG chỉ vào tài liệu.                    ║
+║     "Ownership là trách nhiệm, ⛔ không phải đặc quyền." ⛔ Không có   ║
+║     câu này, "chủ Module" sẽ dần thành superadmin thứ hai — mọc lên   ║
+║     MƯỜI SÁU lần.                                                     ║
+║                                                                       ║
+║  ③ `BO-3` LÀ PHÉP THỬ, ⛔ KHÔNG phải khẩu hiệu.                       ║
+║     "Định nghĩa Business Object ⛔ không được nhắc tới vai trò." Áp    ║
+║     vào /subcon là thấy ngay định nghĩa hiện tại ⛔ chưa xong. Đây là  ║
+║     công cụ giữ Role khỏi trung tâm mà Board yêu cầu ở mục ①.         ║
+║                                                                       ║
+║  ④ TRẢ LỜI `Q-10` `Q-11` — nay là 🔴, ⛔ không còn 🟠.                 ║
+║     Hai Module đang chạy thật mà ⛔ KHÔNG AI quyết luật nghiệp vụ.     ║
+║     Quyết định sẽ rơi vào tay người viết mã — bậc 6 của thứ bậc.      ║
+║                                                                       ║
+║  ⑤ `Permission = Role ⊕ Assignment`, ⛔ không phải Role một mình.     ║
+║     Chuỗi Board đưa ra vẫn để Role nói tiếng cuối cùng về quyền.      ║
+║     Thêm Assignment giữ đúng Điều XXX và hoàn tất ý định của Board.   ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+> **Trạng thái Rev 5:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.

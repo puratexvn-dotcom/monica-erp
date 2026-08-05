@@ -630,6 +630,136 @@ vậy — ⛔ **không** phải sửa mã bây giờ.
 > **Trạng thái Rev 4:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
 
 ---
+---
+
+# §14 · REVISION 5 — LAUNCHER IDENTITY STANDARD
+
+> `BA-1 §20` khai **Module Identity là DỮ LIỆU** *(10 trường)*.
+> §14 này khai **cách dựng nó thành PIXEL** — hợp đồng hiển thị của ô Launcher.
+
+## 14.1 Một ô Launcher — bảy trường Board yêu cầu, đặt vào đâu
+
+```
+┌──────────────────────────────────┐
+│  ┌────┐                          │  ① Icon    — 24px, `lucide-react`
+│  │ 📦 │  ← ② Color: nền `soft`   │  ② Color   — MODULE_IDENTITY
+│  └────┘                          │  ③ Name    — ⛔ KHÔNG dịch (§45.3)
+│                                  │  ⑥ Tagline — 3–5 từ, `A • B • C`
+│  Kho                       ③     │  ④ Dept    — chỉ khi Board bật nhóm
+│  Nhập • Xuất • Tồn         ⑥     │  ⑦ State   — quyết ĐỘ ĐẬM của cả ô
+│                                  │
+│                     [Sắp có] ⑦   │  ⑤ Business Value — ⛔ KHÔNG ở đây
+└──────────────────────────────────┘     → tooltip / trang giới thiệu
+```
+
+⚠️ **⑤ `Business Value` cố ý ⛔ KHÔNG in trên ô.** Một câu đầy đủ trên **16 ô**
+biến lưới thành **một bức tường chữ** — đúng thứ `N-5` §7.5 cảnh báo. Nó phục vụ
+Sales · Investor, mà hai khán giả đó **đọc**, ⛔ không **quét**. ⇒ đặt ở tooltip
+và trang giới thiệu; ô Launcher giữ `tagline`.
+
+🔑 **Hai câu, hai khán giả, hai chỗ** — `MI-b` của `BA-1 §10.3`.
+
+## 14.2 `Permission State` quyết định **duy nhất một thứ**: độ đậm
+
+| State | Ô | Nhãn | Con trỏ | Bấm |
+|---|---|---|---|---|
+| `AUTHORIZED` | **đủ màu** — `soft` + `primary` | — | `pointer` | → Workspace |
+| `UNAUTHORIZED` | **làm mờ** — độ mờ giảm, giữ nguyên **màu nhận diện** | — | `pointer` | → 403 |
+| `COMING_SOON` | xám trung tính | **"Sắp có"** | `not-allowed` | ⛔ ⛔ không bấm |
+| `ANONYMOUS` | **đủ màu** — như `AUTHORIZED` | — | `pointer` | → `/login` |
+
+### 14.2.1 🔴 Ba luật ⛔ không được vi phạm
+
+| # | Luật | Vì sao |
+|---|---|---|
+| `LI-1` | **`UNAUTHORIZED` LÀM MỜ, ⛔ KHÔNG ẨN, và ⛔ KHÔNG đổi màu nhận diện** | Board cấm ẩn. Đổi ô Kho thành xám = **phá `MI-a`** — người dùng học *"xanh lá = Kho"*, ⛔ không học *"xám = ⛔ không quyền"* |
+| `LI-2` | **`ANONYMOUS` ⛔ KHÔNG được làm mờ** | với khách, hệ thống **⛔ không biết** họ sẽ có quyền gì ⇒ làm mờ là **nói dối**, và nó giết đúng giá trị bán hàng Board mua bằng Phương án D |
+| `LI-3` | **Độ mờ ⛔ KHÔNG được xuống dưới ngưỡng đọc được** | *"làm mờ"* là **giảm nhấn**, ⛔ không phải *"ẩn bằng cách khác"*. Ô mờ tới mức ⛔ không đọc nổi = **ẩn trá hình** ⇒ vi phạm chỉ thị Board |
+
+⚠️ **`LI-3` cần một con số, ⛔ không phải một tính từ.** Đề nghị: chữ trên ô mờ
+vẫn phải đạt **tương phản ≥ 4,5:1** — cùng ngưỡng `MODULE_IDENTITY` đang tuân
+*(chú thích `finance` trong `tokens.ts`)*. ⇒ *"làm mờ"* trở thành thứ **đo
+được**, ⛔ không phải thứ tranh luận.
+
+## 14.3 🔑 Vì sao tính `Permission State` ở client là **an toàn**
+
+```
+Permission State nằm ở BẬC ③ của Permission Architecture.
+Bậc ①–④ = TRẢI NGHIỆM.  Bậc ⑤–⑦ = AN NINH.        ← PA-1
+```
+
+⇒ Ô Launcher **⛔ chưa bao giờ** là hàng rào, kể cả trước quyết định của Board.
+Hàng rào là `guard.ts` *(⑤)*, `guard()` trong Server Action *(⑥)*, và **RLS**
+*(⑦)*. ⇒ `Permission State` sai **⛔ không tạo ra lỗ hổng** — nó chỉ tạo ra một
+**cú bấm hụt**.
+
+🔑 **Đây là `PA-2` nhìn từ phía giao diện**, và nó biến quyết định *"Launcher ⛔ ≠
+Permission"* của Board từ chỗ trông như **nới lỏng bảo mật** thành **một phát
+biểu đúng về kiến trúc**.
+
+## 14.4 `Department` — trường ⛔ **chưa** bật
+
+Trường ④ `Department` có trong chuẩn nhưng **⛔ chưa hiển thị ở Phase 1**:
+
+| | |
+|---|---|
+| **Vì sao có** | `Module Catalog` cần nó · `Business Owner` §19 cần nó · nhóm điều hướng sẽ cần nó |
+| **Vì sao ⛔ chưa hiện** | 16 ô **⛔ chưa cần nhóm**. `NV-2` đặt ngưỡng **~20 ô**; thêm nhãn phòng ban lúc này là **thêm chữ mà ⛔ không thêm nghĩa** |
+| **Bật khi nào** | khi lưới vượt ~20 ô, hoặc khi Board bật **Navigation Groups** *(`BA-1 §8.6`)* |
+
+⚠️ Và `Department` trên ô Launcher sẽ **va vào Hiến pháp §13.3**: *"The Homepage
+shall **not** be organized by organizational hierarchy, job titles or technical
+system modules."* ⇒ Nếu bật, phải nhóm theo **năng lực**, ⛔ **không** theo phòng
+ban — đúng `BA-1 §8.6`. Ghi ở đây để ⛔ không ai bật nhầm.
+
+---
+
+# §15 · TỔNG HỢP UX-1 Rev 5
+
+## 15.1 Vấn đề phát hiện
+
+| # | Vấn đề | Mức |
+|---|---|---|
+| `LI-3` | *"Làm mờ"* ⛔ không có ngưỡng ⇒ dễ trượt thành **ẩn trá hình** | 🟠 vừa |
+| `LI-1` | Làm mờ bằng cách **đổi sang xám** sẽ phá `MI-a` *(màu = định danh)* | 🟠 vừa |
+| §14.4 | `Department` trên ô Launcher **va §13.3** *(⛔ không tổ chức theo phòng ban)* | 🟠 ghi trước |
+
+## 15.2 Giả định bị bác bỏ
+
+| Giả định | Phán quyết |
+|---|---|
+| *"Bảy trường Board nêu đều in trên ô"* | 🔴 **BÁC** — `Business Value` in trên **16 ô** biến lưới thành **bức tường chữ** *(`N-5`)*. Nó thuộc tooltip |
+| *"`UNAUTHORIZED` và `ANONYMOUS` hiển thị như nhau"* | 🔴 **BÁC** — với khách, làm mờ là **nói dối**: hệ thống ⛔ không biết họ sẽ có quyền gì |
+| *"Làm mờ = đổi sang xám"* | 🔴 **BÁC** — phá màu định danh `MI-a` |
+
+## 15.3 Khuyến nghị cuối cùng — UX-1 Rev 5
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  ① `LI-3` PHẢI CÓ MỘT CON SỐ: chữ trên ô mờ vẫn ≥ 4,5:1.             ║
+║     ⛔ Không có ngưỡng, "làm mờ" sẽ trượt dần thành "ẩn trá hình" —    ║
+║     và khi đó chỉ thị "⛔ KHÔNG ẨN MODULE" của Board bị vi phạm mà     ║
+║     ⛔ không ai chỉ ra được lúc nào.                                   ║
+║                                                                       ║
+║  ② LÀM MỜ BẰNG ĐỘ MỜ, ⛔ KHÔNG bằng cách đổi màu.                     ║
+║     Màu là ĐỊNH DANH (`MI-a`). Ô Kho phải luôn là màu Kho, kể cả khi  ║
+║     người xem ⛔ không có quyền vào.                                   ║
+║                                                                       ║
+║  ③ `ANONYMOUS` HIỂN THỊ NHƯ `AUTHORIZED`.                            ║
+║     Làm mờ với khách là nói dối — và nó giết đúng giá trị bán hàng    ║
+║     mà Board mua bằng Phương án D.                                    ║
+║                                                                       ║
+║  ④ `Business Value` VÀO TOOLTIP, ⛔ KHÔNG lên ô.                      ║
+║     Hai câu, hai khán giả, hai chỗ. Người vận hành QUÉT `tagline`;    ║
+║     Sales và Investor ĐỌC `businessValue`.                            ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+> **Trạng thái Rev 5:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
+
+---
 
 # §0 · BỐN ĐIỂM VA CHẠM VỚI HIẾN PHÁP — ĐỌC TRƯỚC
 
