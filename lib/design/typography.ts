@@ -215,7 +215,7 @@ export const TYPE = {
   // cỡ thân bài; phóng lên gấp bốn mà không bóp lại thì các chữ cái rời ra và
   // wordmark đọc thành mười ký tự rời rạc thay vì một khối.
   /** "Chào mừng đến với" — dòng dẫn vào wordmark */
-  heroLead: 'text-[18px] sm:text-[22px] font-normal leading-[1.3]',
+  heroLead: 'text-[16px] sm:text-[18px] font-normal leading-[1.3]',
   /** MONICA ONE — tấm biển ở cửa chính */
   heroMark: 'text-[40px] sm:text-[64px] font-bold leading-[1.02] tracking-[-0.035em]',
   /**
@@ -227,7 +227,7 @@ export const TYPE = {
    * bị bỏ quên dưới một tấm biển lớn. Nới giãn chữ ra thì hai dòng khoá vào
    * nhau thành MỘT khối.
    */
-  heroTagline: 'text-[16px] sm:text-[22px] font-normal leading-[1.5] tracking-[0.18em] sm:tracking-[0.34em]',
+  heroTagline: 'text-[14px] sm:text-[16px] font-normal leading-[1.5] tracking-[0.18em] sm:tracking-[0.30em]',
   /**
    * Chú thích tác vụ dưới tên App — NÉT THANH, CỠ NHỎ.
    *

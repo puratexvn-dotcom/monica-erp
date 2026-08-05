@@ -152,7 +152,7 @@
     "planning": "生产计划",
     "production": "裁剪 • 缝制 • 产量",
     "quality": "AQL 检验",
-    "warehouse": "入库 • 出库 • 库存",
+    "warehouse": "原辅料",
     "shipment": "装箱 • 单证",
     "subcontract": "外发加工",
     "finance": "应付 • 成本",
@@ -161,7 +161,13 @@
     "communication": "订单沟通",
     "ai": "情境助手",
     "documents": "Tech pack • 单证",
-    "platform": "账号 • 权限"
+    "platform": "账号 • 权限",
+    "crm": "客户 • 报价",
+    "cuttingLeader": "管理裁剪现场",
+    "sewingLeader": "管理缝制产线",
+    "finishingLeader": "管理后整线",
+    "warehouseFinished": "成品仓",
+    "costing": "成本 • 审批"
   },
   "appDesc": {
     "executive": "全厂运营监控与审批",
@@ -179,7 +185,13 @@
     "communication": "与订单绑定的沟通，永久留存",
     "ai": "理解当前工作情境的助手",
     "documents": "Tech pack、单证与版本管理",
-    "platform": "账号、权限、语言与配置"
+    "platform": "账号、权限、语言与配置",
+    "crm": "客户、商机与报价",
+    "cuttingLeader": "裁床、唛架与扎包",
+    "sewingLeader": "缝制线、小时产量与断针安全",
+    "finishingLeader": "熨烫、折叠、包装与终检",
+    "warehouseFinished": "待出运的成品仓",
+    "costing": "成本核算与价格审批"
   },
   "landing": {
     "lead": "服装制造业的统一运营平台。",
@@ -223,7 +235,13 @@
     "communication": "沟通就在订单旁边，不会淹没在聊天群里。",
     "ai": "用日常语言提问，答案来自工厂的真实数据。",
     "documents": "Tech pack 版本正确 — 没有人按旧版开缝。",
-    "platform": "权限跟随所指派的工作 — 可撤销、可稽核。"
+    "platform": "权限跟随所指派的工作 — 可撤销、可稽核。",
+    "crm": "从询价到下单，不漏掉任何一个商机。",
+    "cuttingLeader": "在下一次拉布之前就知道哪张裁床在浪费面料。",
+    "sewingLeader": "在当小时内发现掉队的产线，而不是等到收工。",
+    "finishingLeader": "货物准时出厂、箱数齐全、单证一致。",
+    "warehouseFinished": "准确知道还有多少箱在等柜。",
+    "costing": "依据真实用量报价，而不是凭估算。"
   },
   "workspace": {
     "eyebrow": "工作空间",
@@ -313,5 +331,13 @@
     "moNhatKy": "打开产量记录",
     "nguon": "来自 {soPhieu} 条小时记录",
     "khuyenNghiChuyen": "{chuyen} 最低（{hieuSuat}%）— 优先排查该线。"
+  },
+  "appGroup": {
+    "dieuHanh": "经营决策",
+    "kinhDoanh": "商务",
+    "sanXuat": "生产",
+    "khoVan": "仓储",
+    "hauCan": "物流",
+    "hoTro": "支持"
   }
 }

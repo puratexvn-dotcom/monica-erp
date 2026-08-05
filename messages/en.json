@@ -152,7 +152,7 @@
     "planning": "Production planning",
     "production": "Cutting • Sewing • Output",
     "quality": "AQL inspection",
-    "warehouse": "Inbound • Outbound • Stock",
+    "warehouse": "Raw materials",
     "shipment": "Cartons • Documents",
     "subcontract": "External workshops",
     "finance": "Payables • Costing",
@@ -161,7 +161,13 @@
     "communication": "Order-linked chat",
     "ai": "Context-aware assistant",
     "documents": "Tech packs • Files",
-    "platform": "Accounts • Access"
+    "platform": "Accounts • Access",
+    "crm": "Customers • Quotes",
+    "cuttingLeader": "Run the cutting floor",
+    "sewingLeader": "Run the sewing lines",
+    "finishingLeader": "Run the finishing line",
+    "warehouseFinished": "Finished goods",
+    "costing": "Costing • Approval"
   },
   "appDesc": {
     "executive": "Factory-wide oversight and approvals",
@@ -179,7 +185,13 @@
     "communication": "Order-linked conversations, retained permanently",
     "ai": "An assistant that understands the work in front of you",
     "documents": "Tech packs, documents and version control",
-    "platform": "Accounts, authorization, language and configuration"
+    "platform": "Accounts, authorization, language and configuration",
+    "crm": "Customers, opportunities and quotations",
+    "cuttingLeader": "Cut tables, markers and bundles",
+    "sewingLeader": "Sewing lines, hourly output and needle safety",
+    "finishingLeader": "Pressing, folding, packing and final check",
+    "warehouseFinished": "Finished goods awaiting shipment",
+    "costing": "Cost breakdown and price approval"
   },
   "landing": {
     "lead": "A unified operating platform for garment manufacturing.",
@@ -223,7 +235,13 @@
     "communication": "Conversations live beside the order, not lost in a chat group.",
     "ai": "Ask in plain language; answers come from the factory’s real data.",
     "documents": "The right tech pack version — nobody sews from an old one.",
-    "platform": "Access follows the assignment — revocable and auditable."
+    "platform": "Access follows the assignment — revocable and auditable.",
+    "crm": "No opportunity lost between the first enquiry and the confirmed order.",
+    "cuttingLeader": "Know which cut table wastes fabric before the next lay.",
+    "sewingLeader": "See a line fall behind within the hour, not at end of day.",
+    "finishingLeader": "Goods leave on time, cartons complete, documents matching.",
+    "warehouseFinished": "Know exactly how many cartons are waiting for a container.",
+    "costing": "Quote from real consumption, not from an estimate."
   },
   "workspace": {
     "eyebrow": "Workspace",
@@ -313,5 +331,13 @@
     "moNhatKy": "Open output log",
     "nguon": "from {soPhieu} hourly log(s)",
     "khuyenNghiChuyen": "{chuyen} is lowest ({hieuSuat}%) — review that line first."
+  },
+  "appGroup": {
+    "dieuHanh": "Executive",
+    "kinhDoanh": "Commercial",
+    "sanXuat": "Production",
+    "khoVan": "Warehousing",
+    "hauCan": "Logistics",
+    "hoTro": "Support"
   }
 }

@@ -1,7 +1,8 @@
 import {
   LayoutDashboard, Handshake, Briefcase, CalendarRange, Factory, ShieldCheck,
   Package, Ship, Users, Wallet, IdCard, PieChart, MessagesSquare, Sparkles,
-  FileText, SlidersHorizontal,
+  FileText, SlidersHorizontal, Contact, Scissors, Shirt, PackageCheck,
+  Warehouse, Calculator,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -13,106 +14,90 @@ import type { DictionaryKey } from '@/lib/i18n';
 // ============================================================================
 // SỔ ĐĂNG KÝ BUSINESS APP — TRANG CHỦ MONICA ONE
 //
-// ĐÚNG 16 mục, đúng tên hiến định. Không bịa, không giữ tên cũ.
+// ═══ 🔴 REV 2 — TRANG CHỦ PHẢN ÁNH DOANH NGHIỆP, ⛔ KHÔNG PHẢN ÁNH MÃ ══
+// Board *(Homepage Launcher Rev 2)*: *"Homepage phải hiển thị **đầy đủ tất cả
+// Business Apps mà doanh nghiệp sẽ sử dụng**… ⛔ Không giới hạn ở 16 ô."*
 //
-// ─── ⚠️ TỆP NÀY KHÔNG CÒN GIỮ MỘT MÃ MÀU NÀO ────────────────────────────
-// Trước đây mỗi mục mang bốn chuỗi lớp màu viết thẳng tại chỗ (`bg-blue-50`,
-// `hover:ring-blue-200`…) — tổng cộng 64 chuỗi rải trong một tệp. Điều 44.6
-// cấm cách đó: màu viết thẳng thì mỗi lần ai đó sửa một chỗ, danh tính của
-// phân hệ trôi đi một chút, và sáu tháng sau không ai còn biết đâu là màu
-// thật của nó.
+// Bản trước có **16 ô**, và chúng là **16 Module đã có trong mã** — tức trang
+// chủ đang kể câu chuyện của **kho mã nguồn**, ⛔ không kể câu chuyện của
+// **doanh nghiệp**. Đó đúng thứ `Product Constitution §2` cấm: Homepage tồn tại
+// để *"giúp người dùng nhìn thấy ngay doanh nghiệp của chính họ"*.
 //
-// Nay mỗi mục chỉ mang một KHOÁ (`key`). Toàn bộ màu tra từ `MODULE_IDENTITY`
-// trong `lib/design/tokens.ts` — một chỗ duy nhất, sửa một lần, đổi khắp nơi.
+// ⇒ Nay **22 ô**, và thêm App mới chỉ là **thêm một dòng** ở đây.
 //
-// ─── PHÂN LOẠI LÀ DỮ LIỆU, KHÔNG PHẢI BỐ CỤC ────────────────────────────
-//   WORKSPACES  11 mục — Business Workspace   · §16.2
-//   SERVICES     4 mục — Global Service       · §29 · §30 · §31 · §33
-//   PLATFORM     1 mục — Platform Service     · §34
+// ═══ 🔑 BA TRƯỜNG ĐỊNH DANH, BA VIỆC KHÁC NHAU ═════════════════════════
+//   `id`     khoá i18n — **duy nhất mỗi App**
+//   `key`    khoá MÀU — **dùng chung trong một nhóm**, và đó là CHỦ Ý
+//   `group`  nhóm nghiệp vụ — quyết định ô nằm ở khu nào
 //
-// Trang chủ KHÔNG dựng chúng thành ba khối có tiêu đề. Phân loại hiến định mô
-// tả BẢN CHẤT từng thứ, nó không phải bố cục của trang chủ. Giữ ba mảng để
-// phân loại được ghi lại đúng chỗ, còn giao diện thì bày một lưới phẳng.
+// ⚠️ Ba App sản xuất *(Cutting · Sewing · Finishing Leader)* **cùng dải màu
+// `production`**. Trước Rev 2, luật là *"16 dải, ⛔ không dải nào dùng hai
+// lần"*. Nay màu chuyển vai: từ **định danh của một App** thành **định danh của
+// một NHÓM**. Ba ô xanh dương cạnh nhau **đọc ra là ba khâu của cùng một
+// xưởng** — đó là thông tin, ⛔ không phải trùng lặp.
+//
+// 🔑 Và nó giải được bài toán thật: 22 App mà mỗi App một dải màu riêng thì
+//    ⛔ không ai phân biệt nổi 22 sắc độ. Màu theo nhóm thì mắt chỉ phải nhớ
+//    **sáu**.
+//
+// ═══ NHÓM THEO NĂNG LỰC, ⛔ KHÔNG THEO PHÒNG BAN ═══════════════════════
+// Hiến pháp §13.3: *"The Homepage shall **not** be organized by organizational
+// hierarchy, job titles or technical system modules."*
+//
+// Sáu nhóm dưới đây là **khu vực nghiệp vụ** *(việc gì đang diễn ra)*, ⛔ không
+// phải sơ đồ tổ chức *(ai báo cáo cho ai)*. `BA-1 §8.6` đã chốt hướng này.
 // ============================================================================
 
-/**
- * Phần chung của mọi Business App — mọi trường **⛔ không** phụ thuộc trạng thái.
+/** Sáu khu vực nghiệp vụ. **Thứ tự này là thứ tự trên màn hình** — nó đi theo
+ *  **dòng chảy của một đơn hàng**: quyết định → bán → làm → chứa → giao → đỡ.
  *
- * ─── 🔴 BOARD DECISION `Q2` · 05/08/2026 ─────────────────────────────────
- * *"5 module chưa có chức năng: hiển thị · disable · badge Coming Soon ·
- * **⛔ không dùng `href: null`**."*
- *
- * Trước bản này, App chưa có route mang `href: null` + `beta: true`. Hai vấn đề:
- *
- *   ① `href: null` buộc mọi nơi dùng phải tự nhớ kiểm tra `null`, và
- *      `app-card.tsx:183` đã phải viết `mod.href as string` — một phép ép kiểu
- *      **tắt máy kiểm** đúng chỗ nguy hiểm nhất.
- *   ② `beta` mô tả *"đang phát triển"*, ⛔ không mô tả *"⛔ chưa có route"*.
- *      Hai khái niệm khác nhau bị gộp làm một.
- *
- * ⇒ Nay dùng **union phân biệt**: mục `COMING_SOON` **⛔ không có trường `href`
- * nào cả**. Trình biên dịch ⛔ **không cho** ai đặt liên kết vào một App chưa có
- * route — mạnh hơn mọi quy ước viết trong chú thích.
- */
+ *  ⚠️ ⛔ Không sắp theo bảng chữ cái. Người dùng ⛔ không tra cứu trang chủ —
+ *  họ **đi theo công việc**, và công việc thì có chiều. */
+export const NHOM = ['dieuHanh', 'kinhDoanh', 'sanXuat', 'khoVan', 'hauCan', 'hoTro'] as const;
+export type NhomKey = (typeof NHOM)[number];
+
 interface ModuleBase {
   /**
-   * Tên hiến định — **KHÔNG DỊCH** ở bất kỳ ngôn ngữ nào (Hiến pháp §45.3).
+   * Khoá **duy nhất** của App — gốc của mọi khoá i18n *(`appShort.<id>`…)*.
    *
-   * Đây là bản sắc sản phẩm, không phải nhãn giao diện. Xem
-   * `lib/constitutional-terms.ts`; bài kiểm kiến trúc mục ⑪ cưỡng chế điều này.
+   * ⚠️ Tách khỏi `key` từ Rev 2: nhiều App **dùng chung một dải màu**, nhưng
+   * mỗi App phải có **câu chữ riêng**. Gộp hai thứ này lại thì ba App sản xuất
+   * sẽ cùng đọc một dòng mô tả.
+   */
+  id: string;
+  /**
+   * Tên hiến định — **KHÔNG DỊCH** ở bất kỳ ngôn ngữ nào (Hiến pháp §45.3).
+   * Bài kiểm kiến trúc mục ⑪ cưỡng chế điều này.
    */
   name: string;
-  /**
-   * KHOÁ i18n cho câu mô tả — không phải bản thân câu chữ (§45.4).
-   *
-   * Trước đây trường này giữ thẳng tiếng Việt, nên bản tiếng Anh và tiếng Trung
-   * của trang chủ vẫn hiện mô tả tiếng Việt. Nay câu chữ nằm ở
-   * `messages/{vi,en,zh}.json`, tệp này chỉ giữ khoá.
-   */
+  /** Khoá i18n cho câu mô tả đầy đủ — dùng ở tiêu đề Workspace *(`moTaKey`)*. */
   descKey: DictionaryKey;
   /**
-   * KHOÁ i18n cho bản mô tả RÚT GỌN — dùng ở khổ điện thoại.
+   * 🔑 **DÒNG DUY NHẤT hiện trên ô** *(Rev 2)*.
    *
-   * ⚠️ Vì sao phải có bản thứ hai: lưới điện thoại là bốn cột, mỗi ô rộng
-   * khoảng 80px. Câu mô tả đầy đủ ở cỡ chữ 11px sẽ trải thành NĂM dòng và
-   * biến lưới thành một bức tường chữ. Bản rút gọn 2–4 từ thì vừa ba dòng.
+   * Board: *"Mỗi ô chỉ cần **Icon · Tên · 1 dòng mô tả ngắn**… ⛔ không hiển
+   * thị business value dài trên Homepage."*
    *
-   * Cắt chữ bằng `line-clamp` KHÔNG thay thế được: "Điều hành và phê duyệt
-   * toàn nhà máy" bị cắt còn "Điều hành và…" thì mất đúng phần mang nghĩa.
-   * Muốn ngắn mà vẫn hiểu được thì phải VIẾT LẠI, không phải cắt bớt.
+   * ⚠️ Mục tiêu là **quét trong 2 giây**. Ba dòng chữ dưới mỗi ô nhân với 22 ô
+   * là **66 dòng** — mắt ⛔ không quét được, nó phải **đọc**.
    */
   shortKey: DictionaryKey;
   /**
-   * KHOÁ i18n cho **Business Value** — một câu nói *doanh nghiệp được gì*.
+   * Business Value — **chỉ hiện khi rê chuột** *(Rev 2)*.
    *
-   * ─── VÌ SAO CẦN LỚP THỨ BA, KHI ĐÃ CÓ `descKey` VÀ `shortKey` ──────────
-   * Hai trường kia trả lời **"App này LÀM GÌ"** — chúng viết cho người vận
-   * hành, người đã biết mình cần gì và chỉ đang tìm đường vào.
-   *
-   * Trường này trả lời **"doanh nghiệp ĐƯỢC GÌ"** — nó viết cho một nhóm khán
-   * giả khác hẳn: Sales · Investor · Customer · người mới vào. Với họ,
-   * *"Nhập, xuất, kiểm kê và tồn kho"* ⛔ **không** nói lên điều gì; *"biết
-   * chính xác còn bao nhiêu vải trước khi ra lệnh cắt"* thì có.
-   *
-   * ⚠️ **⛔ KHÔNG in trên ô lưới.** Một câu đầy đủ nhân với 16 ô biến lưới
-   * thành một bức tường chữ — đúng thứ ô Launcher tồn tại để tránh. Nó nằm ở
-   * `title`, tức chỗ người ta **đọc** khi đã dừng lại ở một ô.
-   *
-   * 🔑 Một Module, **hai câu, hai khán giả, hai chỗ**.
+   * Nó viết cho **Sales · Investor · Customer**, ⛔ không cho người vận hành.
+   * Họ **đọc**, ⛔ không **quét** — nên chỗ của nó là tooltip, đúng lúc người
+   * xem đã dừng lại ở một ô.
    */
   valueKey: DictionaryKey;
   icon: LucideIcon;
-  /** Khoá tra màu trong `MODULE_IDENTITY`. Nguồn màu DUY NHẤT của mục này. */
+  /** Khoá tra màu. **Dùng chung trong một nhóm** — xem khối chú thích đầu tệp. */
   key: ModuleKey;
+  /** Khu vực nghiệp vụ — quyết định ô nằm ở khu nào trên trang chủ. */
+  group: NhomKey;
 }
 
-/**
- * App **đã có route** — bấm được.
- *
- * ⚠️ `href` LÀ đường dẫn thật, KHÔNG phải `/login`. Người chưa đăng nhập bấm
- * vào sẽ được `middleware.ts` chuyển sang `/login?next=<đường dẫn>`, đăng nhập
- * xong quay đúng về nơi họ bấm.
- */
+/** App **đã có route** — bấm được. */
 export interface ModuleReady extends ModuleBase {
   status: 'READY';
   href: string;
@@ -121,9 +106,8 @@ export interface ModuleReady extends ModuleBase {
 /**
  * App **⛔ chưa có route** — hiện, khoá, gắn nhãn *Coming Soon* *(Board `Q2`)*.
  *
- * 🔑 **⛔ KHÔNG có trường `href`.** Đó là điểm mấu chốt: ⛔ không phải `href`
- * bằng `null`, mà là **⛔ không tồn tại `href`**. Thử đọc `mod.href` trên nhánh
- * này là **lỗi biên dịch**.
+ * 🔑 **⛔ KHÔNG có trường `href`.** Thử đọc `mod.href` trên nhánh này là **lỗi
+ * biên dịch** — mạnh hơn mọi quy ước viết trong chú thích.
  */
 export interface ModuleComingSoon extends ModuleBase {
   status: 'COMING_SOON';
@@ -131,57 +115,97 @@ export interface ModuleComingSoon extends ModuleBase {
 
 export type ModuleItem = ModuleReady | ModuleComingSoon;
 
-// ─── BUSINESS WORKSPACES · §16.2 ────────────────────────────────────────────
-export const WORKSPACES: ModuleItem[] = [
-  { name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive', valueKey: 'appValue.executive',
-    status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive' },
-  { name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
-    status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial' },
-  { name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising', valueKey: 'appValue.merchandising',
-    status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising' },
-  { name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning', valueKey: 'appValue.planning',
-    status: 'COMING_SOON', icon: CalendarRange, key: 'planning' },
-  { name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production', valueKey: 'appValue.production',
-    status: 'READY', href: '/to-truong-may', icon: Factory, key: 'production' },
-  { name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality', valueKey: 'appValue.quality',
-    status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality' },
-  { name: 'Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse', valueKey: 'appValue.warehouse',
-    status: 'READY', href: '/kho', icon: Package, key: 'warehouse' },
-  { name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment', valueKey: 'appValue.shipment',
-    status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment' },
-  { name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract', valueKey: 'appValue.subcontract',
-    status: 'READY', href: '/subcon', icon: Users, key: 'subcontract' },
-  { name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance', valueKey: 'appValue.finance',
-    status: 'READY', href: '/ke-toan', icon: Wallet, key: 'finance' },
-  { name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources', valueKey: 'appValue.humanResources',
-    status: 'COMING_SOON', icon: IdCard, key: 'humanResources' },
+// ─── ① ĐIỀU HÀNH ────────────────────────────────────────────────────────────
+const DIEU_HANH: ModuleItem[] = [
+  { id: 'executive', name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive', valueKey: 'appValue.executive',
+    status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive', group: 'dieuHanh' },
 ];
 
-// ─── GLOBAL SERVICES · §29 · §30 · §31 · §33 ────────────────────────────────
-export const SERVICES: ModuleItem[] = [
-  { name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting', valueKey: 'appValue.reporting',
-    status: 'COMING_SOON', icon: PieChart, key: 'reporting' },
-  { name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication', valueKey: 'appValue.communication',
-    status: 'COMING_SOON', icon: MessagesSquare, key: 'communication' },
-  // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2) — dải đó khai
-  // ở `MODULE_IDENTITY.ai.soft`, không khai ở đây.
-  { name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai', valueKey: 'appValue.ai',
-    status: 'COMING_SOON', icon: Sparkles, key: 'ai' },
-  { name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents', valueKey: 'appValue.documents',
-    status: 'COMING_SOON', icon: FileText, key: 'documents' },
+// ─── ② KINH DOANH ───────────────────────────────────────────────────────────
+const KINH_DOANH: ModuleItem[] = [
+  { id: 'crm', name: 'CRM', descKey: 'appDesc.crm', shortKey: 'appShort.crm', valueKey: 'appValue.crm',
+    status: 'COMING_SOON', icon: Contact, key: 'commercial', group: 'kinhDoanh' },
+  { id: 'commercial', name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
+    status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial', group: 'kinhDoanh' },
+  { id: 'merchandising', name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising', valueKey: 'appValue.merchandising',
+    status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising', group: 'kinhDoanh' },
 ];
 
-// ─── PLATFORM SERVICE · §34 ─────────────────────────────────────────────────
-export const PLATFORM: ModuleItem[] = [
-  { name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform', valueKey: 'appValue.platform',
-    status: 'READY', href: '/admin', icon: SlidersHorizontal, key: 'platform' },
+// ─── ③ SẢN XUẤT ─────────────────────────────────────────────────────────────
+const SAN_XUAT: ModuleItem[] = [
+  { id: 'planning', name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning', valueKey: 'appValue.planning',
+    status: 'COMING_SOON', icon: CalendarRange, key: 'planning', group: 'sanXuat' },
+  { id: 'production', name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production', valueKey: 'appValue.production',
+    status: 'COMING_SOON', icon: Factory, key: 'production', group: 'sanXuat' },
+  { id: 'cuttingLeader', name: 'Cutting Leader', descKey: 'appDesc.cuttingLeader', shortKey: 'appShort.cuttingLeader', valueKey: 'appValue.cuttingLeader',
+    status: 'READY', href: '/to-truong-cat', icon: Scissors, key: 'production', group: 'sanXuat' },
+  { id: 'sewingLeader', name: 'Sewing Leader', descKey: 'appDesc.sewingLeader', shortKey: 'appShort.sewingLeader', valueKey: 'appValue.sewingLeader',
+    status: 'READY', href: '/to-truong-may', icon: Shirt, key: 'production', group: 'sanXuat' },
+  { id: 'finishingLeader', name: 'Finishing Leader', descKey: 'appDesc.finishingLeader', shortKey: 'appShort.finishingLeader', valueKey: 'appValue.finishingLeader',
+    status: 'READY', href: '/hoan-thanh', icon: PackageCheck, key: 'production', group: 'sanXuat' },
+  { id: 'quality', name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality', valueKey: 'appValue.quality',
+    status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality', group: 'sanXuat' },
+  { id: 'subcontract', name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract', valueKey: 'appValue.subcontract',
+    status: 'READY', href: '/subcon', icon: Users, key: 'subcontract', group: 'sanXuat' },
+];
+
+// ─── ④ KHO VẬN ──────────────────────────────────────────────────────────────
+const KHO_VAN: ModuleItem[] = [
+  { id: 'warehouse', name: 'Raw Material Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse', valueKey: 'appValue.warehouse',
+    status: 'READY', href: '/kho', icon: Package, key: 'warehouse', group: 'khoVan' },
+  { id: 'warehouseFinished', name: 'Finished Goods Warehouse', descKey: 'appDesc.warehouseFinished', shortKey: 'appShort.warehouseFinished', valueKey: 'appValue.warehouseFinished',
+    status: 'COMING_SOON', icon: Warehouse, key: 'warehouse', group: 'khoVan' },
+];
+
+// ─── ⑤ HẬU CẦN ──────────────────────────────────────────────────────────────
+const HAU_CAN: ModuleItem[] = [
+  { id: 'shipment', name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment', valueKey: 'appValue.shipment',
+    status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment', group: 'hauCan' },
+];
+
+// ─── ⑥ HỖ TRỢ ───────────────────────────────────────────────────────────────
+const HO_TRO: ModuleItem[] = [
+  { id: 'finance', name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance', valueKey: 'appValue.finance',
+    status: 'READY', href: '/ke-toan', icon: Wallet, key: 'finance', group: 'hoTro' },
+  { id: 'costing', name: 'Costing', descKey: 'appDesc.costing', shortKey: 'appShort.costing', valueKey: 'appValue.costing',
+    status: 'COMING_SOON', icon: Calculator, key: 'finance', group: 'hoTro' },
+  { id: 'humanResources', name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources', valueKey: 'appValue.humanResources',
+    status: 'COMING_SOON', icon: IdCard, key: 'humanResources', group: 'hoTro' },
+  { id: 'reporting', name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting', valueKey: 'appValue.reporting',
+    status: 'COMING_SOON', icon: PieChart, key: 'reporting', group: 'hoTro' },
+  { id: 'communication', name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication', valueKey: 'appValue.communication',
+    status: 'COMING_SOON', icon: MessagesSquare, key: 'communication', group: 'hoTro' },
+  // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2).
+  { id: 'ai', name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai', valueKey: 'appValue.ai',
+    status: 'COMING_SOON', icon: Sparkles, key: 'ai', group: 'hoTro' },
+  { id: 'documents', name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents', valueKey: 'appValue.documents',
+    status: 'COMING_SOON', icon: FileText, key: 'documents', group: 'hoTro' },
+  { id: 'platform', name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform', valueKey: 'appValue.platform',
+    status: 'READY', href: '/admin', icon: SlidersHorizontal, key: 'platform', group: 'hoTro' },
 ];
 
 /**
- * Cả 16 Business App trong MỘT danh sách phẳng, theo đúng thứ tự hiến định.
+ * Cả 22 Business App, **theo đúng thứ tự nhóm**.
  *
- * Đây là thứ trang chủ dựng ra: **một lưới duy nhất**, không tiêu đề nhóm.
- * Phân loại vẫn còn nguyên ở ba mảng trên — nó chỉ không xuất hiện trên màn
- * hình.
+ * ⚠️ Thứ tự là **ràng buộc**, ⛔ không phải chi tiết: vị trí một App trong lưới
+ * là **trí nhớ cơ bắp** *(`P13`)*, và sắp lại phải qua ADR.
  */
-export const MODULES: ModuleItem[] = [...WORKSPACES, ...SERVICES, ...PLATFORM];
+export const MODULES: ModuleItem[] = [
+  ...DIEU_HANH, ...KINH_DOANH, ...SAN_XUAT, ...KHO_VAN, ...HAU_CAN, ...HO_TRO,
+];
+
+/** Nhóm → danh sách App, giữ nguyên thứ tự khai báo. Trang chủ dựng theo đây. */
+export const MODULES_THEO_NHOM: ReadonlyArray<{ nhom: NhomKey; apps: readonly ModuleItem[] }> = [
+  { nhom: 'dieuHanh', apps: DIEU_HANH },
+  { nhom: 'kinhDoanh', apps: KINH_DOANH },
+  { nhom: 'sanXuat', apps: SAN_XUAT },
+  { nhom: 'khoVan', apps: KHO_VAN },
+  { nhom: 'hauCan', apps: HAU_CAN },
+  { nhom: 'hoTro', apps: HO_TRO },
+];
+
+// ⚠️ Ba mảng cũ *(`WORKSPACES` · `SERVICES` · `PLATFORM`)* đã được thay bằng
+// sáu nhóm nghiệp vụ. Phân loại hiến định *(Workspace / Global Service /
+// Platform)* mô tả **BẢN CHẤT** từng thứ; nhóm nghiệp vụ mô tả **NƠI NGƯỜI
+// DÙNG TÌM NÓ**. Hai cách phân loại khác nhau, và trang chủ phục vụ cách thứ
+// hai — đúng `Product Constitution §2`.

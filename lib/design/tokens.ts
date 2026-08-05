@@ -198,23 +198,23 @@ export interface ModuleSurface {
 }
 
 export const MODULE_SURFACE: Record<ModuleKey, ModuleSurface> = {
-  executive:      { surface: 'bg-indigo-50',  edge: 'ring-indigo-200/70',  tileStrong: 'bg-indigo-500 text-white' },
-  commercial:     { surface: 'bg-orange-50',  edge: 'ring-orange-200/70',  tileStrong: 'bg-orange-500 text-white' },
-  merchandising:  { surface: 'bg-red-50',     edge: 'ring-red-200/70',     tileStrong: 'bg-red-500 text-white' },
-  planning:       { surface: 'bg-teal-50',    edge: 'ring-teal-200/70',    tileStrong: 'bg-teal-500 text-white' },
-  production:     { surface: 'bg-blue-50',    edge: 'ring-blue-200/70',    tileStrong: 'bg-blue-500 text-white' },
-  quality:        { surface: 'bg-emerald-50', edge: 'ring-emerald-200/70', tileStrong: 'bg-emerald-500 text-white' },
-  warehouse:      { surface: 'bg-green-50',   edge: 'ring-green-200/70',   tileStrong: 'bg-green-500 text-white' },
-  shipment:       { surface: 'bg-cyan-50',    edge: 'ring-cyan-200/70',    tileStrong: 'bg-cyan-500 text-white' },
-  subcontract:    { surface: 'bg-purple-50',  edge: 'ring-purple-200/70',  tileStrong: 'bg-purple-500 text-white' },
-  finance:        { surface: 'bg-amber-50',   edge: 'ring-amber-200/70',   tileStrong: 'bg-amber-500 text-white' },
-  humanResources: { surface: 'bg-rose-50',    edge: 'ring-rose-200/70',    tileStrong: 'bg-rose-500 text-white' },
-  reporting:      { surface: 'bg-slate-100',  edge: 'ring-slate-300/70',   tileStrong: 'bg-slate-500 text-white' },
-  communication:  { surface: 'bg-sky-50',     edge: 'ring-sky-200/70',     tileStrong: 'bg-sky-500 text-white' },
+  executive:      { surface: 'bg-indigo-50',  edge: 'ring-indigo-200/70',  tileStrong: 'bg-indigo-600 text-white' },
+  commercial:     { surface: 'bg-orange-50',  edge: 'ring-orange-200/70',  tileStrong: 'bg-orange-600 text-white' },
+  merchandising:  { surface: 'bg-red-50',     edge: 'ring-red-200/70',     tileStrong: 'bg-red-600 text-white' },
+  planning:       { surface: 'bg-teal-50',    edge: 'ring-teal-200/70',    tileStrong: 'bg-teal-600 text-white' },
+  production:     { surface: 'bg-blue-50',    edge: 'ring-blue-200/70',    tileStrong: 'bg-blue-600 text-white' },
+  quality:        { surface: 'bg-emerald-50', edge: 'ring-emerald-200/70', tileStrong: 'bg-emerald-600 text-white' },
+  warehouse:      { surface: 'bg-green-50',   edge: 'ring-green-200/70',   tileStrong: 'bg-green-600 text-white' },
+  shipment:       { surface: 'bg-cyan-50',    edge: 'ring-cyan-200/70',    tileStrong: 'bg-cyan-600 text-white' },
+  subcontract:    { surface: 'bg-purple-50',  edge: 'ring-purple-200/70',  tileStrong: 'bg-purple-600 text-white' },
+  finance:        { surface: 'bg-amber-50',   edge: 'ring-amber-200/70',   tileStrong: 'bg-amber-600 text-white' },
+  humanResources: { surface: 'bg-rose-50',    edge: 'ring-rose-200/70',    tileStrong: 'bg-rose-600 text-white' },
+  reporting:      { surface: 'bg-slate-100',  edge: 'ring-slate-300/70',   tileStrong: 'bg-slate-600 text-white' },
+  communication:  { surface: 'bg-sky-50',     edge: 'ring-sky-200/70',     tileStrong: 'bg-sky-600 text-white' },
   // Mục DUY NHẤT được dùng dải chuyển sắc — Điều 44.2.
-  ai:             { surface: 'bg-fuchsia-50', edge: 'ring-fuchsia-200/70', tileStrong: 'bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white' },
-  documents:      { surface: 'bg-stone-100',  edge: 'ring-stone-300/70',   tileStrong: 'bg-stone-500 text-white' },
-  platform:       { surface: 'bg-violet-50',  edge: 'ring-violet-200/70',  tileStrong: 'bg-violet-500 text-white' },
+  ai:             { surface: 'bg-fuchsia-50', edge: 'ring-fuchsia-200/70', tileStrong: 'bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white' },
+  documents:      { surface: 'bg-stone-100',  edge: 'ring-stone-300/70',   tileStrong: 'bg-stone-600 text-white' },
+  platform:       { surface: 'bg-violet-50',  edge: 'ring-violet-200/70',  tileStrong: 'bg-violet-600 text-white' },
 };
 
 // ─── ①C MÀU THANH ĐIỀU HƯỚNG DƯỚI ─────────────────────────────────────────

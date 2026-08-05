@@ -128,9 +128,9 @@ export default function AppCard({
             vẫn là mỏ neo rõ ràng — đúng cỡ biểu tượng trên màn hình chính điện
             thoại. */}
         <span
-          className={`flex h-14 w-14 items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-24 sm:w-24 ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
+          className={`flex h-[68px] w-[68px] items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-[120px] sm:w-[120px] ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
         >
-          <Icon className="h-7 w-7 sm:h-12 sm:w-12" strokeWidth={1.6} aria-hidden="true" />
+          <Icon className="h-[34px] w-[34px] sm:h-[60px] sm:w-[60px]" strokeWidth={1.6} aria-hidden="true" />
         </span>
 
         {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt
@@ -227,50 +227,22 @@ export default function AppCard({
       {/* `mt-0.5` — chú thích nép SÁT ngay dưới tên. Khoảng cách giữa tên và
           chú thích phải NHỎ HƠN hẳn khoảng cách giữa biểu tượng và tên, nếu
           không ba thứ đọc ra là ba mục rời chứ không phải một cụm. */}
-      {/* ═══ `UI-3` — TAGLINE HIỆN Ở MỌI KHỔ MÀN ═══════════════════════
-          Board chỉ thị mỗi Module gồm **icon · tên · tagline · mô tả ngắn**.
-          Trước bản này hai dòng chữ **loại trừ nhau** — điện thoại thấy
-          tagline, máy tính thấy mô tả — nên ⛔ không khổ nào có đủ bốn thứ.
+      {/* ═══ 🔴 REV 2 — MỘT DÒNG, ⛔ KHÔNG PHẢI BA ═══════════════════════
+          Board: *"Mỗi ô chỉ cần **Icon · Tên · 1 dòng mô tả ngắn**… ⛔ không
+          hiển thị business value dài trên Homepage."*
 
-          Nay tagline hiện **mọi khổ** *(nó ngắn, luôn vừa)*, mô tả ngắn hiện
-          **từ `sm`** *(ô 80px trên điện thoại ⛔ không chứa nổi nó — đó là lý
-          do bản rút gọn ra đời, và lý do đó ⛔ chưa mất)*.
+          Bản trước ô mang **ba** dòng chữ *(tagline · mô tả · business
+          value)*. Nhân với **22 ô** là **66 dòng** — mắt ⛔ không **quét**
+          được nữa, nó phải **đọc**. Mà mục tiêu của Launcher là **quét trong
+          hai giây**.
 
-          ⇒ Máy tính: đủ **bốn** tầng. Điện thoại: **ba** tầng, và tầng bỏ đi
-          là tầng dài nhất — đúng thứ tự ưu tiên. */}
+          ⚠️ `descKey` và `valueKey` **⛔ không bị xoá** — chúng nằm ở `title`,
+          tức hiện khi **rê chuột**, đúng lúc người xem **đã dừng lại** ở một
+          ô. Board: *"Business Value chỉ hiển thị khi hover."* */}
       <span
-        className={`${TYPE.appHint} mt-0.5 flex w-full items-start justify-center text-center text-slate-500 sm:mt-1.5`}
+        className={`${TYPE.appHint} mt-1 flex w-full items-start justify-center px-0.5 text-center text-slate-500`}
       >
         {t(mod.shortKey)}
-      </span>
-      {/* Mô tả ngắn — nhạt hơn tagline một bậc. Hai dòng chữ cùng sắc độ sẽ
-          đọc ra như một đoạn văn hai dòng; lệch sắc độ làm chúng đọc ra là
-          **tagline** và **chú thích của tagline**. */}
-      <span
-        className={`${TYPE.appHint} mt-1 hidden min-h-[2.9em] w-full items-start justify-center text-center text-slate-400 sm:flex`}
-      >
-        {t(mod.descKey)}
-      </span>
-
-      {/* ═══ BUSINESS VALUE LÊN Ô — Board *Product Build Mode* ═══════════
-          Board liệt kê **bốn** thứ mỗi Module phải có trên Launcher: icon ·
-          tên · tagline · **business value**.
-
-          ⚠️ `UX-1 §14.1` từng chốt *"`businessValue` ⛔ KHÔNG in trên ô"* —
-          16 câu đầy đủ trên lưới hẹp là **một bức tường chữ**, đúng thứ Launcher
-          tồn tại để tránh. Điều đó **vẫn đúng ở khổ hẹp**.
-
-          ⇒ Hiện từ `lg` trở lên, nơi mỗi ô rộng ~250px và một câu chỉ chiếm hai
-          dòng. Dưới `lg` vẫn chỉ **tagline**.
-
-          🔑 Cả hai yêu cầu đều được giữ: **có mặt** ở nơi đủ chỗ, **vắng mặt**
-          ở nơi nó sẽ phá lưới. Người xem trên máy tính — Sales · Investor ·
-          Customer — chính là khán giả của câu này, và họ **⛔ không** dùng khổ
-          hẹp để xem demo. */}
-      <span
-        className={`${TYPE.caption} mt-1.5 hidden w-full items-start justify-center px-1 text-center text-slate-400 lg:flex`}
-      >
-        {t(mod.valueKey)}
       </span>
     </>
   );

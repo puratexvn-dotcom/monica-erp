@@ -1,9 +1,11 @@
 import TopNavbar from './top-navbar';
-import HomeContent from './_home/home-content';
+import { Suspense } from 'react';
+
+import HomeBody from './_home/home-body';
+import HomeSkeleton from './_home/home-skeleton';
 import { NOISE_URL, CANVAS } from '@/lib/design/tokens';
 import { LOGO_COLORS } from '@/lib/brand';
 import BrandFooter from '@/components/brand-footer';
-import { getSessionUser } from '@/lib/auth/session';
 
 // ============================================================================
 // TRANG CHỦ MONICA ONE — LỐI VÀO CÔNG KHAI
@@ -51,7 +53,7 @@ import { getSessionUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
+export default function HomePage() {
   // 🔴 `UI-1.5` — trang chủ nay ĐỌC PHIÊN.
   //
   // Trước bản này `app/page.tsx` là component TĨNH, ⛔ không một lời gọi xác
@@ -66,7 +68,6 @@ export default async function HomePage() {
   //
   // 🔑 Điều đó ⛔ **không** làm yếu gì: đây là quyết định **BÀY CÁI GÌ**, ⛔
   // không phải **CHO VÀO HAY KHÔNG**. Hàng rào vẫn là middleware · guard · RLS.
-  const phien = await getSessionUser();
   return (
     // Nền KHÔNG trắng tinh. Trắng trên trắng buộc phải kẻ viền đậm, mà viền
     // đậm thì màn hình lập tức ồn. Xám rất nhạt để thẻ trắng nổi lên bằng
@@ -163,7 +164,20 @@ export default async function HomePage() {
             không đập ngay vào mặt. Phần mềm rẻ tiền lấp đầy mọi pixel; phần mềm
             đắt tiền để trống có chủ ý. */}
         <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:px-8">
-          <HomeContent role={phien?.role ?? null} />
+          {/* ⚡ HIỆU NĂNG — Board Rev 2: *"Homepage phải xuất hiện gần như
+              tức thì… ⛔ không chờ dữ liệu Workspace mới hiển thị Homepage."*
+
+              Trước bản này `HomePage` là `async` và `await getSessionUser()`
+              **trước khi dựng một byte HTML nào** — nền, thanh đầu, wordmark,
+              chân trang đều đứng chờ một lượt đi–về tới Supabase Auth.
+
+              🔑 Nay lời gọi đó nằm trong `HomeBody`, bọc `<Suspense>`. Khung
+              trang **stream ra ngay**; chỉ phần **thật sự cần phiên** mới
+              chờ. Và phiên chỉ quyết định **ô sáng hay mờ**, ⛔ không quyết
+              định **có bao nhiêu ô** — nên phần chờ là nhỏ. */}
+          <Suspense fallback={<HomeSkeleton />}>
+            <HomeBody />
+          </Suspense>
 
         </main>
 

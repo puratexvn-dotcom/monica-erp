@@ -236,8 +236,8 @@ console.log('\n⑫ 🔴 LUỒNG BOARD CHỈ ĐỊNH — bấm Module ⇒ Login �
   //
   // 🔑 `PROTECTED_PREFIXES` vì vậy ⛔ không chỉ là danh sách bảo mật — nó là
   //    **điều kiện để luồng sản phẩm của Board chạy đúng**.
-  const HREF_READY = ['/giam-doc', '/buyer', '/md', '/to-truong-may', '/qa',
-    '/kho', '/xuat-hang', '/subcon', '/ke-toan', '/admin'];
+  const HREF_READY = ['/giam-doc', '/buyer', '/md', '/to-truong-cat', '/to-truong-may',
+    '/hoan-thanh', '/qa', '/kho', '/xuat-hang', '/subcon', '/ke-toan', '/admin'];
 
   const hoLot = HREF_READY.filter((h) => !isProtectedPath(h));
   s.ok(`Cả ${HREF_READY.length} Module READY đều là route ĐƯỢC BẢO VỆ`,

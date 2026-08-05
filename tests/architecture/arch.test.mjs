@@ -919,7 +919,10 @@ if (duTuDien && existsSync(duongDanSoApp)) {
     .map((m) => ({ nhom: m[1], ma: m[2], day: `${m[1]}.${m[2]}` }));
 
   const soModule = new Set(khoaDung.map((k) => k.ma)).size;
-  s.ok(`Sổ đăng ký có 16 Business App (đọc được ${soModule})`, soModule === 16);
+  // ⚠️ Con số này ĐI THEO doanh nghiệp, ⛔ không đi theo mã. Board Rev 2:
+  // *"⛔ không giới hạn ở 16 ô — Homepage phải phản ánh đúng doanh nghiệp"*.
+  // Thêm Business App ⇒ SỬA CON SỐ NÀY, ⛔ không nới lỏng phép kiểm.
+  s.ok(`Sổ đăng ký có 22 Business App (đọc được ${soModule})`, soModule === 22);
 
   // ① Mỗi Module phải có ĐỦ BA lớp chữ. Thiếu một lớp là thiếu một khán giả:
   //    `appShort` → người vận hành trên điện thoại
