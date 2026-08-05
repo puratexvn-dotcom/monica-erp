@@ -144,21 +144,21 @@
   },
   "appShort": {
     "executive": "Điều hành nhà máy",
-    "commercial": "Khách hàng & đơn hàng",
-    "merchandising": "Mã hàng & định mức",
+    "commercial": "Khách hàng • Đơn hàng",
+    "merchandising": "Mã hàng • Định mức",
     "planning": "Kế hoạch sản xuất",
-    "production": "Cắt, may, sản lượng",
+    "production": "Cắt • May • Sản lượng",
     "quality": "Kiểm hàng AQL",
-    "warehouse": "Nhập, xuất, tồn kho",
-    "shipment": "Đóng thùng & chứng từ",
+    "warehouse": "Nhập • Xuất • Tồn",
+    "shipment": "Đóng thùng • Chứng từ",
     "subcontract": "Gia công ngoài",
-    "finance": "Công nợ & giá thành",
-    "humanResources": "Nhân sự & chấm công",
+    "finance": "Công nợ • Giá thành",
+    "humanResources": "Nhân sự • Chấm công",
     "reporting": "Báo cáo có bằng chứng",
     "communication": "Trao đổi theo đơn",
     "ai": "Trợ lý theo ngữ cảnh",
-    "documents": "Tech pack & chứng từ",
-    "platform": "Tài khoản & phân quyền"
+    "documents": "Tech pack • Chứng từ",
+    "platform": "Tài khoản • Phân quyền"
   },
   "appDesc": {
     "executive": "Điều hành và phê duyệt toàn nhà máy",
@@ -203,5 +203,23 @@
     "signedInAs": "Tài khoản đang đăng nhập:",
     "backToMine": "Về phân hệ của tôi",
     "pathLabel": "Đường dẫn"
+  },
+  "appValue": {
+    "executive": "Thấy toàn nhà máy trên một màn hình trước khi ra quyết định.",
+    "commercial": "Từ hỏi giá tới đơn chốt, không rơi mất khách nào giữa chừng.",
+    "merchandising": "Định mức đúng ngay từ đầu, không phát hiện thiếu vải lúc đã cắt.",
+    "planning": "Biết chuyền nào còn chỗ trước khi hứa ngày giao với khách.",
+    "production": "Sản lượng theo giờ, thấy chuyền tụt trước khi trễ cả đơn.",
+    "quality": "Kiểm theo AQL 2.5, mỗi lỗi có bằng chứng và có người chịu trách nhiệm.",
+    "warehouse": "Biết chính xác còn bao nhiêu vải trước khi ra lệnh cắt.",
+    "shipment": "Đóng thùng khớp chứng từ, không giữ container lại ở cảng.",
+    "subcontract": "Xưởng ngoài báo cáo mỗi ngày, không mất dấu hàng đã giao đi.",
+    "finance": "Giá thành và công nợ khớp chứng từ gốc, không đối soát bằng trí nhớ.",
+    "humanResources": "Chấm công gắn với sản lượng thật của từng tổ.",
+    "reporting": "Mỗi con số mở ra được đúng chứng từ đã sinh ra nó.",
+    "communication": "Trao đổi nằm cạnh đơn hàng, không trôi mất trong nhóm chat.",
+    "ai": "Hỏi bằng tiếng Việt, trả lời dựa trên dữ liệu thật của nhà máy.",
+    "documents": "Tech pack đúng phiên bản, không ai may theo bản cũ.",
+    "platform": "Cấp quyền theo việc được giao — thu hồi được và rà soát được."
   }
 }

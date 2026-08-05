@@ -144,21 +144,21 @@
   },
   "appShort": {
     "executive": "Factory oversight",
-    "commercial": "Customers & orders",
-    "merchandising": "Styles & consumption",
+    "commercial": "Customers • Orders",
+    "merchandising": "Styles • Consumption",
     "planning": "Production planning",
-    "production": "Cutting, sewing, output",
+    "production": "Cutting • Sewing • Output",
     "quality": "AQL inspection",
-    "warehouse": "Inbound, outbound, stock",
-    "shipment": "Cartons & documents",
+    "warehouse": "Inbound • Outbound • Stock",
+    "shipment": "Cartons • Documents",
     "subcontract": "External workshops",
-    "finance": "Payables & costing",
-    "humanResources": "People & attendance",
+    "finance": "Payables • Costing",
+    "humanResources": "People • Attendance",
     "reporting": "Evidence-backed reports",
     "communication": "Order-linked chat",
     "ai": "Context-aware assistant",
-    "documents": "Tech packs & files",
-    "platform": "Accounts & access"
+    "documents": "Tech packs • Files",
+    "platform": "Accounts • Access"
   },
   "appDesc": {
     "executive": "Factory-wide oversight and approvals",
@@ -203,5 +203,23 @@
     "signedInAs": "Signed in as:",
     "backToMine": "Back to my workspace",
     "pathLabel": "Path"
+  },
+  "appValue": {
+    "executive": "See the whole factory on one screen before you decide.",
+    "commercial": "From enquiry to confirmed order, no customer slips through.",
+    "merchandising": "Get consumption right up front, not after the fabric is cut.",
+    "planning": "Know which line has capacity before promising a ship date.",
+    "production": "Hourly output shows a line falling behind before the order is late.",
+    "quality": "AQL 2.5 inspection — every defect has evidence and an owner.",
+    "warehouse": "Know exactly how much fabric is left before releasing a cut order.",
+    "shipment": "Cartons match the documents, so containers do not sit at the port.",
+    "subcontract": "External workshops report daily; goods sent out are never lost track of.",
+    "finance": "Costing and payables trace back to source documents, not to memory.",
+    "humanResources": "Attendance tied to the real output of each line.",
+    "reporting": "Every figure opens the document that produced it.",
+    "communication": "Conversations live beside the order, not lost in a chat group.",
+    "ai": "Ask in plain language; answers come from the factory’s real data.",
+    "documents": "The right tech pack version — nobody sews from an old one.",
+    "platform": "Access follows the assignment — revocable and auditable."
   }
 }

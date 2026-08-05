@@ -878,4 +878,168 @@ if (soCT) {
   }
 }
 
+// ── 17. MODULE IDENTITY — `⑰` · BA-1 §20 · UX-1 §14 ───────────────────────
+//
+// BA-1 §20 khai **Module Identity Standard**: mỗi Business App phải mang đủ
+// `Icon · Color · Name · Tagline · Business Value · Permission State · Route`.
+//
+// ─── PHÉP KIỂM NÀY LO ĐÚNG MỘT PHẦN: CÂU CHỮ, ĐỦ BA NGÔN NGỮ ────────────
+// Màu đã có `MODULE_IDENTITY` canh; tên đã có mục ⑪ canh; trạng thái đã có
+// **union phân biệt** canh ngay lúc biên dịch.
+//
+// Thứ **⛔ KHÔNG ai canh** là câu chữ: một Module thiếu `appValue` ở tiếng Trung
+// sẽ hiện **khoá thô** hoặc **chuỗi rỗng** trên ô Launcher — và điều đó
+// ⛔ **không** làm hỏng build, ⛔ không làm hỏng bài kiểm nào, ⛔ không ai thấy
+// cho tới khi một khách hàng nói tiếng Trung mở trang chủ.
+//
+// 🔑 Đây đúng loại khuyết tật *"build xanh mà màn hình sai"* mà §5 của
+//    `CLAUDE.md` cảnh báo. Nó rẻ để chặn và đắt để phát hiện muộn.
+console.log('\n⑰ MODULE IDENTITY — câu chữ đủ ba ngôn ngữ · BA-1 §20');
+
+const BA_NGON_NGU = ['vi', 'en', 'zh'];
+const duongDanTuDien = (ma) => join(ROOT, `messages/${ma}.json`);
+const duTuDien = BA_NGON_NGU.every((m) => existsSync(duongDanTuDien(m)));
+const duongDanSoApp = join(ROOT, 'app/home-modules.ts');
+
+s.ok('Đủ ba tệp từ điển messages/{vi,en,zh}.json', duTuDien);
+s.ok('Sổ đăng ký Business App tồn tại', existsSync(duongDanSoApp));
+
+if (duTuDien && existsSync(duongDanSoApp)) {
+  const tuDien = Object.fromEntries(
+    BA_NGON_NGU.map((m) => [m, JSON.parse(doc(duongDanTuDien(m)))]),
+  );
+
+  // Bỏ chú thích TRƯỚC khi quét — chính tệp này ghi lại ví dụ về các khoá, và
+  // một phép kiểm đi bắt lỗi trong chú thích là phép kiểm trừng phạt người đã
+  // ghi lại quy tắc *(bài học mục ⑨)*.
+  const soApp = boChuThichSom(doc(duongDanSoApp));
+
+  /** Mọi khoá i18n mà sổ đăng ký thật sự dùng. */
+  const khoaDung = [...soApp.matchAll(/'(app(?:Desc|Short|Value))\.([A-Za-z]+)'/g)]
+    .map((m) => ({ nhom: m[1], ma: m[2], day: `${m[1]}.${m[2]}` }));
+
+  const soModule = new Set(khoaDung.map((k) => k.ma)).size;
+  s.ok(`Sổ đăng ký có 16 Business App (đọc được ${soModule})`, soModule === 16);
+
+  // ① Mỗi Module phải có ĐỦ BA lớp chữ. Thiếu một lớp là thiếu một khán giả:
+  //    `appShort` → người vận hành trên điện thoại
+  //    `appDesc`  → người vận hành trên máy tính
+  //    `appValue` → Sales · Investor · Customer · người mới  (BA-1 `MI-b`)
+  const theoModule = new Map();
+  for (const k of khoaDung) {
+    if (!theoModule.has(k.ma)) theoModule.set(k.ma, new Set());
+    theoModule.get(k.ma).add(k.nhom);
+  }
+  const thieuLop = [...theoModule.entries()]
+    .filter(([, nhom]) => nhom.size !== 3)
+    .map(([ma, nhom]) => `${ma}(${[...nhom].join('+')})`);
+  s.ok('Mỗi Module có đủ appDesc + appShort + appValue',
+    thieuLop.length === 0, thieuLop.join(' · '));
+
+  // ② Mọi khoá được dùng phải CÓ THẬT ở CẢ BA ngôn ngữ.
+  const thieuDich = [];
+  for (const k of khoaDung) {
+    for (const ma of BA_NGON_NGU) {
+      const v = tuDien[ma]?.[k.nhom]?.[k.ma];
+      if (typeof v !== 'string' || v.trim() === '') thieuDich.push(`${ma}:${k.day}`);
+    }
+  }
+  s.ok(`⛔ KHÔNG khoá nào thiếu bản dịch (${khoaDung.length} khoá × 3)`,
+    thieuDich.length === 0, thieuDich.slice(0, 8).join(' · '));
+
+  // ③ Chiều ngược lại — từ điển ⛔ không được giữ chữ CHẾT.
+  //    Một khoá ⛔ không Module nào dùng là chữ ⛔ không ai đọc, mà vẫn phải
+  //    dịch lại mỗi lần đổi câu. Nó lặng lẽ làm ba tệp từ điển phình ra.
+  const dangDung = new Set(khoaDung.map((k) => k.day));
+  const khoaChet = [];
+  for (const nhom of ['appDesc', 'appShort', 'appValue']) {
+    for (const ma of Object.keys(tuDien.vi?.[nhom] ?? {})) {
+      if (!dangDung.has(`${nhom}.${ma}`)) khoaChet.push(`${nhom}.${ma}`);
+    }
+  }
+  s.ok('⛔ KHÔNG khoá mô tả nào nằm chết trong từ điển',
+    khoaChet.length === 0, khoaChet.join(' · '));
+
+  console.log(`   ↻ ${soModule} Module × 3 lớp chữ × 3 ngôn ngữ = ${khoaDung.length * 3} chuỗi`);
+  console.log('   ⚠️ ⑰ chứng minh câu chữ TỒN TẠI, ⛔ KHÔNG chứng minh nó DỊCH ĐÚNG.');
+  console.log('      Chất lượng bản dịch là việc của người đọc được ngôn ngữ đó.');
+}
+
+// ── 18. MÔ HÌNH PHÂN QUYỀN MA — `⑱` · BA-1 §17.3 `TD-42` ──────────────────
+//
+// `001_core_schema.sql` dựng một mô hình phân quyền **hoàn chỉnh** trong CSDL:
+// `roles` · `permissions` · `role_permissions` · `user_roles`.
+//
+// 🔴 **⛔ KHÔNG một policy RLS nào đọc chúng.** Hàng rào thật là `guard.ts`
+//    *(bậc ⑤)* và RLS *(bậc ⑦)*, và cả hai đi qua `app_metadata.role`.
+//
+// ─── VÌ SAO ĐÂY LÀ PHÉP KIỂM, ⛔ KHÔNG PHẢI MỘT DÒNG GHI CHÚ ────────────
+// Bốn bảng đó trông **đầy thẩm quyền** — chúng nằm trong lược đồ lõi, có khoá
+// ngoại đầy đủ, và `admin/actions.ts` còn **ghi vào** chúng mỗi lần tạo tài
+// khoản. Một người sau sẽ mở `role_permissions`, thêm một dòng, và **tin rằng
+// phân quyền vừa thay đổi**. ⛔ Không có gì thay đổi.
+//
+// ⚠️ Nguy hiểm hơn nữa là **nối dây một nửa**: ai đó cho `guard.ts` đọc
+//    `user_roles` cho một Module, còn mười lăm Module kia vẫn đọc claim. Khi ấy
+//    hệ thống có **hai nguồn chân lý bất đồng** — và ⛔ không ai biết Module
+//    nào đang nghe ai.
+//
+// 🔑 Mục này khoá cửa đó lại **cho tới khi `ADR-023` chốt nguồn chân lý**.
+//    Nó ⛔ **không** cấm dùng bốn bảng để HIỂN THỊ *(`lib/staff.ts` đang đọc
+//    `user_roles` để bày danh sách nhân sự — hợp lệ)*; nó chỉ cấm **PHÁN QUYẾT
+//    QUYỀN** từ chúng.
+console.log('\n⑱ MÔ HÌNH PHÂN QUYỀN MA — TD-42 · chờ ADR-023');
+
+/** Bốn bảng của mô hình B. `partner_permissions` ⛔ KHÔNG thuộc nhóm này —
+ *  nó là bảng đang chạy thật của cổng đối tác. */
+const BANG_MA = /\brole_permissions\b|\buser_roles\b|from\(\s*'roles'\s*\)|from\(\s*'permissions'\s*\)|public\.permissions\b/;
+
+// ① Nguồn phán quyết quyền ⛔ KHÔNG được chạm bốn bảng đó.
+//    `lib/rbac.ts` là nguồn chân lý duy nhất của `Role`/`MODULE_ACCESS`, và nó
+//    còn phải chạy được trên Edge Runtime — một truy vấn CSDL ở đây vừa sai
+//    kiến trúc vừa ⛔ không chạy nổi.
+const tepPhanQuyet = [
+  join(ROOT, 'lib/rbac.ts'),
+  ...quet('app').filter((p) => rel(p).endsWith('/_services/guard.ts')),
+];
+const chamNhamPhanQuyet = tepPhanQuyet
+  .filter((p) => existsSync(p) && BANG_MA.test(boChuThichSom(doc(p))))
+  .map(rel);
+s.ok(`Nguồn phán quyết quyền ⛔ KHÔNG đọc 4 bảng TD-42 (${tepPhanQuyet.length} tệp)`,
+  chamNhamPhanQuyet.length === 0,
+  `${chamNhamPhanQuyet.join(' · ')} — nối dây một nửa ⇒ hai nguồn chân lý bất đồng`);
+
+// ② `permissions` và `role_permissions` phải nằm YÊN.
+//    Khác `roles`/`user_roles` *(đang được đọc để hiển thị)*, hai bảng này
+//    ⛔ **chưa từng** được dùng ở đâu. Chúng là phần **hoàn toàn chết** của mô
+//    hình B — và cũng là phần cám dỗ nhất, vì `permissions.module` trông đúng
+//    hệt tầng Capability mà BA-1 §23 đang cần.
+const migKhac = existsSync(join(ROOT, 'supabase/migrations'))
+  ? readdirSync(join(ROOT, 'supabase/migrations'))
+      .filter((f) => f.endsWith('.sql') && !f.startsWith('001_'))
+  : [];
+const migChamHaiBang = migKhac
+  .filter((f) => /\brole_permissions\b|public\.permissions\b/
+    .test(doc(join(ROOT, 'supabase/migrations', f))));
+s.ok(`permissions · role_permissions ⛔ KHÔNG bị migration nào ngoài 001 chạm (${migKhac.length} tệp)`,
+  migChamHaiBang.length === 0,
+  `${migChamHaiBang.join(' · ')} — nối dây phải đi qua ADR-023, ⛔ không đi qua một migration lẻ`);
+
+const maChamHaiBang = ['app', 'lib', 'components']
+  .flatMap((d) => quet(d))
+  .filter((p) => !rel(p).startsWith('lib/mock-data'))
+  .filter((p) => /\brole_permissions\b|from\(\s*'permissions'\s*\)/.test(boChuThichSom(doc(p))))
+  .map(rel);
+s.ok('permissions · role_permissions ⛔ KHÔNG bị mã ứng dụng nào chạm',
+  maChamHaiBang.length === 0, maChamHaiBang.join(' · '));
+
+console.log('   ↻ TD-42 còn nguyên: 4 bảng RBAC trong 001, ⛔ KHÔNG policy RLS nào đọc.');
+console.log('   ⚠️ ⑱ ⛔ KHÔNG cấm HIỂN THỊ — lib/staff.ts đọc user_roles để bày');
+console.log('      danh sách nhân sự, và đó là hợp lệ. Nó cấm PHÁN QUYẾT QUYỀN.');
+console.log('   ⚠️ Đo lại ở Rev 5 cho một sắc thái BA-1 ghi chưa đủ chặt: hai bảng');
+console.log('      roles · user_roles ĐANG được đọc-ghi (lib/staff.ts · admin/actions.ts).');
+console.log('      Chúng được NUÔI mà vẫn ⛔ KHÔNG ĐIỀU KHIỂN GÌ — điều đó khiến');
+console.log('      TD-42 nặng hơn, ⛔ không nhẹ đi: bảng được cập nhật đều trông càng');
+console.log('      giống nguồn chân lý.');
+
 process.exit(s.ketThuc() ? 1 : 0);

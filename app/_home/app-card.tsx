@@ -60,6 +60,22 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   const iconShadowHover =
     'group-hover:shadow-[0_4px_8px_-2px_rgba(16,24,40,0.12),0_20px_36px_-10px_rgba(16,24,40,0.26)]';
 
+  // ─── TOOLTIP — nơi DUY NHẤT `Business Value` được hiện ────────────────────
+  //
+  // Ba lớp chữ, ba khán giả, và chúng ⛔ KHÔNG tranh chỗ của nhau:
+  //
+  //   `shortKey`  trên ô, khổ điện thoại  → người vận hành QUÉT
+  //   `descKey`   trên ô, từ `sm`         → người vận hành ĐỌC LƯỚT
+  //   `valueKey`  CHỈ ở đây               → Sales · Investor · người mới ĐỌC
+  //
+  // ⚠️ Vì sao `valueKey` ⛔ KHÔNG lên ô: một câu đầy đủ nhân với 16 ô biến lưới
+  // thành bức tường chữ — đúng thứ Launcher tồn tại để tránh. Tooltip chỉ hiện
+  // khi người dùng ĐÃ DỪNG LẠI ở một ô, tức đúng lúc họ muốn biết thêm.
+  //
+  // Xuống dòng bằng `\n`: trình duyệt hiện `title` nhiều dòng, nên câu giá trị
+  // đứng tách khỏi câu chức năng thay vì dính thành một chuỗi dài không ngắt.
+  const chuThich = `${mod.name} — ${t(mod.descKey)}\n${t(mod.valueKey)}`;
+
   const inner = (
     <>
       <span className="relative">
@@ -186,7 +202,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
         disabled
         aria-disabled="true"
         className={`${base} cursor-not-allowed opacity-60`}
-        title={`${mod.name} — ${t(mod.descKey)} · ${t('home.comingSoonHint')}`}
+        title={`${chuThich}\n${t('home.comingSoonHint')}`}
       >
         {inner}
       </button>
@@ -199,7 +215,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
       // về `ModuleReady`, nên `href` chắc chắn tồn tại — máy kiểm chứng minh
       // điều đó thay vì ta ép nó im lặng.
       href={mod.href}
-      title={`${mod.name} — ${t(mod.descKey)}`}
+      title={chuThich}
       className={`${base} focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#F6F7F9]`}
     >
       {inner}

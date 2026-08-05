@@ -144,21 +144,21 @@
   },
   "appShort": {
     "executive": "全厂运营",
-    "commercial": "客户与订单",
-    "merchandising": "款号与用量",
+    "commercial": "客户 • 订单",
+    "merchandising": "款号 • 用量",
     "planning": "生产计划",
-    "production": "裁剪、缝制、产量",
+    "production": "裁剪 • 缝制 • 产量",
     "quality": "AQL 检验",
-    "warehouse": "入库、出库、库存",
-    "shipment": "装箱与单证",
+    "warehouse": "入库 • 出库 • 库存",
+    "shipment": "装箱 • 单证",
     "subcontract": "外发加工",
-    "finance": "应付与成本",
-    "humanResources": "人员与考勤",
+    "finance": "应付 • 成本",
+    "humanResources": "人员 • 考勤",
     "reporting": "凭证报表",
     "communication": "订单沟通",
     "ai": "情境助手",
-    "documents": "Tech pack 与单证",
-    "platform": "账号与权限"
+    "documents": "Tech pack • 单证",
+    "platform": "账号 • 权限"
   },
   "appDesc": {
     "executive": "全厂运营监控与审批",
@@ -203,5 +203,23 @@
     "signedInAs": "当前登录账号：",
     "backToMine": "返回我的工作空间",
     "pathLabel": "路径"
+  },
+  "appValue": {
+    "executive": "决策前，在一块屏幕上看清整个工厂。",
+    "commercial": "从询价到下单，不漏掉任何一个客户。",
+    "merchandising": "用量一开始就算准，而不是裁完才发现缺料。",
+    "planning": "在向客户承诺交期之前，先知道哪条线还有产能。",
+    "production": "按小时看产量，在整张订单延误之前发现掉队的线。",
+    "quality": "按 AQL 2.5 检验，每个疵点都有凭证、有责任人。",
+    "warehouse": "下裁剪指令之前，准确知道还剩多少面料。",
+    "shipment": "装箱与单证一致，柜子不会滞留在港口。",
+    "subcontract": "外发工厂每日汇报，发出去的货不会失去追踪。",
+    "finance": "成本与应付都能追回原始单据，而不是靠记忆对账。",
+    "humanResources": "考勤与各组的真实产量挂钩。",
+    "reporting": "每一个数字都能打开生成它的那张单据。",
+    "communication": "沟通就在订单旁边，不会淹没在聊天群里。",
+    "ai": "用日常语言提问，答案来自工厂的真实数据。",
+    "documents": "Tech pack 版本正确 — 没有人按旧版开缝。",
+    "platform": "权限跟随所指派的工作 — 可撤销、可稽核。"
   }
 }

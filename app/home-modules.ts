@@ -82,6 +82,25 @@ interface ModuleBase {
    * Muốn ngắn mà vẫn hiểu được thì phải VIẾT LẠI, không phải cắt bớt.
    */
   shortKey: DictionaryKey;
+  /**
+   * KHOÁ i18n cho **Business Value** — một câu nói *doanh nghiệp được gì*.
+   *
+   * ─── VÌ SAO CẦN LỚP THỨ BA, KHI ĐÃ CÓ `descKey` VÀ `shortKey` ──────────
+   * Hai trường kia trả lời **"App này LÀM GÌ"** — chúng viết cho người vận
+   * hành, người đã biết mình cần gì và chỉ đang tìm đường vào.
+   *
+   * Trường này trả lời **"doanh nghiệp ĐƯỢC GÌ"** — nó viết cho một nhóm khán
+   * giả khác hẳn: Sales · Investor · Customer · người mới vào. Với họ,
+   * *"Nhập, xuất, kiểm kê và tồn kho"* ⛔ **không** nói lên điều gì; *"biết
+   * chính xác còn bao nhiêu vải trước khi ra lệnh cắt"* thì có.
+   *
+   * ⚠️ **⛔ KHÔNG in trên ô lưới.** Một câu đầy đủ nhân với 16 ô biến lưới
+   * thành một bức tường chữ — đúng thứ ô Launcher tồn tại để tránh. Nó nằm ở
+   * `title`, tức chỗ người ta **đọc** khi đã dừng lại ở một ô.
+   *
+   * 🔑 Một Module, **hai câu, hai khán giả, hai chỗ**.
+   */
+  valueKey: DictionaryKey;
   icon: LucideIcon;
   /** Khoá tra màu trong `MODULE_IDENTITY`. Nguồn màu DUY NHẤT của mục này. */
   key: ModuleKey;
@@ -114,47 +133,47 @@ export type ModuleItem = ModuleReady | ModuleComingSoon;
 
 // ─── BUSINESS WORKSPACES · §16.2 ────────────────────────────────────────────
 export const WORKSPACES: ModuleItem[] = [
-  { name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive',
+  { name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive', valueKey: 'appValue.executive',
     status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive' },
-  { name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial',
+  { name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
     status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial' },
-  { name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising',
+  { name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising', valueKey: 'appValue.merchandising',
     status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising' },
-  { name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning',
+  { name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning', valueKey: 'appValue.planning',
     status: 'COMING_SOON', icon: CalendarRange, key: 'planning' },
-  { name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production',
+  { name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production', valueKey: 'appValue.production',
     status: 'READY', href: '/to-truong-may', icon: Factory, key: 'production' },
-  { name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality',
+  { name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality', valueKey: 'appValue.quality',
     status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality' },
-  { name: 'Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse',
+  { name: 'Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse', valueKey: 'appValue.warehouse',
     status: 'READY', href: '/kho', icon: Package, key: 'warehouse' },
-  { name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment',
+  { name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment', valueKey: 'appValue.shipment',
     status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment' },
-  { name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract',
+  { name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract', valueKey: 'appValue.subcontract',
     status: 'READY', href: '/subcon', icon: Users, key: 'subcontract' },
-  { name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance',
+  { name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance', valueKey: 'appValue.finance',
     status: 'READY', href: '/ke-toan', icon: Wallet, key: 'finance' },
-  { name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources',
+  { name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources', valueKey: 'appValue.humanResources',
     status: 'COMING_SOON', icon: IdCard, key: 'humanResources' },
 ];
 
 // ─── GLOBAL SERVICES · §29 · §30 · §31 · §33 ────────────────────────────────
 export const SERVICES: ModuleItem[] = [
-  { name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting',
+  { name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting', valueKey: 'appValue.reporting',
     status: 'COMING_SOON', icon: PieChart, key: 'reporting' },
-  { name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication',
+  { name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication', valueKey: 'appValue.communication',
     status: 'COMING_SOON', icon: MessagesSquare, key: 'communication' },
   // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2) — dải đó khai
   // ở `MODULE_IDENTITY.ai.soft`, không khai ở đây.
-  { name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai',
+  { name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai', valueKey: 'appValue.ai',
     status: 'COMING_SOON', icon: Sparkles, key: 'ai' },
-  { name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents',
+  { name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents', valueKey: 'appValue.documents',
     status: 'COMING_SOON', icon: FileText, key: 'documents' },
 ];
 
 // ─── PLATFORM SERVICE · §34 ─────────────────────────────────────────────────
 export const PLATFORM: ModuleItem[] = [
-  { name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform',
+  { name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform', valueKey: 'appValue.platform',
     status: 'READY', href: '/admin', icon: SlidersHorizontal, key: 'platform' },
 ];
 
