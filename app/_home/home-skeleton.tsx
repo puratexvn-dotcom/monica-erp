@@ -19,7 +19,7 @@ import { SO_BUSINESS_APP } from '@/lib/mos/registry/business-apps';
 function OCho() {
   return (
     <div className="flex flex-col items-center p-2">
-      <div className="h-[84px] w-[84px] animate-pulse rounded-[28%] bg-slate-200/70 sm:h-[144px] sm:w-[144px]" />
+      <div className="h-[96px] w-[96px] animate-pulse rounded-[28%] bg-slate-200/70 sm:h-[164px] sm:w-[164px]" />
       <div className="mt-2.5 h-3 w-3/4 animate-pulse rounded bg-slate-200/60 sm:mt-4" />
       <div className="mt-1.5 h-2.5 w-1/2 animate-pulse rounded bg-slate-200/40" />
     </div>
@@ -38,7 +38,7 @@ export default function HomeSkeleton() {
 
           🔑 Số ô đọc từ `SO_BUSINESS_APP` — thêm một Business App là khung
           chờ **tự dài ra**, ⛔ không ai phải nhớ sửa. */}
-      <div className="grid grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">
+      <div className="grid grid-cols-4 gap-x-1.5 gap-y-6 sm:gap-x-4 sm:gap-y-8">
         {Array.from({ length: SO_BUSINESS_APP }, (_, i) => <OCho key={i} />)}
       </div>
     </div>

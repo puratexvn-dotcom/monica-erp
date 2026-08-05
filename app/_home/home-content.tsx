@@ -89,46 +89,56 @@ export default function HomeContent({
           ⚠️ Bốn tầng chữ rút còn HAI. "Click a Business App to continue" gộp
           vào cùng dòng với tagline, ngăn bằng dấu chấm giữa. Phần mềm cao cấp
           không dạy người dùng rằng thẻ thì bấm được. */}
-      <section className="mb-14 text-center sm:mb-20">
-        {/* ⚠️ CĂN GIỮA — quay lại đúng như vậy, và lần này là quyết định cuối.
-            Lượt trước tôi kéo phần chào sang trái để khớp trục với lưới App.
-            Về mặt bố cục thì đúng; về mặt SẢN PHẨM thì sai. Đây là CỬA CHÍNH
-            của hệ điều hành, và cửa chính thì đứng giữa. Trục đối xứng cũng là
-            trục của câu Lời Chúa ngay phía trên — hai thứ đó phải cùng một
-            đường, nếu không phần đầu trang gãy làm hai nửa lệch nhau.
+      <section className="mb-12 sm:mb-16">
+        {/* ═══ 🔴 REV 5 — BRAND HIERARCHY, ⛔ KHÔNG PHẢI CĂN GIỮA CỤM ═════
+            Board *(Hero Layout Clarification)*: *"Đây **⛔ không** phải yêu
+            cầu căn giữa toàn bộ cụm Hero. **Chỉ có MONICA ONE** là trung tâm
+            thương hiệu và phải luôn nằm **đúng tâm màn hình**."*
 
-            Lưới App bên dưới vẫn căn trái. Đó KHÔNG phải xung đột: khối nghi
-            thức đứng giữa, khối làm việc trải đều — đúng cách một tiền sảnh
-            mở ra một không gian làm việc. */}
-        <h1 className="flex flex-wrap items-baseline justify-center gap-x-3 whitespace-nowrap sm:gap-x-4">
+            🔴 **BẢN TRƯỚC CỦA TÔI SAI ĐÚNG CHỖ NÀY.** Tôi để `Welcome to` và
+            wordmark trong **một hàng `flex justify-center`** — tức căn giữa
+            **cả cụm**. Hệ quả: `Welcome to` **đẩy wordmark lệch sang phải**,
+            và tâm thị giác rơi vào **khoảng giữa hai thứ**, ⛔ không rơi vào
+            thương hiệu.
+
+            ⚠️ Cú lệch đó **⛔ không ai nhìn ra bằng mắt** — nó chỉ vài chục
+            pixel. Nhưng nó làm đúng một việc: **thương hiệu thôi là điểm
+            nhìn đầu tiên**.
+
+            ⇒ Ba tầng, ba trục khác nhau:
+              ③ `Welcome to`               lời dẫn  → **lệch trái**, ⛔ không
+                                                       ảnh hưởng tâm
+              ① `MONICA ONE`               thương hiệu → **đúng tâm màn hình**
+              ② `Business Operating System` giải nghĩa → **cùng trục với ①**
+
+            🔑 Ba tầng này là **Brand Hierarchy**, ⛔ không phải quyết định
+            thẩm mỹ — nên chúng ⛔ không được gộp vào một hàng flex, dù hàng
+            đó trông gọn hơn. */}
+
+        {/* ③ Lời dẫn — nằm trong một hộp HẸP HƠN và căn trái trong hộp đó.
+            Nhờ vậy nó rơi về **bên trái tâm**, đúng như sơ đồ Board vẽ, mà
+            ⛔ **không** kéo theo bất cứ thứ gì bên dưới. */}
+        <div className="mx-auto max-w-2xl px-4 text-left">
           <span className={`${TYPE.heroLead} text-slate-400`}>{t('home.welcomeTo')}</span>
-          {/* Tên sản phẩm — KHÔNG BAO GIỜ đi qua t() (§45.3).
-              `pr-[0.06em]`: dải chuyển sắc cắt theo chữ (`bg-clip-text`) hay bị
-              xén mất đuôi ký tự cuối ở một số bộ chữ. */}
-          {/* ⚠️ TỪNG CHỮ MỘT MÀU, khớp cách logo tô.
-              Bản trước tô cả cụm bằng MỘT dải chuyển sắc — nhìn xa thì giống,
-              nhưng nó KHÔNG phải cách logo hoạt động: logo tô rời từng chữ cái,
-              mỗi chữ một màu đặc. Dải chuyển sắc làm màu trôi qua giữa các chữ
-              nên không chữ nào mang đúng màu của nó.
-              Nay mỗi chữ là một phần tử riêng, lấy đúng màu từ bảng logo.
-              `aria-label` giữ nguyên cả cụm để trình đọc màn hình đọc liền
-              "MONICA ONE" chứ không đánh vần từng chữ cái. */}
+        </div>
+
+        {/* ① Thương hiệu — khối riêng, `text-center` trên TOÀN bề rộng.
+            Đây là thứ duy nhất định nghĩa tâm của Hero. */}
+        <h1 className="mt-1 text-center sm:mt-1.5">
+          {/* Tên sản phẩm — ⛔ KHÔNG BAO GIỜ đi qua `t()` *(§45.3)*.
+              Mỗi chữ một màu, khớp cách logo tô: logo tô RỜI từng chữ cái,
+              mỗi chữ một màu đặc. Một dải chuyển sắc làm màu trôi qua giữa
+              các chữ nên ⛔ không chữ nào mang đúng màu của nó. */}
           <span className={TYPE.heroMark} aria-label="MONICA ONE">
             <span aria-hidden="true">
               {LOGO_LETTER_COLORS.map(({ ch, color }, i) => (
-                <span
-                  key={`${ch}-${i}`}
-                  style={{ color, textShadow: LOGO_LETTER_SHADOW }}
-                >
+                <span key={`${ch}-${i}`} style={{ color, textShadow: LOGO_LETTER_SHADOW }}>
                   {ch}
                 </span>
               ))}
-              {/* "ONE" tô một màu xanh dương đặc — đó là chữ KHÔNG có trên
-                  logo, nên nó không được phép giành sắc độ với sáu chữ kia. */}
-              <span
-                className="ml-[0.18em]"
-                style={{ color: LOGO_COLORS[4], textShadow: LOGO_LETTER_SHADOW }}
-              >
+              {/* "ONE" tô một màu xanh dương đặc — đó là chữ ⛔ KHÔNG có trên
+                  logo, nên nó ⛔ không được phép giành sắc độ với sáu chữ kia. */}
+              <span className="ml-[0.18em]" style={{ color: LOGO_COLORS[4], textShadow: LOGO_LETTER_SHADOW }}>
                 ONE
               </span>
             </span>
@@ -153,7 +163,9 @@ export default function HomeContent({
             Khoá `home.hint` GIỮ NGUYÊN ở cả ba tệp dịch: nó không còn được
             dựng ra, nhưng bộ khoá ba ngôn ngữ vẫn cân nhau và muốn dùng lại
             thì chỉ là một dòng. */}
-        <p className={`${TYPE.heroTagline} mx-auto mt-6 text-slate-500`}>
+        {/* ② Tagline thương hiệu — **cùng trục** với wordmark, ⛔ không căn
+            theo `Welcome to`. Hai dòng này là **một khối thương hiệu**. */}
+        <p className={`${TYPE.heroTagline} mt-4 text-center text-slate-500 sm:mt-5`}>
           {t('brand.tagline')}
         </p>
 
@@ -280,7 +292,7 @@ export default function HomeContent({
             🔑 Và màu vẫn theo nhóm *(Rev 2)*, nên **mắt vẫn thấy cụm** dù
             ⛔ không còn chữ nào nói ra. Đó đúng cách màn hình điện thoại
             hoạt động. */}
-        <div className="mx-auto grid max-w-5xl grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-10">
+        <div className="mx-auto grid max-w-5xl grid-cols-4 gap-x-1.5 gap-y-6 sm:gap-x-4 sm:gap-y-8">
           {MODULES.map((mod) => (
             <AppCard
               key={mod.id}

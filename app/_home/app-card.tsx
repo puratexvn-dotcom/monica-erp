@@ -6,7 +6,7 @@ import { Lock } from 'lucide-react';
 import type { ModuleItem } from '../home-modules';
 import type { PermissionState } from '@/lib/mos/capability/visible-modules';
 import type { LiveStateOrNull } from '@/lib/mos/registry/live-state';
-import { MODULE_SURFACE, GLASS, STATUS } from '@/lib/design/tokens';
+import { MODULE_SURFACE, GLASS, GLASS_GLOW, STATUS } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
 
@@ -155,9 +155,9 @@ export default function AppCard({
             vẫn là mỏ neo rõ ràng — đúng cỡ biểu tượng trên màn hình chính điện
             thoại. */}
         <span
-          className={`flex h-[84px] w-[84px] items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-[144px] sm:w-[144px] ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
+          className={`flex h-[96px] w-[96px] items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-[164px] sm:w-[164px] ${sf.tileStrong} ${GLASS} ${GLASS_GLOW} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
         >
-          <Icon className="h-[40px] w-[40px] sm:h-[70px] sm:w-[70px]" strokeWidth={1.75} aria-hidden="true" />
+          <Icon className="h-[46px] w-[46px] sm:h-[80px] sm:w-[80px]" strokeWidth={1.75} aria-hidden="true" />
         </span>
 
         {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt
