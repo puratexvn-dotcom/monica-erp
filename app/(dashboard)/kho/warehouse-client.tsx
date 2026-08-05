@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Boxes, ClipboardCheck, History, Loader2, Lock, PackageCheck, PackageMinus,
   PackagePlus, ScanLine, Scroll, ShieldAlert, Truck, type LucideIcon,
+  Ship, Users,
 } from 'lucide-react';
 
 import { Card } from '@/components/ui';
 import { NoData } from '@/components/data-state';
 import MosTaskInbox from '@/components/mos/command-center/mos-task-inbox';
-import MosKpiGrid from '@/components/mos/command-center/mos-kpi-grid';
+import WorkspaceShell from '@/components/workspace/workspace-shell';
+import type { QuickAction } from '@/components/workspace/blocks';
 import MosAlertPanel from '@/components/mos/command-center/mos-alert-panel';
 import {
   whTasks, whKpis, whAlerts, WH_URGENCY, WH_WATCHING_HINT, WH_TASK_EMPTY_HINT,
@@ -62,6 +64,14 @@ const TABS: Array<{ key: TabKey; label: string; icon: LucideIcon; group: Group }
 /** Tab nào đã dựng xong giao diện. Tab chưa dựng hiện trạng thái nói THẬT là
  *  chưa có, thay vì một bảng rỗng khiến người dùng tưởng kho không có dữ liệu. */
 const READY: ReadonlySet<TabKey> = new Set<TabKey>(['stock', 'inbound', 'outbound', 'risk', 'inspect', 'reserve']);
+
+/** Việc làm nhanh của Kho — trỏ tới route ĐANG CHẠY THẬT.
+ *  ⛔ Không thêm mục nào chỉ để dải trông đầy: một nút dẫn tới nơi ⛔ không
+ *  tồn tại là *"lời nói dối của giao diện"*. */
+const VIEC_NHANH_KHO: readonly QuickAction[] = [
+  { id: 'kho.xuat-hang', labelKey: 'appShort.shipment', icon: Ship, href: '/xuat-hang' },
+  { id: 'kho.gia-cong', labelKey: 'appShort.subcontract', icon: Users, href: '/subcon' },
+];
 
 export default function WarehouseClient({
   initialStock,
@@ -143,45 +153,17 @@ export default function WarehouseClient({
   );
 
   return (
-    <>
-      {/* ═══ BA CỘT ĐIỀU HÀNH ══════════════════════════════════════════════ */}
-      {cc === null ? (
-        <div className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-14 text-slate-400">
-          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-          <span className="text-sm font-medium">Đang tổng hợp tình hình kho...</span>
-        </div>
-      ) : (
-        <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <MosTaskInbox
-              title="Nhiệm vụ hôm nay"
-              tasks={feed?.tasks ?? []}
-              error={cc.errors.all}
-              wording={WH_URGENCY}
-              emptyTitle="Không có nhiệm vụ nào đang chờ"
-              emptyHint={WH_TASK_EMPTY_HINT}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <MosKpiGrid
-              title="Tổng quan tồn kho"
-              kpis={feed?.kpis ?? null}
-              loading={ccLoading}
-              onReload={loadCc}
-            />
-          </div>
-          <div className="lg:col-span-1">
-            <MosAlertPanel
-              title="Cảnh báo rủi ro"
-              alerts={feed?.alerts ?? []}
-              error={cc.errors.all}
-              emptyTitle="Kho đang an toàn"
-              watchingHint={WH_WATCHING_HINT}
-            />
-          </div>
-        </div>
-      )}
-
+    <WorkspaceShell
+      moduleKey="warehouse"
+      tenModule="Warehouse"
+      moTaKey="appDesc.warehouse"
+      feed={feed}
+      loi={cc?.errors.all ?? null}
+      hanhDongNhanh={VIEC_NHANH_KHO}
+      // Ba cột: /kho là màn hình mở HÀNG CHỤC LẦN mỗi ngày. Xếp dọc buộc
+      // người dùng cuộn qua hộp việc mỗi lần chỉ để liếc một con số.
+      bocCuc="ngang"
+    >
       {/* ═══ KHỐI TAB NGHIỆP VỤ — LIỀN MẠCH, KHÔNG BỌC ═════════════════════
           Theo docs/UI_UX_STANDARDS.md §1.2: gấp lại thì mỗi lần mở một tab mất
           thêm một cú bấm, với người vào hàng chục lần mỗi ngày là hàng chục cú
@@ -341,6 +323,6 @@ export default function WarehouseClient({
       )}
 
       <Material360Sheet stock={open360} onClose={() => setOpen360(null)} />
-    </>
+    </WorkspaceShell>
   );
 }

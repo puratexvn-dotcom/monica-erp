@@ -60,6 +60,26 @@ export interface WorkspaceShellProps {
    * Adapter gắn vào trước khi truyền xuống.
    */
   feed: MosFeed | null;
+  /**
+   * **Mật độ** của ba khối điều hành — ⛔ **không** phải thứ tự của chúng.
+   *
+   * | | |
+   * |---|---|
+   * | `'doc'` *(mặc định)* | xếp **dọc** — phân hệ thưa khối, đọc từ trên xuống |
+   * | `'ngang'` | **ba cột** `2/2/1` — phân hệ **dày đặc**, người dùng mở hàng chục lần mỗi ngày |
+   *
+   * 🔑 **Khung giữ nguyên THỨ TỰ** *(việc → số → cảnh báo)* ở **cả hai** chế
+   * độ. `P7`/`P31`/`P32` được thoả bởi **trái-sang-phải** y hệt
+   * **trên-xuống-dưới** — cái đọc trước vẫn là **việc**.
+   *
+   * ⚠️ **⛔ Không ép mọi phân hệ vào một mật độ.** `/kho` có ba cột từ trước, và
+   * ba cột **đúng** cho một màn hình mở hàng chục lần mỗi ngày: xếp dọc buộc
+   * người dùng cuộn qua hộp việc mỗi lần chỉ để liếc một con số. Ép xếp dọc là
+   * khung **lấn sang quyết định nó ⛔ không nên quyết** — nó chịu trách nhiệm
+   * về **trải nghiệm**, và trải nghiệm của một màn dùng liên tục ⛔ khác màn
+   * dùng vài lần.
+   */
+  bocCuc?: 'doc' | 'ngang';
   hanhDongNhanh: readonly QuickAction[];
   /**
    * Lỗi đọc dữ liệu từ Command Center. `null`/bỏ trống = đọc được.
@@ -74,7 +94,7 @@ export interface WorkspaceShellProps {
 }
 
 export default function WorkspaceShell({
-  moduleKey, tenModule, moTaKey, feed, loi, hanhDongNhanh, children,
+  moduleKey, tenModule, moTaKey, feed, loi, hanhDongNhanh, bocCuc = 'doc', children,
 }: WorkspaceShellProps) {
   const { t } = useLanguage();
   const mau = MODULE_IDENTITY[moduleKey];
@@ -115,30 +135,44 @@ export default function WorkspaceShell({
 
           🔑 Thứ tự vẫn là **VIỆC → SỐ → HÀNH ĐỘNG**. Đó là phần khung này
           **giữ**, và là lý do nó tồn tại thay vì để mỗi phân hệ tự xếp. */}
-      <div className="mb-8">
-        <MosTaskInbox title={t('workspace.today')} tasks={feed?.tasks ?? []} error={loi} />
+      {/* ⚠️ BA KHỐI ĐIỀU HÀNH ĐI LIỀN NHAU, ở **cả hai** mật độ.
+          Bản trước tôi để `MosAlertPanel` rơi xuống **sau `children`** — tức
+          sau cả bảng dữ liệu của phân hệ. Cảnh báo nằm dưới bảng thì người
+          dùng đọc hết bảng rồi mới biết có cảnh báo, và tới lúc đó họ đã tự
+          rút kết luận từ bảng rồi. Việc · Số · Cảnh báo là **một cụm**. */}
+      <div
+        className={
+          bocCuc === 'ngang'
+            ? 'mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5'
+            : 'mb-8 flex flex-col gap-6'
+        }
+      >
+        <div className={bocCuc === 'ngang' ? 'lg:col-span-2' : ''}>
+          <MosTaskInbox title={t('workspace.today')} tasks={feed?.tasks ?? []} error={loi} />
+        </div>
+        <div className={bocCuc === 'ngang' ? 'lg:col-span-2' : ''}>
+          <MosKpiGrid title={t('workspace.kpi')} kpis={feed?.kpis ?? null} />
+        </div>
+        {/* Cảnh báo nay là khối THẬT của lớp nghiệp vụ, ⛔ không còn là ô chờ. */}
+        <div className={bocCuc === 'ngang' ? 'lg:col-span-1' : ''}>
+          <MosAlertPanel
+            title={t('workspace.alerts')}
+            alerts={feed?.alerts ?? []}
+            error={loi}
+            watchingHint={t('workspace.watchingHint')}
+          />
+        </div>
       </div>
-      <div className="mb-8">
-        <MosKpiGrid title={t('workspace.kpi')} kpis={feed?.kpis ?? null} />
-      </div>
+
       <QuickActions hanhDong={hanhDongNhanh} moduleKey={moduleKey} />
 
       {children}
 
       {/* ─── KHỐI ĐÃ THIẾT KẾ, ⛔ CHƯA CÓ DỮ LIỆU ───────────────────────
-          Ba khối này cần bảng ⛔ chưa tồn tại, và `SECURITY FREEZE` đang chặn
+          Hai khối này cần bảng ⛔ chưa tồn tại, và `SECURITY FREEZE` đang chặn
           migration. Hiện chúng ra kèm **lý do thật** thay vì giấu đi hoặc bịa
           số — Playbook Điều XX: *"⛔ Không Mock"*. */}
       <BlockChoDuLieu tieuDeKey="workspace.calendar" lyDoKey="workspace.needsData" />
-      {/* Cảnh báo nay là khối THẬT của lớp nghiệp vụ, ⛔ không còn là ô chờ. */}
-      <div className="mb-8">
-        <MosAlertPanel
-          title={t('workspace.alerts')}
-          alerts={feed?.alerts ?? []}
-          error={loi}
-          watchingHint={t('workspace.watchingHint')}
-        />
-      </div>
       <BlockChoDuLieu tieuDeKey="workspace.recent" lyDoKey="workspace.needsData" />
 
       {/* ─── DẢI DỊCH VỤ TOÀN CỤC ──────────────────────────────────────

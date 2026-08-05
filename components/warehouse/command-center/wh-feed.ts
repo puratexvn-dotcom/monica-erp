@@ -86,6 +86,19 @@ export function whKpis(cc: WhCommandCenter, go: (t: WhTabTarget) => void): MosKp
     },
     {
       id: 'value', tone: 'emerald', icon: ArrowDownToLine, label: `Giá trị kho (${k.currency})`,
+      // P38 — KHUYEN NGHI phai chi ra NGUYEN NHAN CO TEN.
+      //
+      // Gia tri kho chi dung khi MOI ma vat tu deu co don gia. Con ma chua co
+      // gia thi con so nay THIEU, va nguoi doc ⛔ khong the biet thieu bao nhieu.
+      // Cau nay noi ro CON BAO NHIEU MA chua co gia — do la mot nguyen nhan co
+      // ten, du de biet DI DAU.
+      //
+      // ⚠️ Chi gan khi THAT SU co ma thieu gia. ⛔ Khong bia mot khuyen nghi de
+      // lap cho trong: khuyen nghi sai gui nguoi van hanh DI NHAM CHO, va lan
+      // sau ho thoi tin khuyen nghi — ke ca nhung lan dung.
+      ...(k.unvaluedCount > 0
+        ? { recommendation: `${nf.format(k.unvaluedCount)} mã chưa có đơn giá — bổ sung giá để con số này đủ.` }
+        : {}),
       value: k.totalValue === null ? '—' : nf.format(k.totalValue),
       sub: k.totalValue === null
         ? `${k.unvaluedCount} dòng đều chưa có đơn giá`

@@ -54,7 +54,9 @@ export default async function WarehousePage() {
   return (
     // Phần chừa chỗ cho thanh điều hướng cố định đã làm ở app/layout.tsx
     // (pb-20) — làm lại ở đây sẽ ra khoảng trắng gấp đôi ở cuối trang.
-    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
+    // ⚠️ ⛔ KHÔNG bọc thêm lớp căn giữa nào ở đây: WorkspaceShell đã có
+    // `mx-auto max-w-7xl px-4 py-6`. Bọc hai lần ra đệm gấp đôi.
+    <>
       <WarehouseClient
         initialStock={stock.rows}
         initialStockError={stock.error}
@@ -67,6 +69,6 @@ export default async function WarehousePage() {
         poOptions={pos.rows}
         initialPoError={pos.error}
       />
-    </div>
+    </>
   );
 }
