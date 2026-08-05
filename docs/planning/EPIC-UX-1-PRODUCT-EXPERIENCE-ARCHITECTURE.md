@@ -760,6 +760,59 @@ ban — đúng `BA-1 §8.6`. Ghi ở đây để ⛔ không ai bật nhầm.
 > **Trạng thái Rev 5:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
 
 ---
+---
+
+# §16 · REVISION 6 — HỆ QUẢ CỦA QUYẾT ĐỊNH NGUỒN CHÂN LÝ
+
+> Board cho phép cập nhật UX-1 *"nếu cần"*. Quyết định ở `BA-1 §22` *(hợp nhất
+> bất đối xứng)* chạm vào **đúng một** chỗ của UX-1. Tôi ghi **một mục**, ⛔ không
+> viết thêm cho đủ số.
+
+## 16.1 `Permission State` sẽ đọc một claim **có thể CŨ** — và điều đó **⛔ không sao**
+
+`BA-1 §22.3` chốt: bậc ②③④ đọc **claim đã chiếu**, ⛔ không đọc CSDL sống.
+`Permission State` *(§14.2)* nằm ở **bậc ③**.
+
+⇒ Một người vừa **bị thu hồi quyền** có thể vẫn thấy ô hiện `AUTHORIZED` **cho
+tới khi token làm mới**.
+
+| | |
+|---|---|
+| **Hậu quả tối đa** | họ **bấm vào**, và bậc ⑤⑥⑦ **chặn lại** ⇒ ra màn **403** |
+| **Có phải lỗ hổng ⛔ không?** | 🔴 **⛔ KHÔNG** — `PA-1`: bậc ③ **⛔ chưa bao giờ** là hàng rào |
+| **⇒ §14 có phải sửa ⛔ không?** | ✅ **⛔ KHÔNG. Giữ nguyên.** |
+
+🔑 Đây là **cùng một lập luận** đã dùng cho quyết định *"Launcher ⛔ ≠
+Permission"* của Board: ô Launcher sai ⇒ **một cú bấm hụt**, ⛔ không phải một lỗ
+hổng. Nay nó áp thêm cho **claim cũ** — cùng bậc, cùng kết luận.
+
+## 16.2 ⚠️ Nhưng nó làm `EP-3` **nặng thêm**
+
+`EP-3` §12.5 đã ghi: *"403 sẽ thành màn hình lưu lượng cao"*. Nay có **nguồn thứ
+hai** đổ vào cùng màn hình đó:
+
+```
+Nguồn 1 · Phương án D  → khách/nhân viên bấm Module ⛔ không có quyền   (đã biết)
+Nguồn 2 · claim cũ     → người VỪA BỊ THU HỒI quyền vẫn thấy ô sáng   (MỚI)
+```
+
+⚠️ **Nguồn 2 gây bối rối hơn nguồn 1.** Người dùng ở nguồn 1 **⛔ chưa từng** có
+quyền — họ hiểu ngay. Người ở nguồn 2 **vừa mới hôm qua còn vào được** ⇒ với họ,
+403 trông như **lỗi hệ thống**, ⛔ không phải như một quyết định phân quyền.
+
+⇒ **`EP-4`:** màn 403 phải nói được *"quyền của bạn **vừa thay đổi** — hãy đăng
+nhập lại"*, ⛔ không chỉ *"bạn ⛔ không có quyền"*. Phân biệt được hai nguồn bằng
+cách so **claim** với **quyền thật** tại thời điểm bị chặn.
+
+⛔ **Không sửa mã bây giờ** — ghi để khi `ADR-023` bước `B3` chạy thì `EP-4` đã
+nằm sẵn trong yêu cầu, ⛔ không phải phát hiện lại sau khi người dùng kêu.
+
+---
+
+> **Trạng thái Rev 6:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
+> **⛔ Không thay đổi nào khác ở UX-1** — §14 giữ nguyên.
+
+---
 
 # §0 · BỐN ĐIỂM VA CHẠM VỚI HIẾN PHÁP — ĐỌC TRƯỚC
 

@@ -1431,3 +1431,336 @@ Một phép đo âm tính chỉ chứng minh được **điều đã hỏi**.
 ---
 
 > **Trạng thái Rev 5:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
+
+---
+---
+
+# §22 · REVISION 6 — NGUỒN CHÂN LÝ DUY NHẤT CHO PHÂN QUYỀN
+
+## 22.1 🔴 Câu hỏi Board đặt ra có một tiền đề cần sửa trước
+
+> *"Permission lấy từ Application Model, Database Model, hay mô hình hợp nhất?"*
+
+⚠️ **Cả hai mô hình A và B đều ⛔ KHÔNG phải nguồn chân lý hôm nay.**
+
+```
+lib/rbac.ts  ─── đọc ──► app_metadata.role  ◄── đọc ─── policy RLS
+                          (claim trong JWT)
+                                 ▲
+                     nguồn chân lý THẬT SỰ hôm nay
+
+roles · permissions · role_permissions · user_roles
+                     ⛔ KHÔNG AI ĐỌC          ← TD-42
+```
+
+| | Vai trò thật |
+|---|---|
+| **`app_metadata.role`** | 🔑 **nguồn chân lý de facto** — cả tầng ứng dụng lẫn RLS đều đọc **chính nó** |
+| **Mô hình A** *(`lib/rbac.ts`)* | **bảng tra** *(vai → tiền tố route)*, ⛔ **không** phải nguồn |
+| **Mô hình B** *(4 bảng CSDL)* | **bản sao thứ ba, ⛔ không dẫn xuất từ đâu và ⛔ không ai đọc** |
+
+⇒ Trả lời chính xác: **hệ thống ⛔ không có hai mô hình song song — nó có MỘT
+claim làm nguồn, MỘT bảng tra tĩnh, và MỘT lược đồ mồ côi.**
+
+## 22.2 Ba phương án — đánh giá
+
+### ① Application Model làm chuẩn *(giữ `rbac.ts`, xoá 4 bảng)*
+
+| ✅ | 🔴 |
+|---|---|
+| đơn giản nhất · ⛔ không lệch · chạy được Edge | **đổi phân quyền = phải DEPLOY** |
+| | **⛔ không biểu diễn được kiêm nhiệm** *(`Q-14`)* |
+| | **RLS ⛔ không đọc được file `.ts`** ⇒ bậc ⑦ vẫn phải dựa vào claim ⇒ *"nguồn duy nhất"* **⛔ không đạt được** |
+
+### ② Database Model làm chuẩn *(nạp 4 bảng, mọi tầng đọc CSDL)*
+
+| ✅ | 🔴 |
+|---|---|
+| quyền là **DỮ LIỆU** — đổi ⛔ không cần deploy | 🔴 **`middleware.ts` chạy Edge — ⛔ KHÔNG được truy vấn CSDL mỗi lần điều hướng** |
+| `user_roles` N:N ⇒ **kiêm nhiệm được** | 🔴 **Quy tắc `K-3`**: policy truy vấn `user_roles` sẽ **chịu RLS trên chính `user_roles`** ⇒ biến *khoanh vùng* thành *chặn phẳng* |
+| `permissions.module` = **tầng Capability sẵn có** | ⇒ bắt buộc bắc cầu bằng `SECURITY DEFINER` ⇒ **một lỗ khoét mới** phải ghi vào Registry |
+
+### ③ Hợp nhất **BẤT ĐỐI XỨNG** — 🔑 **KHUYẾN NGHỊ**
+
+```
+NGUỒN CHÂN LÝ DUY NHẤT = MÔ HÌNH CSDL (B)
+
+Bậc ②③④  TRẢI NGHIỆM  ──► đọc CLAIM đã chiếu vào app_metadata
+                            (nhanh · Edge-safe · CHẤP NHẬN được CŨ)
+
+Bậc ⑤⑥⑦  AN NINH      ──► đọc THẲNG CSDL
+                            (thu hồi có hiệu lực NGAY)
+```
+
+## 22.3 🔑 Vì sao đường ranh giới rơi đúng chỗ đó — nó ⛔ **không** phải lựa chọn mới
+
+`PA-1` *(Rev 4, Board đã duyệt)* đã vạch sẵn: **bậc ①–④ là TRẢI NGHIỆM, bậc ⑤–⑦
+là AN NINH.**
+
+Và đó **chính xác** là đường phân định *"chỗ nào chịu được dữ liệu cũ"*:
+
+| | Bậc ②③④ | Bậc ⑤⑥⑦ |
+|---|---|---|
+| Sai thì sao? | **một cú bấm hụt** | 🔴 **một lỗ hổng** |
+| Chịu được claim cũ? | ✅ **có** | 🔴 **⛔ KHÔNG** |
+
+🔑 **Kiến trúc ⛔ không phải do tôi chọn — nó rơi ra từ một nguyên tắc Board đã
+duyệt.** Đó là dấu hiệu `PA-1` là nguyên tắc đúng.
+
+## 22.4 ⚠️ Cái bẫy phải nói rõ: **claim là ẢNH CHỤP, ⛔ không phải sự thật sống**
+
+Dự án **đã trả giá cho bài học này rồi**, và nó nằm ngay trong `CLAUDE.md`:
+
+> *"`Actor.partnerId` phải phân giải từ bảng `partner_accounts` (có `is_active`),
+> **⛔ không** lấy từ claim trong JWT — **claim ⛔ không đổi khi quan hệ đối tác
+> chấm dứt**."*
+
+⇒ **`SSoT-1`:** claim được phép dùng cho bậc ②③④. **Cấm** dùng claim cho bất kỳ
+phán quyết nào mà **thu hồi phải có hiệu lực ngay**. Đó là toàn bộ bậc ⑤⑥⑦.
+
+⇒ **`SSoT-2`:** mọi phán quyết ở bậc ⑦ phải kiểm **trạng thái sống** *(`is_active`
+· `deleted_at`)*, ⛔ không chỉ kiểm vai.
+
+## 22.5 Lộ trình — bốn bước, ⛔ **không** làm một lần
+
+| # | Bước | Rủi ro | Điều kiện |
+|---|---|---|---|
+| **B0** | 🔴 **DÁN NHÃN `TD-42` NGAY** — ghi `-- ⛔ CHƯA NỐI DÂY` vào 4 bảng | ⛔ **không** | ⛔ không cần ADR · **làm được hôm nay** |
+| **B1** | Nạp dữ liệu 4 bảng cho **khớp** `MODULE_ACCESS` hiện hành | thấp — **⛔ chưa ai đọc** | `ADR-023` |
+| **B2** | Bậc ⑤⑥ đọc CSDL qua `SECURITY DEFINER` *(bắc cầu `K-3`)* | 🔴 **cao** | `ADR-023` + Registry + hồi quy |
+| **B3** | Chiếu claim từ CSDL; `rbac.ts` còn lại **kiểu + bảng tra** | vừa | sau B2 |
+
+⚠️ **`B0` là việc rẻ nhất và cấp nhất trong toàn bộ Rev 6.** Nó ⛔ không sửa kiến
+trúc — nó chỉ **ngăn người sau hiểu nhầm**. Bốn bảng đó sẽ nằm đó **hàng tháng**
+trước khi `ADR-023` xong.
+
+---
+
+# §23 · BUSINESS DOMAIN LAYER — TÁM TẦNG
+
+## 23.1 Chuỗi đầy đủ
+
+```
+① Business Domain    "lĩnh vực nào của doanh nghiệp"      14 Domain
+② Business Object    "cái gì tồn tại · RLS bảo vệ cái gì" ≈26 · §18.3
+③ Business Process   "nó chảy thế nào"                    21 · §18.3
+④ Capability         "làm được việc gì"                   permissions.module
+⑤ Workspace          "làm ở đâu"                          cây app/
+⑥ Role               "tôi là ai"          → MẶC ĐỊNH      lib/rbac.ts · roles
+⑦ Assignment         "được giao cái gì"   → PHẠM VI       assignments
+⑧ Permission         "được gì trên DÒNG này"              phán quyết lúc chạy
+```
+
+## 23.2 Vai trò và quan hệ từng tầng
+
+| Tầng | Trả lời | Quan hệ | Đổi khi |
+|---|---|---|---|
+| ① **Domain** | *lĩnh vực* | `1 : N` Object | đổi **mô hình kinh doanh** — gần như ⛔ không |
+| ② **Object** | *danh từ nghiệp vụ* | **1 : 1** Process sở hữu *(`BO-1`)* · `1 : N` process đọc | thêm nghiệp vụ mới |
+| ③ **Process** | *động từ nghiệp vụ* | `1 : N` Capability | đổi **quy trình** |
+| ④ **Capability** | *năng lực* | `N : M` Workspace | tách/gộp năng lực |
+| ⑤ **Workspace** | *bề mặt* | `N : M` Capability | **quyết định sản phẩm** |
+| ⑥ **Role** | *nhóm quyền mặc định* | `N : M` Capability · `N : M` người | **tuyển · thăng chức** |
+| ⑦ **Assignment** | *phạm vi tài nguyên* | `N : M` Object instance | **hằng ngày** |
+| ⑧ **Permission** | *phán quyết* | hàm của ⑥ ⊕ ⑦ ⊕ instance | **mỗi request** |
+
+## 23.3 🔑 Chuỗi chạy từ **BỀN NHẤT** tới **BIẾN ĐỘNG NHẤT** — và đó là quy tắc thiết kế
+
+```
+①────────②────────③────────④────────⑤────────⑥────────⑦────────⑧
+BỀN                                                          BIẾN ĐỘNG
+gần như ⛔ không đổi                                    đổi mỗi request
+
+         ĐƯỢC PHÉP LÀ MÃ           │        BẮT BUỘC LÀ DỮ LIỆU
+         ①②③④⑤                     │        ⑥⑦⑧
+```
+
+⇒ **`BD-1`:** tầng ①–⑤ được phép khai bằng **mã/cấu hình** — chúng đổi theo
+**mô hình kinh doanh**, và mỗi lần đổi **xứng đáng** một lần deploy.
+Tầng ⑥–⑧ **bắt buộc là dữ liệu** — chúng đổi theo **con người**, và ⛔ không ai
+deploy để cho một nhân viên mới vào làm.
+
+### 23.3.1 🔴 Hôm nay tầng ⑥ đang **sai phía** của đường kẻ
+
+```
+lib/rbac.ts:  export type Role = 'superadmin' | 'giamdoc' | ... (14 giá trị)
+```
+
+**Vai đang là MÃ.** ⇒ Thêm một vai = sửa union + `MODULE_ACCESS` + `ROLE_LABEL`
++ `ROLE_HOME` + **deploy**. Với 6 phòng ban ⛔ chưa có vai *(§12.2)*, đó là **sáu
+lần deploy** cho một việc lẽ ra là **sáu dòng `INSERT`**.
+
+🔑 **`TD-40` · `Q-14` · `TD-42` là BA TRIỆU CHỨNG của CÙNG MỘT bệnh: tầng ⑥ nằm
+sai phía của `BD-1`.** Và `§22` phương án ③ chính là thuốc.
+
+### 23.3.2 `BD-2` — mỗi tầng chỉ được biết tầng **liền kề**
+
+Tầng ⑧ ⛔ **không** được hỏi *"người này thuộc Domain nào"*. Nó hỏi Assignment.
+⛔ Không có luật này, mọi tầng sẽ nói chuyện thẳng với mọi tầng và mô hình 8 tầng
+trở thành **8 cái tên cho một mớ dây**.
+
+---
+
+# §24 · MODULE OWNER — HAI LOẠI CHỦ
+
+## 24.1 Định nghĩa
+
+| | **Business Owner** | **Technical Owner** |
+|---|---|---|
+| Sở hữu | **CHẠY CÁI GÌ** — luật nghiệp vụ | **CHẠY THẾ NÀO** — hiện thực |
+| Quyết | quy tắc · trạng thái hợp lệ · thứ tự ưu tiên | lược đồ · chỉ mục · policy · hiệu năng |
+| Là | **đơn vị tổ chức** *(§19.3)* | **IT** |
+| Trả lời | *"chứng từ này được sửa sau khi duyệt ⛔ không?"* | *"chặn bằng trigger hay bằng policy?"* |
+| ⛔ **KHÔNG** quyết | cách hiện thực | **luật nghiệp vụ** |
+
+🔑 **Ranh giới sắc gọn:** Business Owner nói ***"⛔ không được sửa sau khi
+duyệt"***. Technical Owner chọn `045` Aggregate Immutability Engine. **Đảo
+chiều là hỏng**: IT tự đặt luật nghiệp vụ ⇒ bậc 6 leo lên bậc 0.
+
+## 24.2 Phạm vi quyết định
+
+| Việc | Business Owner | Technical Owner | Board |
+|---|---|---|---|
+| Thêm trạng thái vào vòng đời chứng từ | ✅ **quyết** | tư vấn | — |
+| Đổi `final_states` của một aggregate | đề xuất | tư vấn | 🔴 **quyết** *(ADR)* |
+| Thêm cột / chỉ mục | tư vấn | ✅ **quyết** | ADR nếu chạm RLS |
+| Đổi policy RLS | 🔴 **⛔ KHÔNG** | đề xuất | 🔴 **quyết** *(ADR)* |
+| Thứ tự ưu tiên phát triển Module | ✅ **quyết** | — | — |
+| Cấp quyền cho một người | 🔴 **⛔ KHÔNG** — xem `MO-5` | 🔴 **⛔ KHÔNG** | qua **Assignment** |
+
+## 24.3 🔴 `MO-5` — MODULE OWNER ⛔ KHÔNG CÓ QUYỀN VƯỢT RLS
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  Ownership ⛔ KHÔNG được xuất hiện trong BẤT KỲ policy RLS nào.        ║
+║  ⛔ KHÔNG cột `owner_id` nào được dùng làm điều kiện cấp quyền.        ║
+║  Chủ Module đọc được đúng những dòng mà Assignment của họ cho phép —  ║
+║  ⛔ KHÔNG hơn một dòng nào.                                            ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+**Vì sao luật này bắt buộc:** ⛔ không có nó, `owner` sẽ dần thành một cột được
+mượn trong policy *("chủ Module thì xem hết Module của mình chứ?")*. Đó là
+**`superadmin` thứ hai, và nó mọc lên MƯỜI SÁU lần** — mỗi Module một cái.
+
+### 24.3.1 Chủ Module cần **THẤY**, ⛔ không cần **VÀO**
+
+Nhu cầu thật của Business Owner là **báo cáo tổng hợp**, ⛔ không phải đọc từng
+dòng. Đó là một **Capability** *(`reporting`)* cấp qua Assignment — **ghi nhật
+ký được, thu hồi được, rà soát được**. Ownership thì ⛔ **không** có ba tính chất
+đó.
+
+⇒ **`MO-6`:** Owner cần đọc dữ liệu thật ⇒ cấp bằng **Assignment tường minh**,
+⛔ **không** bằng hệ quả của ownership.
+
+### 24.3.2 `MO-5` **kiểm được bằng máy**
+
+⇒ Đề nghị `ADR-025` kèm một phép kiểm tĩnh: **⛔ không policy RLS nào được nhắc
+tới cột ownership**. Rẻ, chạy ⛔ không cần CSDL, và biến `MO-5` từ **lời hứa**
+thành **hàng rào** — đúng tinh thần *"luật là dữ liệu"* đã trả cổ tức ở `045b`.
+
+---
+
+# §25 · ARCHITECTURE DECISION ROADMAP
+
+## 25.1 Bảng lộ trình
+
+| ADR | Mục tiêu | Phụ thuộc | Chặn cái gì | Trạng thái | Khi nào |
+|---|---|---|---|---|---|
+| **`ADR-021`** | Tu chính §13.3 *(Work Zone)* · §15.3 *(nút `Work`)* · §13.1 *(`sole purpose`)* | ⛔ **⛔ không** | 🔴 **toàn bộ mã Homepage + Work Zone** | 📝 đề nghị | 🥇 **NGAY — cổng vào của mọi việc UI** |
+| **`ADR-022`** | Tu chính §13.5 — Homepage hiện **toàn bộ** Module | ⛔ không *(nhưng cùng chạm Điều 13 ⇒ nên đi cùng `021`)* | 🔴 cách dựng lưới Launcher | 📝 đề nghị · ⚠️ **Board ⛔ chưa nhắc ở Rev 6** | 🥈 cùng `021` |
+| **`ADR-025`** | Module Ownership · **`MO-1`** · **`MO-5`** | `Q-10` `Q-11` `Q-16` | quản trị — ⛔ **không** chặn mã | 📝 đề nghị | 🥉 **rẻ, làm sớm** |
+| **`ADR-023`** | 🔑 **Nguồn chân lý phân quyền** *(§22 ③)* + Capability Layer + `TD-42` | `SECURITY FREEZE` · `TC-1…TC-5` | 🔴 Workspace · vai mới · kiêm nhiệm | 📝 đề nghị · **lớn nhất** | 4️⃣ sau khi gỡ freeze |
+| **`ADR-024`** | Signature versioning *(`UP-4`)* | ⛔ không | User Profile **Phase 2** | 📝 đề nghị | 5️⃣ cùng Profile P2 |
+
+## 25.2 Đồ thị phụ thuộc
+
+```
+ADR-021 ──┬──► mã Homepage · Work Zone
+ADR-022 ──┘
+
+ADR-025 ──► (quản trị — ⛔ không chặn mã)   ⚠️ nhưng Q-10 Q-11 phải trả lời trước
+
+SECURITY FREEZE ──► ADR-023 ──┬──► vai mới ⛔ không cần deploy
+   (B2 · TC-1…TC-5)           ├──► kiêm nhiệm (Q-14)
+                              └──► Workspace 4/7 khối
+
+ADR-024 ──► User Profile Phase 2
+```
+
+🔑 **`ADR-021` ⛔ không phụ thuộc gì và chặn nhiều nhất ⇒ làm trước.**
+🔴 **`ADR-023` phụ thuộc `SECURITY FREEZE` ⇒ ⛔ không khởi động được cho tới khi
+Board cắt `B2`.**
+
+## 25.3 ⚠️ Ba việc ⛔ **không** cần ADR — làm được ngay
+
+| # | Việc | Vì sao ⛔ không cần ADR |
+|---|---|---|
+| **`B0`** | 🔴 Dán nhãn `-- ⛔ CHƯA NỐI DÂY` vào 4 bảng `TD-42` | **chú thích**, ⛔ không đổi hành vi |
+| — | Bổ sung `tagline` + `businessValue` cho 16 Module | dữ liệu hiển thị · ⛔ không chạm quyền · ⛔ không chạm CSDL |
+| — | Trả lời `Q-9`…`Q-16` | quyết định **nghiệp vụ**, thuộc Board *(bậc 0)* |
+
+## 25.4 ⚠️ Hai ghi chú quản trị
+
+| # | |
+|---|---|
+| ① | **`ADR-022` ⛔ không có trong danh sách Board nêu ở Rev 6.** Tôi giữ nó trong bảng vì §13.5 *(`"shall display **only**"`)* **vẫn mâu thuẫn** với *"hiện toàn bộ Module"*. ⇒ **`Q-17`: Board bỏ, hay gộp vào `ADR-021`?** ⛔ Không tự quyết |
+| ② | **Số ADR phải được cấp tập trung.** `ADR-021`…`025` ở đây là **đề nghị**, ⛔ chưa cấp số. `GPR-001` `A-1` đang ghi **5 migration nằm dưới 3 ADR ⛔ chưa duyệt** — ⛔ đừng thêm một lớp số trùng lên trên đó |
+
+---
+
+# §26 · TỔNG HỢP Rev 6
+
+## 26.1 Quyết định đề nghị
+
+| # | Nội dung |
+|---|---|
+| **①** | **Nguồn chân lý = Mô hình CSDL**, hợp nhất **bất đối xứng**: bậc ②③④ đọc **claim**, bậc ⑤⑥⑦ đọc **CSDL** |
+| **②** | Đường ranh giới **⛔ không phải lựa chọn mới** — nó là `PA-1`, Board đã duyệt |
+| **③** | `BD-1`: tầng ①–⑤ **được phép là mã**; tầng ⑥–⑧ **bắt buộc là dữ liệu** |
+| **④** | `MO-5`: ownership **⛔ KHÔNG BAO GIỜ** xuất hiện trong policy RLS — **kiểm được bằng máy** |
+| **⑤** | `ADR-021` làm trước; `ADR-023` chờ gỡ freeze; **`B0` làm ngay, ⛔ không cần ADR** |
+
+## 26.2 Vấn đề phát hiện *(Rev 6)*
+
+| # | Vấn đề | Mức |
+|---|---|---|
+| `BD-1` | 🔴 **Tầng ⑥ `Role` đang là MÃ CỨNG — sai phía đường kẻ.** `TD-40` · `Q-14` · `TD-42` là **ba triệu chứng của một bệnh** | 🔴 cao |
+| `SSoT-1` | Claim là **ảnh chụp** — dự án **đã trả giá** cho bài học này ở `partner_accounts` | 🔴 cao |
+| `K-3` | Phương án ② *(CSDL thuần)* **⛔ không khả thi trực tiếp** — policy đọc `user_roles` sẽ tự chặn mình | 🟠 vừa |
+| `Q-17` | `ADR-022` ⛔ không có trong danh sách Board — bỏ hay gộp? | 🟠 vừa |
+| `B0` | 4 bảng `TD-42` sẽ nằm **hàng tháng** trước khi `ADR-023` xong | 🔴 **cấp** |
+
+## 26.3 Khuyến nghị cuối cùng — Rev 6
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  ① LÀM `B0` HÔM NAY. Dán `-- ⛔ CHƯA NỐI DÂY` vào 4 bảng TD-42.       ║
+║     ⛔ Không cần ADR · ⛔ không đổi hành vi · ngăn được đúng cái hiểu   ║
+║     nhầm nguy hiểm nhất trong lược đồ. Bốn bảng đó sẽ còn nằm đó      ║
+║     HÀNG THÁNG trước khi ADR-023 xong.                                ║
+║                                                                       ║
+║  ② CHỌN HỢP NHẤT BẤT ĐỐI XỨNG (§22 ③).                               ║
+║     ⛔ Không phải vì nó dung hoà, mà vì đường ranh giới của nó TRÙNG   ║
+║     KHÍT với PA-1 — nguyên tắc Board đã duyệt ở Rev 4. Chỗ nào sai    ║
+║     chỉ gây "bấm hụt" thì chịu được claim cũ; chỗ nào sai gây lỗ      ║
+║     hổng thì phải đọc CSDL sống.                                      ║
+║                                                                       ║
+║  ③ GHI `BD-1` VÀO ADR-023.                                           ║
+║     "Tầng ①–⑤ được phép là mã; ⑥–⑧ bắt buộc là dữ liệu." Một câu     ║
+║     này giải thích được CẢ BA khuyết tật TD-40, Q-14, TD-42 — và      ║
+║     ngăn khuyết tật thứ tư cùng loại.                                 ║
+║                                                                       ║
+║  ④ `MO-5` PHẢI CÓ PHÉP KIỂM, ⛔ KHÔNG chỉ có câu chữ.                 ║
+║     "⛔ Không policy RLS nào nhắc tới cột ownership" — rẻ, chạy ⛔ cần  ║
+║     CSDL, và biến MO-5 từ LỜI HỨA thành HÀNG RÀO.                     ║
+║                                                                       ║
+║  ⑤ ADR-021 TRƯỚC. Nó ⛔ không phụ thuộc gì và chặn nhiều nhất.        ║
+║     ADR-023 lớn nhất nhưng bị SECURITY FREEZE chặn ⇒ ⛔ không phải     ║
+║     việc làm trước, dù nó quan trọng nhất.                            ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+> **Trạng thái Rev 6:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
