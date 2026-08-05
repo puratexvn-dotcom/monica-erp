@@ -267,6 +267,14 @@
       "catThieu": "Ticket {maPhieu} is {thieu} pieces short of plan.",
       "vuotDinhMuc": "Ticket {maPhieu} used {vuot} m over allowance.",
       "onDinh": "{soPhieu} cut ticket(s) created, nothing abnormal so far."
+    },
+    "may": {
+      "kimGayChuaTimThay": "{soVu} needle break(s) with fragments NOT recovered ({chuyen}, machine {may}) — goods may contain metal.",
+      "chuaGhiSanLuong": "No hourly output recorded today — lines are running with no data.",
+      "hieuSuatThap": "Efficiency {hieuSuat}% is below the {nguong}% threshold.",
+      "chuyenTutLai": "{chuyen} is lowest ({hieuSuat}%) — check that line first.",
+      "suaLaiNhieu": "Rework rate {tyLe}% is above the {nguong}% threshold.",
+      "onDinh": "{soPhieu} hourly log(s) recorded, nothing abnormal so far."
     }
   },
   "qa": {
@@ -293,5 +301,17 @@
     "moNhatKy": "Open cut log",
     "nguon": "from {soPhieu} cut ticket(s)",
     "khuyenNghiVuot": "Ticket {maPhieu} used {vuot} m over allowance — review that marker first."
+  },
+  "may": {
+    "tongDat": "Output",
+    "mucTieu": "Target",
+    "suaLai": "Rework",
+    "hieuSuat": "Line efficiency",
+    "nhatKy": "Hourly output log",
+    "kimGay": "Needle break log",
+    "ghiSanLuong": "Record output",
+    "moNhatKy": "Open output log",
+    "nguon": "from {soPhieu} hourly log(s)",
+    "khuyenNghiChuyen": "{chuyen} is lowest ({hieuSuat}%) — review that line first."
   }
 }

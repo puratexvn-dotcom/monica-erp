@@ -267,6 +267,14 @@
       "catThieu": "Phiếu {maPhieu} cắt thiếu {thieu} sản phẩm so với kế hoạch.",
       "vuotDinhMuc": "Phiếu {maPhieu} dùng vượt định mức {vuot} m vải.",
       "onDinh": "Đã lập {soPhieu} phiếu cắt, chưa có dấu hiệu bất thường."
+    },
+    "may": {
+      "kimGayChuaTimThay": "{soVu} vụ kim gãy CHƯA tìm đủ mảnh ({chuyen}, máy {may}) — hàng có thể lẫn mảnh kim loại.",
+      "chuaGhiSanLuong": "Chưa ghi sản lượng giờ nào hôm nay — chuyền đang chạy mà không có số liệu.",
+      "hieuSuatThap": "Hiệu suất {hieuSuat}% dưới ngưỡng {nguong}% — chuyền đang chậm so với mục tiêu.",
+      "chuyenTutLai": "{chuyen} đang thấp nhất ({hieuSuat}%) — kiểm chuyền đó trước.",
+      "suaLaiNhieu": "Tỷ lệ hàng sửa lại {tyLe}% vượt ngưỡng {nguong}%.",
+      "onDinh": "Đã ghi {soPhieu} phiếu giờ, chưa có dấu hiệu bất thường."
     }
   },
   "qa": {
@@ -293,5 +301,17 @@
     "moNhatKy": "Mở nhật ký cắt",
     "nguon": "từ {soPhieu} phiếu cắt",
     "khuyenNghiVuot": "Phiếu {maPhieu} dùng vượt định mức {vuot} m — rà sơ đồ phiếu đó trước."
+  },
+  "may": {
+    "tongDat": "Sản lượng đạt",
+    "mucTieu": "Mục tiêu",
+    "suaLai": "Hàng sửa lại",
+    "hieuSuat": "Hiệu suất chuyền",
+    "nhatKy": "Nhật ký sản lượng theo giờ",
+    "kimGay": "Nhật ký kim gãy",
+    "ghiSanLuong": "Ghi sản lượng",
+    "moNhatKy": "Mở nhật ký sản lượng",
+    "nguon": "từ {soPhieu} phiếu giờ",
+    "khuyenNghiChuyen": "{chuyen} đang thấp nhất ({hieuSuat}%) — rà chuyền đó trước."
   }
 }

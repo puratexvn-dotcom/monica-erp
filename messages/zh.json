@@ -267,6 +267,14 @@
       "catThieu": "裁剪单 {maPhieu} 比计划少 {thieu} 件。",
       "vuotDinhMuc": "裁剪单 {maPhieu} 超用量 {vuot} 米。",
       "onDinh": "已开立 {soPhieu} 张裁剪单，暂未发现异常。"
+    },
+    "may": {
+      "kimGayChuaTimThay": "{soVu} 起断针未找齐碎片（{chuyen}，机台 {may}）— 货品可能混入金属碎片。",
+      "chuaGhiSanLuong": "今天尚未录入任何小时产量 — 产线在没有数据的情况下运行。",
+      "hieuSuatThap": "效率 {hieuSuat}% 低于 {nguong}% 阈值。",
+      "chuyenTutLai": "{chuyen} 最低（{hieuSuat}%）— 优先检查该线。",
+      "suaLaiNhieu": "返修率 {tyLe}% 超过 {nguong}% 阈值。",
+      "onDinh": "已录入 {soPhieu} 条小时记录，暂未发现异常。"
     }
   },
   "qa": {
@@ -293,5 +301,17 @@
     "moNhatKy": "打开裁剪记录",
     "nguon": "来自 {soPhieu} 张裁剪单",
     "khuyenNghiVuot": "裁剪单 {maPhieu} 超用量 {vuot} 米 — 优先复核该唛架。"
+  },
+  "may": {
+    "tongDat": "产出",
+    "mucTieu": "目标",
+    "suaLai": "返修",
+    "hieuSuat": "产线效率",
+    "nhatKy": "每小时产量记录",
+    "kimGay": "断针记录",
+    "ghiSanLuong": "录入产量",
+    "moNhatKy": "打开产量记录",
+    "nguon": "来自 {soPhieu} 条小时记录",
+    "khuyenNghiChuyen": "{chuyen} 最低（{hieuSuat}%）— 优先排查该线。"
   }
 }

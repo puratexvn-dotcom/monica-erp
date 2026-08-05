@@ -3,64 +3,36 @@ import {
   createHourlyProductionLog,
   createNeedleBreakLog,
 } from './actions'
+import MayShell from './may-shell'
+import { getMayCommandCenter } from './_services/command-center.service'
+
+// ============================================================================
+// SEWING WORKSPACE — Blueprint tầng ⑤
+//
+// ⚠️ Bản trước cộng bằng ba lệnh reduce ngay trong thân component, và tự viết
+// phép chia hiệu suất HAI LẦN — một cho tổng, một cho từng dòng. progressPercent
+// đã có sẵn ở garment-math.ts.
+//
+// 🔑 Product Constitution §4.1: Workspace KHÔNG đọc trực tiếp Business Data.
+// ============================================================================
 
 export const dynamic = 'force-dynamic'
 
 export default async function SewingDashboardPage() {
+  const cc = await getMayCommandCenter()
+
+  // Phục vụ BẢNG và BIỂU MẪU — dữ liệu trình bày chi tiết, KHÔNG phải phán
+  // đoán nghiệp vụ, nên chúng KHÔNG đi qua Command Center.
   const { lines, orders, hourlyLogs, needleLogs } = await getSewingDashboardData()
 
-  // Tính toán chỉ số Tổng quan
-  const totalActual = hourlyLogs.reduce((sum, l) => sum + l.actual_qty, 0)
-  const totalTarget = hourlyLogs.reduce((sum, l) => sum + l.target_qty, 0)
-  const totalRework = hourlyLogs.reduce((sum, l) => sum + l.rework_qty, 0)
-  const efficiency = totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : '0.0'
-
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-          Quản Lý Tổ May & Năng Suất Chuyền (Sewing Line Tracker)
-        </h1>
-        <p className="text-sm text-slate-500">
-          Ghi nhận sản lượng may theo giờ, theo dõi hiệu suất Target và kiểm soát quy trình an toàn kim gãy.
-        </p>
-      </div>
-
-      {/* METRIC CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Tổng Sản Lượng May Đạt</p>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">
-            {totalActual.toLocaleString()} <span className="text-sm font-normal text-slate-500">pcs</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Hiệu Suất Đạt Target</p>
-          <p className={`text-2xl font-extrabold mt-2 ${Number(efficiency) >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
-            {efficiency}%
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Áo Phải Sửa (Rework)</p>
-          <p className="text-2xl font-extrabold text-rose-600 mt-2">
-            {totalRework.toLocaleString()} <span className="text-sm font-normal text-slate-500">pcs</span>
-          </p>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-semibold uppercase text-slate-500">Sự Cố Gãy Kim (An Toàn)</p>
-          <p className="text-2xl font-extrabold text-slate-800 mt-2">
-            {needleLogs.length} <span className="text-sm font-normal text-slate-500">lần</span>
-          </p>
-        </div>
-      </div>
-
+    <MayShell viec={cc.viec} kpi={cc.kpi} loi={cc.loi}>
       {/* GRID CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* BẢNG NHẬT KÝ SẢN LƯỢNG HEATED (2 COLS) */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div id="nhat-ky-may" className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-24">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <h2 className="text-base font-semibold text-slate-800">Báo Cáo Sản Lượng May Theo Giờ</h2>
               <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full">Realtime</span>
@@ -122,8 +94,9 @@ export default async function SewingDashboardPage() {
             </div>
           </div>
 
-          {/* NHẬT KÝ KIỂM SOÁT KIM GÃY */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* NHẬT KÝ KIỂM SOÁT KIM GÃY — neo #kim-gay: việc AN TOÀN SẢN PHẨM
+              dẫn thẳng tới đây, KHÔNG dẫn tới bảng sản lượng. */}
+          <div id="kim-gay" className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-24">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <h2 className="text-base font-semibold text-slate-800">Nhật Ký An Toàn Kim Gãy (Needle Safety Protocol)</h2>
             </div>
@@ -161,8 +134,8 @@ export default async function SewingDashboardPage() {
         {/* CỘT NHẬP BÁO CÁO (1 COL) */}
         <div className="space-y-6">
           
-          {/* FORM 1: NHẬP SẢN LƯỢNG GIỜ */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          {/* FORM 1: NHẬP SẢN LƯỢNG GIỜ — neo #ghi-san-luong */}
+          <div id="ghi-san-luong" className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 scroll-mt-24">
             <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
               Ghi Nhận Sản Lượng Giờ
             </h2>
@@ -403,6 +376,6 @@ export default async function SewingDashboardPage() {
 
         </div>
       </div>
-    </div>
+    </MayShell>
   )
 }
