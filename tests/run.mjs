@@ -21,8 +21,15 @@ import { dirname, join } from 'node:path';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const chiKienTruc = process.argv.includes('--arch-only');
 
+// Cột 4 `co`: tham số truyền thêm cho Node. Bài nghiệp vụ nạp thẳng `.ts` để
+// đo ĐÚNG mã đang chạy, ⛔ không đo một bản chép sang `.mjs` — bản chép sẽ lệch
+// đúng vào ngày công thức đổi mà ⛔ không ai nhớ sửa hai chỗ.
 const BAI = [
   ['architecture/arch.test.mjs', 'Kiến trúc', false],
+  // Hàm thuần, ⛔ không cần CSDL ⇒ chạy được trên CI ⛔ không bí mật, cùng hạng
+  // với arch test. Mở hạng mục *"MD có bài kiểm nghiệp vụ"* — EDD-06 §7, I-2.
+  ['business/md-formulas.test.mjs', 'Nghiệp vụ MD — công thức', false,
+    ['--experimental-strip-types', '--no-warnings']],
   ['regression/seed-integrity.test.mjs', 'Toàn vẹn dữ liệu nền', true],
   ['security/anon-and-buyer.test.mjs', 'Quét anon + Buyer', true],
   ['security/rls-external.test.mjs', 'Phân quyền người ngoài', true],
@@ -45,14 +52,14 @@ const BAI = [
 ];
 
 const ketQua = [];
-for (const [duongDan, ten, canDb] of BAI) {
+for (const [duongDan, ten, canDb, co = []] of BAI) {
   if (chiKienTruc && canDb) { ketQua.push([ten, 'bỏ qua', '--arch-only']); continue; }
   const tep = join(HERE, duongDan);
   if (!existsSync(tep)) { ketQua.push([ten, 'thiếu', duongDan]); continue; }
   console.log('\n' + '█'.repeat(78));
   console.log('█ ' + ten);
   console.log('█'.repeat(78));
-  const r = spawnSync(process.execPath, [tep], { stdio: 'inherit' });
+  const r = spawnSync(process.execPath, [...co, tep], { stdio: 'inherit' });
   ketQua.push([ten, r.status === 0 ? 'đạt' : 'HỎNG', `mã thoát ${r.status}`]);
 }
 

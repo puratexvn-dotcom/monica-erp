@@ -40,9 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ⚠️ Node 22, KHÔNG phải 20 — Sprint I-2. Bộ kiểm nghiệp vụ MD nạp thẳng
+      # `.ts` bằng `--experimental-strip-types` để đo ĐÚNG mã đang chạy thay vì
+      # một bản chép sang `.mjs`. Cờ đó cần Node ≥ 22.6. Node 20 sẽ báo lỗi cờ
+      # lạ và bài HỎNG TO — đúng hành vi mong muốn, nhưng CI thì phải xanh.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Cài phụ thuộc
@@ -70,7 +74,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - run: npm ci

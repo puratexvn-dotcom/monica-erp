@@ -15,6 +15,84 @@
 
 ---
 
+## Sprint I-2 · Lưới an toàn — Phase 1 — 05/08/2026 · ✅ **PHASE 1 HOÀN TẤT**
+
+**Thẩm quyền khởi động:** Board Decision 05/08/2026 — tách Foundation thành
+**Technical** và **Governance**; chỉ Technical Blocker mới chặn Sprint. Chứng
+nhận [`TFC-001`](docs/audit/TECHNICAL_FOUNDATION_CERTIFICATE.md): **0 Technical
+Blocker**. Chi tiết: [`SPRINT_I2_PHASE1_REPORT.md`](docs/planning/SPRINT_I2_PHASE1_REPORT.md).
+
+### 🐛 Sửa lỗi
+
+- **`TD-17` · `KD-3` — hai màn hình cùng một PO cho hai mức khẩn cấp khác nhau.**
+  `po-twin.service.ts:132` truyền `late_milestones: 0` *(hằng số)*, trong khi
+  `po.service.ts` đếm thật ⇒ bảng danh sách hiện `CRITICAL`, trang PO 360° hiện
+  `NORMAL`. Lỗi **im lặng**: không ngoại lệ, không cảnh báo.
+  - Sửa **tận gốc**, ⛔ không vá riêng màn hình thứ hai: luật đếm rút thành hàm
+    thuần `lib/mos/calculators/milestone-lateness.calculator.ts`, **cả hai
+    service gọi cùng một hàm** nên ⛔ không lệch lại được. `AC-1`.
+  - Đọc hỏng ⇒ `'mốc tiến độ'` vào danh sách `partial` ⇒ giao diện thừa nhận
+    *"chưa đọc được"* thay vì trưng một con số bịa.
+
+### 🧪 Kiểm thử — **+67 phép đo tĩnh**
+
+- **`arch.test.mjs` mục ⑫ · phép kiểm VỐN TỪ TRẠNG THÁI — trả `TD-03`.** Đối
+  chiếu `CHECK (cột IN …)` trích từ 54 migration với `export const … as const`
+  trong `lib/` và `schemas/`. **36 bộ đã ánh xạ và đang khớp**; lệch ⇒ hỏng ngay.
+  - Sổ `tests/architecture/vocabulary-baseline.json` — mọi vốn từ phải nằm ở
+    **đúng một ô**; bộ mới không thuộc ô nào ⇒ **HỎNG**. Danh sách **tường minh**,
+    ⛔ không phải ngưỡng đếm *(khác `TD-27`)*.
+  - **Đã chứng minh có răng:** tiêm `'BLOCKED'` vào `MILESTONE_STATUSES` ⇒ đỏ
+    đúng chỗ; khôi phục ⇒ xanh. *Hỏng trước, xanh sau.*
+- **`tests/business/md-formulas.test.mjs` — bộ kiểm nghiệp vụ MD ĐẦU TIÊN của dự
+  án. 59 đạt · 0 hỏng.** 9 bài kiểm cũ đều đo *phân quyền*; chưa bài nào hỏi
+  *"con số in ra có ĐÚNG không"* trên 19.058 dòng mã MD.
+  - Nạp thẳng `.ts` để đo **đúng mã đang chạy**, ⛔ không đo bản chép sang `.mjs`.
+
+### 🔴 Bảy chỗ lệch vốn từ `[MEASURED]`
+
+| | |
+|---|---|
+| `VT-1` 🔴 | **`orders.status` KHÔNG có ràng buộc `CHECK` nào** — vốn từ chỉ sống trong một dòng chú thích (`002:17`) liệt kê **4** giá trị, mã khai **6**. Bảng trung tâm của cả hệ thống |
+| `VT-2` 🔴 | **`shipments.status` có 9, mã khai 8 — thiếu `CANCELLED`**, trong khi `026b` tồn tại đúng để canh phép huỷ. Mã ⛔ không biểu diễn nổi một lô đã huỷ |
+| `VT-3` 🟠 | `wh_audit_log.action` lệch **cả hai chiều** |
+| `VT-4` 🟠 | `INCOTERMS` **trùng tên** — 11 giá trị *(shipment)* ⟷ 7 *(MD)* |
+| `VT-5` 🟠 | `MATERIAL_CATEGORIES` **trùng tên** — `TRIM` ⟷ `TRIMS`, khác đúng một chữ |
+| `VT-6`·`VT-7` 🟡 | `qa_logs.aql_status` · `materials.uom` ⛔ không ràng buộc |
+| `VT-8` 🟠 | **17 vốn từ CSDL chưa có đại diện trong mã** |
+
+> 🔑 `VT-4` và `VT-5` **suýt lọt**: bản đầu của phép kiểm dùng `Map` khoá theo
+> tên nên hằng số thứ hai **ghi đè im lặng** hằng số thứ nhất — phép kiểm tự
+> giấu mất đúng loại khuyết tật nó sinh ra để bắt.
+
+### 🔧 Hạ tầng
+
+- **CI Node `20` → `22`** — bộ kiểm nghiệp vụ cần `--experimental-strip-types`
+  (Node ≥ 22.6). Khép luôn một khoảng lệch có sẵn: máy phát triển chạy Node 24,
+  CI chạy Node 20. ⚠️ **Chưa chạy thử trên CI** — tôi ⛔ không có CI để đo.
+
+### 📊 Đo lại sau Phase 1
+
+| Cổng | Trước | Sau |
+|---|---|---|
+| `typecheck` · `lint` | ✅ sạch | ✅ sạch |
+| `test:arch` | 43 đạt · 0 hỏng | **51 đạt · 0 hỏng** |
+| Bài kiểm nghiệp vụ MD | ⛔ **không có** | **59 đạt · 0 hỏng** |
+| `npm test` *(10 bài)* | 8/9 đạt | **9/10 đạt** |
+| `md-internal-scope` | 18 đạt · 6 hỏng | **18 đạt · 6 hỏng — ⛔ không hồi quy** |
+
+> ⚠️ **`npm run verify` vẫn ĐỎ**, và đỏ đúng bằng **6 ngoại lệ có chủ ý** của
+> `TD-25` ⇒ `TC-1` trong `TFC-001`. ⛔ Không nới ngưỡng để lấy màu xanh.
+
+### ⚠️ Chưa nghiệm thu được
+
+- **Câu truy vấn `order_milestones` mới thêm chưa từng chạy trên CSDL thật.**
+  CLAUDE.md §5 bước 3–4 đòi đăng nhập bằng tài khoản seed và đối chiếu câu select
+  với CSDL đang chạy — **ngoài thẩm quyền CSA** *(ADR-011 §2.4 mục 3)*.
+- Điều kiện ra I-2 *"`test:arch` có đủ **5** phép kiểm mới"*: đang **1/5**.
+
+---
+
 ## Sprint I-1 · An toàn — 04–05/08/2026 · ✅ **HOÀN TẤT**
 
 **Điều kiện ra của Sprint (Baseline §3.2):** `pg_policies` trên CSDL thật cho

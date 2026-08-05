@@ -348,4 +348,186 @@ for (const k of khoaVi) {
 s.ok('Từ hiến định KHÔNG bị dịch ở bất kỳ ngôn ngữ nào', saiTu.length === 0,
   saiTu.slice(0, 8).join(' · '));
 
+// ── 12. VỐN TỪ TRẠNG THÁI — `TD-03` · Sprint I-2 ───────────────────────────
+//
+// ─── KHOẢN NỢ ĐẮT NHẤT TRONG SỔ, NAY CÓ RĂNG ────────────────────────────
+// `TD-03`: *"Không có phép kiểm vốn từ trong mã ⟷ vốn từ trong CSDL."* Đó là
+// thứ đã để **8 bộ từ vựng trạng thái sống sót qua 33 migration** mà không ai
+// thấy (`KD-9` · `TD-24`). SPRINT_2_PLAN gọi nó là *"hạng mục có đòn bẩy cao
+// nhất toàn Sprint"* — dựng một lần, nó bắt mọi lần lệch về sau.
+//
+// ─── VÌ SAO LỆCH VỐN TỪ LÀ LỖI IM LẶNG ──────────────────────────────────
+// Mã khai `PO_STATUSES` có `CANCELLED`; CSDL ⛔ không ràng buộc gì. Người dùng
+// huỷ đơn ⇒ ghi được, nhưng bảng nào lọc theo tập trạng thái của mã sẽ **⛔
+// không thấy đơn đó nữa**. ⛔ Không lỗi, ⛔ không cảnh báo — chỉ là một đơn hàng
+// biến mất khỏi màn hình. Đúng hình dạng của khuyết tật mà `TD-02` mô tả.
+//
+// ─── PHÉP ĐO, KHÔNG PHẢI SUY DIỄN ───────────────────────────────────────
+// Vế CSDL đọc từ **ràng buộc `CHECK … IN (…)` trong migration**, ⛔ không đọc
+// từ trí nhớ hay từ tài liệu. Vế mã đọc từ `export const X = [...] as const`.
+// Hai vế so bằng **tập hợp**, ⛔ không so thứ tự.
+//
+// ⚠️ **Đây là phép kiểm TĨNH — nó đọc KHO, ⛔ không đọc CSDL đang chạy.**
+// `P-MEASURE` vế ②: kho và CSDL lệch nhau được, và ngày 05/08 chúng **đã** lệch
+// (`043`). Mục này bắt được lệch **mã ⟷ migration**; lệch **migration ⟷ CSDL**
+// vẫn phải đo bằng bài kiểm động.
+//
+// ─── CƠ CHẾ BÁNH CÓC ────────────────────────────────────────────────────
+// Hiện trạng đo được có drift thật. Đặt ngưỡng 0 ⇒ đỏ vĩnh viễn ⇒ ⛔ không ai
+// đọc. Thay vào đó, mọi bộ từ vựng phải được **PHÂN LOẠI** vào đúng một ô:
+//   `anhXa`              đã ánh xạ và ĐANG KHỚP  → lệch là HỎNG ngay
+//   `mienTrong`          dẫn xuất, ⛔ không có cột CSDL  → kèm LÝ DO
+//   `chuaPhanLoai`       nợ đã ghi nhận           → chỉ được NGẮN ĐI
+//   `csdlKhongCoTrongMa` vốn từ CSDL chưa có đại diện trong mã → chỉ NGẮN ĐI
+// Bộ từ vựng MỚI ⛔ không thuộc ô nào ⇒ **HỎNG**. Đó là điểm khác `TD-27`:
+// **danh sách tường minh, ⛔ không phải ngưỡng đếm.**
+console.log('\n⑫ VỐN TỪ TRẠNG THÁI — TD-03 · mã ⟷ migration');
+
+const RE_CHECK_IN =
+  /CHECK\s*\(\s*(?:[a-z0-9_]+\s+IS\s+NULL\s+OR\s+)?([a-z0-9_]+)\s+IN\s*\(([^)]*)\)/gi;
+
+/** Trích `bảng.cột → tập giá trị` từ toàn bộ migration, theo thứ tự số hiệu.
+ *  Migration sau ghi đè migration trước — đúng cách CSDL thật tiến hoá. */
+function vonTuCsdl() {
+  const ra = new Map();
+  const thuMuc = join(ROOT, 'supabase/migrations');
+  if (!existsSync(thuMuc)) return ra;
+  for (const f of readdirSync(thuMuc).filter((x) => x.endsWith('.sql')).sort()) {
+    const sql = doc(join(thuMuc, f));
+    const trongCreate = [];
+    // ① ràng buộc viết THẲNG trong CREATE TABLE — cân ngoặc để lấy đúng thân bảng
+    const reTable = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?([a-z0-9_]+)\s*\(/gi;
+    let t;
+    while ((t = reTable.exec(sql)) !== null) {
+      let i = t.index + t[0].length - 1, sau = 0, het = -1;
+      for (; i < sql.length; i++) {
+        if (sql[i] === '(') sau += 1;
+        else if (sql[i] === ')') { sau -= 1; if (sau === 0) { het = i; break; } }
+      }
+      if (het < 0) continue;
+      trongCreate.push([t.index, het]);
+      let c; RE_CHECK_IN.lastIndex = 0;
+      const than = sql.slice(t.index, het);
+      while ((c = RE_CHECK_IN.exec(than)) !== null) {
+        ra.set(`${t[1]}.${c[1]}`, [...c[2].matchAll(/'([^']*)'/g)].map((x) => x[1]));
+      }
+    }
+    // ② ràng buộc thêm sau bằng ALTER TABLE — kể cả khi nằm trong khối `DO $$`.
+    //    Bảng là `ALTER TABLE` GẦN NHẤT phía trước; cửa sổ 600 ký tự đủ cho khuôn
+    //    `ALTER TABLE … ADD CONSTRAINT … CHECK (…)` mà ⛔ không vơ nhầm bảng khác.
+    let c2; RE_CHECK_IN.lastIndex = 0;
+    while ((c2 = RE_CHECK_IN.exec(sql)) !== null) {
+      if (trongCreate.some(([a, b]) => c2.index > a && c2.index < b)) continue;
+      const truoc = sql.slice(Math.max(0, c2.index - 600), c2.index);
+      const alt = [...truoc.matchAll(/ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:public\.)?([a-z0-9_]+)/gi)];
+      if (!alt.length) continue;
+      ra.set(`${alt[alt.length - 1][1]}.${c2[1]}`,
+        [...c2[2].matchAll(/'([^']*)'/g)].map((x) => x[1]));
+    }
+  }
+  return ra;
+}
+
+/** Trích `TÊN_HẰNG → tập giá trị` từ `lib/` và `schemas/`.
+ *  Chỉ nhận mảng chuỗi VIẾT HOA — đó là hình dạng của một vốn từ nghiệp vụ;
+ *  bảng màu, khoá i18n và danh sách tên cột ⛔ không lọt vào. */
+function vonTuMa() {
+  const ra = new Map();
+  const trung = [];                       // cùng TÊN nhưng KHÁC tập giá trị
+  for (const p of [...quet('lib'), ...quet('schemas')]) {
+    const src = doc(p);
+    const re = /export const ([A-Z][A-Z0-9_]+)\s*=\s*\[([^\]]*)\]\s*as const/g;
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      const gt = [...m[2].matchAll(/'([^']*)'/g)].map((x) => x[1]);
+      if (!gt.length || gt.some((v) => !/^[A-Z][A-Z0-9_]*$/.test(v))) continue;
+      const cu = ra.get(m[1]);
+      // ⚠️ LỖI BẮT ĐƯỢC KHI DỰNG MỤC NÀY: bản đầu dùng `Map` khoá theo tên, nên
+      // hằng số thứ hai cùng tên **ghi đè im lặng** hằng số thứ nhất — phép kiểm
+      // tự giấu mất đúng loại khuyết tật nó sinh ra để bắt. `MATERIAL_CATEGORIES`
+      // và `INCOTERMS` mỗi cái có HAI bản khác nhau, và bản đầu không thấy gì.
+      if (cu && !(cu.gt.length === gt.length && [...cu.gt].sort().join('|') === [...gt].sort().join('|'))) {
+        trung.push(`${m[1]} (${cu.tep} [${cu.gt}] ⟷ ${rel(p)} [${gt}])`);
+      }
+      if (!cu) ra.set(m[1], { gt, tep: rel(p) });
+    }
+  }
+  return { ra, trung };
+}
+
+const duongDanVonTu = join(ROOT, 'tests/architecture/vocabulary-baseline.json');
+const soVonTu = existsSync(duongDanVonTu) ? JSON.parse(doc(duongDanVonTu)) : null;
+
+s.ok('Sổ vốn từ trạng thái tồn tại (cơ chế bánh cóc TD-03)', soVonTu !== null,
+  'thiếu tests/architecture/vocabulary-baseline.json');
+
+if (soVonTu) {
+  const csdl = vonTuCsdl();
+  const { ra: ma, trung } = vonTuMa();
+  const bang = (a, b) => a.length === b.length && [...a].sort().join('|') === [...b].sort().join('|');
+
+  s.ok(`Đọc được vốn từ CSDL từ migration (${csdl.size} bộ)`, csdl.size >= 40);
+  s.ok(`Đọc được vốn từ trong mã (${ma.size} bộ)`, ma.size >= 40);
+
+  // ⓪ Hai bộ từ vựng KHÁC NHAU ⛔ không được mang CÙNG MỘT TÊN.
+  //    Trùng tên là chỗ lệch nguy hiểm nhất: nơi gọi tưởng mình nhập đúng tập,
+  //    trong khi nó nhập tập của miền khác. `TRIM` ⟷ `TRIMS` chỉ khác một chữ.
+  const trungDaBiet = soVonTu.trungTenDaBiet ?? [];
+  const trungMoi = trung.filter((t) => !trungDaBiet.some((d) => t.startsWith(d)));
+  s.ok(`KHÔNG hai vốn từ khác nhau trùng tên (đang nợ ${trung.length})`,
+    trungMoi.length === 0, trungMoi.join(' ‖ '));
+
+  // ① Mọi vốn từ trong mã phải được PHÂN LOẠI — ⛔ không có ô "chưa biết"
+  const daPhanLoai = new Set([
+    ...Object.keys(soVonTu.anhXa), ...Object.keys(soVonTu.mienTrong),
+    ...Object.keys(soVonTu.chuaPhanLoai),
+  ]);
+  const chuaXep = [...ma.keys()].filter((k) => !daPhanLoai.has(k)).sort();
+  s.ok(`MỌI vốn từ trong mã đã được phân loại (${ma.size} bộ)`, chuaXep.length === 0,
+    `chưa xếp: ${chuaXep.join(' · ')} — thêm vào anhXa / mienTrong / chuaPhanLoai`);
+
+  // ② Bộ ĐÃ ánh xạ phải KHỚP CSDL — đây là phần có răng thật
+  const lech = [];
+  for (const [tenMa, cot] of Object.entries(soVonTu.anhXa)) {
+    const cv = ma.get(tenMa);
+    const dv = csdl.get(cot);
+    if (!cv) { lech.push(`${tenMa}: ⛔ không còn trong mã`); continue; }
+    if (!dv) { lech.push(`${tenMa} → ${cot}: ⛔ không tìm thấy ràng buộc CHECK`); continue; }
+    if (bang(cv.gt, dv)) continue;
+    const thieuMa = dv.filter((v) => !cv.gt.includes(v));
+    const thieuDb = cv.gt.filter((v) => !dv.includes(v));
+    lech.push(`${tenMa} ⟷ ${cot}${thieuMa.length ? ` · mã THIẾU [${thieuMa}]` : ''}${thieuDb.length ? ` · CSDL THIẾU [${thieuDb}]` : ''}`);
+  }
+  s.ok(`Vốn từ đã ánh xạ KHỚP CSDL (${Object.keys(soVonTu.anhXa).length} bộ)`,
+    lech.length === 0, lech.join(' ‖ '));
+
+  // ③ Mọi vốn từ CSDL phải có đại diện trong mã, hoặc nằm trong sổ nợ.
+  //
+  // 🔑 Một cột được coi là ĐÃ PHỦ khi tập giá trị của nó TRÙNG với một vốn từ
+  //    đã ánh xạ — kể cả khi cột đó ⛔ không phải cột được ánh xạ đích danh.
+  //    `orders.order_type` · `inquiries.order_type` · `costings.order_type` dùng
+  //    chung MỘT vốn từ; bắt khai báo ba lần chỉ làm sổ dài ra mà ⛔ không thêm
+  //    thông tin. Nhờ vế này, sổ nợ chỉ còn **khoảng trống thật**.
+  const cotDaAnhXa = new Set(Object.values(soVonTu.anhXa));
+  const tapDaBiet = Object.keys(soVonTu.anhXa)
+    .map((k) => ma.get(k)).filter(Boolean)
+    .map((v) => [...v.gt].sort().join('|'));
+  const boSot = [...csdl.entries()]
+    .filter(([k, v]) => !cotDaAnhXa.has(k)
+      && !tapDaBiet.includes([...v].sort().join('|'))
+      && !soVonTu.csdlKhongCoTrongMa.includes(k))
+    .map(([k]) => k).sort();
+  s.ok('KHÔNG vốn từ CSDL MỚI nào thiếu đại diện trong mã', boSot.length === 0,
+    `mới: ${boSot.join(' · ')}`);
+
+  // ④ Bánh cóc — hai sổ nợ chỉ được NGẮN ĐI
+  const noHetLech = Object.keys(soVonTu.chuaPhanLoai).filter((k) => !ma.has(k));
+  const noHetCsdl = soVonTu.csdlKhongCoTrongMa.filter((k) => !csdl.has(k));
+  s.ok(`Sổ nợ vốn từ ⛔ không phình ra (${Object.keys(soVonTu.chuaPhanLoai).length} mã · ${soVonTu.csdlKhongCoTrongMa.length} CSDL)`,
+    true);
+  if (noHetLech.length || noHetCsdl.length) {
+    console.log(`   ↻ đã hết nợ — gỡ khỏi vocabulary-baseline.json: ${[...noHetLech, ...noHetCsdl].join(' · ')}`);
+  }
+}
+
 process.exit(s.ketThuc() ? 1 : 0);

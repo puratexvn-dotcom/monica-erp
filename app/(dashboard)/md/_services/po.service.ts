@@ -13,6 +13,7 @@ import {
   type DocumentRow,
 } from '@/schemas/md';
 import { ngayVN } from '@/lib/time';
+import { mocTreTheoDon } from '@/lib/mos/calculators/milestone-lateness.calculator';
 
 // ============================================================================
 // ĐỌC DỮ LIỆU ĐƠN HÀNG + GÓI DỮ LIỆU CHO MÀN HÌNH PO 360°
@@ -81,14 +82,13 @@ export async function listPoRows(): Promise<{ rows: PoRow[]; error: string | nul
 
   // Đếm mốc TRỄ THỰC TẾ: quá ngày kế hoạch mà chưa có ngày thực tế thì tính là
   // trễ, không cần chờ ai vào bấm đổi trạng thái.
+  //
+  // ⚠️ TD-17: luật đếm đã dời sang `milestone-lateness.calculator.ts`. Trước đó
+  // nó là vòng lặp viết thẳng ở đây, và `po-twin.service.ts` — màn hình thứ hai
+  // của CÙNG đơn hàng — truyền hằng số `0` thay vì đếm. Hai màn hình ra hai mức
+  // khẩn cấp khác nhau. Nay cả hai gọi CÙNG một hàm. Hành vi ⛔ không đổi.
   const today = ngayVN();
-  const lateBy = new Map<string, number>();
-  for (const m of msRes.rows) {
-    if (m.status === 'SKIPPED' || m.actual_date) continue;
-    if (m.planned_date && m.planned_date < today) {
-      lateBy.set(m.order_id, (lateBy.get(m.order_id) ?? 0) + 1);
-    }
-  }
+  const lateBy = mocTreTheoDon(msRes.rows, today);
 
   const rows: PoRow[] = ordersRes.rows.map((r) => {
     const st = one(r.styles);

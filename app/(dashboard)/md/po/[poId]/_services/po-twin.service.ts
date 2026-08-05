@@ -3,6 +3,8 @@ import 'server-only';
 import { guard, safeQuery, one } from '../../../_services/guard';
 import { factsOf } from '@/lib/mos/po-flow';
 import { readLegacyStatus } from '@/lib/mos/material-readiness';
+import { demMocTre } from '@/lib/mos/calculators/milestone-lateness.calculator';
+import { ngayVN } from '@/lib/time';
 import type {
   PoTwinHeader, PoTwinResult,
 } from '@/lib/mos/po-twin.contract';
@@ -46,6 +48,7 @@ interface RawFin {
   penalty_amount: number | null; qa_passed_qty: number | null;
 }
 interface RawShip { etd_date: string | null }
+interface RawMilestone { planned_date: string | null; actual_date: string | null; status: string }
 
 const n = (v: unknown): number | null => {
   if (v === null || v === undefined) return null;
@@ -65,7 +68,7 @@ export async function getPoTwinHeader(poId: string): Promise<PoTwinResult> {
   if (!g.supabase) return { ok: false, message: g.error };
   const sb = g.supabase;
 
-  const [ord, risk, prod, cut, bom, qa, fin, ship, res, doc, chg, smp] = await Promise.all([
+  const [ord, risk, prod, cut, bom, qa, fin, ship, res, doc, chg, smp, ms] = await Promise.all([
     safeQuery<RawOrder>('đơn hàng', () =>
       sb.from('orders').select(
         'id, po_number, customer_id, customer_name, total_quantity, order_date, delivery_date,' +
@@ -99,6 +102,11 @@ export async function getPoTwinHeader(poId: string): Promise<PoTwinResult> {
       sb.from('change_requests').select('id').eq('order_id', poId).limit(500)),
     safeQuery<{ id: string }>('mẫu chờ duyệt', () =>
       sb.from('sample_submissions').select('id').eq('order_id', poId).limit(500)),
+    // ⚠️ TD-17 · KD-3: trước đây KHÔNG có câu này, và `late_milestones` được
+    // truyền vào `factsOf()` bằng hằng số `0`. Xem khối ghi chú ở chỗ tính.
+    safeQuery<RawMilestone>('mốc tiến độ', () =>
+      sb.from('order_milestones').select('planned_date, actual_date, status')
+        .eq('order_id', poId).limit(500)),
   ]);
 
   if (ord.error) return { ok: false, message: ord.error };
@@ -109,7 +117,7 @@ export async function getPoTwinHeader(poId: string): Promise<PoTwinResult> {
   const partial = [
     risk.error && 'điểm rủi ro', prod.error && 'sản lượng', cut.error && 'lệnh cắt',
     bom.error && 'định mức NPL', qa.error && 'kiểm chất lượng', fin.error && 'tài chính',
-    ship.error && 'lô xuất', res.error && 'giữ chỗ NPL',
+    ship.error && 'lô xuất', res.error && 'giữ chỗ NPL', ms.error && 'mốc tiến độ',
   ].filter((x): x is string => typeof x === 'string');
 
   const style = one(o.styles);
@@ -125,11 +133,23 @@ export async function getPoTwinHeader(poId: string): Promise<PoTwinResult> {
   const penalty = fin.error ? null : sum(fin.rows, (r) => n(r.penalty_amount));
   const orderValue = unitPrice !== null && qty > 0 ? unitPrice * qty : null;
 
+  // ⚠️ TD-17 · KD-3 — ĐÂY LÀ CHỖ HỎNG, và nó hỏng lặng lẽ.
+  //
+  // Trước bản này, dòng dưới là `late_milestones: 0` — một HẰNG SỐ. `po-flow.ts`
+  // đọc `late_milestones > 0` để nâng mức khẩn lên `CRITICAL`, nên trang PO 360°
+  // KHÔNG BAO GIỜ nâng được, trong khi bảng danh sách (`po.service.ts`) đếm thật
+  // và nâng đúng. **Cùng một đơn hàng, hai màn hình, hai mức khẩn cấp.**
+  //
+  // Luật đếm nay nằm ở `milestone-lateness.calculator.ts` và cả hai service gọi
+  // CÙNG hàm đó — nên chúng ⛔ không lệch lại được.
+  //
+  // Đọc hỏng ⇒ đếm ra `0`, NHƯNG `'mốc tiến độ'` đã vào `partial` ở trên, nên
+  // giao diện thừa nhận là chưa đọc được thay vì trưng một con số bịa.
   const facts = factsOf({
     status: o.status,
     delivery_date: o.delivery_date ?? '',
     risk_level: risk.error ? null : (risk.rows[0]?.risk_level ?? null),
-    late_milestones: 0,
+    late_milestones: ms.error ? 0 : demMocTre(ms.rows, ngayVN()),
     total_quantity: qty,
   });
 
