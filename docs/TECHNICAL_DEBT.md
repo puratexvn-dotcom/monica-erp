@@ -55,6 +55,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-11](#td-11) | Chưa có hệ biểu tượng — cỡ và độ dày nét đặt tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
+| [TD-34](#td-34) | `cut-ticket-basket.tsx` tự tính chỉ số — **ngoại lệ CÓ CHỦ Ý** của phép kiểm ⑭ | 🟡 | mở | Board Decision `Đ-3` · 05/08/2026 |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -670,6 +671,71 @@ một bánh cóc riêng, cùng họ với mục ⑨ và ⑩.
 ⚠️ Bánh cóc chuỗi JSX **khó hơn** hai cái trước: phải phân biệt được chữ hiển
 thị với tên lớp CSS, khoá đối tượng, đường dẫn và mã kỹ thuật. Làm ẩu sẽ ra một
 phép kiểm đầy báo động giả — mà phép kiểm báo động giả thì người ta tắt đi.
+
+---
+
+<a id="td-34"></a>
+## TD-34 · `cut-ticket-basket.tsx` — NGOẠI LỆ CÓ CHỦ Ý CỦA PHÉP KIỂM ⑭
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — **ngoại lệ đã đăng ký**, ⛔ không phải chỗ quên |
+| **Thẩm quyền** | **Board Decision `Đ-3`** — 05/08/2026 |
+| **Phát hiện** | Spike [`B2-2a`](planning/SPIKE-B2-2a-REPORT.md) §2.2 |
+| **Nơi** | [`components/warehouse/allocation/cut-ticket-basket.tsx:50,55`](../components/warehouse/allocation/cut-ticket-basket.tsx) |
+| **Vi phạm** | EDD-05 §1.1 **`G6`** *(Single Source of Truth)* · Hiến pháp Điều V · VII |
+
+### Nội dung
+
+Component tính **hai chỉ số nghiệp vụ** ngay trong tầng hiển thị:
+
+```ts
+const short = tk.neededM === null ? null : Math.max(tk.neededM - tk.matchedM, 0);   // THIẾU bao nhiêu mét
+? Math.min(Math.round((tk.matchedM / tk.neededM) * 100), 100)                        // TỶ LỆ PHỦ %
+```
+
+Đúng hình dạng `G6` cấm: một màn hình **tự cộng một con số**. Nếu màn hình khác
+tính *"thiếu bao nhiêu mét"* theo cách hơi khác, hai màn hình ra hai con số và
+⛔ **không có gì báo** — đúng khuyết tật `TD-17` vừa xảy ra ở `po-twin`.
+
+### 🔴 Vì sao ĐĂNG KÝ NGOẠI LỆ thay vì mở rộng phép kiểm ⑭
+
+Spike `B2-2a` đo được: mẫu `Math.round/min/max` — mẫu duy nhất bắt được chỗ này
+— có **độ chính xác 7%** *(1 trúng / 14 tệp)*. 13 tệp còn lại là **toán bố cục**:
+cửa sổ cuộn · bề rộng thanh · thang biểu đồ · kẹp con trỏ bàn phím.
+
+> **Board Decision `Đ-3`:** *"⛔ Không mở rộng Rule ⑭ chỉ vì `cut-ticket-basket.tsx`.
+> Ưu tiên Precision cao, False Positive gần bằng 0. ⛔ Không làm giảm chất lượng
+> của Rule ⑭."*
+
+🔑 **Một phép kiểm hẹp mà SỐNG ĐƯỢC có giá trị hơn một phép kiểm rộng bị TẮT.**
+Thêm mẫu `C` để bắt đúng tệp này ⇒ kéo độ chính xác của cả ⑭ từ **100% xuống
+50%** ⇒ nó sẽ bị nới sổ nợ rồi bị gỡ trong vài tháng, và khi đó ta mất **cả 11
+chỗ** ⑭ đang canh, ⛔ không phải chỉ mất một chỗ.
+
+### Vì sao đây là NỢ chứ ⛔ không phải quyết định đóng
+
+Ngoại lệ này **⛔ không tự hết hạn**. Nó nằm ngoài tầm phép kiểm, nên chỉ có
+người đọc mã mới phát hiện được nếu nó lan rộng — đúng cơ chế đã để `TD-17` sống
+sót.
+
+### Cách trả
+
+| # | Lối | Ghi chú |
+|---|---|---|
+| ① | Dời hai phép tính vào **service/calculator thuần**, component chỉ nhận số đã tính | Cùng khuôn `milestone-lateness.calculator.ts` của `TD-17` |
+| ② | Sau khi ① xong, cân nhắc thêm mẫu hẹp *"chia hai biến dữ liệu rồi × 100"* vào ⑭ | ⚠️ phải **đo nhiễu trước** — spike `B2-2a` chưa đo mẫu này |
+
+### Vì sao chưa trả
+
+Board `Đ-3` chỉ thị **⛔ không mở rộng phạm vi Sprint I-2 Phase 2**. Dời phép
+tính là **sửa mã sản phẩm** ở phân hệ Kho — ngoài Backlog đã duyệt.
+
+### Sprint đích
+
+**I-6** *(Object Control Tower)* — cùng lượt với việc dựng `MetricDefinition` và
+read-model, vì đó là chỗ *"hai màn hình cùng đối tượng ra cùng con số"* được
+giải một cách hệ thống thay vì vá từng chỗ.
 
 ---
 

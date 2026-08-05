@@ -137,6 +137,23 @@ bị sửa và sẽ sinh báo động giả *(`R-7`)*.
 > ⇒ **Sổ nợ dự kiến: 11 tệp · độ chính xác 100% · 0 dương tính giả.**
 > ⇒ Bảng ranh giới bên dưới **giữ nguyên làm hồ sơ**, ⛔ không xoá — nhưng
 > `B2-2b` thi hành theo **§2.1 của báo cáo spike**, ⛔ không theo bảng đó.
+>
+> ## ✅ BOARD DECISION `Đ-2` · `Đ-3` — 05/08/2026
+>
+> **`Đ-2` · Thu hẹp ranh giới ⑭ — PHÊ DUYỆT.**
+>
+> | | |
+> |---|---|
+> | Mẫu `A` `.reduce(` **có cộng dồn** | ✅ **GIỮ** |
+> | Mẫu `B` `× 100` `÷ 100` | 🔴 **LOẠI BỎ** |
+> | Mẫu `C` `Math.round/min/max` | 🔴 **LOẠI BỎ** |
+>
+> **Mục tiêu ưu tiên do Board đặt:** *Precision cao · False Positive gần bằng 0
+> · ⛔ không mở rộng phạm vi chỉ để bắt thêm ít trường hợp.*
+>
+> **`Đ-3` · `cut-ticket-basket.tsx` — ⛔ KHÔNG mở rộng ⑭ vì nó.**
+> Đã đăng ký thành **[`TD-34`](../TECHNICAL_DEBT.md#td-34)** kèm lý do ngoại lệ,
+> lối trả và Sprint đích *(I-6)*. ⛔ **Không làm giảm chất lượng của Rule ⑭.**
 
 **Vì sao đắt hơn nó trông**: `TD-17` vừa là một ca thật của loại này. Nó bị bắt
 vì **có người đọc mã**, ⛔ không phải vì có phép kiểm.
