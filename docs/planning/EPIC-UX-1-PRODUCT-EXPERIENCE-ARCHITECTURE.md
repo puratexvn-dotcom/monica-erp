@@ -8,6 +8,23 @@
 | **Ràng buộc** | ⛔ **Không viết Production Code** |
 | **Kết luận Rev 1** | ~~Khuyến nghị Phương án C~~ — **Board BÁC 05/08/2026** |
 | **Kết luận có hiệu lực** | ✅ **Phương án D** *(Board Directive Rev 2)* — xem **§7** |
+| **Trạng thái** | ✅ **APPROVED BASELINE** — Board phê duyệt **Rev 6**, 05/08/2026 |
+| **Phiên bản khoá** | **Rev 6** · `UX-1-BASELINE-2026-08-05` |
+| **Hiệu lực** | 🔒 **ĐÓNG — ⛔ không mở rộng thêm.** Thay đổi phải qua **ADR mới** |
+
+> 🔒 **TÀI LIỆU ĐÃ KHOÁ · 05/08/2026**
+>
+> Board Directive *"Close BA-1 & UX-1"* phê duyệt **Rev 6** là **nền Product
+> Experience Architecture chính thức**. Từ đây:
+>
+> - ⛔ **Không mở rộng** UX-1 bằng cách sửa tài liệu này.
+> - Mọi thay đổi đi qua **ADR mới**, ⛔ không qua tu chính tại chỗ.
+> - §0…§16 là **bản đọc**, ⛔ không phải bản làm việc.
+>
+> ⚠️ **Kết luận của tài liệu này ⛔ CHƯA có hiệu lực thi hành.** Nó phụ thuộc
+> [`ADR-021`](../adr/ADR-021-homepage-launcher-va-work-zone-toan-cuc.md) và
+> [`ADR-022`](../adr/ADR-022-homepage-hien-toan-bo-module.md) — **cả hai ⛔ chưa
+> được phê duyệt**. ⛔ **Không dòng mã Homepage nào được viết trước đó.**
 
 ---
 

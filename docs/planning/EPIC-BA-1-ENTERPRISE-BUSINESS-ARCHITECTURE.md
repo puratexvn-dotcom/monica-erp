@@ -5,7 +5,22 @@
 | **EPIC** | **BA-1 · Enterprise Business Architecture** |
 | **Thẩm quyền** | Board Directive BA-1 & UX-1 *(Revised)* — 05/08/2026 |
 | **Ràng buộc** | ⛔ **Không viết mã** — chỉ tài liệu kiến trúc |
-| **Trạng thái** | 🟠 **KHUNG + DANH MỤC DẪN XUẤT ĐƯỢC** · 🔴 **4 danh mục cần Board/Joseph cung cấp** |
+| **Trạng thái** | ✅ **APPROVED BASELINE** — Board phê duyệt **Rev 6**, 05/08/2026 |
+| **Phiên bản khoá** | **Rev 6** · `BA-1-BASELINE-2026-08-05` |
+| **Hiệu lực** | 🔒 **ĐÓNG — ⛔ không mở rộng thêm.** Thay đổi phải qua **ADR mới** |
+
+> 🔒 **TÀI LIỆU ĐÃ KHOÁ · 05/08/2026**
+>
+> Board Directive *"Close BA-1 & UX-1"* phê duyệt **Rev 6** là **nền Enterprise
+> Architecture chính thức**. Từ đây:
+>
+> - ⛔ **Không mở rộng** BA-1 bằng cách sửa tài liệu này.
+> - Mọi thay đổi kiến trúc đi qua **ADR mới**, ⛔ không qua tu chính tại chỗ.
+> - §1…§26 là **bản đọc**, ⛔ không phải bản làm việc.
+>
+> **Câu hỏi ⛔ chưa trả lời khi khoá:** `Q-9`…`Q-17` *(§16.1 · §21.1 · §25.4)*.
+> Khoá tài liệu ⛔ **không** đóng các câu hỏi đó — chúng chuyển sang Board và
+> `GPR-001`.
 
 ---
 
