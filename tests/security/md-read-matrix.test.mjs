@@ -106,18 +106,26 @@ try {
     inquiry_no: `ZZRD-INQ-${ma}`, customer_id: khach.id,
     product_name: 'ZZ read-matrix', order_type: 'FOB',
   });
-  // ⚠️ `status = 'APPROVED'` là BẮT BUỘC: `v_costing_approved` tự mang bộ lọc
-  // đó, nên một dòng DRAFT sẽ làm mọi vai thấy 0 và bài kiểm báo đỏ oan.
+  // ⚠️ THỨ TỰ QUAN TRỌNG, và nó là thứ tự đời thực: lập chi tiết TRƯỚC, duyệt SAU.
+  //
+  // Từ migration `046`, thêm khoản mục vào chứng từ ĐÃ DUYỆT bị chặn — đúng
+  // thiết kế. Gieo thẳng `APPROVED` rồi mới thêm `costing_items` sẽ làm bài
+  // kiểm **tự chặn chính nó** và báo hỏng oan.
+  //
+  // Vẫn phải kết thúc ở `APPROVED`: `v_costing_approved` tự mang bộ lọc
+  // `status = 'APPROVED'`, nên một dòng `DRAFT` làm mọi vai thấy 0 và bài kiểm
+  // cũng báo đỏ oan — theo chiều ngược lại.
   const costingId = await gieo('costings', {
     costing_no: `ZZRD-CST-${ma}`, customer_id: khach.id, style_id: styleId,
     order_type: 'FOB', currency: 'USD', quantity: 100,
     target_price: 9.5, quoted_price: 10.25, margin_percent: 12.5,
-    status: 'APPROVED',
+    status: 'DRAFT',
   });
   await gieo('costing_items', {
     costing_id: costingId, category: 'FABRIC', item_name: 'ZZ vải chính',
     unit: 'M', consumption: 1.5, unit_price: 3.2,
   });
+  await admin.from('costings').update({ status: 'APPROVED' }).eq('id', costingId);
   console.log(`Đã gieo 5 dòng dùng-một-lần (mã ${ma}). Dọn sạch ở cuối.\n`);
 
   // ══ ĐĂNG NHẬP 14 VAI ─────────────────────────────────────────────────────

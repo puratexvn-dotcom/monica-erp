@@ -75,7 +75,20 @@ try {
   // đúng. Hai dòng dưới phân biệt được ba trạng thái khác nhau của CSDL.
   console.log('\nDẤU VÂN — CSDL đang mang bản nào');
   {
-    const idFp = await moi('APPROVED', { approved_at: new Date().toISOString() });
+    // ⚠️ Gieo ở `DRAFT` rồi mới duyệt — KHÔNG gieo thẳng `APPROVED`.
+    // Từ `046`, thêm khoản mục vào chứng từ đã duyệt bị chặn (đúng thiết kế),
+    // nên gieo thẳng `APPROVED` sẽ làm bài kiểm tự chặn chính nó. Thứ tự này
+    // cũng là thứ tự đời thực: lập chi tiết trước, duyệt sau.
+    const idFp = await moi('DRAFT');
+    await gieo('costing_items', {
+      costing_id: idFp, category: 'FABRIC', item_name: 'ZZ dấu vân',
+      unit: 'M', consumption: 1, unit_price: 2,
+    });
+    // Duyệt SAU khi đã có chi tiết — rồi mới đo dấu vân.
+    await admin.from('costings')
+      .update({ status: 'APPROVED', approved_at: new Date().toISOString() })
+      .eq('id', idFp);
+
     const { error: eFp } = await md.from('costings')
       .update({ quoted_price: 55 }).eq('id', idFp);
     const { data: sauFp } = await admin.from('costings')
@@ -83,12 +96,7 @@ try {
     dauVan('sửa giá chiết tính ĐÃ DUYỆT (có approved_at)',
       Number(sauFp.quoted_price) === 55
         ? '🔴 SỬA ĐƯỢC — CSDL đang mang `043`'
-        : `bị chặn (${eFp?.code ?? '0 dòng'}) — CSDL đang mang \`042\`/\`044\``);
-
-    await gieo('costing_items', {
-      costing_id: idFp, category: 'FABRIC', item_name: 'ZZ dấu vân',
-      unit: 'M', consumption: 1, unit_price: 2,
-    });
+        : `bị chặn (${eFp?.code ?? '0 dòng'}) — CSDL đang mang \`042\`/\`044\`/\`045\``);
     const dem2 = async (c) => (await c.from('costing_items')
       .select('*', { count: 'exact', head: true }).eq('costing_id', idFp)).count ?? 0;
     const [nAd, nMd] = [await dem2(admin), await dem2(md)];
