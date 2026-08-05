@@ -2,10 +2,10 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Phiên bản** | **v1.0** — 28 nguyên tắc |
+| **Phiên bản** | **v1.0** — **33 nguyên tắc** · Rev 3 |
 | **Dẫn xuất từ** | [`MONICA_ONE_PRODUCT_CONSTITUTION.md`](MONICA_ONE_PRODUCT_CONSTITUTION.md) |
 | **Vai trò** | **Danh sách đối chiếu** — mỗi tính năng mới soi qua đây trước khi thiết kế |
-| **Trạng thái** | ⏳ chờ Board khoá cùng Product Constitution |
+| **Trạng thái** | ✅ **KHOÁ** cùng Product Constitution v1.0 — 05/08/2026 |
 
 # §0 · 🔑 PHÉP THỬ BA GIẢM — CỔNG ĐỨNG TRƯỚC CẢ 28 NGUYÊN TẮC
 
@@ -139,6 +139,41 @@ phải qua đủ 28 nguyên tắc và toàn bộ `P-MEASURE`.
 | # | Nguyên tắc |
 |---|---|
 | **P28** | 🔑 **Phần mềm giúp người làm ĐÚNG, ⛔ không dùng để KIỂM SOÁT người.** Mọi người thấy **việc · tiến độ · trách nhiệm · trạng thái** mà **⛔ không cần hỏi ai** |
+
+## IX · WORKSPACE — BA ĐIỀU BOARD BỔ SUNG *(Rev 3)* *(P31–P33)*
+
+| # | Nguyên tắc | Vi phạm trông như thế nào |
+|---|---|---|
+| **P31** | **Người dùng thấy VIỆC trước khi thấy SỐ** | mở Workspace, thứ đầu tiên đập vào mắt là một con số |
+| **P32** | **Workspace mở đầu bằng HÀNH ĐỘNG, ⛔ không bằng dashboard** | màn hình đầu tiên ⛔ không có gì bấm được |
+| **P33** | 🔑 **MỌI dashboard phải dẫn tới một HÀNH ĐỘNG** | một KPI đỏ mà ⛔ không có đường đi tiếp |
+
+### ⚠️ `P31` `P32` chồng lên `P6` `P7` — và đó là chủ ý
+
+`P6` `P7` đã nói *"Workspace trả lời **hôm nay tôi cần làm gì**"* và *"**việc**
+đứng trước **số**"*. Board nhắc lại ở `P31` `P32`.
+
+🔑 **Tôi ⛔ không gộp chúng.** Một nguyên tắc được nhắc **hai lần** ⛔ không phải
+thừa — nó là **thứ hay bị vi phạm nhất**, và bản nhắc lại là **phiếu bầu thứ
+hai** cho cùng một điều. Gộp lại là **xoá mất tín hiệu đó**.
+
+### 🔑 `P33` là điều **thật sự mới** — và mạnh nhất trong ba
+
+`P6`…`P32` nói về **thứ tự**. `P33` nói về **ngõ cụt**:
+
+```
+KPI "Tỷ lệ lỗi 4,2%"  ⛔ không đường đi tiếp
+  ⇒ người đọc BIẾT có vấn đề, và ⛔ KHÔNG BIẾT LÀM GÌ
+  ⇒ họ phải ĐI HỎI người khác          ← đúng thứ §13 muốn xoá
+```
+
+⇒ **`P33` là `§13` áp cho từng con số**: một dashboard ⛔ không lối ra **⛔
+không trung lập** — nó **tạo ra** một lần phải hỏi. ⇒ Nó cũng trượt **Phép thử
+Ba Giảm** ở `§0`.
+
+⚠️ **Đo được ngay ở QA Workspace vừa dựng:** KPI *"Tỷ lệ lỗi"* tô đỏ khi vượt
+ngưỡng nhưng **⛔ không bấm được**. Việc *"vượt ngưỡng"* trong Work Inbox cũng
+**⛔ chưa có `href`**. ⇒ **`G-19`** — nợ tôi tạo ra, sửa khi nối `/kho`.
 
 ---
 

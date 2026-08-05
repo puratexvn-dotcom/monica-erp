@@ -2,9 +2,10 @@
 
 | Trường | Giá trị |
 |---|---|
-| **Phiên bản** | **v1.0 · Rev 2** |
-| **Ban hành** | Board — 05/08/2026 · **Rev 2** cùng ngày |
-| **Trạng thái** | ⏳ **CHỜ BOARD KHOÁ** — xem `§0.3` · `§17` |
+| **Phiên bản** | **v1.0** — Rev 3 |
+| **Ban hành** | Board — 05/08/2026 |
+| **Trạng thái** | ✅ **KHOÁ · APPROVED** — `MONICA-ONE-PRODUCT-CONSTITUTION-v1.0` |
+| **Hiệu lực** | 🔒 **Tài liệu nền tảng CAO NHẤT cho mọi quyết định Product** |
 | **Vai trò** | Tài liệu **cấp cao nhất của SẢN PHẨM** |
 | **⛔ KHÔNG thay thế** | Hiến pháp *(`00-CONSTITUTION.md`)* · ADR · BA-1 · UX-1 |
 | **Đối chiếu** | [`PRODUCT_CONSTITUTION_GAP_ANALYSIS.md`](PRODUCT_CONSTITUTION_GAP_ANALYSIS.md) — **14 khoảng lệch** |
@@ -36,6 +37,18 @@ vụ**.
 
 ⚠️ Đúng Architecture mà **sai Product Constitution** ⇒ ta xây được một thứ **chạy
 tốt và ⛔ không ai cần**. Đó là cách phần lớn ERP ngành may đã chết.
+
+> 🔒 **TÀI LIỆU ĐÃ KHOÁ · 05/08/2026**
+>
+> Board khoá `v1.0` sau Rev 3. Từ đây:
+>
+> - Mọi EPIC · ADR · Architecture · UI · AI · Workspace · Module **mới** phải
+>   trả lời **hai** câu: *"đúng Architecture ⛔ không?"* **và** *"đúng Product
+>   Constitution ⛔ không?"*
+> - Thay đổi tài liệu này đi qua **Board Decision**, ⛔ không qua tu chính tại chỗ.
+>
+> ⚠️ **Một điểm ⛔ chưa đóng khi khoá:** `G-15` — từ Workspace ⛔ không còn nút
+> về Launcher *(`§17.1`)*. Khoá tài liệu ⛔ **không** đóng câu hỏi đó.
 
 ## 0.3 🔴 MỘT VIỆC PHẢI LÀM TRƯỚC KHI TÀI LIỆU NÀY CÓ HIỆU LỰC TRÍCH DẪN
 
@@ -109,6 +122,44 @@ Homepage → Chọn Module → Login (nếu ⛔ chưa xác thực) → Workspace
 >
 > Gồm: **Today Tasks · KPI · Quick Actions · Recent Activity · Notifications ·
 > AI Assistant · Chat · Reports**.
+
+## 4.1 🔴 KIẾN TRÚC WORKSPACE — BỐN TẦNG *(Board, Rev 3)*
+
+```
+Workspace  ←  Business Capability  ←  Command Center  ←  Business Data
+ (bày ra)      (năng lực nghiệp vụ)    (gom · phán đoán)   (bảng · RLS)
+```
+
+> **Workspace ⛔ KHÔNG đọc trực tiếp Business Data.**
+> Đây là **framework dùng chung cho TOÀN BỘ Module**.
+
+### 4.1.1 Vì sao tầng `Command Center` đáng có
+
+| ⛔ Không có nó | ✅ Có nó |
+|---|---|
+| mỗi màn hình tự truy vấn, tự cộng, tự đặt ngưỡng | **một** nơi gom, **một** nơi đặt ngưỡng |
+| hai màn cần cùng con số ⇒ **hai bản chép**, và chúng trôi khỏi nhau | một nguồn, mọi màn đọc chung |
+| ngưỡng nghiệp vụ nằm rải trong JSX ⇒ ⛔ không ai đọc được luật hiện hành | ngưỡng nằm **một chỗ**, Business Owner đọc được |
+| ⛔ kiểm được ⛔ không dựng React | **hàm thuần** — kiểm đến tận cùng |
+
+🔑 **Đây chính là `⑭`** *(màn hình ⛔ không tự tính số nghiệp vụ)* **nâng từ một
+phép kiểm thành một tầng kiến trúc.**
+
+### 4.1.2 ⚠️ `/kho` ĐÃ theo mô hình này; `/qa` thì ⛔ CHƯA
+
+**Đo được 05/08/2026:**
+
+| Module | Có `Command Center` ⛔? |
+|---|---|
+| `/kho` | ✅ `_services/command-center.service.ts` — `WhTask` · `WhKpi` · `WhAlert` |
+| `/qa` | 🔴 **⛔ KHÔNG** — `page.tsx` gọi thẳng `getQAReports()` rồi tính |
+
+⇒ **Mô hình Board vừa chuẩn hoá chính là mô hình `/kho` đã có sẵn.** Và
+**QA Workspace tôi dựng ở `dbec0d9d` ⛔ chưa theo nó** — tôi đã tách *phép tính*
+ra khỏi màn hình *(calculator + luật sinh việc)* nhưng **⛔ chưa tách phần
+ĐỌC**.
+
+⇒ Ghi thành **`G-18`**. Đây là **nợ tôi tạo ra**, ⛔ không phải nợ thừa kế.
 
 ---
 
@@ -276,6 +327,26 @@ AI CEO  ──"cho tôi bối cảnh về người này"──►  AI của nhâ
 🔑 Ranh giới sắc gọn: Context Passing mang **ngữ cảnh CÔNG VIỆC** *(đơn hàng
 nào · lỗi gì · mốc nào)*. Nó **⛔ KHÔNG BAO GIỜ** mang **ngữ cảnh CON NGƯỜI**
 *(ai hay sai chỗ nào · ai tiến bộ ra sao)*.
+
+## 10.3 🔴 HAI LOẠI BỘ NHỚ — ĐƯỜNG KẺ CHÍNH THỨC *(Board, Rev 3)*
+
+| | **AI Memory** | **Business Context** |
+|---|---|---|
+| Nói về | **CON NGƯỜI** — cách người này học, hay quên gì, tiến bộ ra sao | **CÔNG VIỆC** — đơn nào, lỗi gì, mốc nào, tồn bao nhiêu |
+| Thuộc về | **một người dùng**, ⛔ không ai khác | **doanh nghiệp** |
+| Dùng để | cá nhân hoá **cách hướng dẫn** | phối hợp **giữa các vai** |
+| Qua Context Passing | 🔴 **⛔ TUYỆT ĐỐI KHÔNG** | ✅ **có** — và đây là thứ **duy nhất** được truyền |
+| Ai đọc được | **chỉ chính người đó** | ai có **quyền trên dữ liệu gốc** |
+
+> **AI ⛔ không truyền AI Memory. AI chỉ truyền `Reference` và `Business
+> Context`. AI của từng vai LUÔN dùng quyền của CHÍNH vai đó khi truy cập dữ
+> liệu.**
+
+⚠️ **Phép thử một câu:** *"Câu này nói về **một người**, hay về **một việc**?"*
+Nói về **người** ⇒ **⛔ không được rời khỏi AI của người đó.**
+
+⇒ `AI CEO` nhận được *"đơn #123 trễ vì lỗi chất lượng"* ✅
+⇒ `AI CEO` **⛔ KHÔNG** nhận được *"tổ trưởng X hay để lọt lỗi này"* 🔴
 
 ⚠️ ⛔ Không có ranh giới này, `§13` *("⛔ không xây phần mềm để kiểm soát nhân
 viên")* hỏng **⛔ không phải bằng một quyết định**, mà bằng **một tính năng

@@ -6,6 +6,7 @@
 | **Ngày đo** | 05/08/2026 · nhánh `main` · sau `dbec0d9d` |
 | **Kết quả ban đầu** | **14 khoảng lệch** — 3 🔴 · 7 🟠 · 4 🟢 |
 | **Sau Board Rev 2** | **3 🔴 ĐÃ GỠ** · **2 🔴 MỚI** phát sinh · 6 🟠 còn · 5 🟢 |
+| **Sau Rev 3 · KHOÁ** | ⊕ **G-18** *(Command Center — nợ TÔI tạo)* · ⊕ **G-19** *(dashboard ngõ cụt — nợ TÔI tạo)* |
 | **Chỉ thị** | Board: *"⛔ **không sửa ngay**. Ghi thành danh sách."* — tài liệu này **⛔ không đề xuất sửa mã** |
 
 ---
