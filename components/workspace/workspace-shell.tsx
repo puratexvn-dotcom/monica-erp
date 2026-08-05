@@ -79,7 +79,7 @@ export interface WorkspaceShellProps {
    * về **trải nghiệm**, và trải nghiệm của một màn dùng liên tục ⛔ khác màn
    * dùng vài lần.
    */
-  bocCuc?: 'doc' | 'ngang';
+  bocCuc?: 'doc' | 'ngang' | 'tuyBien';
   hanhDongNhanh: readonly QuickAction[];
   /**
    * Lỗi đọc dữ liệu từ Command Center. `null`/bỏ trống = đọc được.
@@ -140,6 +140,20 @@ export default function WorkspaceShell({
           sau cả bảng dữ liệu của phân hệ. Cảnh báo nằm dưới bảng thì người
           dùng đọc hết bảng rồi mới biết có cảnh báo, và tới lúc đó họ đã tự
           rút kết luận từ bảng rồi. Việc · Số · Cảnh báo là **một cụm**. */}
+      {/* 🔴 `tuyBien` — KHUNG ⛔ KHÔNG DỰNG BA KHỐI, PHÂN HỆ TỰ ĐẶT CHÚNG.
+
+          Board: *"Framework chỉ quy định **thứ tự · hành vi · nguyên tắc**.
+          ⛔ Không ép mọi Workspace có cùng **bố cục** nếu điều đó làm giảm hiệu
+          quả công việc của từng phòng ban."*
+
+          `/md` đặt KPI **bên trong một tab**, việc và cảnh báo lên đầu. Đó là
+          bố cục **khác** — và nó thoả `P7`/`P31`/`P32` **mạnh hơn** cả hai chế
+          độ kia: số liệu nằm sau một cú bấm, còn việc thì hiện ngay.
+
+          ⚠️ Chế độ này ⛔ **KHÔNG** phải cửa chạy làng: phân hệ chọn nó vẫn phải
+          giữ **VIỆC TRƯỚC SỐ**. Khung thôi **đặt** ba khối, nhưng **nguyên tắc
+          thì ⛔ không ai được miễn**. */}
+      {bocCuc !== 'tuyBien' && (
       <div
         className={
           bocCuc === 'ngang'
@@ -163,6 +177,7 @@ export default function WorkspaceShell({
           />
         </div>
       </div>
+      )}
 
       <QuickActions hanhDong={hanhDongNhanh} moduleKey={moduleKey} />
 

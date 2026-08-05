@@ -85,7 +85,8 @@ export default async function MerchandiserPage() {
   return (
     // Phần chừa chỗ cho thanh điều hướng cố định đã làm ở app/layout.tsx
     // (pb-24) — làm lại ở đây sẽ ra khoảng trắng gấp đôi ở cuối trang.
-    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
+    // ⛔ KHONG boc them lop can giua: WorkspaceShell da co mx-auto max-w-7xl.
+    <>
       <MdClient
         initialSnapshot={snapshot}
         initialPoRows={po.rows}
@@ -94,6 +95,6 @@ export default async function MerchandiserPage() {
         initialStyleError={styles.error}
         poOptions={poOptions}
       />
-    </div>
+    </>
   );
 }

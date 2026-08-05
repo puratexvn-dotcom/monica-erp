@@ -7,6 +7,7 @@ import {
   FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
   Sparkles, Loader2, Handshake, ArrowUpRight,
   type LucideIcon,
+  Users,
 } from 'lucide-react';
 
 import { Card, Badge, thCls, tdCls, btnPrimary, btnGhost } from '@/components/ui';
@@ -32,6 +33,8 @@ import {
 } from '@/components/md/planning/auto-generate-dialogs';
 import { useMdDashboard } from '@/components/md/dashboard/use-md-dashboard';
 import MosTaskInbox from '@/components/mos/command-center/mos-task-inbox';
+import WorkspaceShell from '@/components/workspace/workspace-shell';
+import { VIEC_NHANH_MD } from '@/components/md/command-center/md-quick-actions';
 import MosKpiGrid from '@/components/mos/command-center/mos-kpi-grid';
 import MosAlertPanel from '@/components/mos/command-center/mos-alert-panel';
 import {
@@ -412,7 +415,15 @@ export default function MdClient({
   );
 
   return (
-    <>
+    <WorkspaceShell
+      moduleKey="merchandising"
+      tenModule="Merchandising"
+      moTaKey="appDesc.merchandising"
+      // Khung KHONG dung ba khoi o day — /md dat KPI BEN TRONG mot tab.
+      bocCuc="tuyBien"
+      feed={null}
+      hanhDongNhanh={VIEC_NHANH_MD}
+    >
       {/* ═══ BA KHU ĐIỀU HÀNH ════════════════════════════════════════════
           Máy bàn chia hai cột: cột trái rộng gấp rưỡi cho hai khu cần đọc
           kỹ, cột phải cho cảnh báo luôn nằm trong tầm mắt. Điện thoại xếp
@@ -881,6 +892,6 @@ export default function MdClient({
         onPickStyle={() => goTab('styles')}
         onPickCustomer={() => goTab('customers')}
       />
-    </>
+    </WorkspaceShell>
   );
 }
