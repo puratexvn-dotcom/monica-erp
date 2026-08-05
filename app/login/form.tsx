@@ -7,10 +7,12 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { AlertTriangle, ArrowRight, Loader2, Mail } from 'lucide-react';
 
 import PasswordInput from '@/components/password-input';
+import { useLanguage } from '@/lib/i18n';
 import { loginAction, type LoginState } from './actions';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const { t } = useLanguage();
   return (
     <button
       type="submit"
@@ -21,11 +23,11 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-          Đang xác thực...
+          {t('login.signingIn')}
         </>
       ) : (
         <>
-          Đăng nhập hệ thống
+          {t('login.signIn')}
           <ArrowRight
             className="h-5 w-5 transition-transform group-hover:translate-x-1"
             aria-hidden="true"
@@ -38,6 +40,7 @@ function SubmitButton() {
 
 export default function LoginForm({ next }: { next?: string }) {
   const [state, formAction] = useFormState<LoginState, FormData>(loginAction, {});
+  const { t } = useLanguage();
 
   return (
     <form action={formAction} className="space-y-5">
@@ -55,7 +58,7 @@ export default function LoginForm({ next }: { next?: string }) {
 
       <div>
         <label htmlFor="login-email" className="mb-2 block text-sm font-bold text-slate-700">
-          Email công ty
+          {t('login.email')}
         </label>
         <div className="relative">
           <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -68,13 +71,13 @@ export default function LoginForm({ next }: { next?: string }) {
             required
             autoComplete="username"
             autoFocus
-            placeholder="ten.ban@monicagarment.vn"
+            placeholder={t('login.emailPlaceholder')}
             className="h-14 w-full rounded-xl border border-slate-200 bg-white/80 pl-12 pr-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100"
           />
         </div>
       </div>
 
-      <PasswordInput name="password" label="Mật khẩu" autoComplete="current-password" />
+      <PasswordInput name="password" label={t('login.password')} autoComplete="current-password" />
 
       <SubmitButton />
     </form>
