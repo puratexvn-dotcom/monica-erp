@@ -35,7 +35,26 @@ import type { DictionaryKey } from '@/lib/i18n';
 // phân loại được ghi lại đúng chỗ, còn giao diện thì bày một lưới phẳng.
 // ============================================================================
 
-export interface ModuleItem {
+/**
+ * Phần chung của mọi Business App — mọi trường **⛔ không** phụ thuộc trạng thái.
+ *
+ * ─── 🔴 BOARD DECISION `Q2` · 05/08/2026 ─────────────────────────────────
+ * *"5 module chưa có chức năng: hiển thị · disable · badge Coming Soon ·
+ * **⛔ không dùng `href: null`**."*
+ *
+ * Trước bản này, App chưa có route mang `href: null` + `beta: true`. Hai vấn đề:
+ *
+ *   ① `href: null` buộc mọi nơi dùng phải tự nhớ kiểm tra `null`, và
+ *      `app-card.tsx:183` đã phải viết `mod.href as string` — một phép ép kiểu
+ *      **tắt máy kiểm** đúng chỗ nguy hiểm nhất.
+ *   ② `beta` mô tả *"đang phát triển"*, ⛔ không mô tả *"⛔ chưa có route"*.
+ *      Hai khái niệm khác nhau bị gộp làm một.
+ *
+ * ⇒ Nay dùng **union phân biệt**: mục `COMING_SOON` **⛔ không có trường `href`
+ * nào cả**. Trình biên dịch ⛔ **không cho** ai đặt liên kết vào một App chưa có
+ * route — mạnh hơn mọi quy ước viết trong chú thích.
+ */
+interface ModuleBase {
   /**
    * Tên hiến định — **KHÔNG DỊCH** ở bất kỳ ngôn ngữ nào (Hiến pháp §45.3).
    *
@@ -63,66 +82,80 @@ export interface ModuleItem {
    * Muốn ngắn mà vẫn hiểu được thì phải VIẾT LẠI, không phải cắt bớt.
    */
   shortKey: DictionaryKey;
-  /**
-   * Đường dẫn phân hệ, hoặc `null` khi chưa có route.
-   *
-   * ⚠️ Đây LÀ đường dẫn thật, KHÔNG phải `/login`. Khách chưa đăng nhập bấm
-   * vào sẽ được `middleware.ts` chuyển sang `/login?next=<đường dẫn>`, đăng
-   * nhập xong quay đúng về nơi họ bấm. Đó chính là luồng bắt buộc:
-   * Trang chủ → chọn App → Đăng nhập → Workspace.
-   */
-  href: string | null;
   icon: LucideIcon;
-  /** `true` = chưa có route, thẻ mang nhãn Beta và không bấm được */
-  beta: boolean;
   /** Khoá tra màu trong `MODULE_IDENTITY`. Nguồn màu DUY NHẤT của mục này. */
   key: ModuleKey;
 }
 
+/**
+ * App **đã có route** — bấm được.
+ *
+ * ⚠️ `href` LÀ đường dẫn thật, KHÔNG phải `/login`. Người chưa đăng nhập bấm
+ * vào sẽ được `middleware.ts` chuyển sang `/login?next=<đường dẫn>`, đăng nhập
+ * xong quay đúng về nơi họ bấm.
+ */
+export interface ModuleReady extends ModuleBase {
+  status: 'READY';
+  href: string;
+}
+
+/**
+ * App **⛔ chưa có route** — hiện, khoá, gắn nhãn *Coming Soon* *(Board `Q2`)*.
+ *
+ * 🔑 **⛔ KHÔNG có trường `href`.** Đó là điểm mấu chốt: ⛔ không phải `href`
+ * bằng `null`, mà là **⛔ không tồn tại `href`**. Thử đọc `mod.href` trên nhánh
+ * này là **lỗi biên dịch**.
+ */
+export interface ModuleComingSoon extends ModuleBase {
+  status: 'COMING_SOON';
+}
+
+export type ModuleItem = ModuleReady | ModuleComingSoon;
+
 // ─── BUSINESS WORKSPACES · §16.2 ────────────────────────────────────────────
 export const WORKSPACES: ModuleItem[] = [
   { name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive',
-    href: '/giam-doc', icon: LayoutDashboard, beta: false, key: 'executive' },
+    status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive' },
   { name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial',
-    href: '/buyer', icon: Handshake, beta: false, key: 'commercial' },
+    status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial' },
   { name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising',
-    href: '/md', icon: Briefcase, beta: false, key: 'merchandising' },
+    status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising' },
   { name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning',
-    href: null, icon: CalendarRange, beta: true, key: 'planning' },
+    status: 'COMING_SOON', icon: CalendarRange, key: 'planning' },
   { name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production',
-    href: '/to-truong-may', icon: Factory, beta: false, key: 'production' },
+    status: 'READY', href: '/to-truong-may', icon: Factory, key: 'production' },
   { name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality',
-    href: '/qa', icon: ShieldCheck, beta: false, key: 'quality' },
+    status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality' },
   { name: 'Warehouse', descKey: 'appDesc.warehouse', shortKey: 'appShort.warehouse',
-    href: '/kho', icon: Package, beta: false, key: 'warehouse' },
+    status: 'READY', href: '/kho', icon: Package, key: 'warehouse' },
   { name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment',
-    href: '/xuat-hang', icon: Ship, beta: false, key: 'shipment' },
+    status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment' },
   { name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract',
-    href: '/subcon', icon: Users, beta: false, key: 'subcontract' },
+    status: 'READY', href: '/subcon', icon: Users, key: 'subcontract' },
   { name: 'Finance', descKey: 'appDesc.finance', shortKey: 'appShort.finance',
-    href: '/ke-toan', icon: Wallet, beta: false, key: 'finance' },
+    status: 'READY', href: '/ke-toan', icon: Wallet, key: 'finance' },
   { name: 'Human Resources', descKey: 'appDesc.humanResources', shortKey: 'appShort.humanResources',
-    href: null, icon: IdCard, beta: true, key: 'humanResources' },
+    status: 'COMING_SOON', icon: IdCard, key: 'humanResources' },
 ];
 
 // ─── GLOBAL SERVICES · §29 · §30 · §31 · §33 ────────────────────────────────
 export const SERVICES: ModuleItem[] = [
   { name: 'Business Reporting', descKey: 'appDesc.reporting', shortKey: 'appShort.reporting',
-    href: null, icon: PieChart, beta: true, key: 'reporting' },
+    status: 'COMING_SOON', icon: PieChart, key: 'reporting' },
   { name: 'Business Communication', descKey: 'appDesc.communication', shortKey: 'appShort.communication',
-    href: null, icon: MessagesSquare, beta: true, key: 'communication' },
+    status: 'COMING_SOON', icon: MessagesSquare, key: 'communication' },
   // AI Assistant là mục DUY NHẤT dùng dải chuyển sắc (Điều 44.2) — dải đó khai
   // ở `MODULE_IDENTITY.ai.soft`, không khai ở đây.
   { name: 'AI Assistant', descKey: 'appDesc.ai', shortKey: 'appShort.ai',
-    href: null, icon: Sparkles, beta: true, key: 'ai' },
+    status: 'COMING_SOON', icon: Sparkles, key: 'ai' },
   { name: 'Documents', descKey: 'appDesc.documents', shortKey: 'appShort.documents',
-    href: null, icon: FileText, beta: true, key: 'documents' },
+    status: 'COMING_SOON', icon: FileText, key: 'documents' },
 ];
 
 // ─── PLATFORM SERVICE · §34 ─────────────────────────────────────────────────
 export const PLATFORM: ModuleItem[] = [
   { name: 'Platform Services', descKey: 'appDesc.platform', shortKey: 'appShort.platform',
-    href: '/admin', icon: SlidersHorizontal, beta: false, key: 'platform' },
+    status: 'READY', href: '/admin', icon: SlidersHorizontal, key: 'platform' },
 ];
 
 /**

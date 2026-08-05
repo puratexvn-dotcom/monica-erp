@@ -4,19 +4,18 @@
     "name": "简体中文",
     "note": "简体中文。新增键必须同时加入三个文件 — 架构测试第 ⑪ 项会拦截缺失。"
   },
-
   "brand": {
     "tagline": "Business Operating System"
   },
-
   "home": {
     "welcomeTo": "欢迎使用",
     "hint": "点击一个 Business App 继续",
     "appsLabel": "Business Apps",
     "beta": "Beta",
-    "betaHint": "开发中"
+    "betaHint": "开发中",
+    "comingSoon": "即将推出",
+    "comingSoonHint": "尚未开放，建设中"
   },
-
   "login": {
     "eyebrow": "Business Operating System",
     "welcomeBack": "欢迎回来。",
@@ -39,12 +38,10 @@
     "errorConfig": "尚未配置数据服务器连接。管理员需检查环境变量并重新部署 — 仅修改变量不会自动触发重新构建。",
     "errorUnreachable": "无法连接认证服务器。请稍后再试。"
   },
-
   "footer": {
     "developedBy": "由 Joseph 开发",
     "hotline": "热线"
   },
-
   "nav": {
     "workbench": "工作台",
     "chat": "沟通",
@@ -60,7 +57,6 @@
     "searchPlaceholder": "搜索订单、款号、客户…",
     "language": "语言"
   },
-
   "action": {
     "save": "保存",
     "cancel": "取消",
@@ -85,7 +81,6 @@
     "viewAll": "查看全部",
     "viewDetail": "查看详情"
   },
-
   "empty": {
     "noData": "暂无数据",
     "noReports": "暂无报表",
@@ -96,14 +91,12 @@
     "noNotifications": "暂无通知",
     "noActivity": "暂无活动记录"
   },
-
   "state": {
     "loading": "加载中…",
     "saving": "保存中…",
     "processing": "处理中…",
     "uploading": "上传中…"
   },
-
   "error": {
     "generic": "发生错误，请重试。",
     "network": "无法连接服务器。请检查网络后重试。",
@@ -113,7 +106,6 @@
     "server": "服务器出现问题，请稍后重试。",
     "sessionExpired": "登录已过期，请重新登录。"
   },
-
   "success": {
     "saved": "已保存",
     "created": "已创建",
@@ -122,7 +114,6 @@
     "approved": "已批准",
     "sent": "已发送"
   },
-
   "validation": {
     "required": "此项为必填",
     "email": "请输入有效的电子邮箱",
@@ -132,7 +123,6 @@
     "positive": "必须为正数",
     "passwordWeak": "密码强度不足"
   },
-
   "confirm": {
     "title": "确认",
     "deleteTitle": "确认删除",
@@ -140,7 +130,6 @@
     "discardTitle": "放弃更改？",
     "discardBody": "未保存的更改将会丢失。"
   },
-
   "status": {
     "healthy": "正常",
     "inProgress": "进行中",
@@ -153,7 +142,6 @@
     "critical": "紧急",
     "rejected": "已驳回"
   },
-
   "appShort": {
     "executive": "全厂运营",
     "commercial": "客户与订单",
@@ -172,7 +160,6 @@
     "documents": "Tech pack 与单证",
     "platform": "账号与权限"
   },
-
   "appDesc": {
     "executive": "全厂运营监控与审批",
     "commercial": "客户、报价与采购订单",
@@ -190,5 +177,21 @@
     "ai": "理解当前工作情境的助手",
     "documents": "Tech pack、单证与版本管理",
     "platform": "账号、权限、语言与配置"
+  },
+  "landing": {
+    "lead": "服装制造业的统一运营平台。",
+    "signIn": "登录以开始",
+    "pillarOne": "面向全企业的统一运营平台",
+    "pillarRole": "基于角色的工作空间，权限严格",
+    "pillarEvidence": "每一次操作都有凭证和完整追溯"
+  },
+  "workZone": {
+    "title": "您的工作",
+    "greetingMorning": "早上好",
+    "greetingAfternoon": "下午好",
+    "greetingEvening": "晚上好",
+    "emptyTitle": "暂无需要您处理的工作",
+    "emptyHint": "分配给您的工作将显示在这里。",
+    "loading": "正在加载您的工作…"
   }
 }

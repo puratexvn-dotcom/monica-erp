@@ -4,19 +4,18 @@
     "name": "English",
     "note": "Constitutional language. New keys must be added to ALL THREE files — arch test ⑪ fails on any gap."
   },
-
   "brand": {
     "tagline": "Business Operating System"
   },
-
   "home": {
     "welcomeTo": "Welcome to",
     "hint": "Click a Business App to continue",
     "appsLabel": "Business Apps",
     "beta": "Beta",
-    "betaHint": "in development"
+    "betaHint": "in development",
+    "comingSoon": "Coming Soon",
+    "comingSoonHint": "not open yet, under construction"
   },
-
   "login": {
     "eyebrow": "Business Operating System",
     "welcomeBack": "Welcome back.",
@@ -39,12 +38,10 @@
     "errorConfig": "The connection to the data server is not configured. An administrator must check the environment variables and redeploy — changing a variable does not trigger a rebuild on its own.",
     "errorUnreachable": "The authentication server cannot be reached. Please try again in a few minutes."
   },
-
   "footer": {
     "developedBy": "Developed by Joseph",
     "hotline": "Hotline"
   },
-
   "nav": {
     "workbench": "Workbench",
     "chat": "Chat",
@@ -60,7 +57,6 @@
     "searchPlaceholder": "Search PO, style, customer…",
     "language": "Language"
   },
-
   "action": {
     "save": "Save",
     "cancel": "Cancel",
@@ -85,7 +81,6 @@
     "viewAll": "View all",
     "viewDetail": "View details"
   },
-
   "empty": {
     "noData": "No data",
     "noReports": "No reports",
@@ -96,14 +91,12 @@
     "noNotifications": "No notifications",
     "noActivity": "No activity recorded"
   },
-
   "state": {
     "loading": "Loading…",
     "saving": "Saving…",
     "processing": "Processing…",
     "uploading": "Uploading…"
   },
-
   "error": {
     "generic": "Something went wrong. Please try again.",
     "network": "Cannot reach the server. Check your connection and try again.",
@@ -113,7 +106,6 @@
     "server": "The server encountered a problem. Please try again later.",
     "sessionExpired": "Your session has expired. Please sign in again."
   },
-
   "success": {
     "saved": "Saved",
     "created": "Created",
@@ -122,7 +114,6 @@
     "approved": "Approved",
     "sent": "Sent"
   },
-
   "validation": {
     "required": "This field is required",
     "email": "Enter a valid email address",
@@ -132,7 +123,6 @@
     "positive": "Must be a positive number",
     "passwordWeak": "Password is too weak"
   },
-
   "confirm": {
     "title": "Confirm",
     "deleteTitle": "Confirm deletion",
@@ -140,7 +130,6 @@
     "discardTitle": "Discard changes?",
     "discardBody": "Unsaved changes will be lost."
   },
-
   "status": {
     "healthy": "Healthy",
     "inProgress": "In progress",
@@ -153,7 +142,6 @@
     "critical": "Critical",
     "rejected": "Rejected"
   },
-
   "appShort": {
     "executive": "Factory oversight",
     "commercial": "Customers & orders",
@@ -172,7 +160,6 @@
     "documents": "Tech packs & files",
     "platform": "Accounts & access"
   },
-
   "appDesc": {
     "executive": "Factory-wide oversight and approvals",
     "commercial": "Customers, quotations and purchase orders",
@@ -190,5 +177,21 @@
     "ai": "An assistant that understands the work in front of you",
     "documents": "Tech packs, documents and version control",
     "platform": "Accounts, authorization, language and configuration"
+  },
+  "landing": {
+    "lead": "A unified operating platform for garment manufacturing.",
+    "signIn": "Sign in to get started",
+    "pillarOne": "One unified operating platform for the whole enterprise",
+    "pillarRole": "Role-based workspaces with strict permissions",
+    "pillarEvidence": "Every action carries evidence and a full audit trail"
+  },
+  "workZone": {
+    "title": "Your work",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "emptyTitle": "Nothing needs your attention",
+    "emptyHint": "Assigned work will appear here.",
+    "loading": "Loading your work…"
   }
 }

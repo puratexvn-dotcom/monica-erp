@@ -3,6 +3,7 @@ import HomeContent from './_home/home-content';
 import { NOISE_URL, CANVAS } from '@/lib/design/tokens';
 import { LOGO_COLORS } from '@/lib/brand';
 import BrandFooter from '@/components/brand-footer';
+import { getSessionUser } from '@/lib/auth/session';
 
 // ============================================================================
 // TRANG CHỦ MONICA ONE — LỐI VÀO CÔNG KHAI
@@ -50,7 +51,23 @@ import BrandFooter from '@/components/brand-footer';
 
 export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
+export default async function HomePage() {
+  // 🔴 `UI-1.5` — trang chủ nay ĐỌC PHIÊN.
+  //
+  // Trước bản này `app/page.tsx` là component TĨNH, ⛔ không một lời gọi xác
+  // thực nào, và `middleware.ts` ⛔ không bảo vệ `/`. Hệ quả đo được: **bản đồ
+  // 16 phân hệ của doanh nghiệp hiện công khai cho mọi khách trên internet**
+  // *(`UI-F1`)*. ⛔ Không rò dữ liệu — mọi liên kết đều bị chặn — nhưng nó lộ
+  // cấu trúc vận hành, và trái §13.5 mà ADR-017 nâng thành điều kiện thi hành.
+  //
+  // ⚠️ Truyền **`role`**, ⛔ không truyền danh sách App đã lọc. Lý do kỹ thuật:
+  // `ModuleItem.icon` là một **component**, ⛔ không tuần tự hoá được qua ranh
+  // giới Server → Client. Lọc vì vậy chạy ở client, bằng **cùng một hàm thuần**.
+  //
+  // 🔑 Điều đó ⛔ **không** làm yếu gì: đây là quyết định **BÀY CÁI GÌ**, ⛔
+  // không phải **CHO VÀO HAY KHÔNG**. Hàng rào vẫn là middleware · guard · RLS.
+  const phien = await getSessionUser();
+  const ten = phien?.email?.split('@')[0] ?? null;
   return (
     // Nền KHÔNG trắng tinh. Trắng trên trắng buộc phải kẻ viền đậm, mà viền
     // đậm thì màn hình lập tức ồn. Xám rất nhạt để thẻ trắng nổi lên bằng
@@ -147,7 +164,7 @@ export default function HomePage() {
             không đập ngay vào mặt. Phần mềm rẻ tiền lấp đầy mọi pixel; phần mềm
             đắt tiền để trống có chủ ý. */}
         <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:px-8">
-          <HomeContent />
+          <HomeContent role={phien?.role ?? null} ten={ten} />
 
         </main>
 

@@ -716,12 +716,23 @@ s.ok('Sổ hồ sơ 6 cổng tồn tại', soCong !== null,
   'thiếu tests/architecture/screen-gates.json');
 
 if (soCong) {
-  // Route = mọi `page.tsx` dưới `app/(dashboard)/`, tính theo đường dẫn thư mục.
-  const gocDash = join(ROOT, 'app', '(dashboard)');
-  const routeThat = quet('app/(dashboard)')
+  // Route = mọi `page.tsx` trong `app/`, tính theo đường dẫn thư mục.
+  //
+  // ⚠️ MỞ RỘNG 05/08/2026 — `UI-1.6`. Bản đầu chỉ quét `app/(dashboard)/`, nên
+  // nó **⛔ không phủ** `/` · `/login` · `/update-password` · `/unauthorized` —
+  // tức **toàn bộ bề mặt xác thực**, và cũng là **màn hình đầu tiên mọi người
+  // dùng nhìn thấy**. EDD-05 §1.1 nói *"MỌI màn hình"*, ⛔ không nói *"mọi màn
+  // hình trong dashboard"*.
+  //
+  // 🔑 Nhóm route `(dashboard)` được **giữ nguyên trong khoá** thay vì gỡ bỏ:
+  // đó là cách phân biệt `/(dashboard)/md` với một `/md` giả định ở nơi khác.
+  const gocApp = join(ROOT, 'app');
+  const routeThat = quet('app')
     .filter((p) => p.endsWith('page.tsx'))
-    .map((p) => relative(gocDash, p).split(sep).slice(0, -1).join('/'))
-    .filter(Boolean)
+    .map((p) => {
+      const doan = relative(gocApp, p).split(sep).slice(0, -1);
+      return doan.length === 0 ? '/' : doan.join('/');
+    })
     .sort();
 
   const trongSo = new Map(soCong.hoSo.map((m) => [m.route, m]));

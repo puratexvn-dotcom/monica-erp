@@ -47,7 +47,11 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   const { t } = useLanguage();
   const Icon = mod.icon;
   const sf = MODULE_SURFACE[mod.key];
-  const mo = Boolean(mod.href);
+  // ⚠️ Trước bản này là `Boolean(mod.href)` — suy trạng thái từ chỗ CÓ hay
+  // KHÔNG có đường dẫn. Nay trạng thái được khai TƯỜNG MINH (`Q2`), nên đọc
+  // thẳng. Suy gián tiếp là chỗ hai khái niệm *"chưa có route"* và *"đang phát
+  // triển"* từng bị gộp làm một.
+  const moDuoc = mod.status === 'READY';
 
   // Bóng của BIỂU TƯỢNG, không phải của hộp. Hai lớp: một lớp sát để bắt mép,
   // một lớp toả rộng và thấp để nó có vẻ đang nổi trên mặt trang.
@@ -85,7 +89,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
             ai đọc nổi thì cái nhãn đó thôi làm nhãn.
             Một chấm thì không cần đọc — nó chỉ cần được THẤY, và ở đó nó làm
             đúng việc của mình. */}
-        {!mo && (
+        {!moDuoc && (
           <>
             <span
               className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-white shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:hidden"
@@ -96,12 +100,12 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
             <span
               className={`${TYPE.overline} absolute -right-1.5 -top-1.5 hidden rounded-full bg-white px-1.5 py-0.5 text-slate-500 shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:block`}
             >
-              {t('home.beta')}
+              {t('home.comingSoon')}
             </span>
             {/* Khổ hẹp mất chữ "Beta", nên phải có lối đọc cho trình đọc màn
                 hình — nếu không, sáu App chưa mở trở thành không phân biệt
                 được với mười App đang chạy. */}
-            <span className="sr-only sm:hidden">{t('home.beta')}</span>
+            <span className="sr-only sm:hidden">{t('home.comingSoon')}</span>
           </>
         )}
       </span>
@@ -167,20 +171,34 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   // biểu tượng lẫn tên — người dùng chạm vào chữ cũng mở được App.
   const base = 'group flex flex-col items-center rounded-2xl p-2 focus-visible:outline-none';
 
-  if (!mo) {
+  // ─── App CHƯA có route — Board `Q2`: hiện · khoá · gắn nhãn ─────────────
+  //
+  // 🔑 Dùng `<button disabled>`, ⛔ không dùng `<div>`. Người đi bằng bàn phím
+  // và trình đọc màn hình phải **nghe được rằng nó bị khoá**; một `<div>` mờ đi
+  // thì với họ nó đơn giản là ⛔ không tồn tại.
+  //
+  // `aria-disabled` + `disabled`: cái đầu để trình đọc màn hình đọc ra, cái sau
+  // để trình duyệt ⛔ không cho bấm và ⛔ không đưa vào thứ tự Tab.
+  if (!moDuoc) {
     return (
-      <div
-        className={`${base} cursor-default opacity-60`}
-        title={`${mod.name} — ${t(mod.descKey)} · ${t('home.betaHint')}`}
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        className={`${base} cursor-not-allowed opacity-60`}
+        title={`${mod.name} — ${t(mod.descKey)} · ${t('home.comingSoonHint')}`}
       >
         {inner}
-      </div>
+      </button>
     );
   }
 
   return (
     <Link
-      href={mod.href as string}
+      // 🔑 ⛔ Không còn `as string`. Trong nhánh này TypeScript đã thu hẹp kiểu
+      // về `ModuleReady`, nên `href` chắc chắn tồn tại — máy kiểm chứng minh
+      // điều đó thay vì ta ép nó im lặng.
+      href={mod.href}
       title={`${mod.name} — ${t(mod.descKey)}`}
       className={`${base} focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#F6F7F9]`}
     >

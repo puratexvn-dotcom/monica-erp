@@ -42,6 +42,8 @@ const BAI = [
   // ✅ `TD-36` đã trả — loader phân giải bí danh `@/…` và import thiếu đuôi, nên
   // bài này nay phủ ĐỦ 5/5 mô-đun Kho. Trước đó chỉ nạp được 2/5.
   ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false, CO_TS],
+  // `UI-1.2` — canh HAI chiều: lộ quá nhiều (UI-F1) và che quá nhiều.
+  ['business/capability.test.mjs', 'Lọc Business App theo quyền', false, CO_TS],
   ['regression/seed-integrity.test.mjs', 'Toàn vẹn dữ liệu nền', true],
   ['security/anon-and-buyer.test.mjs', 'Quét anon + Buyer', true],
   ['security/rls-external.test.mjs', 'Phân quyền người ngoài', true],

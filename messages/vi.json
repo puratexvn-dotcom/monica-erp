@@ -4,19 +4,18 @@
     "name": "Tiếng Việt",
     "note": "Bản gốc. Khoá mới phải thêm vào ĐỦ CẢ BA tệp — bài kiểm kiến trúc mục ⑪ chặn nếu thiếu."
   },
-
   "brand": {
     "tagline": "Business Operating System"
   },
-
   "home": {
     "welcomeTo": "Chào mừng đến với",
     "hint": "Chọn một Business App để tiếp tục",
     "appsLabel": "Business Apps",
     "beta": "Beta",
-    "betaHint": "đang phát triển"
+    "betaHint": "đang phát triển",
+    "comingSoon": "Sắp có",
+    "comingSoonHint": "chưa mở, đang xây dựng"
   },
-
   "login": {
     "eyebrow": "Business Operating System",
     "welcomeBack": "Chào mừng trở lại.",
@@ -39,12 +38,10 @@
     "errorConfig": "Hệ thống chưa được cấu hình kết nối máy chủ dữ liệu. Quản trị viên cần kiểm tra biến môi trường rồi triển khai lại — đổi biến không tự kích hoạt build lại.",
     "errorUnreachable": "Không liên lạc được máy chủ xác thực. Vui lòng thử lại sau ít phút."
   },
-
   "footer": {
     "developedBy": "Phát triển bởi Joseph",
     "hotline": "Hotline"
   },
-
   "nav": {
     "workbench": "Bàn làm việc",
     "chat": "Chat",
@@ -60,7 +57,6 @@
     "searchPlaceholder": "Tìm PO, mã hàng, khách hàng…",
     "language": "Ngôn ngữ"
   },
-
   "action": {
     "save": "Lưu",
     "cancel": "Huỷ",
@@ -85,7 +81,6 @@
     "viewAll": "Xem tất cả",
     "viewDetail": "Xem chi tiết"
   },
-
   "empty": {
     "noData": "Chưa có dữ liệu",
     "noReports": "Chưa có báo cáo",
@@ -96,14 +91,12 @@
     "noNotifications": "Không có thông báo",
     "noActivity": "Chưa ghi nhận hoạt động nào"
   },
-
   "state": {
     "loading": "Đang tải…",
     "saving": "Đang lưu…",
     "processing": "Đang xử lý…",
     "uploading": "Đang tải lên…"
   },
-
   "error": {
     "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "network": "Không kết nối được máy chủ. Kiểm tra đường truyền rồi thử lại.",
@@ -113,7 +106,6 @@
     "server": "Máy chủ gặp sự cố. Vui lòng thử lại sau.",
     "sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
   },
-
   "success": {
     "saved": "Đã lưu",
     "created": "Đã tạo",
@@ -122,7 +114,6 @@
     "approved": "Đã duyệt",
     "sent": "Đã gửi"
   },
-
   "validation": {
     "required": "Trường này bắt buộc nhập",
     "email": "Email không hợp lệ",
@@ -132,7 +123,6 @@
     "positive": "Phải là số dương",
     "passwordWeak": "Mật khẩu quá yếu"
   },
-
   "confirm": {
     "title": "Xác nhận",
     "deleteTitle": "Xác nhận xoá",
@@ -140,7 +130,6 @@
     "discardTitle": "Bỏ thay đổi?",
     "discardBody": "Các thay đổi chưa lưu sẽ mất."
   },
-
   "status": {
     "healthy": "Ổn định",
     "inProgress": "Đang chạy",
@@ -153,7 +142,6 @@
     "critical": "Nguy cấp",
     "rejected": "Bị từ chối"
   },
-
   "appShort": {
     "executive": "Điều hành nhà máy",
     "commercial": "Khách hàng & đơn hàng",
@@ -172,7 +160,6 @@
     "documents": "Tech pack & chứng từ",
     "platform": "Tài khoản & phân quyền"
   },
-
   "appDesc": {
     "executive": "Điều hành và phê duyệt toàn nhà máy",
     "commercial": "Khách hàng, báo giá và đơn đặt hàng",
@@ -190,5 +177,21 @@
     "ai": "Trợ lý hiểu ngữ cảnh việc đang làm",
     "documents": "Tech pack, chứng từ và phiên bản",
     "platform": "Tài khoản, phân quyền, ngôn ngữ và cấu hình"
+  },
+  "landing": {
+    "lead": "Nền tảng vận hành hợp nhất cho doanh nghiệp may mặc.",
+    "signIn": "Đăng nhập để bắt đầu",
+    "pillarOne": "Một nền tảng vận hành hợp nhất cho toàn doanh nghiệp",
+    "pillarRole": "Không gian làm việc theo vai trò, phân quyền chặt",
+    "pillarEvidence": "Mọi thao tác đều có bằng chứng và truy vết đầy đủ"
+  },
+  "workZone": {
+    "title": "Việc của bạn",
+    "greetingMorning": "Chào buổi sáng",
+    "greetingAfternoon": "Chào buổi chiều",
+    "greetingEvening": "Chào buổi tối",
+    "emptyTitle": "Chưa có việc nào cần bạn xử lý",
+    "emptyHint": "Khi có việc được giao, nó sẽ hiện ở đây.",
+    "loading": "Đang tải việc của bạn…"
   }
 }

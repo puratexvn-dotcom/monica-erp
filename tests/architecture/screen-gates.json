@@ -39,28 +39,125 @@
     "trần bằng một quyết định NHÌN THẤY ĐƯỢC trong diff.",
     "Trần chỉ được HẠ XUỐNG."
   ],
-
-  "tranChuaDanhGia": 16,
-
+  "tranChuaDanhGia": 20,
   "hoSo": [
-    { "route": "admin", "ten": "Quản trị người dùng", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "buyer", "ten": "Cổng khách hàng", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "giam-doc", "ten": "Executive Center", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "hoan-thanh", "ten": "Hoàn thành", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "ke-toan", "ten": "Kế toán", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "kho", "ten": "Kho", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "md", "ten": "Merchandising — 13 tab", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "md/assignments", "ten": "Assignment", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "md/po/[poId]", "ten": "PO 360°", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "orders", "ten": "Đơn hàng", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "qa", "ten": "Chất lượng", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "subcon", "ten": "Nhà thầu", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "to-truong-cat", "ten": "Tổ trưởng cắt", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "to-truong-hoan-thanh", "ten": "Tổ trưởng hoàn thành", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "to-truong-may", "ten": "Tổ trưởng may", "trangThai": "CHUA_DANH_GIA" },
-    { "route": "xuat-hang", "ten": "Xuất hàng", "trangThai": "CHUA_DANH_GIA" }
+    {
+      "route": "(dashboard)/admin",
+      "ten": "Quản trị người dùng",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/buyer",
+      "ten": "Cổng khách hàng",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/giam-doc",
+      "ten": "Executive Center",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/hoan-thanh",
+      "ten": "Hoàn thành",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/ke-toan",
+      "ten": "Kế toán",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/kho",
+      "ten": "Kho",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/md",
+      "ten": "Merchandising — 13 tab",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/md/assignments",
+      "ten": "Assignment",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/md/po/[poId]",
+      "ten": "PO 360°",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/orders",
+      "ten": "Đơn hàng",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/qa",
+      "ten": "Chất lượng",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/subcon",
+      "ten": "Nhà thầu",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/to-truong-cat",
+      "ten": "Tổ trưởng cắt",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/to-truong-hoan-thanh",
+      "ten": "Tổ trưởng hoàn thành",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/to-truong-may",
+      "ten": "Tổ trưởng may",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "(dashboard)/xuat-hang",
+      "ten": "Xuất hàng",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "offline",
+      "ten": "Ngoại tuyến (PWA)",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "unauthorized",
+      "ten": "403 — Không đủ quyền",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "update-password",
+      "ten": "Đổi mật khẩu lần đầu",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "login",
+      "ten": "Đăng nhập",
+      "trangThai": "CHUA_DANH_GIA"
+    },
+    {
+      "route": "/",
+      "ten": "Trang chủ — Landing + Work Zone + Launcher",
+      "trangThai": "DA_DANH_GIA",
+      "ngay": "2026-08-05",
+      "nguoiPhan": "Chief Solution Architect (đề xuất) · Board (phê duyệt Q1·Q2·Q3)",
+      "nguon": "docs/planning/EPIC-UI-1-ARCHITECTURE-REPORT.md §1.3 · Board Decision 05/08/2026",
+      "cong": {
+        "G1": "ĐẠT — trang chủ ⛔ không có trường nhập liệu nào.",
+        "G2": "ĐẠT — ⛔ không có dữ liệu nhập tay; mọi thứ suy từ phiên đăng nhập.",
+        "G3": "ĐẠT — ⛔ không có hành vi cam kết nào. Bấm một App là ĐIỀU HƯỚNG, ⛔ không phải quyết định.",
+        "G4": "VI PHẠM ĐÃ SỬA (UI-F1) — trước 05/08 trang chủ bày trọn bản đồ 16 phân hệ cho NGƯỜI CHƯA ĐĂNG NHẬP. Nay `visibleModules` trả rỗng khi role = null (Board Q3).",
+        "G5": "ĐẠT — ⛔ không có kiểm soát giả. Lọc ở đây là TRÌNH BÀY; hàng rào thật vẫn là middleware · guard · RLS, và tệp nguồn ghi rõ điều đó.",
+        "G6": "ĐẠT — Work Zone giai đoạn 1 ⛔ không tính chỉ số nào (Board Q1). Phép kiểm ⑭ canh tự động."
+      }
+    }
   ],
-
   "_khuon_muc_da_danh_gia": {
     "route": "<đường dẫn dưới app/(dashboard)/>",
     "ten": "<tên màn hình>",
@@ -70,7 +167,11 @@
     "nguon": "<tài liệu ghi phán quyết — bắt buộc, để tra ngược được>",
     "cong": {
       "G1": "ĐẠT | VI PHẠM — <mô tả>",
-      "G2": "…", "G3": "…", "G4": "…", "G5": "…", "G6": "…"
+      "G2": "…",
+      "G3": "…",
+      "G4": "…",
+      "G5": "…",
+      "G6": "…"
     }
   }
 }
