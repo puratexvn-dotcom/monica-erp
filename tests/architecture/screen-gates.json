@@ -39,7 +39,7 @@
     "trần bằng một quyết định NHÌN THẤY ĐƯỢC trong diff.",
     "Trần chỉ được HẠ XUỐNG."
   ],
-  "tranChuaDanhGia": 20,
+  "tranChuaDanhGia": 18,
   "hoSo": [
     {
       "route": "(dashboard)/admin",
@@ -134,12 +134,34 @@
     {
       "route": "update-password",
       "ten": "Đổi mật khẩu lần đầu",
-      "trangThai": "CHUA_DANH_GIA"
+      "trangThai": "DA_DANH_GIA",
+      "ngay": "2026-08-05",
+      "nguoiPhan": "Chief Solution Architect (đề xuất) · Board (phê duyệt EPIC UI-1)",
+      "nguon": "commit UI-1.3 — tách AuthBackdrop/AuthLogo",
+      "cong": {
+        "G1": "ĐẠT — chỉ mật khẩu mới.",
+        "G2": "ĐẠT.",
+        "G3": "ĐẠT — đổi mật khẩu không phải cam kết nghiệp vụ.",
+        "G4": "ĐẠT — middleware chặn TẤT CẢ khi còn cờ force_password_change, kể cả phân hệ đúng quyền.",
+        "G5": "ĐẠT — /auth/* luôn đi lọt nên nút Đăng xuất trên trang này không kẹt cứng.",
+        "G6": "ĐẠT — không tính chỉ số nào."
+      }
     },
     {
       "route": "login",
       "ten": "Đăng nhập",
-      "trangThai": "CHUA_DANH_GIA"
+      "trangThai": "DA_DANH_GIA",
+      "ngay": "2026-08-05",
+      "nguoiPhan": "Chief Solution Architect (đề xuất) · Board (phê duyệt EPIC UI-1)",
+      "nguon": "docs/planning/EPIC-UI-1-ARCHITECTURE-REPORT.md · commit UI-1.4",
+      "cong": {
+        "G1": "ĐẠT — chỉ email + mật khẩu; hệ thống KHÔNG biết trước hai thứ đó.",
+        "G2": "ĐẠT — không trường nào thu nhận tự động được.",
+        "G3": "ĐẠT — đăng nhập không phải cam kết nghiệp vụ; và nó KHÔNG một chạm (phải nhập hai trường).",
+        "G4": "ĐẠT — thông báo lỗi CỐ Ý không phân biệt sai email với sai mật khẩu, tránh dò email có thật. safeNext() chặn open-redirect.",
+        "G5": "ĐẠT — không có kiểm soát giả. Chốt chặn thật ở middleware; trang này chỉ thu thập.",
+        "G6": "ĐẠT — không tính chỉ số nào."
+      }
     },
     {
       "route": "/",

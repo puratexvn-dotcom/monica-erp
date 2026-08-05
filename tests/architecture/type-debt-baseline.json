@@ -42,8 +42,6 @@
     "app/(dashboard)/xuat-hang/page.tsx",
     "app/error.tsx",
     "app/login/form.tsx",
-    "app/login/page.tsx",
-    "app/page.tsx",
     "app/top-navbar.tsx",
     "app/unauthorized/page.tsx",
     "app/update-password/form.tsx",
