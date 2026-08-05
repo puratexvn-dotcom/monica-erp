@@ -251,6 +251,27 @@ export default function AppCard({
       >
         {t(mod.descKey)}
       </span>
+
+      {/* ═══ BUSINESS VALUE LÊN Ô — Board *Product Build Mode* ═══════════
+          Board liệt kê **bốn** thứ mỗi Module phải có trên Launcher: icon ·
+          tên · tagline · **business value**.
+
+          ⚠️ `UX-1 §14.1` từng chốt *"`businessValue` ⛔ KHÔNG in trên ô"* —
+          16 câu đầy đủ trên lưới hẹp là **một bức tường chữ**, đúng thứ Launcher
+          tồn tại để tránh. Điều đó **vẫn đúng ở khổ hẹp**.
+
+          ⇒ Hiện từ `lg` trở lên, nơi mỗi ô rộng ~250px và một câu chỉ chiếm hai
+          dòng. Dưới `lg` vẫn chỉ **tagline**.
+
+          🔑 Cả hai yêu cầu đều được giữ: **có mặt** ở nơi đủ chỗ, **vắng mặt**
+          ở nơi nó sẽ phá lưới. Người xem trên máy tính — Sales · Investor ·
+          Customer — chính là khán giả của câu này, và họ **⛔ không** dùng khổ
+          hẹp để xem demo. */}
+      <span
+        className={`${TYPE.caption} mt-1.5 hidden w-full items-start justify-center px-1 text-center text-slate-400 lg:flex`}
+      >
+        {t(mod.valueKey)}
+      </span>
     </>
   );
 

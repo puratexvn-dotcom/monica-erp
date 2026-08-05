@@ -193,27 +193,32 @@ export default function AppBottomNav({
           </li>
 
           {/* ─── Ô THỨ BA: TRANG CHỦ THÌ LÀ MONICA, NƠI KHÁC LÀ BÁO CÁO ─────
-              Chỉ thị 03/08/2026: *"trang chủ sẽ thay nút báo cáo bằng nút
-              monica, nhấp vào sẽ trỏ đến website monica là puratex.vn"*.
+              `Product Constitution §6` *(KHOÁ 05/08/2026)*:
 
-              Đổi CHỈ ở trang chủ. Mọi màn hình bên trong vẫn giữ nút Báo cáo
-              nguyên vẹn — ở đó người dùng đang làm việc và cần nó.
+                Homepage   Work · Chat · **Monica** · AI · Guide
+                Workspace  Work · Chat · **Report** · AI · Guide
+                *"**Monica chính là Application Launcher.**"*
 
-              ⚠️ Trang chủ là trang CÔNG KHAI, người xem có thể chưa đăng nhập,
-              nên bảng Báo cáo ở đó vốn không có gì để hiện. Thay bằng đường dẫn
-              ra website công ty là đổi một ô trống lấy một lối đi thật.
+              🔴 ĐỔI SO VỚI BẢN TRƯỚC. Chỉ thị 03/08/2026 cho ô này trỏ ra
+              `puratex.vn` — website công ty. Product Constitution khoá ngày
+              05/08 nói **Monica LÀ Launcher**, và nó là *"tài liệu nền tảng cao
+              nhất cho mọi quyết định Product"* ⇒ nó thắng chỉ thị cũ.
 
-              ⚠️ `rel="noopener noreferrer"`: mở tab ngoài mà thiếu `noopener`
-              thì trang đích giữ được tham chiếu `window.opener` và có thể tự ý
-              điều hướng tab gốc sang chỗ khác. */}
+              ⚠️ Và lý do cũ **⛔ không còn đúng**: khi ấy trang chủ ⛔ chưa có
+              gì cho khách xem nên *"đổi một ô trống lấy một lối đi thật"* là
+              hợp lý. Nay `UI-3` bày **đủ 16 Module cho mọi người xem** — ô này
+              ⛔ **không** còn trống, và đưa người dùng **rời khỏi sản phẩm**
+              đúng lúc họ vừa nhìn thấy nó là đổi ngược chiều.
+
+              🔑 Trên trang chủ, `Monica` cuộn thẳng xuống **lưới App** — bỏ qua
+              khối thương hiệu. Với người vào **mỗi ngày**, đó là **một cú bấm
+              thay cho một lần cuộn**, và nó đúng nghĩa *"Application Launcher"*.
+
+              Mọi màn hình bên trong vẫn giữ nút **Báo cáo** nguyên vẹn — ở đó
+              người dùng đang làm việc và cần nó. */}
           <li className="flex-1">
             {onHome ? (
-              <a
-                href="https://puratex.vn"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${btn} text-slate-600`}
-              >
+              <a href="#business-apps" className={`${btn} text-slate-600`}>
                 <Globe className={`${icon} ${NAV_ICON.monica}`} aria-hidden="true" />
                 Monica
               </a>

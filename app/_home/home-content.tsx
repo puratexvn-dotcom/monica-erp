@@ -236,7 +236,16 @@ export default function HomeContent({
           ⚠️ Khoảng cách DỌC rộng hơn ngang (gap-y 10 so với gap-x 4). Tên có
           thể xuống hai dòng, nên thiếu khoảng cách dọc thì chữ của hàng trên
           dính vào biểu tượng của hàng dưới. */}
-      <section aria-label={t('home.appsLabel')}>
+      {/* `id="business-apps"` — đích đến của nút **`Monica`** ở thanh dưới.
+          `Product Constitution §6`: *"Monica **chính là** Application Launcher"*
+          ⇒ trên trang chủ nó cuộn thẳng xuống lưới App, bỏ qua khối thương
+          hiệu. Với người vào **mỗi ngày**, đó là **một cú bấm thay cho một lần
+          cuộn**.
+
+          ⚠️ `scroll-mt-24` chừa chỗ cho thanh đầu trang — thiếu nó thì hàng ô
+          đầu tiên bị thanh đó che mất, và cú bấm đưa người dùng tới đúng chỗ
+          họ **⛔ không** nhìn thấy. */}
+      <section id="business-apps" aria-label={t('home.appsLabel')} className="scroll-mt-24">
         {/* ⚠️ BỐN CỘT Ở MỌI KHỔ MÀN, kể cả điện thoại.
             Trên màn 390px, trừ đệm hai bên và ba khe giữa thì mỗi ô chỉ còn
             khoảng 80px. Vì vậy khe ngang phải bóp xuống `gap-x-2` (8px) —
