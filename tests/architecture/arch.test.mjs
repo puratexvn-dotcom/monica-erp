@@ -688,4 +688,94 @@ if (soTuTinh) {
   console.log('      Sót đã biết: TD-34 (trừ/chia) · vòng `for` cộng dồn — spike B2-2a §3.4.');
 }
 
+// ── 14. HỒ SƠ 6 CỔNG THIẾT KẾ MÀN HÌNH — `⑯` · EDD-05 §1.1 ────────────────
+//
+// EDD-05 §1.1: *"Mọi màn hình mang hồ sơ này. ⛔ Không có hồ sơ ⇒ ⛔ không được
+// thiết kế tiếp."*
+//
+// ─── 🔴 MỤC NÀY ⛔ KHÔNG KIỂM ĐƯỢC 6 CỔNG — NÓI THẲNG ───────────────────
+// `G1` *(P-ZERODUP)* · `G2` *(P-ZEROMAN)* · `G3` *(P-COMMIT)* · `G4` *(P-IRREV)*
+// · `G5` *(P-ATTRIB)* là **câu hỏi thiết kế**. ⛔ Không phân tích tĩnh nào trả
+// lời được *"màn hình này có bắt người dùng nhập lại thứ hệ thống đã biết ⛔
+// không"*.
+//
+// 🔑 **Một phép kiểm tự nhận "đã kiểm 6 cổng" chính là KIỂM SOÁT GIẢ — đúng thứ
+//    `G5` cấm.** Mục này ⛔ **không** tuyên bố điều đó.
+//
+// ⑯ đo **thứ đo được**: mọi route phải có **một mục** trong sổ, và mục nào
+// tuyên bố *đã đánh giá* thì phải nêu **ngày · người phán · nguồn · đủ sáu phán
+// quyết**. ⇒ Nó chứng minh **⛔ không màn hình nào đi qua mà ⛔ không ai trả lời
+// 6 câu hỏi — hoặc ⛔ không ai ghi nhận rằng chưa ai trả lời.**
+//
+// `G6` là cổng **duy nhất** có phần cơ giới hoá được, và phần đó nằm ở ⑭.
+console.log('\n⑯ HỒ SƠ 6 CỔNG THIẾT KẾ MÀN HÌNH — EDD-05 §1.1');
+
+const duongDanCong = join(ROOT, 'tests/architecture/screen-gates.json');
+const soCong = existsSync(duongDanCong) ? JSON.parse(doc(duongDanCong)) : null;
+s.ok('Sổ hồ sơ 6 cổng tồn tại', soCong !== null,
+  'thiếu tests/architecture/screen-gates.json');
+
+if (soCong) {
+  // Route = mọi `page.tsx` dưới `app/(dashboard)/`, tính theo đường dẫn thư mục.
+  const gocDash = join(ROOT, 'app', '(dashboard)');
+  const routeThat = quet('app/(dashboard)')
+    .filter((p) => p.endsWith('page.tsx'))
+    .map((p) => relative(gocDash, p).split(sep).slice(0, -1).join('/'))
+    .filter(Boolean)
+    .sort();
+
+  const trongSo = new Map(soCong.hoSo.map((m) => [m.route, m]));
+
+  s.ok(`Đếm được route dashboard (${routeThat.length})`, routeThat.length > 0);
+
+  // ① Route ⛔ không có mục ⇒ màn hình lọt qua mà ⛔ không ai trả lời 6 câu
+  const thieuHoSo = routeThat.filter((r) => !trongSo.has(r));
+  s.ok(`MỌI route có mục trong sổ (${routeThat.length} route)`,
+    thieuHoSo.length === 0, `chưa có hồ sơ: ${thieuHoSo.join(' · ')}`);
+
+  // ② Mục trỏ route ⛔ không còn tồn tại ⇒ mục CHẾT, phải gỡ
+  const mucChet = [...trongSo.keys()].filter((r) => !routeThat.includes(r)).sort();
+  s.ok('Sổ ⛔ KHÔNG còn mục chết', mucChet.length === 0,
+    `route ⛔ không còn: ${mucChet.join(' · ')}`);
+
+  // ③ Mục tuyên bố ĐÃ ĐÁNH GIÁ phải mang đủ hồ sơ.
+  //    ⚠️ `nguon` là BẮT BUỘC — ⛔ không cho tuyên bố suông. Phải trỏ được về
+  //    chỗ phán quyết ĐƯỢC GHI, để người sau tra ngược.
+  const SAU_CONG = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6'];
+  const hoSoThieu = [];
+  for (const m of soCong.hoSo) {
+    if (m.trangThai !== 'DA_DANH_GIA') continue;
+    const thieu = [];
+    if (!m.ngay) thieu.push('ngày');
+    if (!m.nguoiPhan) thieu.push('người phán');
+    if (!m.nguon) thieu.push('nguồn');
+    for (const g of SAU_CONG) if (!m.cong?.[g]) thieu.push(g);
+    if (thieu.length) hoSoThieu.push(`${m.route} (thiếu ${thieu.join(', ')})`);
+  }
+  s.ok('Mục ĐÃ ĐÁNH GIÁ mang đủ ngày · người phán · nguồn · 6 cổng',
+    hoSoThieu.length === 0, hoSoThieu.join(' · '));
+
+  // ④ Mọi mục phải khai `trangThai` hợp lệ — ⛔ không có ô mơ hồ
+  const TT = ['DA_DANH_GIA', 'CHUA_DANH_GIA'];
+  const ttLa = soCong.hoSo.filter((m) => !TT.includes(m.trangThai)).map((m) => m.route);
+  s.ok(`Mọi mục khai trạng thái hợp lệ (${soCong.hoSo.length} mục)`,
+    ttLa.length === 0, ttLa.join(' · '));
+
+  // ⑤ BÁNH CÓC — số route CHƯA đánh giá chỉ được NGẮN ĐI.
+  //    Route mới thêm mà vẫn `CHUA_DANH_GIA` sẽ vượt trần ⇒ HỎNG, buộc phải
+  //    hoặc đánh giá nó, hoặc nâng trần bằng một quyết định NHÌN THẤY trong diff.
+  const chuaDanhGia = soCong.hoSo.filter((m) => m.trangThai === 'CHUA_DANH_GIA');
+  s.ok(`Số màn hình CHƯA đánh giá ⛔ không phình ra (${chuaDanhGia.length}/${soCong.tranChuaDanhGia})`,
+    chuaDanhGia.length <= soCong.tranChuaDanhGia,
+    `${chuaDanhGia.length} > trần ${soCong.tranChuaDanhGia}`);
+
+  const daDanhGia = soCong.hoSo.length - chuaDanhGia.length;
+  console.log(`   ↻ ĐÃ đánh giá ${daDanhGia}/${soCong.hoSo.length} màn hình — trần nợ ${soCong.tranChuaDanhGia}`);
+  console.log('   ⚠️ ⑯ CHỨNG MINH CÓ HỒ SƠ, ⛔ KHÔNG chứng minh màn hình ĐẠT 6 cổng.');
+  console.log('      G1–G5 là câu hỏi THIẾT KẾ — ⛔ không phân tích tĩnh nào trả lời được.');
+  if (chuaDanhGia.length > 0) {
+    console.log(`   🔴 ${chuaDanhGia.length} màn hình ĐANG CHẠY chưa từng qua cổng thiết kế nào.`);
+  }
+}
+
 process.exit(s.ketThuc() ? 1 : 0);

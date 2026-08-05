@@ -59,6 +59,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-35](#td-35) | ~~`deleteStyleChild` còn chào lối xoá `style_bom`~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board `Đ-3′` · lối ① |
 | [TD-36](#td-36) | ~~Bộ kiểm nghiệp vụ chỉ nạp được mô-đun ⛔ không phụ thuộc~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board phương án ① — loader |
 | [TD-37](#td-37) | `YARD_IN_METERS` khai ở **hai nơi** — `garment-math` *(export)* và `four-point` *(riêng)* | 🟡 | mở *(Board giữ nguyên)* | Sprint I-2 Phase 2 · `B2-5` |
+| [TD-38](#td-38) | 🔴 **16/16 màn hình đang chạy CHƯA từng qua cổng thiết kế 6 câu** — EDD-05 §1.1 | 🔴 | mở | Sprint I-2 Phase 2 · `B2-4` |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -993,6 +994,67 @@ Lệch là **đỏ ngay**.
 ### Sprint đích
 
 Chờ Board — đã đủ điều kiện kỹ thuật để trả bất cứ lúc nào.
+
+---
+
+<a id="td-38"></a>
+## TD-38 · 16/16 MÀN HÌNH ĐANG CHẠY CHƯA TỪNG QUA CỔNG THIẾT KẾ
+
+| | |
+|---|---|
+| **Mức** | 🔴 mở — **nghĩa vụ EDD-05 chưa thi hành**, ⛔ không phải lỗi mã |
+| **Phát hiện** | Sprint I-2 Phase 2 · `B2-4` — **lúc lập sổ hồ sơ 6 cổng** |
+| **Vi phạm** | **EDD-05 §1.1** — *"Mọi màn hình mang hồ sơ này. ⛔ Không có hồ sơ ⇒ ⛔ không được thiết kế tiếp"* |
+
+### Nội dung — `[MEASURED]` 05/08/2026
+
+Quét toàn bộ `app/(dashboard)/` ⇒ **16 route**. Tra toàn bộ `docs/` ⇒ **⛔ không
+một hồ sơ 6 cổng nào** cho bất kỳ route nào trong số đó.
+
+EDD-05 §1.1 **có** định nghĩa sáu cổng và **một ví dụ mẫu** — nhưng ví dụ đó là
+màn hình **cổng nhà thầu đang THIẾT KẾ**, chưa dựng. ⛔ Không có hồ sơ nào cho
+**16 màn hình ĐANG CHẠY**.
+
+| | |
+|---|---|
+| Route dashboard | **16** |
+| Đã có hồ sơ 6 cổng | **0** |
+| Chưa đánh giá | **16** |
+
+### Vì sao ⛔ KHÔNG tự điền
+
+16 route × 6 cổng = **96 phán quyết thiết kế**. Tự điền chúng trong một lượt là
+**bịa ra một hồ sơ trông đầy đủ hơn thực tế** — đúng rủi ro `R-3` của Backlog:
+*"sổ thành nghi thức rỗng"*, và đúng thứ `G5` *(`P-ATTRIB`)* gọi là **kiểm soát
+giả**.
+
+⇒ Sổ ghi **sự thật**: `CHUA_DANH_GIA` × 16.
+
+### Đã có gì canh
+
+Phép kiểm **⑯** *(`arch.test.mjs`)*:
+
+- Route mới ⛔ không có mục ⇒ **HỎNG** — ⛔ không màn hình nào lọt qua im lặng
+- Mục tuyên bố *đã đánh giá* mà thiếu **ngày · người phán · nguồn · đủ 6 cổng**
+  ⇒ **HỎNG** — ⛔ không tuyên bố suông được
+- Trần `tranChuaDanhGia = 16` — **chỉ được hạ xuống**
+
+🔑 ⑯ chứng minh **có hồ sơ**, ⛔ **không** chứng minh màn hình **đạt** 6 cổng.
+`G1`–`G5` là câu hỏi thiết kế, ⛔ không phân tích tĩnh nào trả lời được.
+
+### Cách trả
+
+Đánh giá **từng màn hình**, ghi phán quyết kèm **người phán thật** và **nguồn**.
+⚠️ **CSA ⛔ không tự làm thay được** — `G1` *(nhập trùng)* và `G3` *(cam kết một
+chạm)* cần người **biết quy trình nghiệp vụ thật**; ADR-011 §2.4 mục 3.
+
+⇒ Đề nghị: mỗi Sprint đánh giá **2–3 màn hình**, hạ trần dần. ⛔ Không làm một
+lượt 16 màn hình — làm vậy chính là nghi thức rỗng.
+
+### Sprint đích
+
+**I-5** *(Ranh giới Workspace)* và **I-6** *(Object Control Tower)* — hai Sprint
+đụng nhiều màn hình nhất, đánh giá đúng lúc đang sửa chúng thì rẻ nhất.
 
 ---
 

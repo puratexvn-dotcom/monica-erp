@@ -817,7 +817,7 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | **Khoản nợ quản trị** | **28** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) R1 *(4 đã trả · 3 mới)* |
 | **Độ phủ CI** | **9/10** bài kiểm *(`md-internal-scope` chờ `TC-1`)* |
 | **Technical Condition** | **5** — `TC-1`…`TC-5`; 3 chặn **Cổng C** |
-| **Phép đo tĩnh** *(⛔ không cần CSDL)* | **274** — 61 kiến trúc + 59 nghiệp vụ MD + 154 nghiệp vụ Kho |
+| **Phép đo tĩnh** *(⛔ không cần CSDL)* | **281** — 68 kiến trúc + 59 nghiệp vụ MD + 154 nghiệp vụ Kho |
 
 ---
 

@@ -1,0 +1,76 @@
+{
+  "_tai_lieu": [
+    "SỔ HỒ SƠ 6 CỔNG THIẾT KẾ MÀN HÌNH — EDD-05 §1.1 · Sprint I-2 Phase 2 · B2-4.",
+    "",
+    "EDD-05 §1.1: 'Mọi màn hình mang hồ sơ này. KHÔNG có hồ sơ ⇒ KHÔNG được",
+    "thiết kế tiếp.' Sổ này là chỗ lưu hồ sơ đó.",
+    "",
+    "─── 🔴 PHÉP KIỂM ⑯ KHÔNG KIỂM ĐƯỢC 6 CỔNG ────────────────────────────────",
+    "",
+    "G1 (P-ZERODUP) · G2 (P-ZEROMAN) · G3 (P-COMMIT) · G4 (P-IRREV) ·",
+    "G5 (P-ATTRIB) là CÂU HỎI THIẾT KẾ. Không phân tích tĩnh nào trả lời được",
+    "'màn hình này có bắt người dùng nhập lại dữ liệu hệ thống đã biết không'.",
+    "",
+    "Một phép kiểm tự nhận 'đã kiểm 6 cổng' chính là KIỂM SOÁT GIẢ — đúng thứ",
+    "G5 cấm. ⑯ KHÔNG tuyên bố điều đó.",
+    "",
+    "⑯ đo THỨ ĐO ĐƯỢC: mọi route phải có MỘT MỤC ở đây, và mục nào tuyên bố đã",
+    "đánh giá thì phải nêu NGÀY · NGƯỜI PHÁN · NGUỒN · đủ sáu phán quyết.",
+    "⇒ Nó chứng minh: KHÔNG màn hình nào đi qua mà KHÔNG ai trả lời 6 câu hỏi,",
+    "  HOẶC không ai ghi nhận rằng chưa ai trả lời. Chỉ vậy thôi — và ghi đúng vậy.",
+    "",
+    "G6 (Single Source of Truth) là cổng DUY NHẤT có phần cơ giới hoá được, và",
+    "phần đó nằm ở phép kiểm ⑭ (cấm màn hình tự tính).",
+    "",
+    "─── 🔴 HIỆN TRẠNG ĐO ĐƯỢC 05/08/2026: 16/16 CHƯA ĐÁNH GIÁ ────────────────",
+    "",
+    "Không một route nào trong app/(dashboard)/ có hồ sơ 6 cổng. Đã tra toàn bộ",
+    "docs/ — EDD-05 §1.1 có ĐỊNH NGHĨA cổng và một ví dụ mẫu cho màn hình cổng",
+    "nhà thầu (màn hình THIẾT KẾ, chưa dựng), nhưng KHÔNG có hồ sơ nào cho 16",
+    "màn hình ĐANG CHẠY.",
+    "",
+    "⛔ TÔI KHÔNG TỰ ĐIỀN PHÁN QUYẾT. 16 route × 6 cổng = 96 phán quyết thiết kế;",
+    "   tự điền chúng trong một lượt là bịa ra một hồ sơ trông đầy đủ hơn thực",
+    "   tế — đúng rủi ro R-3 của Backlog: 'sổ thành nghi thức rỗng'.",
+    "",
+    "─── BÁNH CÓC ─────────────────────────────────────────────────────────────",
+    "`tranChuaDanhGia` là TRẦN, không phải mục tiêu. Route mới thêm vào mà vẫn",
+    "CHUA_DANH_GIA sẽ vượt trần ⇒ HỎNG, buộc phải hoặc đánh giá nó, hoặc nâng",
+    "trần bằng một quyết định NHÌN THẤY ĐƯỢC trong diff.",
+    "Trần chỉ được HẠ XUỐNG."
+  ],
+
+  "tranChuaDanhGia": 16,
+
+  "hoSo": [
+    { "route": "admin", "ten": "Quản trị người dùng", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "buyer", "ten": "Cổng khách hàng", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "giam-doc", "ten": "Executive Center", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "hoan-thanh", "ten": "Hoàn thành", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "ke-toan", "ten": "Kế toán", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "kho", "ten": "Kho", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "md", "ten": "Merchandising — 13 tab", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "md/assignments", "ten": "Assignment", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "md/po/[poId]", "ten": "PO 360°", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "orders", "ten": "Đơn hàng", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "qa", "ten": "Chất lượng", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "subcon", "ten": "Nhà thầu", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "to-truong-cat", "ten": "Tổ trưởng cắt", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "to-truong-hoan-thanh", "ten": "Tổ trưởng hoàn thành", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "to-truong-may", "ten": "Tổ trưởng may", "trangThai": "CHUA_DANH_GIA" },
+    { "route": "xuat-hang", "ten": "Xuất hàng", "trangThai": "CHUA_DANH_GIA" }
+  ],
+
+  "_khuon_muc_da_danh_gia": {
+    "route": "<đường dẫn dưới app/(dashboard)/>",
+    "ten": "<tên màn hình>",
+    "trangThai": "DA_DANH_GIA",
+    "ngay": "YYYY-MM-DD",
+    "nguoiPhan": "<TÊN NGƯỜI, không phải vai trò chung chung>",
+    "nguon": "<tài liệu ghi phán quyết — bắt buộc, để tra ngược được>",
+    "cong": {
+      "G1": "ĐẠT | VI PHẠM — <mô tả>",
+      "G2": "…", "G3": "…", "G4": "…", "G5": "…", "G6": "…"
+    }
+  }
+}

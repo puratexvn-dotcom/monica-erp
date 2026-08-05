@@ -17,6 +17,54 @@
 
 ## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
 
+### ⑯ `B2-4` · Hồ sơ 6 cổng thiết kế màn hình — ✅ **HOÀN TẤT**
+
+Phép kiểm mới **thứ tư** ⇒ `E-1` **3/5 → 4/5**. `test:arch` **61 → 68 đạt**.
+
+🔴 **Phát hiện — `TD-38`: 16/16 màn hình đang chạy CHƯA từng qua cổng thiết kế.**
+
+EDD-05 §1.1 quy định *"Mọi màn hình mang hồ sơ này. Không có hồ sơ ⇒ không được
+thiết kế tiếp"*. Quét `app/(dashboard)/` ⇒ **16 route**; tra toàn bộ `docs/` ⇒
+**0 hồ sơ**. EDD-05 có định nghĩa cổng và một ví dụ mẫu, nhưng ví dụ đó là màn
+hình cổng nhà thầu **đang thiết kế, chưa dựng**.
+
+**⛔ Tôi KHÔNG tự điền phán quyết.** 16 route × 6 cổng = **96 phán quyết thiết
+kế**; tự điền trong một lượt là **bịa ra hồ sơ trông đầy đủ hơn thực tế** —
+đúng rủi ro `R-3` và đúng thứ `G5` gọi là **kiểm soát giả**. Sổ ghi **sự thật**:
+`CHUA_DANH_GIA` × 16.
+
+🔴 **Và ⑯ tự khai giới hạn của chính nó, in ra mỗi lần chạy:**
+
+> `G1`–`G5` là **câu hỏi thiết kế** — không phân tích tĩnh nào trả lời được
+> *"màn hình này có bắt người dùng nhập lại thứ hệ thống đã biết không"*. ⑯
+> chứng minh **có hồ sơ**, **không** chứng minh màn hình **đạt** 6 cổng. `G6` là
+> cổng duy nhất cơ giới hoá được, và phần đó nằm ở ⑭.
+
+**Năm phép kiểm con:** route thiếu mục · mục chết · mục *đã đánh giá* thiếu
+**ngày · người phán · nguồn · đủ 6 cổng** · trạng thái hợp lệ · **trần nợ chỉ
+được hạ**.
+
+🔑 Trường **`nguon` bắt buộc** là thứ chống nghi thức rỗng: không thể tuyên bố
+*"đã đánh giá"* mà không trỏ được về chỗ phán quyết **được ghi**.
+
+**Năm lần tiêm, mỗi lần đỏ đúng chỗ:**
+
+```
+route mới không có hồ sơ              ⛔ chưa có hồ sơ: thu-nghiem
+mục trỏ route không tồn tại           ⛔ mục chết + ⛔ route thiếu hồ sơ
+🔑 GIẢ VỜ đã đánh giá, 6 cổng "ĐẠT"   ⛔ md (thiếu ngày, người phán, nguồn)
+đánh giá thiếu một cổng (G4)          ⛔ md (thiếu G4)
+hạ trần xuống 15                      ⛔ 16 > trần 15
+```
+
+Lần tiêm thứ ba là quan trọng nhất — nó chứng minh sổ **không thể** thành nghi
+thức rỗng.
+
+**Cách trả `TD-38`:** đánh giá **2–3 màn hình mỗi Sprint**, hạ trần dần. ⛔
+Không làm một lượt 16 màn hình — làm vậy **chính là** nghi thức rỗng. CSA **⛔
+không tự làm thay được**: `G1` *(nhập trùng)* và `G3` *(cam kết một chạm)* cần
+người **biết quy trình nghiệp vụ thật** — ADR-011 §2.4 mục 3.
+
 ### 🔧 `TD-36` · Test Loader — mở khoá **2/5 → 5/5** mô-đun — ✅ **ĐÃ TRẢ**
 
 Board chọn **phương án ①**: vấn đề nằm ở **hạ tầng kiểm thử** nên sửa ở đó.
