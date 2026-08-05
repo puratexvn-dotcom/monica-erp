@@ -1,0 +1,102 @@
+{
+  "_tai_lieu": [
+    "SỔ NỢ MÀN HÌNH TỰ TÍNH — G6 · Sprint I-2 Phase 2 · B2-2b.",
+    "",
+    "EDD-05 §1.1 G6 — Single Source of Truth: một màn hình KHÔNG được TỰ TÍNH",
+    "một chỉ số. Hiến pháp Điều V · VII · CLAUDE.md §2.3 ('components/ render UI,",
+    "KHÔNG chứa business logic').",
+    "",
+    "⚠️ VÌ SAO G6 QUAN TRỌNG HƠN NĂM CỔNG KIA: một màn hình có thể không nhập",
+    "   trùng, không nhập tay, không lộ gì — nhưng TỰ CỘNG một con số và ra kết",
+    "   quả lệch màn hình khác. TD-17 là ca thật: po-twin và po.service cùng một",
+    "   đơn hàng, hai mức khẩn cấp.",
+    "",
+    "─── RANH GIỚI — Board Decision Đ-2, 05/08/2026 ────────────────────────────",
+    "",
+    "CHỈ chặn MỘT mẫu: `.reduce(` có CỘNG DỒN — `(…) => … +`.",
+    "",
+    "Board đã LOẠI BỎ hai mẫu từng có trong kế hoạch, vì spike B2-2a đo được:",
+    "   Pattern B  × 100 / ÷ 100          độ chính xác  0%  (2 tệp, 0 trúng)",
+    "   Pattern C  Math.round/min/max     độ chính xác  7%  (14 tệp, 1 trúng)",
+    "Math.min/max trong components/ gần như LUÔN là kẹp giá trị để VẼ — cửa sổ",
+    "cuộn, bề rộng thanh, thang biểu đồ, kẹp con trỏ bàn phím. Math.round gần như",
+    "luôn là ĐỊNH DẠNG.",
+    "",
+    "Mục tiêu Board đặt: Precision cao · False Positive gần bằng 0 · KHÔNG mở",
+    "rộng phạm vi chỉ để bắt thêm ít trường hợp.",
+    "",
+    "🔑 MỘT PHÉP KIỂM HẸP MÀ SỐNG ĐƯỢC CÓ GIÁ TRỊ HƠN MỘT PHÉP KIỂM RỘNG BỊ TẮT.",
+    "",
+    "─── ĐÃ BIẾT LÀ SÓT ───────────────────────────────────────────────────────",
+    "TD-34 — cut-ticket-basket.tsx tính 'thiếu bao nhiêu mét' và 'tỷ lệ phủ %'",
+    "bằng phép TRỪ và CHIA, nên mẫu này không thấy. Ngoại lệ CÓ ĐĂNG KÝ, Board",
+    "Decision Đ-3. KHÔNG mở rộng Rule ⑭ vì nó.",
+    "",
+    "Sót khác chưa đo: vòng `for` cộng dồn · useMemo gọi hàm cộng. Spike B2-2a",
+    "§3.4 ② ghi rõ đây là điểm mù đã biết — phép kiểm này đo ĐỘ CHÍNH XÁC 100%,",
+    "KHÔNG tuyên bố ĐỘ PHỦ 100%.",
+    "",
+    "─── BÁNH CÓC ─────────────────────────────────────────────────────────────",
+    "Tệp MỚI cộng dồn ⇒ HỎNG. Tệp trong sổ đã sạch ⇒ nhắc gỡ. Sổ chỉ được NGẮN ĐI.",
+    "⛔ KHÔNG thêm mục để cho bài kiểm xanh — mỗi mục là một chỗ có thể sinh ra",
+    "   con số thứ hai cho cùng một sự thật."
+  ],
+
+  "noCu": [
+    {
+      "tep": "components/md/po/tabs-execution.tsx",
+      "tinh": "sewn · inspected · passed · defects · packedPcs · grossKg — SÁU chỉ số trong một tệp",
+      "muc": "🔴"
+    },
+    {
+      "tep": "components/md/costing/costing-list.tsx",
+      "tinh": "biên lợi nhuận trung bình — chỉ số TIỀN",
+      "muc": "🔴"
+    },
+    {
+      "tep": "components/md/crm/customer-360-sheet.tsx",
+      "tinh": "tổng số lượng + tổng giá trị đơn của một khách",
+      "muc": "🟠"
+    },
+    {
+      "tep": "components/md/collab/risk-center.tsx",
+      "tinh": "điểm rủi ro trung bình",
+      "muc": "🟠"
+    },
+    {
+      "tep": "components/md/po/tabs-planning.tsx",
+      "tinh": "sản lượng đã may",
+      "muc": "🟠"
+    },
+    {
+      "tep": "components/md/po/po-pipeline.tsx",
+      "tinh": "tổng đơn đang chạy trong dòng chảy",
+      "muc": "🟡"
+    },
+    {
+      "tep": "components/md/po/po-list.tsx",
+      "tinh": "tổng số lượng toàn bảng",
+      "muc": "🟡"
+    },
+    {
+      "tep": "components/md/crm/customer-list.tsx",
+      "tinh": "tổng số đơn toàn bảng",
+      "muc": "🟡"
+    },
+    {
+      "tep": "components/md/style/style-list.tsx",
+      "tinh": "tổng đơn gắn với mã hàng",
+      "muc": "🟡"
+    },
+    {
+      "tep": "app/(dashboard)/orders/orders-client.tsx",
+      "tinh": "tổng số lượng toàn bảng",
+      "muc": "🟡"
+    },
+    {
+      "tep": "app/(dashboard)/md/md-legacy-client.tsx",
+      "tinh": "tổng mục tiêu theo cỡ — tệp này là mã CHẾT (TD-19), gỡ khi nối lại garment-math",
+      "muc": "🟡"
+    }
+  ]
+}

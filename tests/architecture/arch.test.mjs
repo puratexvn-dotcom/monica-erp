@@ -614,4 +614,78 @@ if (soVonTu) {
   }
 }
 
+// ── 13. MÀN HÌNH TỰ TÍNH — `G6` · ⑭ · Sprint I-2 Phase 2 ───────────────────
+//
+// EDD-05 §1.1 `G6` *Single Source of Truth*: một màn hình ⛔ không được **TỰ
+// TÍNH** một chỉ số. Hiến pháp Điều V · VII · CLAUDE.md §2.3.
+//
+// ─── VÌ SAO `G6` NẶNG HƠN NĂM CỔNG KIA ──────────────────────────────────
+// Một màn hình có thể ⛔ không nhập trùng, ⛔ không nhập tay, ⛔ không lộ gì —
+// nhưng **tự cộng một con số** và ra kết quả lệch màn hình khác. `TD-17` là ca
+// thật: `po-twin` và `po.service` cùng một đơn hàng, **hai mức khẩn cấp**. Nó
+// bị bắt vì **có người đọc mã**, ⛔ không phải vì có phép kiểm.
+//
+// ─── RANH GIỚI — Board Decision `Đ-2` ───────────────────────────────────
+// CHỈ chặn MỘT mẫu: `.reduce(` **có cộng dồn**. Spike `B2-2a` đo được hai mẫu
+// còn lại trong kế hoạch gốc là nhiễu gần như thuần:
+//     `× 100` / `÷ 100`        0% chính xác  — chỉ bắt văn bản giải thích
+//     `Math.round/min/max`     7% chính xác  — 13/14 là toán BỐ CỤC
+//
+// 🔑 **Một phép kiểm sai một nửa số lần ⛔ không sống nổi ba tháng** — nó sẽ bị
+//    nới sổ nợ rồi bị gỡ, và khi đó ta mất **cả 11 chỗ** đang canh. Thà hẹp mà
+//    sống. Cùng bài học mục ⑨ ⑩: *"quy tắc ⛔ không thể tuân thủ thì người ta
+//    tắt nó đi"*.
+//
+// ⚠️ Mẫu phải LOẠI nội suy chuỗi i18n — `values.reduce((s,v,i) => s.replace(…))`
+//    ⛔ không cộng dồn gì; 5 tệp `po-command/tabs/*` dính oan nếu ⛔ không loại.
+//
+// ⚠️ **LỖI REGEX ĐÃ BẮT ĐƯỢC Ở SPIKE:** bản đầu viết `\([^)]*=>` — `[^)]*` ⛔
+//    KHÔNG vượt qua dấu `)` của tham số `(s, r)`, nên nó khớp **0 tệp** trong
+//    khi thực tế có 11. Phải khai tường minh cặp ngoặc tham số.
+// ⚠️ Nhãn ⑭ là số hiệu LUẬT theo kế hoạch Sprint, ⛔ không phải thứ tự khối
+// trong tệp. Luật ⑬ nằm trong khối ② vì nó thay thế ngưỡng đếm cũ ở đó.
+console.log('\n⑭ MÀN HÌNH TỰ TÍNH — G6 · Board Đ-2 (chỉ mẫu cộng dồn)');
+
+const RE_CONG_DON = /\.reduce\s*\(\s*\([^)]*\)\s*=>\s*[^,;]*\+/;
+
+const duongDanTuTinh = join(ROOT, 'tests/architecture/screen-math-baseline.json');
+const soTuTinh = existsSync(duongDanTuTinh) ? JSON.parse(doc(duongDanTuTinh)) : null;
+s.ok('Sổ nợ màn hình tự tính tồn tại (G6)', soTuTinh !== null,
+  'thiếu tests/architecture/screen-math-baseline.json');
+
+if (soTuTinh) {
+  // Phạm vi: tầng HIỂN THỊ — `components/` và mọi `*-client.tsx`.
+  // ⛔ Không quét `_services/` hay `_actions/`: tính toán ở đó là ĐÚNG CHỖ.
+  const tepManHinh = [
+    ...quet('components'),
+    ...quet('app').filter((p) => /-client\.tsx$/.test(p)),
+  ];
+
+  const dangTinh = tepManHinh
+    .filter((p) => RE_CONG_DON.test(boChuThichSom(doc(p))))
+    .map(rel)
+    .sort();
+
+  const trongSo = new Set(soTuTinh.noCu.map((m) => m.tep));
+  const moiTinh = dangTinh.filter((f) => !trongSo.has(f));
+  const daSachTinh = [...trongSo].filter((f) => !dangTinh.includes(f)).sort();
+
+  s.ok(`Quét đúng tầng hiển thị (${tepManHinh.length} tệp)`, tepManHinh.length >= 90);
+  s.ok(`KHÔNG màn hình MỚI nào tự tính (đang nợ ${dangTinh.length}/${trongSo.size})`,
+    moiTinh.length === 0, moiTinh.join(' · '));
+  s.ok('Sổ nợ màn hình tự tính ⛔ không phình ra', dangTinh.length <= trongSo.size,
+    `${dangTinh.length} > ${trongSo.size}`);
+
+  // Mục ⛔ không có mô tả `tinh` là mục đã bị nhét vào cho qua bài kiểm
+  const thieuMoTa = soTuTinh.noCu.filter((m) => !m.tinh || !m.muc).map((m) => m.tep);
+  s.ok(`Mọi mục nợ ghi rõ TÍNH GÌ (${soTuTinh.noCu.length} mục)`,
+    thieuMoTa.length === 0, thieuMoTa.join(' · '));
+
+  if (daSachTinh.length) {
+    console.log(`   ↻ ${daSachTinh.length} tệp đã sạch — gỡ khỏi screen-math-baseline.json: ${daSachTinh.join(' · ')}`);
+  }
+  console.log('   ⚠️ Phép kiểm này đo ĐỘ CHÍNH XÁC 100%, ⛔ KHÔNG tuyên bố ĐỘ PHỦ 100%.');
+  console.log('      Sót đã biết: TD-34 (trừ/chia) · vòng `for` cộng dồn — spike B2-2a §3.4.');
+}
+
 process.exit(s.ketThuc() ? 1 : 0);

@@ -17,6 +17,41 @@
 
 ## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
 
+### ⑭ `B2-2b` · Cấm màn hình tự tính — `G6` — ✅ **HOÀN TẤT**
+
+Phép kiểm mới **thứ ba** ⇒ điều kiện ra `E-1` đi từ **2/5 lên 3/5**.
+
+Thi hành **đúng ranh giới Board `Đ-2`**: chỉ **một** mẫu — `.reduce(` **có cộng
+dồn**. Hai mẫu còn lại của kế hoạch gốc đã bị loại vì spike `B2-2a` đo được
+chúng là nhiễu gần như thuần *(`× 100` = 0%, `Math.round/min/max` = 7%)*.
+
+**Sổ nợ `screen-math-baseline.json` — 11 tệp**, mỗi mục ghi rõ **tính gì**:
+
+| Tệp | Tính gì | Mức |
+|---|---|---|
+| `po/tabs-execution.tsx` | `sewn` · `inspected` · `passed` · `defects` · `packedPcs` · `grossKg` — **6 chỉ số trong một tệp** | 🔴 |
+| `costing/costing-list.tsx` | **biên lợi nhuận trung bình** — chỉ số **tiền** | 🔴 |
+| `crm/customer-360-sheet.tsx` · `collab/risk-center.tsx` · `po/tabs-planning.tsx` | tổng SL + giá trị · điểm rủi ro TB · sản lượng đã may | 🟠 |
+| 6 tệp còn lại | tổng đơn · tổng số lượng · tổng mục tiêu theo cỡ | 🟡 |
+
+**Phép đo — bốn lần tiêm, chứng minh CẢ HAI CHIỀU** *(vì `Đ-2` đòi false
+positive ≈ 0, bắt được thôi ⛔ chưa đủ)*:
+
+```
+component MỚI cộng dồn              ⛔ HỎNG · nêu đúng tệp
+component dùng .map/.filter/.length ✅ ⛔ KHÔNG hỏng   ← chống dương tính giả
+component nội suy chuỗi i18n        ✅ ⛔ KHÔNG hỏng   ← chống dương tính giả
+gỡ một mục khỏi sổ, tệp vẫn tính    ⛔ HỎNG · nêu tabs-execution.tsx
+```
+
+**Giới hạn ghi thẳng vào log mỗi lần chạy:** phép kiểm này đo **độ chính xác
+100%**, ⛔ **không** tuyên bố **độ phủ 100%**. Sót đã biết: `TD-34` *(trừ/chia)*
+· vòng `for` cộng dồn · `useMemo` gọi hàm cộng.
+
+⚠️ Sửa một va chạm số hiệu do chính tôi gây ra: luật ⑬ nằm trong **khối ②**
+*(nó thay ngưỡng đếm cũ ở đó)*, nên khối mới phải mang nhãn **⑭**, ⛔ không phải
+⑬. Nhãn là **số hiệu LUẬT**, ⛔ không phải thứ tự khối.
+
 ### 🐛 `TD-35` · Giao diện chào nút xoá mà CSDL đã cấm — ✅ **ĐÃ TRẢ**
 
 Board phê duyệt **lối ①** ngay sau báo cáo `B2-1`.
