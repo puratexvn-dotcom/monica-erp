@@ -447,6 +447,189 @@ phải hai Homepage như đề xuất đã bị bác ở Rev 1.
 ```
 
 ---
+---
+
+# §12 · REVISION 4 — ĐỊNH NGHĨA HOMEPAGE ĐẦY ĐỦ
+
+## 12.1 Ba vai trò **đồng thời**, ⛔ không phải ba chế độ
+
+Board chốt: Homepage là **Product Identity** · **BOS Launcher** · **Entry Point**.
+
+⚠️ **Đây ⛔ KHÔNG mâu thuẫn với quyết định "một Homepage duy nhất" ở Rev 2.** Ba
+vai trò này ⛔ không phải ba **phiên bản** — chúng là ba **việc mà cùng một trang
+làm cùng lúc**, cho ba khán giả khác nhau.
+
+| Vai trò | Trả lời | Khán giả | Chiếm chỗ nào trên trang |
+|---|---|---|---|
+| **Product Identity** | *"MONICA ONE là gì"* | Sales · Demo · Investor · Recruitment | **tầng 2** — khối thương hiệu |
+| **BOS Launcher** | *"doanh nghiệp có những gì · tôi bắt đầu ở đâu"* | nhân viên · onboarding · customer | **tầng 3** — lưới App |
+| **Entry Point** | *"mọi đường đều về được đây"* | **tất cả** | **toàn trang** + nút `Home` §15.4 |
+
+🔑 **Ba vai ⛔ không tranh nhau vì chúng nằm ở ba tầng khác nhau của trang** —
+trừ **một chỗ**, và đó là trade-off thật duy nhất: xem 12.4.
+
+## 12.2 🔴 TÔI PHẢI SỬA LẠI MỘT CÂU CỦA CHÍNH MÌNH Ở Rev 3
+
+Rev 3 tôi kết luận: ***"§13.1 ✅ ⛔ KHÔNG đụng — phương án D chính là §13.1."***
+
+**Câu đó ⛔ không còn đúng sau chỉ thị Rev 4.** Nguyên văn §13.1:
+
+> *"Its **sole purpose** is to direct users to the appropriate Business
+> Workspace, Global Service or Platform Service quickly, clearly and
+> confidently."*
+
+**`sole purpose`** — *mục đích **duy nhất***. Board vừa giao cho Homepage **một
+mục đích thứ hai**: thể hiện thương hiệu MONICA ONE.
+
+### 12.2.1 Nhưng đây là xung đột **MỀM**, ⛔ không cùng hạng với §13.3
+
+Tôi xét hai cách đọc, và ⛔ không giấu cách đọc bất lợi cho mình:
+
+| | Cách đọc | Kết luận |
+|---|---|---|
+| **A** *(mềm)* | Thương hiệu là **CÁCH** Homepage dẫn hướng — *trình bày*, ⛔ không phải *mục đích*. §13.1 loại trừ **dashboard · reporting · analytics**; thương hiệu ⛔ không thuộc ba thứ đó | ⇒ **⛔ không cần tu chính** |
+| **B** *(chặt)* | `sole` là từ **tuyệt đối**. Thêm bất kỳ mục đích nào cũng phá nó | ⇒ **cần tu chính** |
+
+**Cách đọc A đứng vững.** ⇒ Đây **⛔ KHÔNG phải blocker**, khác hẳn §13.3 *(nơi
+`"shall be the default view upon sign-in"` là vế **hành vi, tường minh, ⛔ không
+cách đọc nào cứu được**)*.
+
+### 12.2.2 🔑 Nhưng có một vấn đề THẬT, và nó khác vấn đề tôi vừa nêu
+
+```
+Product Identity là vai trò DUY NHẤT trong ba vai
+⛔ KHÔNG có một câu nào trong Hiến pháp bảo vệ.
+```
+
+- **Launcher** → §13.1 bảo vệ *("The Homepage **is** a … Launcher")*
+- **Entry Point** → §13.1 + §15.4 bảo vệ *("primary entry point" · nút `Home`)*
+- **Product Identity** → 🔴 **⛔ không điều khoản nào**
+
+⚠️ Và §13.2 nói *"shall **minimize cognitive effort** and **eliminate
+unnecessary** decision-making"*. Một kỹ sư tương lai hoàn toàn có thể **xoá khối
+thương hiệu** và trích §13.2 làm căn cứ — thương hiệu, xét chặt, ⛔ không phải
+*decision-making*.
+
+⇒ **Rủi ro thật ⛔ không phải "vi hiến". Rủi ro thật là "⛔ không được bảo vệ".**
+Board đặt Product Identity ngang hàng hai vai kia; Hiến pháp thì ⛔ không.
+
+⇒ **`TC-C`:** thêm **một câu** vào §13.1 công nhận Product Identity. **Gộp vào
+`ADR-021`**, ⛔ **không** mở ADR riêng — nó quá nhỏ để tốn một ADR, và `ADR-021`
+đằng nào cũng đang sửa Điều 13.
+
+## 12.3 Cấu trúc thông tin Homepage — Rev 4
+
+| Tầng | Vai trò phục vụ | Nội dung | ⛔ KHÔNG được có |
+|---|---|---|---|
+| **1 · Thanh đầu** | Entry Point | Lời Chúa · logo · ngôn ngữ · *(đã đăng nhập: avatar)* | thông báo · số liệu |
+| **2 · Brand** | **Product Identity** | wordmark · **một dòng** MONICA ONE là gì | KPI · lời chào theo buổi · ảnh nền nặng |
+| **3 · Launcher** | **BOS Launcher** | lưới App — icon · tên · **một dòng mô tả** | biểu đồ · số · trạng thái vận hành |
+| **4 · Chân + thanh dưới** | Entry Point | thương hiệu · `Work · Chat · Monica · AI · Guide` | — |
+
+⚠️ **Tầng 2 là tầng mới của Rev 4** — Rev 3 tôi đã có nó nhưng ⛔ không gọi tên
+vai trò, nên nó ⛔ không có gì bảo vệ. Nay nó có tên.
+
+## 12.4 🔴 TRADE-OFF THẬT DUY NHẤT: tầng 2 ⟷ tầng 3 tranh **màn hình đầu**
+
+Ba vai ⛔ không tranh nhau về **chức năng**. Chúng tranh nhau **đúng một thứ:
+khoảng màn hình phía trên nếp gấp.**
+
+```
+Khối Brand cao thêm 200px
+  ⇒ hàng ô App đầu tiên bị đẩy xuống dưới nếp gấp
+  ⇒ người vận hành phải CUỘN mỗi sáng — 250 lần/năm
+  ⇒ để phục vụ một khán giả CHỈ XEM MỘT LẦN.
+```
+
+Đây chính là câu ở `§10.2`: **Homepage phục vụ người xem một lần, thanh dưới
+phục vụ người dùng mỗi ngày.** Nhưng khối Brand nằm **trên** Homepage ⇒ nó **thu
+phí người dùng hằng ngày** để trả cho người xem một lần.
+
+### 12.4.1 ⇒ Quy tắc nghiệm thu **đo được** *(⛔ không phải ý kiến thẩm mỹ)*
+
+| # | Quy tắc | Cách đo |
+|---|---|---|
+| `HP-1` | **Hàng ô App ĐẦU TIÊN phải thấy được ⛔ KHÔNG cần cuộn** | 1366×768 *(laptop)* **và** 390×844 *(điện thoại)* |
+| `HP-2` | Khối Brand là **một dòng**, ⛔ **không** phải hero | ⛔ không ảnh nền toàn màn · ⛔ không khối cao > 25% viewport |
+| `HP-3` | Thương hiệu **⛔ không** cần chỗ để được nhận ra | wordmark ở thanh đầu **đã là** Product Identity |
+
+🔑 **`HP-3` là lối thoát của trade-off.** Product Identity ⛔ không đòi **diện
+tích** — nó đòi **sự hiện diện**. Một wordmark sắc nét ở tầng 1 cộng một dòng ở
+tầng 2 nói được *"đây là một sản phẩm"* mà **⛔ không lấy mất hàng ô đầu tiên**.
+
+⇒ Cả ba khán giả được phục vụ, và **⛔ không ai trả giá bằng cú cuộn mỗi sáng**.
+
+## 12.5 `Entry Point` — ba hệ quả bắt buộc
+
+| # | Hệ quả | Vì sao |
+|---|---|---|
+| `EP-1` | Homepage phải **có nghĩa** ở **cả hai** trạng thái — khách **và** đã đăng nhập | nó là điểm vào của **toàn hệ thống**, ⛔ không riêng của nhân viên |
+| `EP-2` | Nút `Home` §15.4 **luôn** về đây, từ **mọi** Workspace | ⛔ Không có nó, Homepage là *"trang đăng nhập"*, ⛔ không phải *"điểm vào"* |
+| `EP-3` | 403 phải có **đường về Homepage**, ⛔ không chỉ về `ROLE_HOME` | khách bấm nhầm App ⇒ ⛔ không có `ROLE_HOME` để về |
+
+⚠️ **`EP-3` là khuyết tật sẽ xuất hiện ngay khi Phương án D chạy.** Hôm nay
+`/unauthorized` đưa người dùng về `ROLE_HOME[role]`, và khi ⛔ chưa có vai thì về
+`/`. Điều đó **đúng hôm nay** — nhưng khi Homepage hiện **toàn bộ** Module, số
+lượt vào 403 sẽ tăng mạnh *(`N-2` §7.5)*, và **màn 403 trở thành một phần của
+luồng duyệt bình thường**, ⛔ không còn là ngoại lệ. Nó cần được thiết kế như
+vậy — ⛔ **không** phải sửa mã bây giờ.
+
+---
+
+# §13 · TỔNG HỢP UX-1 Rev 4
+
+## 13.1 Vấn đề phát hiện
+
+| # | Vấn đề | Mức |
+|---|---|---|
+| `TC-C` | **Product Identity ⛔ KHÔNG có điều khoản nào bảo vệ** — §13.2 còn có thể bị trích để xoá nó | 🟠 vừa |
+| `HP-1` | Khối Brand có thể **đẩy hàng ô đầu tiên xuống dưới nếp gấp** ⇒ thu phí người dùng hằng ngày | 🟠 vừa |
+| `EP-3` | 403 sẽ thành **màn hình lưu lượng cao** và cần đường về Homepage cho **khách** | 🟠 vừa |
+
+## 13.2 Giả định bị bác bỏ *(Rev 4)*
+
+| Giả định | Ai nêu | Phán quyết |
+|---|---|---|
+| *"§13.1 ✅ ⛔ không đụng"* | **tôi**, Rev 3 | 🟠 **SỬA** — `sole purpose` va chạm **mềm** với Product Identity. ⛔ Không phải blocker, nhưng **phải ghi** |
+| *"Homepage = Launcher"* *(đủ)* | **tôi**, Rev 3 | 🟠 **THIẾU** — Launcher là **một trong ba** vai, ⛔ không phải toàn bộ |
+| *"Ba vai trò ⇒ ba chế độ"* | rủi ro hiểu nhầm | 🔴 **BÁC TRƯỚC** — ba vai **đồng thời** trên **một** trang. Rev 2 đã bác *"hai bề mặt"*; ⛔ đừng để nó quay lại dưới tên khác |
+
+## 13.3 Tác động ADR *(gộp Rev 4)*
+
+| ADR | Nội dung |
+|---|---|
+| **`ADR-021`** | §13.3 *(Work Zone)* + §15.3 *(nút `Work`)* + **§13.1 `sole purpose`** ← gộp `TC-C` vào đây |
+| **`ADR-022`** | §13.5 — quyết **riêng** |
+| **`ADR-023`** | Capability Layer — Board **đã đồng ý hướng** |
+| **`ADR-024`** | Signature versioning — `BA-1 §14.2` |
+
+## 13.4 Khuyến nghị cuối cùng — UX-1 Rev 4
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  ① BA VAI, MỘT TRANG, BA TẦNG. Product Identity · Launcher · Entry    ║
+║     Point ⛔ không tranh nhau về chức năng — chúng tranh nhau ĐÚNG     ║
+║     MỘT thứ: khoảng màn hình trên nếp gấp.                            ║
+║                                                                       ║
+║  ② `HP-1` LÀ ĐIỀU KIỆN NGHIỆM THU, ⛔ KHÔNG phải ý kiến thẩm mỹ.      ║
+║     Hàng ô App đầu tiên phải thấy được ⛔ không cuộn, ở 1366×768 VÀ    ║
+║     390×844. Đo được ⇒ tranh luận về thẩm mỹ kết thúc bằng phép đo.   ║
+║                                                                       ║
+║  ③ GỘP `TC-C` VÀO ADR-021, ⛔ KHÔNG mở ADR riêng.                     ║
+║     Product Identity ⛔ không vi hiến — nó ⛔ KHÔNG ĐƯỢC BẢO VỆ. Một   ║
+║     câu trong §13.1 là đủ, và ADR-021 đằng nào cũng đang sửa Điều 13. ║
+║                                                                       ║
+║  ④ `HP-3` LÀ LỐI THOÁT: thương hiệu đòi SỰ HIỆN DIỆN, ⛔ không đòi    ║
+║     DIỆN TÍCH. Wordmark ở thanh đầu + một dòng ở tầng 2 phục vụ đủ    ║
+║     cả ba khán giả mà ⛔ không ai trả giá bằng cú cuộn mỗi sáng.       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+> **Trạng thái Rev 4:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
+
+---
 
 # §0 · BỐN ĐIỂM VA CHẠM VỚI HIẾN PHÁP — ĐỌC TRƯỚC
 

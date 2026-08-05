@@ -711,3 +711,336 @@ phải trở thành nguồn đó — và khi ấy **16 / 19 / 13** phải do **B
 ---
 
 > **Trạng thái Rev 3:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
+
+---
+---
+
+# §12 · REVISION 4 — ENTERPRISE ORGANIZATION *(dữ liệu thật Board cung cấp)*
+
+## 12.1 Sơ đồ tổ chức Monica
+
+```
+CEO
+├── Director Production
+│   ├── Merchandising
+│   ├── Planning
+│   ├── QA
+│   ├── Warehouse
+│   ├── Cutting
+│   └── Sewing
+├── Director Business
+│   ├── Sales
+│   ├── Sales Admin
+│   └── Customer Service
+├── Finance
+├── HR
+├── IT
+└── Administration
+```
+
+**16 đơn vị · 3 tầng.** Board ghi rõ *"sơ đồ chỉ là ví dụ khởi đầu"* ⇒ mô hình
+lưu **dữ liệu**, ⛔ không lưu **hình dạng** *(`O-1`…`O-5`, §8.2)*.
+
+## 12.2 🔴 Đối chiếu 16 đơn vị ⟷ 14 vai — kết quả đo
+
+| Đơn vị | Vai khớp | |
+|---|---|---|
+| CEO | `giamdoc` | ⚠️ dùng chung |
+| Director Production | `giamdoc` | ⚠️ dùng chung |
+| Director Business | `giamdoc` | ⚠️ dùng chung |
+| Merchandising | `md` | ✅ |
+| **Planning** | — | 🔴 **⛔ không có vai** |
+| QA | `qa` | ✅ |
+| Warehouse | `kho` · `khotruong` · `thukho` | ✅ **3 vai / 1 đơn vị** |
+| Cutting | `totruongcat` | ✅ |
+| Sewing | `totruongmay` | ✅ |
+| **Sales** | — | 🔴 **⛔ không có vai** |
+| **Sales Admin** | — | 🔴 **⛔ không có vai** |
+| **Customer Service** | — | 🔴 **⛔ không có vai** |
+| Finance | `ketoan` · `ketoanvattu` | ✅ 2 vai |
+| **HR** | — | 🔴 **⛔ không có vai** |
+| IT | `superadmin` | ⚠️ vai **quản trị**, ⛔ không phải vai nghiệp vụ |
+| **Administration** | — | 🔴 **⛔ không có vai** |
+
+**⇒ 6/16 đơn vị ⛔ KHÔNG có vai đăng nhập nào.** *(Rev 3 tôi đo 6 trên danh mục
+cũ; đo lại trên cây thật của Board vẫn ra **6** — con số ổn định.)*
+
+### 12.2.1 🔴 Ba vai ⛔ không có đơn vị trên cây
+
+| Vai | Nhãn | Phán quyết |
+|---|---|---|
+| `hoanthanh` | Tổ Hoàn Thành | 🔴 **THIẾU TRONG CÂY.** Cây có `Cutting` và `Sewing` nhưng **⛔ không có `Finishing`** — trong khi vai, route `/hoan-thanh`, `/to-truong-hoan-thanh` **đều đang chạy**. ⇒ **`Q-9`: cây Board thiếu một tổ sản xuất, hay tổ Hoàn thành nằm dưới `Sewing`?** |
+| `subcon` | Xưởng gia công | ✅ **ĐÚNG khi ở ngoài** — `RA-5` |
+| `buyer` | Khách hàng | ✅ **ĐÚNG khi ở ngoài** — `RA-5` |
+
+### 12.2.2 🔴 Hai Workspace ⛔ không có đơn vị chủ quản
+
+| Workspace | Module | Đơn vị nào sở hữu? |
+|---|---|---|
+| `/xuat-hang` | `shipment` cyan | 🔴 **⛔ không có trên cây.** Kho? hay một đơn vị Logistics riêng? ⇒ **`Q-10`** |
+| `/subcon` *(phía Monica)* | `subcontract` purple | 🔴 **⛔ không có trên cây.** 4 vai nội bộ dùng nó nhưng ⛔ không đơn vị nào **chịu trách nhiệm** ⇒ **`Q-11`** |
+
+⚠️ **`giamdoc` phủ ba vị trí điều hành khác nhau.** Hôm nay hệ thống **⛔ không
+phân biệt được CEO với Director Production**. Theo `RA-1` điều này **hợp lệ**
+*(Role ⛔ không suy từ Department)*, nhưng nó có nghĩa: mọi phân quyền tinh hơn ở
+tầng điều hành **phải đi qua Assignment**, ⛔ không qua vai. ⇒ **`Q-12`**
+
+## 12.3 ⚠️ Một câu hỏi thiết kế Board nên biết
+
+Cây đặt **Merchandising dưới Director Production**. Trong ngành may, Merchandiser
+là **cầu nối khách hàng ⟷ nhà máy** — họ nhận đơn, chốt giá, theo tiến độ giao.
+Đặt dưới Sản xuất là **một lựa chọn tổ chức hợp lệ** *(nhiều nhà máy làm vậy để
+Merchandiser bám sát năng lực chuyền)*, nhưng nó kéo theo hệ quả: **`Sales` và
+`Merchandising` nằm ở hai nhánh khác nhau**, trong khi cả hai cùng chạm vòng đời
+đơn hàng.
+
+⛔ **Tôi ⛔ không đề nghị đổi cây** — đó là quyết định của Board. Tôi ghi nhận để
+`RACI` §5 **⛔ không** giả định Merchandising và Sales cùng một chuỗi báo cáo.
+
+---
+
+# §13 · WORKSPACE DEFINITION
+
+> **Workspace ⛔ KHÔNG phải Module.** Module là *"năng lực gì tồn tại"*;
+> Workspace là *"tôi làm việc ở đâu mỗi ngày"*.
+
+## 13.1 Bảy khối của một Workspace — và trạng thái dữ liệu **đo được**
+
+| # | Khối | Trả lời | Dữ liệu hôm nay | Cần migration? |
+|---|---|---|---|---|
+| 1 | **Today Tasks** | *"hôm nay tôi phải làm gì"* | ⛔ **⛔ không bảng nào** | 🔴 **CÓ** |
+| 2 | **Work Inbox** | *"việc gì đang chờ tôi"* | ⛔ **⛔ không bảng nào** | 🔴 **CÓ** |
+| 3 | **KPIs** | *"bộ phận tôi đang chạy thế nào"* | ✅ **dẫn xuất được** từ bảng nghiệp vụ | ✅ **KHÔNG** |
+| 4 | **Calendar** | *"mốc nào sắp tới"* | ⛔ **⛔ không bảng nào** | 🔴 **CÓ** |
+| 5 | **Alerts** | *"có gì bất thường"* | ⛔ **⛔ không bảng nào** | 🔴 **CÓ** |
+| 6 | **Quick Actions** | *"việc tôi làm nhiều nhất"* | ✅ **⛔ không cần dữ liệu** — route + quyền | ✅ **KHÔNG** |
+| 7 | **Recent Activity** | *"tôi vừa làm gì"* | 🟠 **một phần** — `041_activity_log_immutable` | 🟠 quyền đọc |
+
+### 13.1.1 🔴 PHÁT HIỆN QUAN TRỌNG NHẤT CỦA Rev 4
+
+```
+2/7 khối dựng được NGAY.
+1/7 khối dựng được một phần.
+4/7 khối CẦN MIGRATION ⇒ chặn bởi SECURITY FREEZE (MOS §XI.1).
+```
+
+⚠️ **Board tuyên bố sẽ dùng BA-1 + UX-1 làm nền để "triển khai toàn bộ Workspace
+và các Module nghiệp vụ tiếp theo".** Nhưng `SECURITY FREEZE` **còn hiệu lực**
+*(`B2` chưa cắt — `GPR-001` `A-3`)*, và nó cấm **mở bảng nghiệp vụ mới**.
+
+⇒ **Đây là một va chạm về TRÌNH TỰ, ⛔ không phải về thiết kế.** Board có hai
+đường, và phải chọn **trước** khi mở EPIC Workspace:
+
+| | Đường | Hệ quả |
+|---|---|---|
+| **①** | **Cắt `B2`, gỡ freeze** | mở được cả 7 khối · nhưng phải đóng `TC-1`…`TC-5` trước |
+| **②** | **Giữ freeze, làm Workspace Phase 1 = khối 3 + 6 + 7** | ⛔ không migration · Workspace có **KPI + Quick Actions + Recent Activity** ngay · 4 khối còn lại sang Phase 2 |
+
+🔑 **Tôi khuyến nghị ②.** Lý do: khối **6 (Quick Actions)** và **3 (KPIs)** là hai
+khối người dùng chạm **nhiều nhất mỗi ngày**, và cả hai **⛔ không cần một dòng
+SQL mới**. Làm chúng trước cho ra một Workspace **dùng được thật**, trong khi
+`TC-1`…`TC-5` được xử lý song song.
+
+## 13.2 🔑 Work Inbox ⟷ Work Zone — quan hệ chuẩn
+
+Đây là mảnh ghép làm §13.3 Hiến pháp **có lời giải sạch**:
+
+```
+Workspace /md      → Work Inbox của Merchandising
+Workspace /kho     → Work Inbox của Kho          ─┐
+Workspace /qa      → Work Inbox của QA            ├─► WORK ZONE
+                                                  │   (nút `Work`, thanh dưới)
+                                                 ─┘   = HỢP của mọi Work Inbox
+                                                       mà người dùng có quyền
+```
+
+| | Định nghĩa |
+|---|---|
+| **Work Inbox** | việc chờ tôi **trong MỘT Domain** — thuộc Workspace |
+| **Work Zone** | **HỢP** của mọi Work Inbox tôi có quyền — **xuyên MỌI Domain** |
+
+⇒ Work Zone **⛔ không phải màn hình thứ 8**; nó là **phép chiếu** của khối 2 qua
+mọi Workspace. Đúng nguyên văn §13.3: *"It owns no business data; it **projects
+the state** of the Business Domains."*
+
+🔑 **Điều này chứng minh thêm cho `ADR-021`:** năng lực §13.3 bảo vệ **được giữ
+trọn vẹn** khi Work Zone rời Homepage — vì nó vốn **⛔ không sở hữu dữ liệu**,
+nó chỉ hợp nhất. Chỗ đặt nó là quyết định **điều hướng**, ⛔ không phải quyết
+định **dữ liệu**.
+
+## 13.3 Ba luật của Workspace
+
+| # | Luật | Vì sao |
+|---|---|---|
+| `WS-1` | **KPI ⛔ KHÔNG được lưu** | *"⛔ Không lưu dữ liệu tính toán được"*. KPI là **View / Service**, ⛔ không phải cột |
+| `WS-2` | **Workspace ⛔ KHÔNG sở hữu dữ liệu** | nó **chiếu** trạng thái Domain. Sở hữu ⇒ hai nguồn chân lý cho cùng một sự thật |
+| `WS-3` | **Quick Actions phải qua đúng `guard.ts` của Module** | lối tắt là **lối tắt điều hướng**, ⛔ **không** phải lối tắt phân quyền |
+
+---
+
+# §14 · USER PROFILE ARCHITECTURE
+
+## 14.1 Mười trường — trạng thái **đo được**
+
+| # | Trường | Nguồn chân lý | Hôm nay | Migration |
+|---|---|---|---|---|
+| 1 | **Avatar** | hồ sơ + Storage | ⛔ **⛔ không có** | 🔴 CÓ + Storage |
+| 2 | **Password** | Supabase Auth | ✅ `/update-password` · `force_password_change` | ✅ KHÔNG |
+| 3 | **Language** | hồ sơ | 🟠 **có `lib/i18n`, ⛔ KHÔNG lưu vào hồ sơ** — đổi máy là mất | 🟠 CÓ *(để lưu)* |
+| 4 | **Theme** | hồ sơ | ⛔ **⛔ không tồn tại** | 🔴 CÓ — ⚠️ xem 14.3 |
+| 5 | **Notification** | hồ sơ + bảng thông báo | ⛔ **⛔ không có** | 🔴 CÓ |
+| 6 | **Signature** | hồ sơ + Storage | ⛔ **⛔ không có** | 🔴 CÓ — ⚠️ xem 14.2 |
+| 7 | **Contact** | hồ sơ | ⛔ **⛔ không có** | 🔴 CÓ |
+| 8 | **Department** | **Organization** §12 | ⛔ **⛔ không có** | 🔴 CÓ |
+| 9 | **Role** | `app_metadata.role` | ✅ có — **CHỈ ĐỌC** | ✅ KHÔNG |
+| 10 | **Manager** | **Organization** §12 | ⛔ **⛔ không có** | 🔴 CÓ |
+
+**⇒ 2/10 đã có · 1/10 một phần · 7/10 cần migration.** ⇒ cùng bị `SECURITY
+FREEZE` chặn như §13.
+
+⚠️ **Trường 9 `Role` phải là CHỈ ĐỌC trên màn hình hồ sơ.** Vai đọc từ
+`app_metadata` — vùng **người dùng ⛔ không sửa được**. Đặt nó vào một biểu mẫu
+"chỉnh sửa hồ sơ" là mở đường cho **tự leo thang đặc quyền**; đó đúng lý do
+`user_metadata` bị cấm dùng cho vai.
+
+## 14.2 🔴 `Signature` — ⛔ KHÔNG phải một tệp ảnh trong hồ sơ
+
+Chữ ký đặt lên **chứng từ đã duyệt** là **chứng cứ**, ⛔ không phải tuỳ chọn giao
+diện.
+
+```
+Nếu chữ ký được THAM CHIẾU SỐNG từ hồ sơ:
+   người dùng đổi ảnh chữ ký hôm nay
+   ⇒ MỌI chứng từ đã duyệt từ trước ÂM THẦM đổi chữ ký theo.
+```
+
+Điều đó vi phạm trực tiếp *"Chứng từ đã Đóng/Duyệt ⛔ không được `UPDATE`"* và
+phá đúng thứ `045`/`046` vừa dựng lên *(Aggregate Immutability)*.
+
+⇒ **`UP-4`:** chữ ký phải **có phiên bản** và được **chụp ảnh vào chứng từ tại
+thời điểm duyệt**, ⛔ không tham chiếu sống. Cần ADR — ⛔ **không** giải quyết
+bằng một cột `signature_url`.
+
+## 14.3 ⚠️ `Theme` ⛔ KHÔNG phải một công tắc
+
+`MODULE_IDENTITY` là **16 dải màu** dựng cho **nền sáng** *(`bg-*-50` ·
+`text-*-600`)*, và độ tương phản đã được cân cho nền sáng — chú thích của
+`finance` ghi rõ *"amber ở 600 trên nền 50 chưa qua ngưỡng 4,5:1"*.
+
+⇒ Thêm nền tối = **dựng hệ màu THỨ HAI cho cả 16 App**, cộng việc cân lại tương
+phản từng dải. Nó cũng chạm **`bánh cóc màu`** *(106 khoản nợ đang khoá)*.
+
+⇒ **`UP-5`:** `Theme` là **một EPIC thiết kế**, ⛔ không phải một trường hồ sơ.
+Khuyến nghị **tách khỏi User Profile Phase 1**.
+
+---
+
+# §15 · PERMISSION ARCHITECTURE — BẢY BẬC
+
+## 15.1 Chuỗi đầy đủ, và **đường ranh giới an ninh**
+
+```
+  ① Business Capability   "năng lực nghiệp vụ nào tồn tại"      ⛔ CHƯA CÓ
+  ② Workspace             "vào được vùng làm việc nào"          MODULE_ACCESS
+  ③ Module                "thấy App nào trên Homepage"          home-modules.ts
+  ④ Screen                "mở được màn hình nào"                screen-gates.json
+╔═══════════════════════ ĐƯỜNG RANH GIỚI AN NINH ═══════════════════════╗
+  ⑤ Action                "bấm được nút nào"                    guard.ts · WH_PERMISSIONS
+  ⑥ API                   "gọi được Server Action nào"          guard() trong mỗi action
+  ⑦ Database Permission   "đọc/ghi được DÒNG nào"               RLS  ← HÀNG RÀO THẬT
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+| Bậc | Ai thi hành | Bỏ qua được ⛔ không? | Vai trò thật |
+|---|---|---|---|
+| ① | *(chưa có)* | — | **khai báo** |
+| ② | `middleware.ts` — Edge | ✅ **có** — sửa URL | trải nghiệm |
+| ③ | `visibleModules()` — client | ✅ **có** — nó là **hiển thị** | trải nghiệm |
+| ④ | kiểm tĩnh ⑯ | ✅ **có** — kiểm lúc **build** | kỷ luật |
+| ⑤ | `guard.ts` — server | 🔴 **⛔ không** | **an ninh** |
+| ⑥ | `guard()` trong Server Action | 🔴 **⛔ không** | **an ninh** |
+| ⑦ | **RLS trong Postgres** | 🔴 **⛔ KHÔNG — kể cả khi ①…⑥ hỏng hết** | **hàng rào thật** |
+
+## 15.2 🔑 Ba phát biểu **phải** đi kèm mô hình này
+
+| # | Phát biểu | Vì sao bắt buộc |
+|---|---|---|
+| `PA-1` | **Bậc ①–④ là TRẢI NGHIỆM. Bậc ⑤–⑦ là AN NINH.** | ⛔ Không nói rõ ⇒ sẽ có người "chặn ở bậc ③" rồi tưởng đã xong. Đó đúng cách một lỗ hổng ra đời |
+| `PA-2` | **Quyết định "Launcher ⛔ ≠ Permission" của Board CHÍNH LÀ việc rút bậc ③ ra khỏi an ninh** | Nó ⛔ không nới lỏng gì — bậc ③ **chưa bao giờ** là hàng rào. Board chỉ **gọi đúng tên** nó |
+| `PA-3` | **Bảy bậc = bảy nơi để lệch nhau.** | ⇒ Bậc ① phải là **nơi khai DUY NHẤT**, sáu bậc còn lại **dẫn xuất hoặc đối chiếu** với nó. ⛔ Không có điều đó, mô hình 7 bậc chỉ thêm **sổ sách**, ⛔ không thêm **an toàn** |
+
+🔑 **`PA-2` đáng ghi vào ADR.** Nó biến một quyết định trông như *"nới lỏng bảo
+mật"* thành **một phát biểu đúng về kiến trúc**: bậc ③ là hiển thị, và hiển thị
+**chưa bao giờ** là hàng rào. `UI-F1` vì thế ⛔ **không** phải lỗ hổng mới —
+nó là **thứ luôn đúng, nay được nói ra**.
+
+## 15.3 Trạng thái đo được của từng bậc
+
+| Bậc | Độ phủ hôm nay | Thiếu gì |
+|---|---|---|
+| ① Capability | 🔴 **0%** | ⛔ chưa tồn tại — `RA-4` · `TD-40` |
+| ② Workspace | ✅ 14/14 vai | ⚠️ khai bằng **URL**, ⛔ không bằng năng lực |
+| ③ Module | ✅ 16/16 | *(theo Board: nay là **hiển thị**)* |
+| ④ Screen | 🟠 **4/21** màn hình có hồ sơ 6 cổng | `TD-38` |
+| ⑤ Action | ✅ mỗi Module một `guard.ts` | ⚠️ `WH_PERMISSIONS` là nơi **duy nhất** phân biệt 3 vai Kho |
+| ⑥ API | ✅ `guard()` trong Server Action | — |
+| ⑦ Database | 🟠 xem `RLS_COVERAGE_MATRIX` | `A001` phải chạy **mọi vòng** — VIEW vượt mặt RLS |
+
+⇒ **Bậc ① và bậc ④ là hai chỗ yếu nhất**, và cả hai đã có tên trong sổ nợ
+*(`TD-40` · `TD-38`)*.
+
+---
+
+# §16 · TỔNG HỢP Rev 4
+
+## 16.1 Vấn đề phát hiện
+
+| # | Vấn đề | Mức |
+|---|---|---|
+| `WS-freeze` | **4/7 khối Workspace + 7/10 trường Profile cần migration** ⇒ chặn bởi `SECURITY FREEZE` | 🔴 **cao — va chạm trình tự** |
+| `UP-4` | **`Signature` tham chiếu sống sẽ đổi ngược chữ ký trên chứng từ ĐÃ DUYỆT** | 🔴 cao |
+| `Q-9` | Cây tổ chức **thiếu tổ Hoàn thành** — vai và route đang chạy | 🔴 cao |
+| `Q-10` `Q-11` | `/xuat-hang` và `/subcon` **⛔ không có đơn vị chủ quản** | 🟠 vừa |
+| `Q-12` | `giamdoc` phủ **3 vị trí điều hành** — hệ thống ⛔ không phân biệt CEO ⟷ Director | 🟠 vừa |
+| `UP-5` | `Theme` = **hệ màu thứ hai cho 16 App**, ⛔ không phải một trường | 🟠 vừa |
+| 6/16 | **6 đơn vị ⛔ không có vai đăng nhập** *(số đo ổn định qua 2 lần đo)* | 🟠 vừa |
+
+## 16.2 Tác động ADR · Baseline *(cập nhật Rev 4)*
+
+| Văn bản | Tác động |
+|---|---|
+| **`ADR-021`** | 🔴 §13.3 + §15.3 — **và nay thêm §13.1** *(xem `UX-1 §12`)* |
+| **`ADR-023`** | 🟠 Capability Layer — Board **đã đồng ý hướng**; ⛔ chưa mở |
+| **`ADR-024`** *(mới, đề nghị)* | 🔴 **Signature versioning** — `UP-4`. ⛔ Không giải bằng một cột |
+| **`SECURITY FREEZE`** | 🔴 **quyết định trình tự bắt buộc** — xem `13.1.1` |
+| **`RLS_COVERAGE_MATRIX`** | 🟠 bậc ⑦ phải soi lại khi Workspace mở |
+
+## 16.3 Khuyến nghị cuối cùng — Rev 4
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║  ① QUYẾT TRÌNH TỰ TRƯỚC, ⛔ KHÔNG quyết thiết kế trước.               ║
+║     Board định dùng BA-1+UX-1 làm nền cho "toàn bộ Workspace", nhưng  ║
+║     4/7 khối Workspace và 7/10 trường Profile CẦN MIGRATION — và      ║
+║     SECURITY FREEZE đang chặn. Chọn ① cắt B2, hoặc ② làm Phase 1     ║
+║     bằng ba khối ⛔ KHÔNG cần SQL. Tôi khuyến nghị ②.                  ║
+║                                                                       ║
+║  ② GHI `PA-1` VÀ `PA-2` VÀO ADR.                                     ║
+║     Bậc ①–④ là trải nghiệm; ⑤–⑦ là an ninh. ⛔ Không viết ra, sẽ có   ║
+║     người chặn ở bậc ③ rồi tưởng đã xong — đó đúng cách một lỗ hổng   ║
+║     ra đời. Và nó chứng minh "Launcher ⛔ ≠ Permission" là phát biểu   ║
+║     ĐÚNG, ⛔ không phải nới lỏng.                                      ║
+║                                                                       ║
+║  ③ TÁCH `Signature` VÀ `Theme` KHỎI User Profile Phase 1.            ║
+║     Signature là CHỨNG CỨ (cần ADR-024). Theme là một hệ màu thứ hai ║
+║     cho 16 App. Cả hai ⛔ không phải "một trường trong hồ sơ".         ║
+║                                                                       ║
+║  ④ TRẢ LỜI Q-9 TRƯỚC KHI DỰNG CÂY ĐƠN VỊ.                            ║
+║     Tổ Hoàn thành đang CHẠY THẬT mà ⛔ không có ô trên sơ đồ. Dựng     ║
+║     cây thiếu nó ⇒ dữ liệu tổ chức sai ngay từ hàng đầu tiên.         ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+> **Trạng thái Rev 4:** ⏳ trình Board. ⛔ Chưa viết một dòng Production Code nào.
