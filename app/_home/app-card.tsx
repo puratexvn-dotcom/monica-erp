@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { Lock } from 'lucide-react';
 
 import type { ModuleItem } from '../home-modules';
+import type { PermissionState } from '@/lib/mos/capability/visible-modules';
 import { MODULE_SURFACE, GLASS } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
@@ -43,15 +45,39 @@ import { useLanguage } from '@/lib/i18n';
 // tên ứng dụng, và đó chính là lý do nó trông thoáng.
 // ============================================================================
 
-export default function AppCard({ mod }: { mod: ModuleItem }) {
+export default function AppCard({
+  mod,
+  state,
+}: {
+  mod: ModuleItem;
+  /** Trạng thái quyền của ô với NGƯỜI ĐANG XEM — `UI-3` · ADR-022. */
+  state: PermissionState;
+}) {
   const { t } = useLanguage();
   const Icon = mod.icon;
   const sf = MODULE_SURFACE[mod.key];
+
   // ⚠️ Trước bản này là `Boolean(mod.href)` — suy trạng thái từ chỗ CÓ hay
   // KHÔNG có đường dẫn. Nay trạng thái được khai TƯỜNG MINH (`Q2`), nên đọc
   // thẳng. Suy gián tiếp là chỗ hai khái niệm *"chưa có route"* và *"đang phát
   // triển"* từng bị gộp làm một.
-  const moDuoc = mod.status === 'READY';
+  const sapCo = state === 'COMING_SOON';
+  const moDuoc = !sapCo;
+
+  // 🔴 `UNAUTHORIZED` — hiện, LÀM MỜ, ⛔ KHÔNG ẨN *(ADR-022 §2.3)*.
+  //
+  // ⚠️ `LI-1` — làm mờ bằng **ĐỘ MỜ**, ⛔ KHÔNG bằng cách đổi sang xám. Màu là
+  // **định danh** *(Điều 44.6)*: người dùng học *"xanh lá = Kho"* bằng mắt
+  // trong vài ngày. Đổi ô Kho thành xám là xoá đúng thứ họ đã học — và dạy họ
+  // một quy ước vô nghĩa *("xám = ⛔ không quyền")* thay vào đó.
+  //
+  // ⚠️ `LI-3` — độ mờ chỉ đặt lên **BIỂU TƯỢNG**, ⛔ không đặt lên chữ. Chữ giữ
+  // nguyên màu ⇒ tương phản ⛔ không đổi ⇒ ngưỡng 4,5:1 được giữ **theo cấu
+  // trúc**, ⛔ không phải nhờ ai đó nhớ kiểm lại.
+  //
+  // 🔑 Đây là chỗ *"làm mờ ⛔ ≠ ẩn"* thành mã chạy được thay vì một câu trong
+  //    tài liệu.
+  const khongQuyen = state === 'UNAUTHORIZED';
 
   // Bóng của BIỂU TƯỢNG, không phải của hộp. Hai lớp: một lớp sát để bắt mép,
   // một lớp toả rộng và thấp để nó có vẻ đang nổi trên mặt trang.
@@ -76,6 +102,17 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   // đứng tách khỏi câu chức năng thay vì dính thành một chuỗi dài không ngắt.
   const chuThich = `${mod.name} — ${t(mod.descKey)}\n${t(mod.valueKey)}`;
 
+  /** Câu đuôi tooltip — nói RÕ vì sao ô này ⛔ không mở ra Workspace ngay.
+   *
+   *  🔑 ADR-017 cảnh báo đúng: *"thẻ ⛔ không bấm được là **lời nói dối của
+   *  giao diện**"*. Câu trả lời của ADR-022 ⛔ không phải *"cứ hiện đại"* mà là
+   *  **hiện KÈM LỜI NÓI** — dòng này là lời nói đó. */
+  const duoiChuThich =
+    state === 'COMING_SOON' ? `\n${t('home.comingSoonHint')}`
+    : state === 'UNAUTHORIZED' ? `\n${t('home.noAccessHint')}`
+    : state === 'ANONYMOUS' ? `\n${t('home.signInHint')}`
+    : '';
+
   const inner = (
     <>
       <span className="relative">
@@ -91,7 +128,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
             vẫn là mỏ neo rõ ràng — đúng cỡ biểu tượng trên màn hình chính điện
             thoại. */}
         <span
-          className={`flex h-14 w-14 items-center justify-center rounded-[28%] transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-24 sm:w-24 ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover}`}
+          className={`flex h-14 w-14 items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-24 sm:w-24 ${sf.tileStrong} ${GLASS} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
         >
           <Icon className="h-7 w-7 sm:h-12 sm:w-12" strokeWidth={1.6} aria-hidden="true" />
         </span>
@@ -123,6 +160,26 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
                 được với mười App đang chạy. */}
             <span className="sr-only sm:hidden">{t('home.comingSoon')}</span>
           </>
+        )}
+
+        {/* ── Ổ KHOÁ — ô đã đăng nhập nhưng ⛔ chưa được cấp quyền ──────────
+            🔑 Đây là **lời nói** mà ADR-022 §2.2 đòi. Một ô mờ mà ⛔ không nói
+            gì mới đúng là *"lời nói dối của giao diện"* — người dùng ⛔ không
+            biết đó là *"⛔ chưa có"* hay *"⛔ không phải của tôi"*.
+
+            Ổ khoá đặt đúng chỗ nhãn *"Sắp có"* đứng, nên hai trạng thái ⛔
+            không bao giờ chồng nhau — và chúng loại trừ nhau theo cấu trúc:
+            `COMING_SOON` xét TRƯỚC phiên đăng nhập. */}
+        {khongQuyen && (
+          <span
+            className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-slate-500 shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:-right-1.5 sm:-top-1.5 sm:h-6 sm:w-6"
+            title={t('home.noAccessHint')}
+          >
+            <Lock className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" strokeWidth={2.4} aria-hidden="true" />
+            {/* Trình đọc màn hình phải NGHE được điều mắt thấy. ⛔ Không có
+                dòng này, ô mờ với họ chỉ là một ô bình thường. */}
+            <span className="sr-only">{t('home.noAccess')}</span>
+          </span>
         )}
       </span>
 
@@ -170,13 +227,27 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
       {/* `mt-0.5` — chú thích nép SÁT ngay dưới tên. Khoảng cách giữa tên và
           chú thích phải NHỎ HƠN hẳn khoảng cách giữa biểu tượng và tên, nếu
           không ba thứ đọc ra là ba mục rời chứ không phải một cụm. */}
+      {/* ═══ `UI-3` — TAGLINE HIỆN Ở MỌI KHỔ MÀN ═══════════════════════
+          Board chỉ thị mỗi Module gồm **icon · tên · tagline · mô tả ngắn**.
+          Trước bản này hai dòng chữ **loại trừ nhau** — điện thoại thấy
+          tagline, máy tính thấy mô tả — nên ⛔ không khổ nào có đủ bốn thứ.
+
+          Nay tagline hiện **mọi khổ** *(nó ngắn, luôn vừa)*, mô tả ngắn hiện
+          **từ `sm`** *(ô 80px trên điện thoại ⛔ không chứa nổi nó — đó là lý
+          do bản rút gọn ra đời, và lý do đó ⛔ chưa mất)*.
+
+          ⇒ Máy tính: đủ **bốn** tầng. Điện thoại: **ba** tầng, và tầng bỏ đi
+          là tầng dài nhất — đúng thứ tự ưu tiên. */}
       <span
-        className={`${TYPE.appHint} mt-0.5 flex w-full items-start justify-center text-center text-slate-500 sm:hidden`}
+        className={`${TYPE.appHint} mt-0.5 flex w-full items-start justify-center text-center text-slate-500 sm:mt-1.5`}
       >
         {t(mod.shortKey)}
       </span>
+      {/* Mô tả ngắn — nhạt hơn tagline một bậc. Hai dòng chữ cùng sắc độ sẽ
+          đọc ra như một đoạn văn hai dòng; lệch sắc độ làm chúng đọc ra là
+          **tagline** và **chú thích của tagline**. */}
       <span
-        className={`${TYPE.appHint} mt-1.5 hidden min-h-[2.9em] w-full items-start justify-center text-center text-slate-500 sm:flex`}
+        className={`${TYPE.appHint} mt-1 hidden min-h-[2.9em] w-full items-start justify-center text-center text-slate-400 sm:flex`}
       >
         {t(mod.descKey)}
       </span>
@@ -195,14 +266,24 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
   //
   // `aria-disabled` + `disabled`: cái đầu để trình đọc màn hình đọc ra, cái sau
   // để trình duyệt ⛔ không cho bấm và ⛔ không đưa vào thứ tự Tab.
-  if (!moDuoc) {
+  // ⚠️ Rẽ nhánh trên `mod.status`, ⛔ **KHÔNG** trên `sapCo`.
+  //
+  // Hai vế **luôn cùng giá trị** — `modulePermissionState` trả `COMING_SOON`
+  // đúng khi `mod.status === 'COMING_SOON'` — nhưng TypeScript ⛔ không biết
+  // điều đó. Rẽ trên biến trung gian thì kiểu **⛔ không thu hẹp**, và nhánh
+  // dưới mất `mod.href`; lối thoát duy nhất còn lại khi ấy là `as string` —
+  // đúng phép ép kiểu mà `UI-1.2` đã bỏ đi.
+  //
+  // 🔑 Rẽ trên nguồn sự thật thì máy kiểm **chứng minh** `href` tồn tại, thay
+  //    vì ta ép nó im lặng.
+  if (mod.status === 'COMING_SOON') {
     return (
       <button
         type="button"
         disabled
         aria-disabled="true"
         className={`${base} cursor-not-allowed opacity-60`}
-        title={`${chuThich}\n${t('home.comingSoonHint')}`}
+        title={`${chuThich}${duoiChuThich}`}
       >
         {inner}
       </button>
@@ -215,7 +296,7 @@ export default function AppCard({ mod }: { mod: ModuleItem }) {
       // về `ModuleReady`, nên `href` chắc chắn tồn tại — máy kiểm chứng minh
       // điều đó thay vì ta ép nó im lặng.
       href={mod.href}
-      title={chuThich}
+      title={`${chuThich}${duoiChuThich}`}
       className={`${base} focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#F6F7F9]`}
     >
       {inner}

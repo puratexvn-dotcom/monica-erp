@@ -15,7 +15,9 @@
 // Hàng rào thật là `middleware` · `guard.ts` · RLS.
 // ============================================================================
 import { scoreboard } from '../_lib/harness.mjs';
-import { canSeeModule, visibleModules } from '../../lib/mos/capability/visible-modules.ts';
+import {
+  canSeeModule, visibleModules, modulePermissionState, moduleClickable,
+} from '../../lib/mos/capability/visible-modules.ts';
 import { ALL_ROLES, ROLE_HOME, MODULE_ACCESS, canAccess } from '../../lib/rbac.ts';
 
 const s = scoreboard('LỌC BUSINESS APP THEO QUYỀN');
@@ -125,6 +127,95 @@ console.log('\n⑦ VAI LẠ — ⛔ không sập, và ⛔ không mở toang');
     canSeeModule('', READY('/md')) === false);
   s.ok('Mọi vai trong ALL_ROLES đều có mục trong MODULE_ACCESS',
     ALL_ROLES.every((v) => Array.isArray(MODULE_ACCESS[v])));
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// PHẦN HAI — TRẠNG THÁI QUYỀN CỦA Ô LAUNCHER · `UI-3` · ADR-022
+//
+// ⚠️ Phần một phía trên đo `visibleModules` — bộ luật **CÓ LỌC**, nay dùng cho
+// cổng đối tác. Phần này đo `modulePermissionState` — bộ luật của **TRANG CHỦ**,
+// nơi ⛔ **không lọc gì cả**.
+//
+// Hai bộ luật **cùng tồn tại có chủ ý**. Chúng ⛔ không được lẫn vào nhau, và
+// đó chính là thứ phần này canh.
+// ════════════════════════════════════════════════════════════════════════
+
+console.log('\n⑧ 🔴 TRANG CHỦ HIỆN TOÀN BỘ — ⛔ KHÔNG Ô NÀO BIẾN MẤT');
+{
+  const TAT_CA = [READY('/md'), READY('/kho'), READY('/ke-toan'), SOON];
+
+  // Đây là phép đo **đảo chiều** của mục ①. Mục ① canh *"khách ⛔ không thấy
+  // gì"*; mục này canh *"khách thấy ĐỦ"*. Cùng một hệ thống, hai đời chỉ thị —
+  // giữ cả hai phép đo để ngày nào có ai lặng lẽ bật lại lối lọc, một trong
+  // hai sẽ đỏ.
+  for (const vai of [null, undefined, 'md', 'kho', 'vai_khong_co_that']) {
+    const trangThai = TAT_CA.map((m) => modulePermissionState(vai, m));
+    s.ok(`vai=${String(vai)} ⇒ đủ ${TAT_CA.length} ô, ⛔ không ô nào rơi`,
+      trangThai.length === TAT_CA.length && trangThai.every(Boolean));
+  }
+}
+
+console.log('\n⑨ BỐN TRẠNG THÁI — ĐÚNG MỘT TRẠNG THÁI CHO MỖI TÌNH HUỐNG');
+{
+  s.ok('⛔ chưa đăng nhập + có route ⇒ ANONYMOUS',
+    modulePermissionState(null, READY('/md')) === 'ANONYMOUS');
+  s.ok('có quyền ⇒ AUTHORIZED',
+    modulePermissionState('md', READY('/md')) === 'AUTHORIZED');
+  s.ok('đã đăng nhập, ⛔ không quyền ⇒ UNAUTHORIZED',
+    modulePermissionState('qa', READY('/ke-toan')) === 'UNAUTHORIZED');
+  s.ok('⛔ chưa có route ⇒ COMING_SOON',
+    modulePermissionState('md', SOON) === 'COMING_SOON');
+
+  // 🔑 `LI-2` — vế dễ hỏng nhất trong cả bài, và hỏng thì ⛔ không ai thấy.
+  //
+  // Với khách, hệ thống **⛔ không biết** họ sẽ có quyền gì. Làm mờ ô của họ là
+  // **nói dối** — và nó giết đúng giá trị bán hàng mà Board mua bằng việc hiện
+  // toàn bộ. Một dòng `if (!canAccess(role, href))` viết hớ là đủ để mọi ô của
+  // khách chuyển sang mờ, mà giao diện vẫn "chạy bình thường".
+  const khachThay = [READY('/md'), READY('/kho'), READY('/giam-doc'), READY('/admin')]
+    .map((m) => modulePermissionState(null, m));
+  s.ok('🔴 LI-2 · khách ⛔ KHÔNG BAO GIỜ nhận UNAUTHORIZED',
+    khachThay.every((tt) => tt === 'ANONYMOUS'), khachThay.join(' · '));
+}
+
+console.log('\n⑩ COMING_SOON XÉT TRƯỚC PHIÊN — ô ⛔ không đổi mặt theo người xem');
+{
+  // Một App ⛔ chưa có route thì ⛔ không ai mở được, kể cả `superadmin`. Nếu
+  // thứ tự hai vế bị đảo, ô `COMING_SOON` sẽ hiện `ANONYMOUS` với khách và mời
+  // họ bấm — dẫn tới `/login`, đăng nhập xong vẫn ⛔ không có gì để mở.
+  const moiVai = [null, undefined, ...ALL_ROLES];
+  const lech = moiVai.filter((v) => modulePermissionState(v, SOON) !== 'COMING_SOON');
+  s.ok(`COMING_SOON giữ nguyên với cả ${moiVai.length} người xem`,
+    lech.length === 0, `lệch ở: ${lech.join(' · ')}`);
+
+  s.ok('COMING_SOON ⇒ ⛔ không bấm được', moduleClickable('COMING_SOON') === false);
+  for (const tt of ['AUTHORIZED', 'UNAUTHORIZED', 'ANONYMOUS']) {
+    s.ok(`${tt} ⇒ bấm được`, moduleClickable(tt) === true);
+  }
+}
+
+console.log('\n⑪ CÙNG MỘT BỘ LUẬT VỚI `canAccess` — ⛔ không phải bản chép tay');
+{
+  // 🔑 Đây là `G6` áp cho trang chủ. `middleware.ts` chặn bằng `canAccess`;
+  // nếu ô Launcher tự so tiền tố theo cách thứ hai, hai bộ luật sẽ trôi khỏi
+  // nhau — và ngày chúng lệch, ô sáng rõ sẽ dẫn thẳng vào màn 403.
+  const lech = [];
+  for (const vai of ALL_ROLES) {
+    for (const href of ['/md', '/kho', '/qa', '/ke-toan', '/giam-doc', '/admin', '/subcon', '/buyer']) {
+      const tt = modulePermissionState(vai, READY(href));
+      const cho = canAccess(vai, href) ? 'AUTHORIZED' : 'UNAUTHORIZED';
+      if (tt !== cho) lech.push(`${vai}→${href}: ${tt} ≠ ${cho}`);
+    }
+  }
+  s.ok(`Trạng thái khớp canAccess ở cả ${ALL_ROLES.length} vai × 8 route`,
+    lech.length === 0, lech.slice(0, 5).join(' · '));
+
+  // Vai có ROLE_HOME thì ô tương ứng PHẢI sáng — nếu ⛔ không, người dùng nhìn
+  // vào chính Workspace mình sắp bị đá tới mà thấy nó mờ đi.
+  const nhaLech = ALL_ROLES.filter(
+    (v) => modulePermissionState(v, READY(ROLE_HOME[v])) !== 'AUTHORIZED');
+  s.ok('Mọi vai thấy ROLE_HOME của mình ở trạng thái AUTHORIZED',
+    nhaLech.length === 0, nhaLech.join(' · '));
 }
 
 process.exit(s.ketThuc() ? 1 : 0);

@@ -14,7 +14,10 @@
     "beta": "Beta",
     "betaHint": "in development",
     "comingSoon": "Coming Soon",
-    "comingSoonHint": "not open yet, under construction"
+    "comingSoonHint": "not open yet, under construction",
+    "noAccess": "No access",
+    "noAccessHint": "You have not been granted access to this workspace",
+    "signInHint": "Sign in to open your workspace"
   },
   "login": {
     "eyebrow": "Business Operating System",

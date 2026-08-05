@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Layers, ShieldCheck, FileCheck2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 import { MODULES } from '../home-modules';
 import AppCard from './app-card';
-import WorkZone from './work-zone';
-import { visibleModules } from '@/lib/mos/capability/visible-modules';
+import { modulePermissionState } from '@/lib/mos/capability/visible-modules';
 import type { Role } from '@/lib/rbac';
 import { useLanguage } from '@/lib/i18n';
 import { TYPE } from '@/lib/design/typography';
@@ -27,35 +26,34 @@ import { LOGO_LETTER_COLORS, LOGO_LETTER_SHADOW, LOGO_COLORS } from '@/lib/brand
 // dòng chữ xung quanh chúng mới đi qua `t()`.
 // ============================================================================
 
-/** Ba trụ cột hiến định — chỉ hiện ở Landing *(chưa đăng nhập)*.
- *  Một nền tảng *(§7)* · Workspace theo vai *(§10)* · bằng chứng *(§8)*. */
-const TRU_COT = [
-  { icon: Layers, key: 'landing.pillarOne' },
-  { icon: ShieldCheck, key: 'landing.pillarRole' },
-  { icon: FileCheck2, key: 'landing.pillarEvidence' },
-] as const;
-
 export default function HomeContent({
   role,
-  ten,
 }: {
   /** Vai của người đang đăng nhập. `null` = **chưa đăng nhập**. */
   role: Role | null;
-  /** Tên hiển thị ở Work Zone. */
-  ten: string | null;
 }) {
   const { t } = useLanguage();
 
-  // 🔴 ĐÂY LÀ CHỖ `UI-F1` ĐƯỢC ĐÓNG.
+  // ═══ 🔴 `UI-3` — ĐẢO CHIỀU SO VỚI `UI-1.5` ══════════════════════════════
   //
-  // Trước bản này trang chủ dựng thẳng `MODULES` — cả 16 thẻ, cho **bất kỳ ai
-  // gõ đúng địa chỉ**, kể cả người chưa đăng nhập một giây nào. Bản đồ vận hành
-  // của doanh nghiệp nằm công khai trên internet.
+  // `UI-1.5` đóng `UI-F1` bằng cách **ẩn** mọi Module với người chưa đăng nhập.
+  // Board đã bác cách đó *(Directive Rev 2, và tái khẳng định ở Build Mode)*:
   //
-  // `visibleModules` trả **mảng rỗng** khi `role === null` *(Board `Q3`)*, và
-  // lọc theo `canAccess` — **đúng bộ luật `middleware.ts` dùng để chặn**, ⛔
-  // không phải một bản chép tay thứ hai.
-  const apps = visibleModules(MODULES, role);
+  //   *"Homepage hiển thị toàn bộ Module, quyền chỉ kiểm khi mở.
+  //     ⛔ KHÔNG ẩn Module ngay từ Homepage."*
+  //
+  // ─── VÌ SAO ĐÂY ⛔ KHÔNG PHẢI NỚI LỎNG BẢO MẬT ─────────────────────────
+  // Ô Launcher nằm ở **bậc ③** — tầng TRẢI NGHIỆM *(`PA-1`)*. Ẩn thẻ ⛔ **không
+  // bảo vệ gì cả**: ai biết đường dẫn vẫn gõ được `/kho`, và `guard.ts` *(⑤)*
+  // cùng RLS *(⑦)* chặn họ — **hôm nay đã vậy**. Board chỉ **gọi đúng tên** một
+  // tầng vốn ⛔ chưa bao giờ là hàng rào *(`PA-2`)*.
+  //
+  // ⚠️ Cái mất là có thật và **có tên**: `UI-F1` ⛔ **không** được đóng — bản đồ
+  // 16 phân hệ lộ ra cho mọi người xem. Board chấp nhận **có chủ ý** để đổi lấy
+  // giá trị bán hàng · demo · onboarding. Ghi ở `GPR-001`, ⛔ không im lặng.
+  //
+  // 🔑 `modulePermissionState` thay `visibleModules`: từ **LỌC** sang **GÁN
+  //    TRẠNG THÁI**. Cùng một `canAccess`, ⛔ không phải bản chép tay thứ hai.
   const daDangNhap = role !== null;
 
   return (
@@ -162,22 +160,25 @@ export default function HomeContent({
             ⚠️ Ba trụ cột này lặp lại ba dòng đã có ở `/login`. Đó là **cố ý**:
             hai màn hình cùng đứng trước cánh cửa, và chúng phải nói **cùng một
             câu chuyện**. Câu chữ nằm ở `messages/`, ⛔ không chép tay hai nơi. */}
+        {/* ── LỐI ĐĂNG NHẬP — chỉ khi CHƯA đăng nhập ─────────────────────
+            ⚠️ `UI-3` BỎ danh sách ba trụ cột khỏi trang chủ. Hai lý do:
+
+            ① `HP-1` *(baseline đã khoá)* đòi **hàng ô App đầu tiên phải thấy
+               được ⛔ KHÔNG cần cuộn** ở 1366×768 **và** 390×844. Danh sách ba
+               trụ cột cao ~180px và đứng ngay trên lưới — nó đẩy hàng đầu
+               xuống dưới nếp gấp đúng với khán giả cần thấy lưới nhất: khách.
+
+            ② Ba dòng đó **lặp nguyên văn** ba dòng ở `/login`, và `/login` là
+               nơi chúng thuộc về — người đã bấm vào một Module thì đang **trên
+               đường vào**, ⛔ không còn cần được thuyết phục.
+
+            🔑 Khoá `landing.pillar*` **GIỮ NGUYÊN** ở cả ba tệp dịch: `/login`
+            vẫn dựng chúng. ⛔ Không xoá chữ, chỉ đổi chỗ dựng. */}
         {!daDangNhap && (
           <>
             <p className={`${TYPE.bodyLg} mx-auto mt-4 max-w-xl text-slate-500`}>
               {t('landing.lead')}
             </p>
-
-            <ul className="mx-auto mt-9 flex max-w-2xl flex-col gap-3 text-left sm:mt-11">
-              {TRU_COT.map(({ icon: Icon, key }) => (
-                <li key={key} className="flex items-start gap-3.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/80 text-slate-500 shadow-sm ring-1 ring-slate-200/70">
-                    <Icon className="h-4.5 w-4.5" strokeWidth={1.9} aria-hidden="true" />
-                  </span>
-                  <span className={`${TYPE.bodySm} pt-1.5 text-slate-600`}>{t(key)}</span>
-                </li>
-              ))}
-            </ul>
 
             {/* Cao 44px — ngưỡng vùng chạm tối thiểu, đủ cho ngón tay. */}
             <Link
@@ -186,7 +187,7 @@ export default function HomeContent({
               // Bản nháp đầu viết thẳng và **mục ⑩ bắt được ngay** — đúng thứ
               // cơ chế bánh cóc sinh ra để chặn. Sửa bằng THẺ, ⛔ không bằng
               // cách thêm tệp vào sổ nợ.
-              className={`${TYPE.label} mt-10 inline-flex min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-white shadow-lg transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 active:scale-[0.98]`}
+              className={`${TYPE.label} mt-7 inline-flex min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-white shadow-lg transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 active:scale-[0.98]`}
             >
               {t('landing.signIn')}
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -195,8 +196,24 @@ export default function HomeContent({
         )}
       </section>
 
-      {/* ── WORK ZONE — vùng MỘT của ADR-017, chỉ khi đã đăng nhập ────── */}
-      {daDangNhap && <WorkZone ten={ten} />}
+      {/* ══ WORK ZONE ĐÃ RỜI TRANG CHỦ — `UI-3` · ADR-021 ═══════════════════
+          Board: *"⛔ không thêm Work Zone vào Homepage"*.
+
+          Hiến pháp §13.1 nói nguyên văn ba lần: *"The Homepage **is not a
+          dashboard**… The Homepage **is** a Business Operating System
+          Launcher."* Một Work Zone *"cá nhân, động, hiện việc cần chú ý"*
+          **là** một dashboard cá nhân — nên nó đứng ở đây là trang chủ tự mâu
+          thuẫn với chính điều khoản định nghĩa ra mình.
+
+          ⚠️ `app/_home/work-zone.tsx` **GIỮ NGUYÊN, ⛔ KHÔNG XOÁ** *(ràng buộc
+          giao diện #2)*. Nó chỉ thôi được dựng **ở đây**. Nơi đến của nó —
+          năng lực toàn cục sau nút `Work` — chờ `ADR-021` được phê duyệt;
+          Board đã chỉ thị **⛔ không đổi Bottom Navigation** ở lượt này.
+
+          🔑 Định nghĩa đã chốt: **Work Inbox** = việc chờ tôi trong MỘT Domain;
+          **Work Zone** = HỢP của mọi Work Inbox tôi có quyền. Nó là **phép
+          chiếu**, ⛔ không sở hữu dữ liệu — nên dời chỗ nó là quyết định ĐIỀU
+          HƯỚNG, ⛔ không phải quyết định DỮ LIỆU, và ⛔ không mất gì. */}
 
       {/* ═══ LƯỚI BUSINESS APP — ngay dưới Hero ══════════════════════════
           Mobile 2 · Tablet 3 · Desktop 4. Khoảng cách đều ở mọi mốc. */}
@@ -219,7 +236,6 @@ export default function HomeContent({
           ⚠️ Khoảng cách DỌC rộng hơn ngang (gap-y 10 so với gap-x 4). Tên có
           thể xuống hai dòng, nên thiếu khoảng cách dọc thì chữ của hàng trên
           dính vào biểu tượng của hàng dưới. */}
-      {daDangNhap && (
       <section aria-label={t('home.appsLabel')}>
         {/* ⚠️ BỐN CỘT Ở MỌI KHỔ MÀN, kể cả điện thoại.
             Trên màn 390px, trừ đệm hai bên và ba khe giữa thì mỗi ô chỉ còn
@@ -229,12 +245,17 @@ export default function HomeContent({
             Khe DỌC ngược lại vẫn phải rộng: tên App có thể xuống ba dòng ở khổ
             hẹp, thiếu khoảng dọc thì chữ hàng trên chạm biểu tượng hàng dưới. */}
         <div className="mx-auto grid max-w-5xl grid-cols-4 gap-x-2 gap-y-7 sm:gap-x-6 sm:gap-y-12">
-          {apps.map((mod) => (
-            <AppCard key={mod.name} mod={mod} />
+          {/* 🔑 `MODULES` — cả 16, ⛔ KHÔNG lọc. Quyền đi vào `state`, ⛔ không
+              đi vào việc có mặt hay vắng mặt. */}
+          {MODULES.map((mod) => (
+            <AppCard
+              key={mod.name}
+              mod={mod}
+              state={modulePermissionState(role, mod)}
+            />
           ))}
         </div>
       </section>
-      )}
     </>
   );
 }

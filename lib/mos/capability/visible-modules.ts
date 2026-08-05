@@ -72,3 +72,66 @@ export function visibleModules<T extends ModuleAccess>(
 ): T[] {
   return mods.filter((m) => canSeeModule(role, m));
 }
+
+// ============================================================================
+// TRẠNG THÁI QUYỀN CỦA MỘT Ô LAUNCHER — `UI-3` · ADR-022
+//
+// ═══ 🔴 ĐÂY LÀ ĐẢO CHIỀU SO VỚI `canSeeModule` PHÍA TRÊN ════════════════
+// `canSeeModule` trả lời *"có ẩn App này đi ⛔ không"*. Board đã bác cách đó:
+// trang chủ **hiện TOÀN BỘ Module**, quyền kiểm **lúc MỞ**, ⛔ không kiểm bằng
+// cách vắng mặt.
+//
+// ⚠️ Hai hàm **cùng tồn tại có chủ ý** — ⛔ không xoá hàm cũ:
+//   • `canSeeModule` / `visibleModules` vẫn là bộ luật cho **cổng đối tác** và
+//     mọi bề mặt CÓ lọc; 62 phép kiểm đang đứng trên nó.
+//   • `modulePermissionState` là bộ luật cho **trang chủ**.
+//
+// ═══ 🔑 VÌ SAO TÍNH Ở CLIENT LÀ AN TOÀN ════════════════════════════════
+// Trạng thái này nằm ở **bậc ③** của Permission Architecture — tầng TRẢI
+// NGHIỆM, ⛔ **không** phải tầng AN NINH *(`PA-1`)*. Hàng rào là `guard.ts`
+// *(⑤)*, Server Action *(⑥)* và **RLS** *(⑦)*.
+//
+// ⇒ Tính sai ở đây **⛔ không tạo ra lỗ hổng** — nó tạo ra **một cú bấm hụt**.
+//   Đó chính là `PA-2`: ô Launcher **⛔ CHƯA BAO GIỜ** là hàng rào.
+// ============================================================================
+
+/**
+ * Bốn trạng thái một ô Launcher có thể mang.
+ *
+ * ⚠️ `ANONYMOUS` **⛔ KHÔNG được suy thành `UNAUTHORIZED`** *(`LI-2`)*. Với
+ * khách, hệ thống **⛔ không biết** họ sẽ có quyền gì — làm mờ ô của họ là
+ * **nói dối**, và nó giết đúng giá trị mà Board mua bằng việc hiện toàn bộ.
+ */
+export type PermissionState =
+  | 'AUTHORIZED'
+  | 'UNAUTHORIZED'
+  | 'COMING_SOON'
+  | 'ANONYMOUS';
+
+/**
+ * Ô này ở trạng thái nào với người đang xem.
+ *
+ * | Trường hợp | Kết quả | Bấm thì sao |
+ * |---|---|---|
+ * | ⛔ chưa có route | `COMING_SOON` | ⛔ không bấm được |
+ * | ⛔ chưa đăng nhập | `ANONYMOUS` | → `/login?next=…` *(middleware)* |
+ * | có quyền | `AUTHORIZED` | → Workspace |
+ * | ⛔ không quyền | `UNAUTHORIZED` | → `/unauthorized` *(middleware)* |
+ *
+ * 🔑 Thứ tự hai vế đầu **quan trọng**: `COMING_SOON` xét TRƯỚC đăng nhập. Một
+ * App ⛔ chưa có route thì ⛔ không ai mở được, kể cả `superadmin` — nên nó ⛔
+ * không được đổi mặt theo phiên.
+ */
+export function modulePermissionState(
+  role: Role | null | undefined,
+  mod: ModuleAccess,
+): PermissionState {
+  if (mod.status === 'COMING_SOON') return 'COMING_SOON';
+  if (!role) return 'ANONYMOUS';
+  return canAccess(role, mod.href) ? 'AUTHORIZED' : 'UNAUTHORIZED';
+}
+
+/** Ô có bấm được ⛔ không. Chỉ `COMING_SOON` là ⛔ không. */
+export function moduleClickable(state: PermissionState): boolean {
+  return state !== 'COMING_SOON';
+}

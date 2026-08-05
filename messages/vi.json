@@ -14,7 +14,10 @@
     "beta": "Beta",
     "betaHint": "đang phát triển",
     "comingSoon": "Sắp có",
-    "comingSoonHint": "chưa mở, đang xây dựng"
+    "comingSoonHint": "chưa mở, đang xây dựng",
+    "noAccess": "Chưa được cấp quyền",
+    "noAccessHint": "Bạn chưa được cấp quyền vào phân hệ này",
+    "signInHint": "Đăng nhập để mở phân hệ của bạn"
   },
   "login": {
     "eyebrow": "Business Operating System",

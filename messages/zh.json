@@ -14,7 +14,10 @@
     "beta": "Beta",
     "betaHint": "开发中",
     "comingSoon": "即将推出",
-    "comingSoonHint": "尚未开放，建设中"
+    "comingSoonHint": "尚未开放，建设中",
+    "noAccess": "无权限",
+    "noAccessHint": "您尚未获得该工作空间的权限",
+    "signInHint": "登录后打开您的工作空间"
   },
   "login": {
     "eyebrow": "Business Operating System",

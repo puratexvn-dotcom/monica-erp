@@ -67,7 +67,6 @@ export default async function HomePage() {
   // 🔑 Điều đó ⛔ **không** làm yếu gì: đây là quyết định **BÀY CÁI GÌ**, ⛔
   // không phải **CHO VÀO HAY KHÔNG**. Hàng rào vẫn là middleware · guard · RLS.
   const phien = await getSessionUser();
-  const ten = phien?.email?.split('@')[0] ?? null;
   return (
     // Nền KHÔNG trắng tinh. Trắng trên trắng buộc phải kẻ viền đậm, mà viền
     // đậm thì màn hình lập tức ồn. Xám rất nhạt để thẻ trắng nổi lên bằng
@@ -164,7 +163,7 @@ export default async function HomePage() {
             không đập ngay vào mặt. Phần mềm rẻ tiền lấp đầy mọi pixel; phần mềm
             đắt tiền để trống có chủ ý. */}
         <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:px-8">
-          <HomeContent role={phien?.role ?? null} ten={ten} />
+          <HomeContent role={phien?.role ?? null} />
 
         </main>
 

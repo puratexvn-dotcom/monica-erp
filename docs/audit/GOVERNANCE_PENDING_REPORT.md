@@ -294,3 +294,34 @@ chặn vô thời hạn; bỏ qua phản biện ⇒ `A-1` lặp lại — **và 
 
 > **Trạng thái:** 🟠 **PENDING** — ⛔ không chặn Sprint I-2 *(Board Decision
 > 05/08/2026)*. Cập nhật mỗi khi một mục đổi trạng thái.
+
+---
+
+## `A-7` · `UI-F1` — bản đồ 16 phân hệ lộ công khai · **CHẤP NHẬN CÓ CHỦ Ý**
+
+| | |
+|---|---|
+| **Mức** | 🟠 giới hạn **có tên** — ⛔ **không** phải khuyết tật ⛔ chưa biết |
+| **Thẩm quyền** | Board Directive Rev 2 *(04/08)* · Build Mode v1 *(05/08)* |
+| **Thi hành ở** | `EPIC UI-3` — `app/_home/home-content.tsx` · `lib/mos/capability/visible-modules.ts` |
+
+**Điều gì lộ ra:** người **⛔ chưa đăng nhập** thấy đủ **16 Business App** — tên,
+biểu tượng, mô tả, và **đường dẫn** *(gồm cả route mang tên chức danh:
+`/giam-doc` · `/to-truong-cat`)*. ⇒ Lộ **cơ cấu vận hành** của doanh nghiệp ở
+mức thô.
+
+**Điều gì ⛔ KHÔNG lộ:** ⛔ không một dòng dữ liệu nghiệp vụ nào. Hàng rào ⛔
+không đổi — `middleware` *(②)* · `guard.ts` *(⑤)* · Server Action *(⑥)* · **RLS**
+*(⑦)* nguyên vẹn.
+
+**Vì sao chấp nhận:** ô Launcher nằm ở **bậc ③ — tầng TRẢI NGHIỆM** *(`PA-1`)*.
+Ẩn thẻ **⛔ chưa bao giờ bảo vệ gì**: ai biết đường dẫn vẫn gõ được `/kho` và
+vẫn bị chặn y hệt. Board đổi lấy giá trị **bán hàng · demo · onboarding** —
+`UX-1 §10` đo được **6 khán giả** bị `§13.5` hy sinh để phục vụ **một**.
+
+⚠️ **Mục này ⛔ KHÔNG được đóng bằng cách "đã cân nhắc rồi".** Nó đóng khi
+`ADR-022` được Board phê duyệt chính thức *(hiện `⏳ chờ phản biện độc lập` —
+ADR-011 §2.2)*. Trước đó nó nằm đây **mở**, để ⛔ không ai coi hiện trạng là
+đương nhiên.
+
+> **Trạng thái `A-7`:** 🟠 **CHẤP NHẬN, chờ `ADR-022` chính thức.**
