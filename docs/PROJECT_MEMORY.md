@@ -664,7 +664,7 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | `KD-1` | **Hai `ADR-001` khác nhau** — `architecture/adr/` và `assignment/` | `ls` | ⏳ chờ gộp kho ADR |
 | `KD-2` | ~~8 bảng MD ⛔ không có policy thu hẹp~~ | `VR-001` + `042` | ✅ **ĐÓNG 05/08** — `042` đã chạy, `authenticated_only` **22 → 0**. Còn **6 bảng** giữ `DELETE` là ngoại lệ có chủ ý `TD-25` ⇒ `TC-1` |
 | `KD-3` | ~~`po-twin.service.ts:132` hằng số `0` cho `late_milestones`~~ | đo mã | ✅ **ĐÓNG 05/08** — Sprint I-2 Phase 1. Luật đếm dời sang `milestone-lateness.calculator.ts`, **hai màn hình gọi cùng một hàm** |
-| `KD-4` | **`md-client.tsx` 886/900 dòng** — 14 dòng nữa gãy arch test | đo mã | ⏳ **Phase 2** |
+| `KD-4` | **`md-client.tsx` 886/900 dòng** — 14 dòng nữa gãy arch test | đo mã | 🔴 **`TD-39`** — tách ⛔ không phải phép dời thuần, chờ Board |
 | `KD-5` | **`md-legacy-client.tsx` 437 dòng mã chết** — nơi **DUY NHẤT** gọi `garment-math` | 0 tệp import | ⚠️ nối lại trước khi xoá |
 | `KD-6` | **`/subcon` phục vụ 7 vai trò** gồm cả nhà thầu ngoài | `rbac.ts` | ⏳ |
 | `KD-7` | **`CLAUDE.md` §6 ghi "12 phân hệ"** — thực tế 16, đích 19 | `home-modules.ts:135` | ⏳ |
@@ -817,7 +817,7 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | **Khoản nợ quản trị** | **28** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) R1 *(4 đã trả · 3 mới)* |
 | **Độ phủ CI** | **9/10** bài kiểm *(`md-internal-scope` chờ `TC-1`)* |
 | **Technical Condition** | **5** — `TC-1`…`TC-5`; 3 chặn **Cổng C** |
-| **Phép đo tĩnh** *(⛔ không cần CSDL)* | **281** — 68 kiến trúc + 59 nghiệp vụ MD + 154 nghiệp vụ Kho |
+| **Phép đo tĩnh** *(⛔ không cần CSDL)* | **287** — 74 kiến trúc + 59 nghiệp vụ MD + 154 nghiệp vụ Kho |
 
 ---
 

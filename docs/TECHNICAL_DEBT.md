@@ -60,6 +60,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-36](#td-36) | ~~Bộ kiểm nghiệp vụ chỉ nạp được mô-đun ⛔ không phụ thuộc~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board phương án ① — loader |
 | [TD-37](#td-37) | `YARD_IN_METERS` khai ở **hai nơi** — `garment-math` *(export)* và `four-point` *(riêng)* | 🟡 | mở *(Board giữ nguyên)* | Sprint I-2 Phase 2 · `B2-5` |
 | [TD-38](#td-38) | 🔴 **16/16 màn hình đang chạy CHƯA từng qua cổng thiết kế 6 câu** — EDD-05 §1.1 | 🔴 | mở | Sprint I-2 Phase 2 · `B2-4` |
+| [TD-39](#td-39) | 🔴 **Tách `md-client.tsx` ⛔ KHÔNG phải phép dời thuần** — 21 hook state dùng chung, cần quyết định kiến trúc | 🔴 | mở · **chặn `B2-6`** | Sprint I-2 Phase 2 · `B2-6` |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -1055,6 +1056,61 @@ lượt 16 màn hình — làm vậy chính là nghi thức rỗng.
 
 **I-5** *(Ranh giới Workspace)* và **I-6** *(Object Control Tower)* — hai Sprint
 đụng nhiều màn hình nhất, đánh giá đúng lúc đang sửa chúng thì rẻ nhất.
+
+---
+
+<a id="td-39"></a>
+## TD-39 · TÁCH `md-client.tsx` ⛔ KHÔNG PHẢI PHÉP DỜI THUẦN
+
+| | |
+|---|---|
+| **Mức** | 🔴 mở — **chặn `B2-6`** |
+| **Phát hiện** | Sprint I-2 Phase 2 · `B2-6` — **lúc đo trước khi tách** |
+| **Nơi** | [`md-client.tsx`](../app/(dashboard)/md/md-client.tsx) — 886/900 dòng |
+
+### 🔴 Nó bác một giả định trong CHÍNH kế hoạch của tôi
+
+Backlog `B2-6` viết: *"Nhóm đã là ranh giới **có sẵn trong mã** (`GROUPS`,
+`md-client.tsx:134`)"*, và kết luận tách theo 3 nhóm là phép **dời** rẻ.
+
+**Đo được thì ⛔ không phải vậy.** `GROUPS` chỉ là **mảng nhãn cho thanh tab**.
+Nó ⛔ **không** phân vùng state, ⛔ **không** phân vùng JSX.
+
+| Phép đo | Kết quả |
+|---|---|
+| Hook `useState` trong một component | **21** |
+| Khối render theo tab | **17** guard `tab === '…'` **đan xen trong MỘT cây JSX** *(dòng 554–784)* |
+| Nạp dữ liệu | **một** `loadTab` với `switch` trên `TabKey`, dùng chung `loadedRef` · `setLoadingTab` |
+
+⇒ Tách một nhóm ra tệp riêng phải đưa qua ranh giới **~30 thành viên** — state,
+setter, `loadTab`, `loadedRef`, `goTab`, `openPo`…
+
+### Hai lối, cả hai đều ⛔ không phải "dời thuần"
+
+| # | Lối | Vì sao chặn |
+|---|---|---|
+| ① | **Truyền props** ~30 thành viên × 3 tệp | Thay đổi cơ học **lớn**, bề mặt sai cao — và CSA ⛔ **không nghiệm thu bằng mắt được** *(`F-8`, ADR-011 §2.4 mục 3)* |
+| ② | **Dựng React Context** cho state MD | 🔴 **Cơ chế chia sẻ state MỚI ⇒ thay đổi kiến trúc** ⇒ Sprint Autonomy điều 3 buộc **DỪNG** |
+
+### Vì sao ⛔ không tự chọn
+
+Sprint Autonomy cho phép chạy liên tục **nếu ⛔ không đổi Architecture**. Lối ②
+đổi. Lối ① ⛔ không đổi kiến trúc nhưng **⛔ không kiểm chứng được** — và
+`R-4` đã xếp `B2-6` là thao tác **dễ gãy nhất Phase 2**.
+
+⇒ **DỪNG, trình Board.** Đây đúng điều kiện dừng số 5 và 6.
+
+### ⚠️ Trần 900 dòng vẫn còn đó
+
+`md-client.tsx` **886/900** — còn **14 dòng đệm**. Arch test mục ⑤ sẽ đỏ khi ai
+đó thêm 15 dòng. `TD-39` ⛔ không làm điều đó nguy hiểm hơn, nhưng nó nói rõ:
+**⛔ không có lối thoát rẻ.**
+
+### Sprint đích
+
+Chờ Board chọn lối ① hoặc ②. Nếu ② ⇒ cần **ADR** *(cơ chế state mới)*.
+Đề nghị gộp vào **I-5** *(Ranh giới Workspace)* — Sprint đó vốn đã đụng lại
+toàn bộ điều hướng và màn hình.
 
 ---
 

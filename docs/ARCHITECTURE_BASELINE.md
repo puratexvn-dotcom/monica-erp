@@ -68,9 +68,9 @@ nào có phản biện độc lập.** Hiến pháp **Điều 4** · ADR-011 §2
 | `test:arch` có đủ **5 phép kiểm mới** | ✅ **5/5 ĐẠT** — ⑫ *(vốn từ, `TD-03`)* · ⑬ *(miễn trừ xoá cứng, `TD-27`)* · ⑭ *(màn hình tự tính, `G6`)* · ⑮ *(sổ `request_id`, ADR-003)* · ⑯ *(hồ sơ 6 cổng, EDD-05 §1.1)* |
 | **MD có bài kiểm nghiệp vụ** | ✅ **ĐẠT** — 59 phép đo |
 
-**Phase 1 🔒 ĐÃ KHOÁ 05/08/2026** — [`SPRINT_I2_PHASE1_REPORT.md`](planning/SPRINT_I2_PHASE1_REPORT.md).
-**Phase 2 ⏳ chờ Board mở** — [`SPRINT_I2_PHASE2_PLAN.md`](planning/SPRINT_I2_PHASE2_PLAN.md) ·
-[`SPRINT_I2_PHASE2_BACKLOG.md`](planning/SPRINT_I2_PHASE2_BACKLOG.md).
+**Phase 1 🔒 · Phase 2 🔒 ĐÃ KHOÁ 05/08/2026** — [`SPRINT_I2_PHASE1_REPORT.md`](planning/SPRINT_I2_PHASE1_REPORT.md).
+**Phase 2 ✅ HOÀN THÀNH** — [`SPRINT_I2_PHASE2_REPORT.md`](planning/SPRINT_I2_PHASE2_REPORT.md).
+🔴 `B2-6` HOÃN sang **I-5** — `TD-39`, cần Board chọn lối.
 
 ## 0.5 🔴 Technical Condition: 3 → 5
 
