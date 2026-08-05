@@ -245,7 +245,13 @@
       "guide": "Guidance"
     },
     "drillDown": "View detail",
-    "loadError": "Could not read data — the figures below are NOT MEASURED, not zero."
+    "loadError": "Could not read data — the figures below are NOT MEASURED, not zero.",
+    "severity": {
+      "CRITICAL": "Critical",
+      "WARNING": "Watch",
+      "INFO": "Stable"
+    },
+    "watchingHint": "Watching — no alerts right now."
   },
   "work": {
     "qa": {

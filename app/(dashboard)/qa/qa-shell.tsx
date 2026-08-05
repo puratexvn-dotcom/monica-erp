@@ -1,6 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import { ClipboardCheck, PackageSearch } from 'lucide-react';
+
+import { qaFeed } from '@/components/qa/command-center/qa-feed';
+import { useLanguage } from '@/lib/i18n';
 
 import WorkspaceShell from '@/components/workspace/workspace-shell';
 import type { KpiItem, QuickAction } from '@/components/workspace/blocks';
@@ -49,14 +53,26 @@ export default function QaShell({
   loi?: string | null;
   children: React.ReactNode;
 }) {
+  const { t } = useLanguage();
+
+  // ═══ FEED ADAPTER — bước GIỮA của Blueprint ═══════════════════════════
+  // Máy chủ trả dữ liệu **thuần mang khoá**; ở đây khoá thành **câu chữ**,
+  // và icon/tông màu/hành động được gắn vào. Cả ba thứ đó ⛔ **không tuần tự
+  // hoá được** qua ranh giới Server → Client, nên chúng **phải** ở phía này.
+  //
+  // ⚠️ `useMemo` ⛔ không phải tối ưu sớm: `qaFeed` sinh **hàm mới** cho mỗi
+  // `onGo`/`onOpen`. ⛔ Không ghi nhớ thì mỗi lần vẽ lại sinh một bộ hàm khác,
+  // và các khối MOS coi đó là **prop đã đổi** ⇒ vẽ lại toàn bộ danh sách việc
+  // mỗi lần bất kỳ state nào của trang thay đổi.
+  const feed = useMemo(() => qaFeed({ viec, kpi }, t), [viec, kpi, t]);
+
   return (
     <WorkspaceShell
       moduleKey="quality"
       // Tên hiến định — ⛔ KHÔNG dịch (§45.3), khớp đúng `home-modules.ts`.
       tenModule="Quality"
       moTaKey="appDesc.quality"
-      viec={viec}
-      kpi={kpi}
+      feed={feed}
       loi={loi}
       hanhDongNhanh={VIEC_NHANH}
     >

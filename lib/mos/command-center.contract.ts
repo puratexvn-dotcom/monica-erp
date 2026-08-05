@@ -54,6 +54,14 @@ export interface MosKpi {
   /** Đã định dạng sẵn thành chuỗi. "—" khi không đọc được — KHÔNG phải "0". */
   value: string;
   sub: string;
+  /**
+   * P38 — KHUYEN NGHI: nguyen nhan CO TEN, ⛔ khong phai "can kiem tra lai".
+   *
+   * ⚠️ Chi truyen khi THAT SU co mot nguyen nhan noi bat. Bia mot nguyen nhan
+   * de lap cho trong con te hon ⛔ khong co khuyen nghi nao: no gui nguoi van
+   * hanh DI NHAM CHO, va lan sau ho thoi tin khuyen nghi — ke ca nhung lan dung.
+   */
+  recommendation?: string;
   tone: MosTone;
   icon: ElementType;
   /** Nhãn cho trình đọc màn hình, vd "Mở tab Đơn hàng" */

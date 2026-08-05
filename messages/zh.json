@@ -245,7 +245,13 @@
       "guide": "使用指引"
     },
     "drillDown": "查看明细",
-    "loadError": "数据读取失败 — 下方数字为“尚未测得”，并非为零。"
+    "loadError": "数据读取失败 — 下方数字为“尚未测得”，并非为零。",
+    "severity": {
+      "CRITICAL": "紧急",
+      "WARNING": "需留意",
+      "INFO": "稳定"
+    },
+    "watchingHint": "监控中 — 暂无预警。"
   },
   "work": {
     "qa": {

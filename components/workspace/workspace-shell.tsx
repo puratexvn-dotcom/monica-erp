@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { MessagesSquare, PieChart, Sparkles, FileText, type LucideIcon } from 'lucide-react';
 
-import type { WorkItem } from '@/lib/mos/workspace/work-item';
-import { WorkInbox, KpiStrip, QuickActions, BlockChoDuLieu, type KpiItem, type QuickAction } from './blocks';
+import { QuickActions, BlockChoDuLieu, type QuickAction } from './blocks';
+import MosTaskInbox from '@/components/mos/command-center/mos-task-inbox';
+import MosKpiGrid from '@/components/mos/command-center/mos-kpi-grid';
+import MosAlertPanel from '@/components/mos/command-center/mos-alert-panel';
+import type { MosFeed } from '@/lib/mos/command-center.contract';
 import { MODULE_IDENTITY, STATUS, type ModuleKey } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage, type DictionaryKey } from '@/lib/i18n';
@@ -49,8 +52,14 @@ export interface WorkspaceShellProps {
   tenModule: string;
   /** Khoá i18n câu mô tả dưới tiêu đề. */
   moTaKey: DictionaryKey;
-  viec: readonly WorkItem[];
-  kpi: readonly KpiItem[];
+  /**
+   * Ba mảng đã qua **Feed Adapter** — hình dạng TRÌNH BÀY.
+   *
+   * 🔑 Khung ⛔ KHÔNG biết phân hệ nào: ⛔ không bảng tra *"loại việc nào thì
+   * icon nào"*, ⛔ không nhắc tới PO hay phiếu kiểm. Toàn bộ ý nghĩa do Feed
+   * Adapter gắn vào trước khi truyền xuống.
+   */
+  feed: MosFeed | null;
   hanhDongNhanh: readonly QuickAction[];
   /**
    * Lỗi đọc dữ liệu từ Command Center. `null`/bỏ trống = đọc được.
@@ -65,7 +74,7 @@ export interface WorkspaceShellProps {
 }
 
 export default function WorkspaceShell({
-  moduleKey, tenModule, moTaKey, viec, kpi, loi, hanhDongNhanh, children,
+  moduleKey, tenModule, moTaKey, feed, loi, hanhDongNhanh, children,
 }: WorkspaceShellProps) {
   const { t } = useLanguage();
   const mau = MODULE_IDENTITY[moduleKey];
@@ -93,8 +102,25 @@ export default function WorkspaceShell({
         </p>
       )}
 
-      <WorkInbox viec={viec} moduleKey={moduleKey} />
-      <KpiStrip kpi={kpi} />
+      {/* ═══ HỢP NHẤT — Board Directive 05/08/2026, Phương án ① ═══════════
+          Khung này là **lớp TRẢI NGHIỆM**: nó quyết định **thứ tự** và **bố
+          cục**. Ba khối dữ liệu thuộc **lớp NGHIỆP VỤ** dùng chung
+          (`components/mos/command-center/`) — đã chạy sẵn ở `/md` và `/kho`.
+
+          ⚠️ Trước bản này tôi dựng `WorkInbox` và `KpiStrip` **song song** với
+          hai khối MOS cùng chức năng. Đó là **khung thứ hai**, và Board đã ra
+          luật *"⛔ không duy trì hai framework song song"*. Nay khung **bọc**
+          khối MOS; hai khối kia còn trong `blocks.tsx` nhưng **⛔ không được
+          dựng ra ở đâu nữa**.
+
+          🔑 Thứ tự vẫn là **VIỆC → SỐ → HÀNH ĐỘNG**. Đó là phần khung này
+          **giữ**, và là lý do nó tồn tại thay vì để mỗi phân hệ tự xếp. */}
+      <div className="mb-8">
+        <MosTaskInbox title={t('workspace.today')} tasks={feed?.tasks ?? []} error={loi} />
+      </div>
+      <div className="mb-8">
+        <MosKpiGrid title={t('workspace.kpi')} kpis={feed?.kpis ?? null} />
+      </div>
       <QuickActions hanhDong={hanhDongNhanh} moduleKey={moduleKey} />
 
       {children}
@@ -104,7 +130,15 @@ export default function WorkspaceShell({
           migration. Hiện chúng ra kèm **lý do thật** thay vì giấu đi hoặc bịa
           số — Playbook Điều XX: *"⛔ Không Mock"*. */}
       <BlockChoDuLieu tieuDeKey="workspace.calendar" lyDoKey="workspace.needsData" />
-      <BlockChoDuLieu tieuDeKey="workspace.alerts" lyDoKey="workspace.needsData" />
+      {/* Cảnh báo nay là khối THẬT của lớp nghiệp vụ, ⛔ không còn là ô chờ. */}
+      <div className="mb-8">
+        <MosAlertPanel
+          title={t('workspace.alerts')}
+          alerts={feed?.alerts ?? []}
+          error={loi}
+          watchingHint={t('workspace.watchingHint')}
+        />
+      </div>
       <BlockChoDuLieu tieuDeKey="workspace.recent" lyDoKey="workspace.needsData" />
 
       {/* ─── DẢI DỊCH VỤ TOÀN CỤC ──────────────────────────────────────

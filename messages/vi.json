@@ -245,7 +245,13 @@
       "guide": "Hướng dẫn"
     },
     "drillDown": "Xem chi tiết",
-    "loadError": "Chưa đọc được dữ liệu — các con số bên dưới CHƯA đo được, không phải bằng 0."
+    "loadError": "Chưa đọc được dữ liệu — các con số bên dưới CHƯA đo được, không phải bằng 0.",
+    "severity": {
+      "CRITICAL": "Khẩn",
+      "WARNING": "Cần để mắt",
+      "INFO": "Ổn định"
+    },
+    "watchingHint": "Đang theo dõi — chưa có cảnh báo nào."
   },
   "work": {
     "qa": {

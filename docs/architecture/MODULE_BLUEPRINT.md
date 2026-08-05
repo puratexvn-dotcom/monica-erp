@@ -4,7 +4,7 @@
 |---|---|
 | **Thẩm quyền** | Board Directive *Execution Mode v2* — 05/08/2026 |
 | **Nền** | `Product Constitution §4.1` — bốn tầng |
-| **Trạng thái** | 🟠 **BẢN NHÁP CÓ CHẶN** — xem `§0`, phải giải quyết trước khi nhân rộng |
+| **Trạng thái** | ✅ **HỢP NHẤT XONG** — Board duyệt Phương án ①, 05/08/2026 |
 
 ---
 
@@ -62,19 +62,46 @@ GIỮ  khung B làm BỐ CỤC + THỨ TỰ        (WorkspaceShell)
 ⇒    KpiItem của B nâng cấp thành hình dạng chung — nó đã mang `P36` `P38`
 ```
 
-⚠️ Việc này chạm `/md` và `/kho` — **hai phân hệ lớn nhất, đang chạy thật**.
-Đó là **quyết định kiến trúc**, ⛔ không phải dọn dẹp ⇒ **trình Board**.
+## 0.4 ✅ BOARD DUYỆT PHƯƠNG ÁN ① — 05/08/2026 · ĐÃ THI HÀNH
+
+> - **`WorkspaceShell` = lớp TRẢI NGHIỆM** *(Experience Layer)* thống nhất.
+> - **Command Center + Feed Adapter = lớp NGHIỆP VỤ** *(Business Logic Layer)*
+>   thống nhất.
+> - Mọi Workspace mới dùng **cùng** Blueprint này.
+> - ⛔ **Không duy trì hai framework song song.**
+
+**Đã làm ngay lượt này:**
+
+| # | Việc | Trạng thái |
+|---|---|---|
+| ① | `WorkspaceShell` **bọc** `MosTaskInbox` · `MosKpiGrid` · `MosAlertPanel` | ✅ |
+| ② | `MosKpi` thêm `recommendation` *(`P38`)*; ô KPI hiện nó | ✅ **cộng thêm**, ⛔ không đổi hành vi cũ ⇒ `/md` `/kho` ⛔ không bị ảnh hưởng |
+| ③ | `components/qa/command-center/qa-feed.ts` — Feed Adapter đầu tiên theo Blueprint | ✅ |
+| ④ | `WorkInbox` · `KpiStrip` **thôi được dựng ở đâu** | ✅ tệp giữ nguyên *(ràng buộc #2)*, ⛔ không xoá |
+| ⑤ | Khối *"Cảnh báo"* từ ô chờ ⇒ **khối thật** | ✅ |
+
+⚠️ **`TD-44` đóng.** Dự án còn **một** khung.
 
 ---
 
-# §1 · KHUÔN DỰNG MỘT WORKSPACE — bốn tầng
+# §1 · KHUÔN DỰNG MỘT WORKSPACE — bốn tầng ⊕ Feed
 
 ```
 ① Business Data      bảng + RLS                      ⛔ KHÔNG ai ngoài tầng ② chạm
-② Command Center     _services/command-center.ts     ĐỌC · GOM · PHÁN
+② Command Center     _services/command-center.ts     ĐỌC · GOM · PHÁN   [server]
 ③ Business Capability lib/mos/workspace/*-work-items  LUẬT thuần, kiểm ⛔ cần CSDL
-④ Workspace          page.tsx + shell                CHỈ BÀY RA
+④ Feed Adapter       components/<mod>/command-center  KHOÁ→CHỮ · icon · màu · hành động   [client]
+⑤ Workspace          page.tsx + WorkspaceShell        CHỈ BÀY RA
 ```
+
+🔑 **Vì sao phải có tầng ④, ⛔ không gộp vào ②:** `icon` là **component** và
+`onGo` là **hàm** — cả hai ⛔ **không tuần tự hoá được** qua ranh giới Server →
+Client. Máy chủ vì vậy chỉ trả **dữ liệu thuần mang KHOÁ i18n**; việc gắn icon,
+tông màu, hành động và **dịch** thuộc về tầng ④, chạy ở client.
+
+⇒ Nhờ vậy khối MOS **⛔ không biết phân hệ nào** — nó ⛔ không có bảng tra *"loại
+việc nào thì icon nào"*. **Thêm phân hệ thứ mười ⛔ không phải sửa một dòng nào
+của khung.**
 
 ## 1.1 Tầng ② — `Command Center` làm **đúng ba việc**
 
@@ -109,15 +136,17 @@ sửa engine *(`WZ-2`)*.
 
 | # | Việc | Xong khi |
 |---|---|---|
-| 1 | Đo **đã có** Command Center / feed chưa | ⚠️ **`/kho` và `/md` ĐÃ CÓ** — ⛔ đừng dựng lại |
-| 2 | `_services/command-center.service.ts` | trả `{ viec, kpi, loi }` |
+| 1 | Đo **đã có** Command Center / feed chưa | ⚠️ `/kho` · `/md` ĐÃ CÓ cả hai — ⛔ đừng dựng lại |
+| 2 | `_services/command-center.service.ts` *(server)* | trả `{ viec, kpi, loi }` — dữ liệu thuần **mang khoá** |
 | 3 | `lib/mos/workspace/<mod>-work-items.ts` | luật thuần + hằng ngưỡng + **neo điều hướng** |
 | 4 | Calculator ở `lib/mos/calculators/` | **gọi lại `garment-math`**, ⛔ không viết công thức thứ hai |
-| 5 | i18n **ba** ngôn ngữ | phép kiểm ⑰ chặn nếu thiếu |
-| 6 | Bài kiểm thuần | **biên ngưỡng** · tập rỗng ⇒ `0` ⛔ không `NaN` · `P33` hai chiều |
-| 7 | Tiêm lỗi có kiểm soát | *"hỏng trước, xanh sau"* |
+| 5 | `components/<mod>/command-center/<mod>-feed.ts` *(client)* | trả `MosFeed` — gắn icon · tông · hành động · **dịch** |
+| 6 | i18n **ba** ngôn ngữ | phép kiểm ⑰ chặn nếu thiếu |
+| 7 | Bài kiểm thuần | **biên ngưỡng** · tập rỗng ⇒ `0` ⛔ không `NaN` · `P33` hai chiều |
+| 8 | Tiêm lỗi có kiểm soát | *"hỏng trước, xanh sau"* |
 
 ---
 
-> **Trạng thái:** 🟠 chờ Board quyết `§0.3` — hợp nhất hai khung. ⛔ Không nhân
-> rộng sang phân hệ nào trước khi có quyết định đó.
+> **Trạng thái:** ✅ Blueprint DUY NHẤT, đã thi hành ở `/qa`. Nhân rộng ⛔ không
+> cần xin Board từng phân hệ — miễn ⛔ không đổi ADR · Security · Permission ·
+> Database.

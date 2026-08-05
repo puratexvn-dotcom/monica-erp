@@ -93,6 +93,11 @@ function Card({ kpi }: { kpi: MosKpi }) {
         {kpi.value}
       </p>
       <p className="mt-0.5 text-[10px] leading-snug text-slate-600">{kpi.sub}</p>
+      {/* P38 — khuyen nghi. Them MOI, ⛔ khong doi hanh vi cu: vang truong nay
+          thi o KPI hien y het truoc. */}
+      {kpi.recommendation && (
+        <p className="mt-1 text-[10px] leading-snug font-medium text-slate-700">{kpi.recommendation}</p>
+      )}
     </Tag>
   );
 }
