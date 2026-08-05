@@ -17,6 +17,54 @@
 
 ## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
 
+### 🏭 `B2-5` · Bộ kiểm nghiệp vụ Kho — 🟠 **PHỦ 2/5 MÔ-ĐUN**
+
+**86 đạt · 0 hỏng · 3 ⚪ chưa đo được.** Phép đo tĩnh **120 → 206**.
+
+**Vấn đề:** `lib/mos/` có **921 dòng công thức thuần** và **0 bài kiểm** — hệ 4
+điểm quyết định **nhận hay trả một cuộn vải**, mức sẵn sàng NPL quyết định đơn
+hàng có **thả chuyền** được không.
+
+🔴 **`TD-36` — phạm vi thật khác phạm vi đã định.** Backlog định phủ 5 mô-đun;
+đo được **chỉ 2 nạp được**:
+
+```
+✅ four-point.ts · material-readiness.ts     ⛔ không import gì
+⛔ quality.ts · shipment.ts    → `./po-flow` thiếu ĐUÔI tệp
+⛔ po-health.ts                → bí danh `@/schemas/md`
+```
+
+🔑 **Phase 1 chạy được là nhờ may mắn** — `garment-math` và
+`milestone-lateness.calculator` không import gì. Cách nạp `.ts` trực tiếp **chỉ
+hợp với mô-đun không phụ thuộc**; `B2-5` là lần đầu đụng trần đó.
+
+⛔ **Không** thêm đuôi `.ts` / bỏ bí danh trong `lib/` — đó là **sửa mã sản xuất
+cho tiện bài kiểm**, đúng thứ `AC-1` cấm. ⇒ `W-3` *(`paretoOf`)* và `W-4`
+*(`deriveHealth` với đầu vào toàn `null`)* **chưa đo được**, bài tự in `⚪`.
+
+**Bốn phép đo đáng kể nhất đã chạy:**
+
+| # | Phép đo | Bắt gì |
+|---|---|---|
+| `W-1` | 4 nhãn tiếng Việt thật · và **`'READY'` ⇒ `UNKNOWN`** | Đúng lỗi `po-twin` từng mắc — so `npl_status` với `'READY'` khiến mọi dòng bị đếm là thiếu |
+| `W-2` | Biên nhận/trả hệ 4 điểm | Đặt ngưỡng **đúng bằng** điểm ⇒ ĐẠT — chứng minh phép so là `≤` |
+| — | **Hàng giữ chỗ là hàng đã có** | `available` đã trừ sẵn phần giữ chỗ; chỉ nhìn `available` sẽ báo thiếu **đúng những đơn chuẩn bị đầy đủ nhất** |
+| — | **Mẫu số `readyPct` là số dòng TÍNH ĐƯỢC** | 8 đủ + 2 chưa có định mức ⇒ **100%**, không phải 80% — thiếu *thông tin* khác thiếu *hàng* |
+
+**⚠️ Một lần đỏ oan — và mã thì đúng.** Bài kiểm biên `W-2` bản đầu báo `FAILED`
+khi tôi chờ `PASSED`. Đo ra: `areaSqYd = 99.999999999999985` ⇒
+`pointsPer100SqYd = 20.0000000000000035` — **lớn hơn 20 thật**, nên `FAILED` là
+kết luận **đúng**. Sai nằm ở cách **tôi dựng số**, không ở công thức. Sửa bằng
+cách đo ngữ nghĩa `≤` **trực tiếp** thay vì đi vòng qua một phép nhân–chia dấu
+phẩy động.
+
+**Bốn lần tiêm, mỗi lần đỏ đúng chỗ:** ngưỡng 4 điểm `20→25` · đổi nhãn
+`'thiếu hụt'` · đổi mẫu số `readyPct` sang tổng dòng · bỏ cộng `reservedForPo`.
+
+🆕 **`TD-37`** — `YARD_IN_METERS` khai ở **hai nơi** (`garment-math` export ·
+`four-point` riêng). Chưa lệch, nhưng **lệch được**. Bài kiểm nay đo **gián
+tiếp** qua `M_TO_YD`/`SQM_TO_SQYD` nên nợ **không im lặng nữa**.
+
 ### ⑭ `B2-2b` · Cấm màn hình tự tính — `G6` — ✅ **HOÀN TẤT**
 
 Phép kiểm mới **thứ ba** ⇒ điều kiện ra `E-1` đi từ **2/5 lên 3/5**.

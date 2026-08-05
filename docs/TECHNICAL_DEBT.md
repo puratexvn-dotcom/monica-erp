@@ -57,6 +57,8 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
 | [TD-34](#td-34) | `cut-ticket-basket.tsx` tự tính chỉ số — **ngoại lệ CÓ CHỦ Ý** của phép kiểm ⑭ | 🟡 | mở | Board Decision `Đ-3` · 05/08/2026 |
 | [TD-35](#td-35) | ~~`deleteStyleChild` còn chào lối xoá `style_bom`~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board `Đ-3′` · lối ① |
+| [TD-36](#td-36) | 🔴 Bộ kiểm nghiệp vụ **chỉ nạp được mô-đun ⛔ không phụ thuộc** — 3/5 mô-đun Kho ⛔ chưa đo được | 🔴 | mở | Sprint I-2 Phase 2 · `B2-5` |
+| [TD-37](#td-37) | `YARD_IN_METERS` khai ở **hai nơi** — `garment-math` *(export)* và `four-point` *(riêng)* | 🟡 | mở | Sprint I-2 Phase 2 · `B2-5` |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -839,6 +841,102 @@ quyền **tệ hơn ⛔ không có nút** — nó hứa một việc hệ thốn
 Xoá mềm cho `style_bom` vẫn là đích cuối — cần cột `deleted_at` ⇒ **ADR riêng**,
 gộp vào lượt trả `TC-1`. `TD-35` đóng phần *"giao diện chào việc ⛔ không làm
 được"*; nó ⛔ **không** đóng phần *"⛔ không xoá được dòng định mức sai"*.
+
+---
+
+<a id="td-36"></a>
+## TD-36 · BỘ KIỂM NGHIỆP VỤ CHỈ NẠP ĐƯỢC MÔ-ĐUN ⛔ KHÔNG PHỤ THUỘC
+
+| | |
+|---|---|
+| **Mức** | 🔴 mở — **chặn đo lường**, ⛔ không chặn sản phẩm |
+| **Phát hiện** | Sprint I-2 Phase 2 · `B2-5` |
+| **Nơi** | cách nạp `.ts` của `tests/business/*` |
+
+### Nội dung — `[MEASURED]`
+
+Bài kiểm nghiệp vụ nạp thẳng `.ts` bằng `--experimental-strip-types` để đo
+**đúng mã đang chạy**. Nhưng Node ESM ⛔ **không** phân giải hai thứ TypeScript
+cho phép:
+
+| Chặn bởi | Mô-đun |
+|---|---|
+| bí danh `@/…` | `po-health.ts` → `@/schemas/md` · `po-flow.ts` → `@/lib/time` |
+| import **thiếu đuôi** `./po-flow` | `quality.ts` · `shipment.ts` *(qua `po-flow`)* |
+
+```
+✅ four-point.ts          ⛔ không import gì
+✅ material-readiness.ts  ⛔ không import gì
+⛔ quality.ts · shipment.ts · po-health.ts
+```
+
+🔑 **Phase 1 chạy được là nhờ may mắn**: `garment-math.ts` và
+`milestone-lateness.calculator.ts` **⛔ không import gì**. Cách nạp này chỉ hợp
+với mô-đun ⛔ không phụ thuộc — `B2-5` là lần đầu đụng trần đó.
+
+### Hậu quả đo được
+
+**`W-3`** *(`paretoOf`)* và **`W-4`** *(`deriveHealth` với đầu vào toàn `null`)*
+— hai trong bốn phép đo **bắt buộc** của `B2-5` — ⛔ **chưa đo được**. Bài kiểm
+tự in `⚪` cho từng mục, ⛔ không giấu.
+
+⚠️ `W-4` đáng lo nhất: nó canh *"mọi đầu vào `null` ⇒ ra `null`, ⛔ KHÔNG ra `0`"*.
+`0` ở ô rủi ro đọc thành **"đơn hàng hoàn hảo"**.
+
+### ⛔ Cách KHÔNG được chọn
+
+**⛔ Không** thêm đuôi `.ts` và **⛔ không** bỏ bí danh trong `lib/` — đó là
+**sửa mã sản xuất cho tiện bài kiểm**, đúng thứ `AC-1` cấm. `@/` là quy ước
+đường dẫn của Next.js, dùng khắp dự án.
+
+### Cách trả — Board chọn
+
+| # | Lối | Đánh giá |
+|---|---|---|
+| ① | Loader phân giải đường dẫn cho Node *(`module.register`)* | ✅ đúng tầng · ⛔ không đụng mã sản phẩm · **thêm hạ tầng kiểm thử** |
+| ② | Biên dịch `lib/mos/` ra JS tạm trước khi chạy bài kiểm | ⛔ không đụng mã, nhưng đo **bản đã biên dịch**, ⛔ không phải mã gốc |
+| ③ | Chấp nhận phủ 2/5, ghi nợ | rẻ nhất · **để `W-3` `W-4` mù vô thời hạn** |
+
+⇒ Đề nghị **①**. Nó là hạ tầng kiểm thử ⇒ **⛔ không cần ADR**, nhưng **cần Board
+cho phép** vì nằm ngoài Backlog Phase 2 đã duyệt.
+
+---
+
+<a id="td-37"></a>
+## TD-37 · `YARD_IN_METERS` KHAI Ở HAI NƠI
+
+| | |
+|---|---|
+| **Mức** | 🟡 mở — ⛔ chưa lệch, nhưng **lệch được** |
+| **Phát hiện** | Sprint I-2 Phase 2 · `B2-5` |
+| **Nơi** | [`garment-math.ts:7`](../lib/garment-math.ts) *(export)* · [`four-point.ts:39`](../lib/mos/four-point.ts) *(riêng, ⛔ không export)* |
+
+### Nội dung
+
+Cùng **một hằng số vật lý** — `1 yard = 0.9144 m` — khai ở hai mô-đun. Hôm nay
+cả hai đều `0.9144` nên ⛔ chưa lệch. Nhưng sửa độ chính xác ở một nơi thì nơi
+kia **⛔ không đi theo**, và mọi phép quy đổi vải sẽ lệch **âm thầm** — hệ 4 điểm
+dùng nó để tính `yd²`, `garment-math` dùng nó để quy `m ⟷ yd`.
+
+Cùng họ `G6`: **một sự thật, hai nguồn.**
+
+### Đã có gì canh
+
+`warehouse-formulas.test.mjs` §① đo **gián tiếp** — `M_TO_YD` và `SQM_TO_SQYD`
+*(export từ `four-point`)* phải khớp `1/YARD_IN_METERS` *(export từ
+`garment-math`)*. Lệch là **đỏ ngay**.
+
+⇒ Nợ **⛔ không im lặng nữa**, nhưng gốc vẫn là hai bản khai.
+
+### Cách trả
+
+`four-point.ts` `import { YARD_IN_METERS } from '../garment-math'` thay cho khai
+riêng. ⚠️ **Đụng `TD-36`**: thêm import vào `four-point.ts` sẽ làm nó **⛔ không
+nạp được nữa** cho tới khi `TD-36` được gỡ. **Phải trả `TD-36` TRƯỚC.**
+
+### Sprint đích
+
+Cùng lượt với `TD-36`.
 
 ---
 

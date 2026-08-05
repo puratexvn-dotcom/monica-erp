@@ -30,6 +30,11 @@ const BAI = [
   // với arch test. Mở hạng mục *"MD có bài kiểm nghiệp vụ"* — EDD-06 §7, I-2.
   ['business/md-formulas.test.mjs', 'Nghiệp vụ MD — công thức', false,
     ['--experimental-strip-types', '--no-warnings']],
+  // ⚠️ Chỉ phủ 2/5 mô-đun kho — `quality` · `shipment` · `po-health` KHÔNG nạp
+  // được (import thiếu đuôi `.ts` và bí danh `@/`). Bài tự in "⚪ chưa đo được"
+  // cho từng chỗ. Xem khối ghi chú đầu tệp đó.
+  ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false,
+    ['--experimental-strip-types', '--no-warnings']],
   ['regression/seed-integrity.test.mjs', 'Toàn vẹn dữ liệu nền', true],
   ['security/anon-and-buyer.test.mjs', 'Quét anon + Buyer', true],
   ['security/rls-external.test.mjs', 'Phân quyền người ngoài', true],
