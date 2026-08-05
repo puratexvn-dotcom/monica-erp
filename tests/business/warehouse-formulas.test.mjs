@@ -6,24 +6,27 @@
 // quyết định NHẬN hay TRẢ một cuộn vải, mức sẵn sàng NPL quyết định đơn hàng có
 // thả chuyền được ⛔ không. Cùng hình dạng với MD trước Phase 1.
 //
-// ─── 🔴 PHẠM VI THẬT — ⛔ KHÔNG PHẢI PHẠM VI ĐÃ ĐỊNH ─────────────────────
-// Backlog `B2-5` định phủ **5** mô-đun. Đo được: **chỉ 2 nạp được**.
+// ─── PHẠM VI: ĐỦ 5/5 MÔ-ĐUN ─────────────────────────────────────────────
 //
-//   ✅ four-point.ts          ⛔ không import gì
-//   ✅ material-readiness.ts  ⛔ không import gì
-//   ⛔ quality.ts             → `./po-flow` — Node ESM đòi ĐUÔI tệp
-//   ⛔ shipment.ts            → `./po-flow` — cùng lý do
-//   ⛔ po-health.ts           → `@/schemas/md` — bí danh, Node ⛔ không phân giải
+//   ✅ four-point.ts · material-readiness.ts · quality.ts · shipment.ts
+//   ✅ po-health.ts
+//
+// ⚠️ **Bản đầu chỉ phủ 2/5.** `quality` · `shipment` *(qua `./po-flow`)* và
+// `po-health` *(qua `@/schemas/md`)* ⛔ **không nạp được**, nên `W-3` và `W-4`
+// — hai phép đo **bắt buộc** — ⛔ không đo được.
 //
 // 🔑 Bài kiểm MD ở Phase 1 chạy được là nhờ `garment-math.ts` và
 // `milestone-lateness.calculator.ts` **⛔ không import gì**. Cách nạp `.ts`
-// trực tiếp **chỉ hợp với mô-đun ⛔ không phụ thuộc** — nó ⛔ không mở rộng được,
-// và đây là lần đầu ta đụng trần đó.
+// trực tiếp **chỉ hợp với mô-đun ⛔ không phụ thuộc**, và `B2-5` là lần đầu
+// đụng trần đó.
 //
-// ⛔ **KHÔNG sửa mã sản phẩm để bài kiểm nạp được.** Thêm đuôi `.ts` và bỏ bí
-// danh trong `lib/` là sửa mã sản xuất cho tiện bài kiểm — đúng thứ `AC-1` cấm.
-// ⇒ `W-3` *(`paretoOf`)* và `W-4` *(`deriveHealth`)* **CHƯA ĐO ĐƯỢC**, ghi rõ ở
-//   cuối log. Trình Board quyết cách gỡ.
+// ⛔ **KHÔNG sửa mã sản phẩm để bài kiểm nạp được** — thêm đuôi `.ts` và bỏ bí
+// danh trong `lib/` là sửa mã **sản xuất** cho tiện **bài kiểm**, đúng thứ
+// `AC-1` cấm.
+//
+// ✅ **`TD-36` đã trả — Board Decision phương án ①:** vấn đề nằm ở **hạ tầng
+// kiểm thử** nên nó được sửa ở đó — `tests/_lib/ts-resolve.loader.mjs`.
+// ⛔ Không một dòng mã sản phẩm nào bị đụng.
 //
 // ⚠️ Bài này chứng minh **công thức** đúng, ⛔ không chứng minh **màn hình**
 // đúng — nghi thức nghiệm thu UI_UX_STANDARDS §8 vẫn cần người thật.
@@ -42,6 +45,17 @@ import { YARD_IN_METERS } from '../../lib/garment-math.ts';
 import {
   readLegacyStatus, judgeLine, summarise,
 } from '../../lib/mos/material-readiness.ts';
+// ✅ `TD-36` ĐÃ TRẢ 05/08/2026 — loader `tests/_lib/ts-resolve.loader.mjs` phân
+//    giải bí danh `@/…` và import thiếu đuôi. Ba mô-đun dưới đây trước bản đó
+//    ⛔ KHÔNG nạp được, và `W-3` · `W-4` ⛔ không đo được.
+import {
+  readAqlStatus, judgeAql, dhuOf, paretoOf, capaAgeingOf, summariseCapa,
+  CAPA_DUE_SOON_DAYS,
+} from '../../lib/mos/quality.ts';
+import { deriveHealth, DHU_CRITICAL } from '../../lib/mos/po-health.ts';
+import {
+  SHIPMENT_FLOW, INCOTERMS, isShipmentStatus, stageIndexOf, delayLevelOf,
+} from '../../lib/mos/shipment.ts';
 
 const s = scoreboard('NGHIỆP VỤ KHO — CÔNG THỨC');
 const gan = (a, b, eps = 1e-9) => Math.abs(a - b) < eps;
@@ -271,12 +285,167 @@ console.log('\n⑩ 🔑 GỘP SỨC KHOẺ NPL — MẪU SỐ LÀ SỐ DÒNG TÍ
   s.ok('Danh sách rỗng ⇒ ⛔ không chặn', summarise([]).blocking === false);
 }
 
-console.log('\n⚠️ CHƯA ĐO ĐƯỢC — ⛔ KHÔNG phải đã đạt');
-s.chuaDo('W-3 · paretoOf (quality.ts)',
-  "Node ESM đòi đuôi tệp ở `./po-flow`; sửa mã sản phẩm cho bài kiểm nạp được là AC-1");
-s.chuaDo('W-4 · deriveHealth (po-health.ts)',
-  'bí danh `@/schemas/md` — Node ⛔ không phân giải; cần Board quyết cách gỡ');
-s.chuaDo('shipment.ts · cờ bất thường',
-  'cùng lý do với quality.ts');
+console.log('\n⑪ CHỈ SỐ CHẤT LƯỢNG — đọc kết luận và tính DHU');
+{
+  s.ok('"ĐẠT" ⇒ PASS', readAqlStatus('ĐẠT') === 'PASS');
+  s.ok('"DAT" (⛔ không dấu) ⇒ PASS', readAqlStatus('DAT') === 'PASS');
+  s.ok('"KHÔNG ĐẠT" ⇒ FAIL', readAqlStatus('KHÔNG ĐẠT') === 'FAIL');
+  s.ok('"pass" thường ⇒ PASS', readAqlStatus('pass') === 'PASS');
+  s.ok('Chuỗi lạ ⇒ PENDING', readAqlStatus('abc') === 'PENDING');
+  s.ok('null ⇒ PENDING', readAqlStatus(null) === 'PENDING');
+
+  s.ok('Lỗi ≤ Ac ⇒ PASS', judgeAql(3, 3, 4) === 'PASS');
+  s.ok('Lỗi ≥ Re ⇒ FAIL', judgeAql(4, 3, 4) === 'FAIL');
+  // 🔑 Vùng GIỮA Ac và Re là CÓ THẬT trong bảng AQL đôi mẫu — chưa đủ nhận,
+  //    chưa đủ loại. Gộp nó vào PASS hay FAIL đều là **bịa ra một kết luận**.
+  s.ok('🔑 Lỗi giữa Ac và Re ⇒ PENDING, ⛔ KHÔNG bịa ra kết luận',
+    judgeAql(4, 3, 6) === 'PENDING');
+  s.ok('Chưa đếm lỗi ⇒ PENDING', judgeAql(null, 3, 4) === 'PENDING');
+  s.ok('⛔ Không có Ac ⇒ PENDING', judgeAql(3, null, 4) === 'PENDING');
+
+  s.ok('dhuOf(5/200) = 2.5', dhuOf(5, 200) === 2.5);
+  s.ok('Làm tròn 2 chữ số', dhuOf(1, 3) === 33.33);
+  s.ok('🔑 Chưa kiểm cái nào ⇒ `null`, ⛔ KHÔNG phải 0', dhuOf(5, 0) === null);
+  s.ok('checked null ⇒ null', dhuOf(5, null) === null);
+}
+
+console.log('\n⑫ 🔑 W-3 · PARETO — THỨ TỰ PHẢI ỔN ĐỊNH');
+{
+  // 🔑 Hai loại lỗi BẰNG NHAU: cùng dữ liệu phải cho cùng biểu đồ ở MỌI lần vẽ,
+  //    ⛔ không được nhảy chỗ theo thứ tự đầu vào.
+  const xuoi = paretoOf([{ code: null, label: 'B lỗi', qty: 10 }, { code: null, label: 'A lỗi', qty: 10 }]);
+  const nguoc = paretoOf([{ code: null, label: 'A lỗi', qty: 10 }, { code: null, label: 'B lỗi', qty: 10 }]);
+  s.ok('🔑 Hoà điểm ⇒ thứ tự KHÔNG phụ thuộc thứ tự đầu vào',
+    xuoi.rows.map((r) => r.label).join('|') === nguoc.rows.map((r) => r.label).join('|'));
+  s.ok('Hoà điểm ⇒ xếp theo tên, "A lỗi" đứng trước', xuoi.rows[0].label === 'A lỗi');
+
+  // 🔑 Mã lỗi và chữ tự do là HAI KHÔNG GIAN KHOÁ khác nhau — ⛔ không được đụng nhau
+  const haiKhong = paretoOf([
+    { code: 'CHI_THUA', label: 'Chỉ thừa', qty: 5 },
+    { code: null, label: 'Chỉ thừa', qty: 3 },
+  ]);
+  s.ok('🔑 Mã lỗi ⛔ KHÔNG đụng khoá với chữ tự do cùng tên', haiKhong.rows.length === 2);
+  s.ok('Tổng vẫn đủ 8', haiKhong.total === 8);
+
+  // Gộp đuôi vào "Khác" để đường cộng dồn luôn chạm 100%
+  const bay = paretoOf(Array.from({ length: 7 }, (_, i) => ({
+    code: `L${i}`, label: `Lỗi ${i}`, qty: 10 - i,
+  })));
+  s.ok('7 loại · top 5 ⇒ 6 cột (5 + "Khác")', bay.rows.length === 6);
+  s.ok('Gộp đúng 2 loại vào "Khác"', bay.merged === 2);
+  s.ok('🔑 Đường cộng dồn chạm 100%', gan(bay.rows[bay.rows.length - 1].cumPct, 100, 0.05));
+
+  // 🔑 `vitalFew` tính trên danh sách ĐẦY ĐỦ, ⛔ không trên số cột đang hiện —
+  //    nếu ⛔ không, con số phụ thuộc chuyện TRÌNH BÀY chứ ⛔ không phải chất lượng.
+  const it = paretoOf([{ code: 'A', label: 'A', qty: 80 }, { code: 'B', label: 'B', qty: 20 }]);
+  s.ok('🔑 Một loại chiếm 80% ⇒ vitalFew = 1', it.vitalFew === 1);
+  s.ok('vitalFew của 7 loại đều nhau ⛔ không bằng số cột hiện', bay.vitalFew !== bay.rows.length);
+
+  s.ok('Số lượng ≤ 0 bị bỏ qua',
+    paretoOf([{ code: 'A', label: 'A', qty: 0 }, { code: 'B', label: 'B', qty: -5 }]).total === 0);
+  const rong = paretoOf([]);
+  s.ok('Đầu vào rỗng ⇒ ⛔ không hàng nào', rong.rows.length === 0);
+  s.ok('Đầu vào rỗng ⇒ tổng 0 · gộp 0 · vitalFew 0',
+    rong.total === 0 && rong.merged === 0 && rong.vitalFew === 0);
+}
+
+console.log('\n⑬ CAPA — PHIẾU ĐÃ ĐÓNG ⛔ KHÔNG BAO GIỜ LÀ QUÁ HẠN');
+{
+  const HOM_NAY = '2026-08-05';
+  s.ok('🔑 CLOSED dù hạn đã qua ⇒ DONE, ⛔ KHÔNG phải OVERDUE',
+    capaAgeingOf('2026-01-01', 'CLOSED', HOM_NAY) === 'DONE');
+  s.ok('CANCELLED dù hạn đã qua ⇒ DONE',
+    capaAgeingOf('2026-01-01', 'CANCELLED', HOM_NAY) === 'DONE');
+  s.ok('Đang mở, hạn đã qua ⇒ OVERDUE',
+    capaAgeingOf('2026-08-04', 'OPEN', HOM_NAY) === 'OVERDUE');
+  s.ok(`Còn đúng ${CAPA_DUE_SOON_DAYS} ngày ⇒ DUE_SOON`,
+    capaAgeingOf('2026-08-08', 'OPEN', HOM_NAY) === 'DUE_SOON');
+  s.ok('Còn 4 ngày ⇒ ON_TRACK', capaAgeingOf('2026-08-09', 'OPEN', HOM_NAY) === 'ON_TRACK');
+  s.ok('Đúng hôm nay ⇒ DUE_SOON', capaAgeingOf(HOM_NAY, 'OPEN', HOM_NAY) === 'DUE_SOON');
+  s.ok('⛔ Chưa đặt hạn ⇒ ON_TRACK', capaAgeingOf(null, 'OPEN', HOM_NAY) === 'ON_TRACK');
+
+  // 🔑 Phiếu HUỶ nghĩa là lập nhầm. Đếm nó vào mẫu số sẽ THỔI PHỒNG tỉ lệ đóng.
+  const cs = summariseCapa([
+    { status: 'CLOSED', ageing: 'DONE' },
+    { status: 'CANCELLED', ageing: 'DONE' },
+    { status: 'OPEN', ageing: 'OVERDUE' },
+  ]);
+  s.ok('🔑 Phiếu HUỶ bị loại khỏi mẫu số ⇒ closeRate 50%, ⛔ không phải 33.3%',
+    cs.closeRate === 50);
+  s.ok('Đếm đủ 3 phiếu', cs.total === 3);
+  s.ok('Đang mở = 1 — huỷ ⛔ không tính là đang mở', cs.open === 1);
+  s.ok('Quá hạn = 1', cs.overdue === 1);
+  s.ok('⛔ Chưa có phiếu nào ⇒ closeRate `null`, ⛔ không phải 0',
+    summariseCapa([]).closeRate === null);
+}
+
+console.log('\n⑭ 🔑 W-4 · SỨC KHOẺ ĐƠN HÀNG — THIẾU DỮ LIỆU PHẢI RA `null`');
+{
+  const H = (o = {}) => ({
+    bomLines: null, missingLines: null, sewnPct: null,
+    daysLeft: null, totalDays: null, dhu: null, ...o,
+  });
+
+  // 🔑 PHÉP ĐO QUAN TRỌNG NHẤT MỤC NÀY. `0` ở ô rủi ro đọc thành "đơn hàng
+  //    hoàn hảo". Sự thật là "chưa biết gì".
+  const trong = deriveHealth(H());
+  s.ok('🔑 Mọi đầu vào `null` ⇒ tổng `null`, ⛔ KHÔNG phải 0', trong.total === null);
+  s.ok('🔑 Mức rủi ro cũng `null`, ⛔ không phải "LOW"', trong.level === null);
+  s.ok('Nguồn = NONE', trong.source === 'NONE');
+  s.ok('Số thành phần có dữ liệu = 0', trong.basis === 0);
+  s.ok('Vẫn trả đủ 4 thành phần để giao diện hiện "—"', trong.parts.length === 4);
+
+  // 🔑 CHUẨN HOÁ TRỌNG SỐ. Chỉ có dữ liệu NPL, thiếu 5/10 dòng ⇒ điểm 50.
+  //    ⛔ KHÔNG chuẩn hoá thì ra 50×0.35 = 17.5 ⇒ mức "LOW", trông AN TOÀN dù
+  //    thiếu một nửa nguyên liệu — đúng kiểu sai lặng lẽ nguy hiểm nhất.
+  const chiNpl = deriveHealth(H({ bomLines: 10, missingLines: 5 }));
+  s.ok('🔑 Chỉ có NPL, thiếu 5/10 ⇒ tổng 50 (đã chuẩn hoá trọng số)', chiNpl.total === 50);
+  s.ok('🔑 Mức = HIGH, ⛔ KHÔNG phải LOW (⛔ không chuẩn hoá sẽ ra 17.5)',
+    chiNpl.level === 'HIGH');
+  s.ok('Chỉ 1 thành phần có dữ liệu', chiNpl.basis === 1);
+  s.ok('Nguồn = DERIVED', chiNpl.source === 'DERIVED');
+  s.ok('Câu giải thích được ghi lại để kiểm chứng',
+    chiNpl.parts.find((p) => p.key === 'material').because === '5/10');
+
+  // Quá hạn ⇒ rủi ro tiến độ 100 ngay
+  const quaHan = deriveHealth(H({ daysLeft: -3 }));
+  s.ok('🔑 Quá hạn ⇒ điểm tiến độ 100 ngay, ⛔ không cần tính gì thêm',
+    quaHan.parts.find((p) => p.key === 'schedule').score === 100);
+  s.ok('Quá hạn 3 ngày ⇒ tổng 100 (chỉ thành phần này có dữ liệu)', quaHan.total === 100);
+  s.ok('Mức = CRITICAL', quaHan.level === 'CRITICAL');
+
+  // Kẹp trần: DHU gấp 5 lần ngưỡng nguy kịch vẫn chỉ 100
+  const dhuCao = deriveHealth(H({ dhu: DHU_CRITICAL * 5 }));
+  s.ok('🔑 DHU gấp 5 lần ngưỡng ⇒ điểm kẹp trần 100, ⛔ không vượt',
+    dhuCao.parts.find((p) => p.key === 'quality').score === 100);
+  s.ok('DHU = 0 ⇒ điểm chất lượng 0 — đã kiểm và ⛔ không lỗi',
+    deriveHealth(H({ dhu: 0 })).parts.find((p) => p.key === 'quality').score === 0);
+
+  // Năng lực xưởng CHƯA có nguồn dữ liệu ⇒ luôn null, ⛔ không đoán
+  s.ok('🔑 Năng lực xưởng luôn `null` — ⛔ chưa có dữ liệu nhịp ngày, ⛔ không đoán',
+    deriveHealth(H({ bomLines: 10, missingLines: 0, dhu: 1 }))
+      .parts.find((p) => p.key === 'capacity').score === null);
+}
+
+console.log('\n⑮ LÔ XUẤT — DÒNG CHẢY VÀ MỨC TRỄ');
+{
+  s.ok('Dòng chảy đủ 8 chặng', SHIPMENT_FLOW.length === 8);
+  s.ok('Incoterms 2020 đủ 11 điều kiện', INCOTERMS.length === 11);
+  s.ok('DRAFT ở vị trí 0', stageIndexOf('DRAFT') === 0);
+  s.ok('DELIVERED ở vị trí cuối', stageIndexOf('DELIVERED') === 7);
+  // 🔑 Lô đã huỷ ⛔ KHÔNG đứng ở bước nào — vẽ nó lên thanh tiến trình làm sai
+  //    mọi phép đếm.
+  s.ok('🔑 CANCELLED ⇒ `null`, ⛔ KHÔNG phải một vị trí trên thanh tiến trình',
+    stageIndexOf('CANCELLED') === null);
+  s.ok('CANCELLED vẫn là trạng thái HỢP LỆ', isShipmentStatus('CANCELLED') === true);
+  s.ok('Chuỗi lạ ⇒ ⛔ không hợp lệ', isShipmentStatus('KHONG_CO') === false);
+  s.ok('null ⇒ ⛔ không hợp lệ', isShipmentStatus(null) === false);
+  s.ok('stageIndexOf chuỗi lạ ⇒ null', stageIndexOf('KHONG_CO') === null);
+
+  s.ok('Trễ 1 ngày ⇒ LATE', delayLevelOf(1) === 'LATE');
+  s.ok('Đúng hạn (0) ⇒ ON_TIME', delayLevelOf(0) === 'ON_TIME');
+  s.ok('Sớm ⇒ EARLY', delayLevelOf(-2) === 'EARLY');
+  s.ok('⛔ Chưa biết ⇒ UNKNOWN, ⛔ không phải ON_TIME', delayLevelOf(null) === 'UNKNOWN');
+}
 
 process.exit(s.ketThuc() ? 1 : 0);

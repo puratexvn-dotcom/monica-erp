@@ -17,7 +17,66 @@
 
 ## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
 
-### 🏭 `B2-5` · Bộ kiểm nghiệp vụ Kho — 🟠 **PHỦ 2/5 MÔ-ĐUN**
+### 🔧 `TD-36` · Test Loader — mở khoá **2/5 → 5/5** mô-đun — ✅ **ĐÃ TRẢ**
+
+Board chọn **phương án ①**: vấn đề nằm ở **hạ tầng kiểm thử** nên sửa ở đó.
+
+**Giải pháp — 2 tệp, ⛔ 0 dòng mã sản phẩm bị đụng:**
+
+| Tệp | Vai trò |
+|---|---|
+| `tests/_lib/ts-resolve.loader.mjs` | hook `resolve` — phân giải `@/…` và import thiếu đuôi |
+| `tests/_lib/register-loader.mjs` | gọi `module.register()`; tách riêng vì nó phải chạy **trước** khi tệp bài kiểm được phân giải |
+
+Loader **⛔ không biên dịch gì, ⛔ không đổi ngữ nghĩa gì** — nó chỉ trả lời
+*"đường dẫn này trỏ tới tệp nào"*. Việc bóc kiểu vẫn do
+`--experimental-strip-types` làm. Nó **chỉ chạy trong bài kiểm**; `next build`
+phân giải `@/` bằng `tsconfig.json` — hai đường hoàn toàn tách.
+
+**⚠️ Một cái bẫy đã bắt được khi dựng:** bản đầu hỏi *"đã có đuôi chưa"* bằng
+`!extname(specifier)`. Nhưng `extname('./commercial.schema')` trả về
+**`.schema`** ⇒ nhánh thêm đuôi bị bỏ qua ⇒ `schemas/md/index.ts` ⛔ không nạp
+được ⇒ loader **dừng ở 4/5**. Dấu chấm trong tên tệp là quy ước phổ biến của dự
+án (`*.schema.ts` · `*.service.ts` · `*.actions.ts`), nên phải hỏi đúng câu:
+*"đuôi có phải là một đuôi **mô-đun** không"*.
+
+> 🔑 **Lần thứ ba liên tiếp** một phép đo viết vội trả con số **trông hợp lý** mà
+> sai: `Map` khoá theo tên ở ⑫ · regex `[^)]*` ở spike `B2-2a` · `extname()` ở
+> đây. Cả ba đều **⛔ không tự báo là mình sai**.
+
+| ROI | |
+|---|---|
+| **Mô-đun mở khoá** | **3** — `quality` · `shipment` · `po-health` ⇒ **5/5** |
+| **Phép đo mới hoạt động** | **+68** *(86 → 154)* · `⚪ chưa đo được` **3 → 0** |
+| **`W-3` `W-4`** | ⛔ chặn ⇒ ✅ **đã đo** |
+| **Quy mô** | 2 tệp hạ tầng, ~90 dòng · 1 hằng số gom tham số trong `run.mjs` |
+| **Tác động Production Code** | ⛔ **KHÔNG** — `git diff lib/` rỗng |
+| **Tác động Database / Migration** | ⛔ **KHÔNG** |
+
+**Năm lần tiêm vào đúng chỗ vừa mở khoá** — mở khoá mà ⛔ không tiêm thì chưa
+chứng minh được gì:
+
+```
+deriveHealth trả 0 thay vì null      ⛔ 2 mục
+bỏ CHUẨN HOÁ trọng số                ⛔ 3 mục
+Pareto bỏ tiêu chí phụ khi hoà điểm  ⛔ 2 mục
+CAPA đếm cả phiếu HUỶ vào mẫu số     ⛔ 1 mục
+lô CANCELLED được gán vị trí         ⛔ 1 mục
+```
+
+**Bốn phép đo mới đáng kể nhất:**
+
+| Phép đo | Bắt gì |
+|---|---|
+| 🔑 `W-4` **đầu vào toàn `null` ⇒ tổng `null`** | `0` ở ô rủi ro đọc thành *"đơn hàng hoàn hảo"* |
+| 🔑 `W-4` **chuẩn hoá trọng số** — chỉ có NPL, thiếu 5/10 ⇒ **50 (HIGH)** | ⛔ Không chuẩn hoá ⇒ `50×0.35 = 17.5` ⇒ **LOW**, trông *an toàn* dù thiếu nửa nguyên liệu |
+| 🔑 `W-3` **hoà điểm ⇒ thứ tự ổn định** | Cùng dữ liệu phải cho cùng biểu đồ mọi lần vẽ |
+| 🔑 **AQL vùng giữa `Ac` và `Re` ⇒ `PENDING`** | Gộp vào `PASS`/`FAIL` là **bịa ra kết luận** quy trình chưa cho phép |
+
+`TD-37` **giữ nguyên theo chỉ thị Board** — nhưng vật cản kỹ thuật của nó đã
+được gỡ: `four-point.ts` nay **nhập được** `garment-math` mà vẫn nạp được.
+
+### 🏭 `B2-5` · Bộ kiểm nghiệp vụ Kho — 🟠 **PHỦ 2/5 MÔ-ĐUN** *(→ nay 5/5)*
 
 **86 đạt · 0 hỏng · 3 ⚪ chưa đo được.** Phép đo tĩnh **120 → 206**.
 

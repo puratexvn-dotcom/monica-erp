@@ -57,8 +57,8 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
 | [TD-34](#td-34) | `cut-ticket-basket.tsx` tự tính chỉ số — **ngoại lệ CÓ CHỦ Ý** của phép kiểm ⑭ | 🟡 | mở | Board Decision `Đ-3` · 05/08/2026 |
 | [TD-35](#td-35) | ~~`deleteStyleChild` còn chào lối xoá `style_bom`~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board `Đ-3′` · lối ① |
-| [TD-36](#td-36) | 🔴 Bộ kiểm nghiệp vụ **chỉ nạp được mô-đun ⛔ không phụ thuộc** — 3/5 mô-đun Kho ⛔ chưa đo được | 🔴 | mở | Sprint I-2 Phase 2 · `B2-5` |
-| [TD-37](#td-37) | `YARD_IN_METERS` khai ở **hai nơi** — `garment-math` *(export)* và `four-point` *(riêng)* | 🟡 | mở | Sprint I-2 Phase 2 · `B2-5` |
+| [TD-36](#td-36) | ~~Bộ kiểm nghiệp vụ chỉ nạp được mô-đun ⛔ không phụ thuộc~~ | 🟢 | ✅ **ĐÃ TRẢ 05/08** | Board phương án ① — loader |
+| [TD-37](#td-37) | `YARD_IN_METERS` khai ở **hai nơi** — `garment-math` *(export)* và `four-point` *(riêng)* | 🟡 | mở *(Board giữ nguyên)* | Sprint I-2 Phase 2 · `B2-5` |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -849,9 +849,10 @@ gộp vào lượt trả `TC-1`. `TD-35` đóng phần *"giao diện chào việ
 
 | | |
 |---|---|
-| **Mức** | 🔴 mở — **chặn đo lường**, ⛔ không chặn sản phẩm |
+| **Mức** | 🟢 **✅ ĐÃ TRẢ 05/08/2026** — Board phương án ① |
 | **Phát hiện** | Sprint I-2 Phase 2 · `B2-5` |
 | **Nơi** | cách nạp `.ts` của `tests/business/*` |
+| **Đã trả** | `tests/_lib/ts-resolve.loader.mjs` + `register-loader.mjs` — xem §*Đã trả thế nào* |
 
 ### Nội dung — `[MEASURED]`
 
@@ -900,6 +901,48 @@ tự in `⚪` cho từng mục, ⛔ không giấu.
 ⇒ Đề nghị **①**. Nó là hạ tầng kiểm thử ⇒ **⛔ không cần ADR**, nhưng **cần Board
 cho phép** vì nằm ngoài Backlog Phase 2 đã duyệt.
 
+### ✅ ĐÃ TRẢ THẾ NÀO — 05/08/2026, phương án ①
+
+| Tệp | Vai trò |
+|---|---|
+| `tests/_lib/ts-resolve.loader.mjs` | hook `resolve` — phân giải bí danh `@/…` và import thiếu đuôi |
+| `tests/_lib/register-loader.mjs` | gọi `module.register()`; tách riêng vì `register()` phải chạy **trước** khi tệp bài kiểm được phân giải |
+| `tests/run.mjs` | hằng `CO_TS` gom 4 tham số Node, dùng chung cho **mọi** bài nghiệp vụ |
+
+**Loader ⛔ không biên dịch gì, ⛔ không đổi ngữ nghĩa gì.** Nó chỉ trả lời *"đường
+dẫn này trỏ tới tệp nào"*; việc bóc kiểu vẫn do `--experimental-strip-types` làm.
+Nó **chỉ chạy trong bài kiểm** — `next build` phân giải `@/` bằng `tsconfig.json`,
+hai đường hoàn toàn tách.
+
+#### ⚠️ Một cái bẫy đã bắt được khi dựng — `extname()`
+
+Bản đầu hỏi *"đã có đuôi chưa"* bằng `!extname(specifier)`. Nhưng:
+
+```
+extname('./commercial.schema')  →  '.schema'
+```
+
+⇒ nó bị coi là *"đã có đuôi"*, nhánh thêm đuôi bị bỏ qua, `schemas/md/index.ts`
+⛔ không nạp được, và loader **dừng ở 4/5** thay vì 5/5.
+
+Dấu chấm trong tên tệp là **quy ước phổ biến của dự án** — `*.schema.ts` ·
+`*.service.ts` · `*.actions.ts` · `*.calculator.ts`. Phải hỏi đúng câu: *"đuôi
+có phải là một đuôi **mô-đun** ⛔ không"* ⇒ dùng danh sách đuôi tường minh.
+
+> 🔑 **Lần thứ ba liên tiếp** một phép đo viết vội trả về con số **trông hợp lý**
+> mà sai: `Map` khoá theo tên ở ⑫ · regex `[^)]*` ở spike `B2-2a` · `extname()` ở
+> đây. Cả ba đều **⛔ không tự báo là mình sai**.
+
+#### Kết quả đo
+
+| | Trước | **Sau** |
+|---|---|---|
+| Mô-đun Kho nạp được | **2/5** | ✅ **5/5** |
+| Phép đo bộ kiểm Kho | 86 | ✅ **154** |
+| `⚪ chưa đo được` | 3 | ✅ **0** |
+| `W-3` `paretoOf` · `W-4` `deriveHealth` | ⛔ chặn | ✅ **đã đo** |
+| Mã sản phẩm bị đụng | — | ⛔ **0 dòng** |
+
 ---
 
 <a id="td-37"></a>
@@ -931,12 +974,25 @@ Cùng họ `G6`: **một sự thật, hai nguồn.**
 ### Cách trả
 
 `four-point.ts` `import { YARD_IN_METERS } from '../garment-math'` thay cho khai
-riêng. ⚠️ **Đụng `TD-36`**: thêm import vào `four-point.ts` sẽ làm nó **⛔ không
-nạp được nữa** cho tới khi `TD-36` được gỡ. **Phải trả `TD-36` TRƯỚC.**
+riêng.
+
+~~⚠️ **Đụng `TD-36`**: thêm import vào `four-point.ts` sẽ làm nó ⛔ không nạp
+được nữa.~~ ✅ **Vật cản đã gỡ 05/08/2026** — `TD-36` đã trả, loader phân giải
+được import tương đối thiếu đuôi, nên `four-point.ts` **nhập được** `garment-math`
+mà vẫn nạp được trong bài kiểm.
+
+### Vì sao vẫn chưa trả
+
+🔴 **Board Decision 05/08/2026: *"`TD-37` giữ nguyên, chưa xử lý."*** Đây là
+**sửa mã sản phẩm**, nằm ngoài phạm vi `TD-36` *(chỉ hạ tầng kiểm thử)*.
+
+⚠️ Nợ ⛔ **không im lặng**: `warehouse-formulas.test.mjs` §① đo **gián tiếp** —
+`M_TO_YD` và `SQM_TO_SQYD` phải khớp `1/YARD_IN_METERS` của `garment-math`.
+Lệch là **đỏ ngay**.
 
 ### Sprint đích
 
-Cùng lượt với `TD-36`.
+Chờ Board — đã đủ điều kiện kỹ thuật để trả bất cứ lúc nào.
 
 ---
 

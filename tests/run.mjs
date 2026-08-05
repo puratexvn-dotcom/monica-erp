@@ -24,17 +24,24 @@ const chiKienTruc = process.argv.includes('--arch-only');
 // Cột 4 `co`: tham số truyền thêm cho Node. Bài nghiệp vụ nạp thẳng `.ts` để
 // đo ĐÚNG mã đang chạy, ⛔ không đo một bản chép sang `.mjs` — bản chép sẽ lệch
 // đúng vào ngày công thức đổi mà ⛔ không ai nhớ sửa hai chỗ.
+//
+// `--import register-loader` dựng loader phân giải bí danh `@/…` và import
+// thiếu đuôi — `TD-36`. ⛔ Không có nó, chỉ mô-đun ⛔ KHÔNG PHỤ THUỘC mới nạp
+// được, và bộ kiểm Kho dừng ở 2/5 mô-đun.
+const CO_TS = [
+  '--experimental-strip-types',
+  '--no-warnings',
+  '--import', './tests/_lib/register-loader.mjs',
+];
+
 const BAI = [
   ['architecture/arch.test.mjs', 'Kiến trúc', false],
   // Hàm thuần, ⛔ không cần CSDL ⇒ chạy được trên CI ⛔ không bí mật, cùng hạng
   // với arch test. Mở hạng mục *"MD có bài kiểm nghiệp vụ"* — EDD-06 §7, I-2.
-  ['business/md-formulas.test.mjs', 'Nghiệp vụ MD — công thức', false,
-    ['--experimental-strip-types', '--no-warnings']],
-  // ⚠️ Chỉ phủ 2/5 mô-đun kho — `quality` · `shipment` · `po-health` KHÔNG nạp
-  // được (import thiếu đuôi `.ts` và bí danh `@/`). Bài tự in "⚪ chưa đo được"
-  // cho từng chỗ. Xem khối ghi chú đầu tệp đó.
-  ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false,
-    ['--experimental-strip-types', '--no-warnings']],
+  ['business/md-formulas.test.mjs', 'Nghiệp vụ MD — công thức', false, CO_TS],
+  // ✅ `TD-36` đã trả — loader phân giải bí danh `@/…` và import thiếu đuôi, nên
+  // bài này nay phủ ĐỦ 5/5 mô-đun Kho. Trước đó chỉ nạp được 2/5.
+  ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false, CO_TS],
   ['regression/seed-integrity.test.mjs', 'Toàn vẹn dữ liệu nền', true],
   ['security/anon-and-buyer.test.mjs', 'Quét anon + Buyer', true],
   ['security/rls-external.test.mjs', 'Phân quyền người ngoài', true],
