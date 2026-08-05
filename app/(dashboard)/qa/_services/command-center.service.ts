@@ -64,15 +64,19 @@ export async function getQaCommandCenter(): Promise<QaCommandCenter> {
   // ⚠️ `nguonKey` dùng CHUNG một câu cho cả bốn KPI vì cả bốn cùng dẫn xuất từ
   // **một** tập phiếu. Viết bốn câu khác nhau sẽ gợi ý bốn nguồn khác nhau —
   // và đó là lời nói dối nhỏ, kiểu lời nói dối ⛔ không ai kiểm.
+  // Chuyền lỗi nặng nhất trong ngày — nguyên nhân CÓ TÊN cho khuyến nghị.
+  // `null` khi ⛔ không chuyền nào có lỗi: khi đó ⛔ KHÔNG có gì để khuyến nghị.
+  const nangNhat = [...homNay.loiTheoChuyen].sort((a, b) => b.soLoi - a.soLoi)[0] ?? null;
+
   const nguon = { nguonKey: 'qa.nguon' as const, nguonVars: { soPhieu: phieu.length } };
 
   const kpi: KpiItem[] = [
     { id: 'kiem', labelKey: 'qa.tongKiem', giaTri: k.tongKiem.toLocaleString('vi-VN'),
-      donVi: 'sp', href: QA_NEO.nhatKy, ...nguon },
+      donVi: 'sp', href: QA_NEO.nhatKy, hanhDongKey: 'qa.moNhatKy', ...nguon },
     { id: 'dat', labelKey: 'qa.dat', giaTri: k.tongDat.toLocaleString('vi-VN'),
-      donVi: 'sp', href: QA_NEO.nhatKy, ...nguon },
+      donVi: 'sp', href: QA_NEO.nhatKy, hanhDongKey: 'qa.moNhatKy', ...nguon },
     { id: 'loi', labelKey: 'qa.loi', giaTri: k.tongLoi.toLocaleString('vi-VN'),
-      donVi: 'sp', href: QA_NEO.nhatKy, ...nguon },
+      donVi: 'sp', href: QA_NEO.nhatKy, hanhDongKey: 'qa.moNhatKy', ...nguon },
     {
       id: 'ty-le',
       labelKey: 'qa.tyLeLoi',
@@ -81,7 +85,28 @@ export async function getQaCommandCenter(): Promise<QaCommandCenter> {
       // đạt"*. Tô cả bốn thì màu thôi mang nghĩa.
       trangThai: k.tyLeLoi > NGUONG_TY_LE_LOI ? 'critical' : 'healthy',
       href: QA_NEO.nhatKy,
+      hanhDongKey: 'qa.moNhatKy',
       ...nguon,
+      // 🔑 `P38` — KHUYẾN NGHỊ PHẢI CHỈ RA NGUYÊN NHÂN CÓ TÊN.
+      //
+      // ⛔ Không viết *"cần kiểm tra lại"* — câu đó ⛔ không thêm gì vào thứ
+      // con số đã nói, và nó là **lời khuyên rỗng** đúng nghĩa. Ở đây khuyến
+      // nghị chỉ ra **chuyền nào chiếm bao nhiêu phần lỗi**, tức nói được
+      // **đi đâu**.
+      //
+      // ⚠️ Chỉ gắn khi **thật sự có một chuyền nổi bật**. Bịa một nguyên nhân
+      // để lấp chỗ trống còn tệ hơn ⛔ không có khuyến nghị nào: nó gửi người
+      // vận hành đi sai chỗ, và lần sau họ thôi tin khuyến nghị.
+      ...(nangNhat
+        ? {
+            khuyenNghiKey: 'qa.khuyenNghiChuyen' as const,
+            khuyenNghiVars: {
+              chuyen: nangNhat.chuyen,
+              soLoi: nangNhat.soLoi,
+              tong: homNay.tongLoi,
+            },
+          }
+        : {}),
     },
   ];
 

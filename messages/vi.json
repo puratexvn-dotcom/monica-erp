@@ -265,6 +265,9 @@
     "ghiPhieu": "Ghi phiếu kiểm",
     "xemDon": "Đơn hàng",
     "sp": "sp",
-    "nguon": "từ {soPhieu} phiếu kiểm"
+    "nguon": "từ {soPhieu} phiếu kiểm",
+    "moNhatKy": "Mở nhật ký kiểm",
+    "ghiPhieuNgay": "Ghi phiếu kiểm ngay",
+    "khuyenNghiChuyen": "{chuyen} chiếm {soLoi}/{tong} lỗi hôm nay — rà chuyền đó trước."
   }
 }

@@ -145,6 +145,27 @@ export interface KpiItem {
    */
   nguonKey?: DictionaryKey;
   nguonVars?: Record<string, string | number>;
+  /**
+   * 🔑 **`P38` — KHUYẾN NGHỊ, VÀ NÓ PHẢI CHỈ RA NGUYÊN NHÂN NGHIỆP VỤ.**
+   *
+   * ⛔ **Không phải** *"cần kiểm tra lại"* — câu đó ⛔ không thêm gì vào thứ
+   * con số đã nói. Phải là *"chuyền 3 chiếm 40/50 lỗi hôm nay"*: **một nguyên
+   * nhân có tên**, đủ để người đọc biết **đi đâu**.
+   *
+   * ⚠️ Chỉ hiện khi `trangThai` là `warning`/`critical`. Khuyến nghị gắn vào
+   * một con số **đang ổn** là nhiễu, và nhiễu làm người ta thôi đọc khuyến
+   * nghị **cả những lúc cần**.
+   */
+  khuyenNghiKey?: DictionaryKey;
+  khuyenNghiVars?: Record<string, string | number>;
+  /**
+   * **`P39` · `P40` — NHÃN CỦA HÀNH ĐỘNG.**
+   *
+   * Thay cho chữ *"Xem chi tiết"* chung chung. *"Mở nhật ký kiểm"* nói rõ cú
+   * bấm này **đưa người dùng tới đâu** — và `P40` đòi **mỗi cú bấm đưa họ gần
+   * hơn tới chỗ xong việc**, ⛔ không phải gần hơn tới một màn hình khác.
+   */
+  hanhDongKey?: DictionaryKey;
 }
 
 export function KpiStrip({ kpi }: { kpi: readonly KpiItem[] }) {
@@ -169,9 +190,25 @@ export function KpiStrip({ kpi }: { kpi: readonly KpiItem[] }) {
                     thêm tệp vào sổ nợ. */}
                 {k.donVi && <span className={`${TYPE.caption} ml-1.5 text-slate-400`}>{k.donVi}</span>}
               </p>
-              {/* `P34` · `P36` — nguồn gốc con số, ⛔ không phải lời bình. */}
+              {/* ═══ BỐN PHẦN CỦA MỘT KPI — Board, Execution Mode v2 ═══════
+                  ① BẰNG CHỨNG  `nguonKey`      con số này từ đâu ra   `P36`
+                  ② PHÂN TÍCH   `trangThai`     đạt hay ⛔ không đạt    `P34`
+                  ③ KHUYẾN NGHỊ `khuyenNghiKey` nguyên nhân có tên     `P38`
+                  ④ HÀNH ĐỘNG   `href` + nhãn   một cú bấm để xử lý    `P39` `P40`
+
+                  ⚠️ Thiếu ① thì ② chỉ là **một khẳng định**. Thiếu ③ thì ④
+                  đưa người dùng đi mà ⛔ không nói **đi làm gì**. Bốn phần này
+                  ⛔ **không** phải bốn tính năng — chúng là **một câu hoàn
+                  chỉnh**, và bỏ vế nào cũng làm câu đó cụt. */}
+              {/* ① BẰNG CHỨNG — nguồn gốc con số, ⛔ không phải lời bình. */}
               {k.nguonKey && (
                 <p className={`${TYPE.caption} mt-1.5 text-slate-400`}>{t(k.nguonKey, k.nguonVars)}</p>
+              )}
+              {/* ③ KHUYẾN NGHỊ — chỉ khi con số ĐANG CÓ VẤN ĐỀ. */}
+              {k.khuyenNghiKey && (k.trangThai === 'warning' || k.trangThai === 'critical') && (
+                <p className={`${TYPE.caption} ${STATUS[k.trangThai].text} mt-1.5`}>
+                  {t(k.khuyenNghiKey, k.khuyenNghiVars)}
+                </p>
               )}
             </>
           );
@@ -187,7 +224,7 @@ export function KpiStrip({ kpi }: { kpi: readonly KpiItem[] }) {
             >
               {than}
               <span className={`${TYPE.caption} mt-2 inline-flex items-center gap-1 text-slate-400 transition group-hover:text-slate-700`}>
-                {t('workspace.drillDown')}
+                {t(k.hanhDongKey ?? 'workspace.drillDown')}
                 <ArrowRight className="h-3 w-3" aria-hidden="true" />
               </span>
             </Link>

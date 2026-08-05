@@ -265,6 +265,9 @@
     "ghiPhieu": "记录检验单",
     "xemDon": "订单",
     "sp": "件",
-    "nguon": "来自 {soPhieu} 张检验单"
+    "nguon": "来自 {soPhieu} 张检验单",
+    "moNhatKy": "打开检验记录",
+    "ghiPhieuNgay": "立即记录检验单",
+    "khuyenNghiChuyen": "{chuyen} 占今日 {tong} 个疵点中的 {soLoi} 个 — 优先排查该线。"
   }
 }

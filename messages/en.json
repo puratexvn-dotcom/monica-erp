@@ -265,6 +265,9 @@
     "ghiPhieu": "Record inspection",
     "xemDon": "Orders",
     "sp": "pcs",
-    "nguon": "from {soPhieu} inspection report(s)"
+    "nguon": "from {soPhieu} inspection report(s)",
+    "moNhatKy": "Open inspection log",
+    "ghiPhieuNgay": "Record an inspection now",
+    "khuyenNghiChuyen": "{chuyen} accounts for {soLoi} of {tong} defects today — review that line first."
   }
 }

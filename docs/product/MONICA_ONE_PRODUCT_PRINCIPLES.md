@@ -166,6 +166,42 @@ hai** cho cùng một điều. Gộp lại là **xoá mất tín hiệu đó**.
 | **P36** | **Mọi KPI truy vết được tới BẰNG CHỨNG NGHIỆP VỤ** | con số ⛔ không mở ra được chứng từ sinh ra nó |
 | **P37** | 🔑 **Một dashboard ⛔ không có insight hành động được thì chỉ là một BÁO CÁO** | gọi *"dashboard"* thứ thực chất là bảng số |
 
+## XI · TỪ SỐ TỚI VIỆC XONG *(Execution v2)* *(P38–P40)*
+
+| # | Nguyên tắc | Vi phạm trông như thế nào |
+|---|---|---|
+| **P38** | **Mọi khuyến nghị chỉ ra NGUYÊN NHÂN NGHIỆP VỤ** | *"cần kiểm tra lại"* |
+| **P39** | **Mọi hành động phải LÀM VẤN ĐỀ NHỎ ĐI NGAY** | bấm xong vấn đề vẫn y nguyên |
+| **P40** | 🔑 **Mọi cú bấm đưa người dùng GẦN HƠN tới chỗ XONG VIỆC** | bấm ba lần mới tới nơi làm được gì đó |
+
+### 🔑 Bốn phần của một KPI — cấu trúc chuẩn
+
+```
+① BẰNG CHỨNG   con số này từ đâu ra          `P36`  ← nguonKey
+② PHÂN TÍCH    đạt hay ⛔ không đạt           `P34`  ← trangThai
+③ KHUYẾN NGHỊ  nguyên nhân CÓ TÊN            `P38`  ← khuyenNghiKey
+④ HÀNH ĐỘNG    một cú bấm để xử lý           `P39` `P40`  ← href + nhãn
+```
+
+⚠️ **Bốn phần này ⛔ không phải bốn tính năng — chúng là MỘT CÂU HOÀN CHỈNH.**
+Thiếu ① thì ② chỉ là **một khẳng định**. Thiếu ③ thì ④ đưa người dùng đi mà ⛔
+không nói **đi làm gì**. Bỏ vế nào cũng làm câu đó **cụt**.
+
+### ⚠️ `P38` — vì sao *"cần kiểm tra lại"* là **lời khuyên rỗng**
+
+Nó **⛔ không thêm gì** vào thứ con số đã nói. Người đọc đã biết cần kiểm; điều
+họ ⛔ không biết là **kiểm CHỖ NÀO**.
+
+⇒ Khuyến nghị đúng: *"Chuyền 3 chiếm 40/50 lỗi hôm nay"*. Một **nguyên nhân có
+tên** ⇒ họ biết đi đâu ⇒ **bớt một lần phải hỏi**.
+
+🔴 **Và vế nguy hiểm hơn: ⛔ KHÔNG được BỊA nguyên nhân để lấp chỗ trống.** Một
+khuyến nghị sai gửi người vận hành **đi nhầm chỗ**, và lần sau họ **thôi tin
+khuyến nghị** — kể cả những lần khuyến nghị đúng. ⛔ Không có nguyên nhân rõ thì
+**⛔ không hiện khuyến nghị nào**.
+
+---
+
 ### 🔑 `P36` là điều khó nhất — và là điều phân biệt sản phẩm này với ERP khác
 
 *"Truy vết tới bằng chứng"* nghĩa là: bấm vào **`Tỷ lệ lỗi 4,2%`** phải ra được
