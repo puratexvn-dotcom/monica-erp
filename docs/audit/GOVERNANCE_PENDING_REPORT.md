@@ -44,8 +44,8 @@
 
 | # | Mục | Chủ | Chặn |
 |---|---|---|---|
-| **`A-6`** | 🔴 **Board phải định nghĩa *"5 phép kiểm mới"*** — *chạy và xanh*, hay *xanh **và** ⛔ không còn nợ trong sổ*? | **Board** | 🔴 **Điều kiện ra Sprint I-2** |
-| **`C-4`** | 🟠 **`request_id` ⛔ không trả được nợ** — ADR-003 khai 7 bảng thuộc migration `033`; `033` nằm sau vòng khoá `B2` **chưa cắt** | **Board** *(qua `A-3`)* | 🟠 phép kiểm ⑮ đứng ở nợ 7 bảng |
+| ~~**`A-6`**~~ | ✅ **ĐÃ TRẢ 05/08/2026** — Board chốt **cách hiểu `A`**: phép kiểm hoàn thành khi ① **đã xây dựng** ② **chạy được** ③ **PASS theo tiêu chí Sprint**. ⛔ Không đòi xử xong Technical Debt / Governance cùng lúc. Ghi vào [Baseline §0.6](../ARCHITECTURE_BASELINE.md) | Board | — |
+| **`C-4`** | 🟠 **`request_id` ⛔ không trả được nợ** — ADR-003 khai 7 bảng thuộc migration `033`; `033` nằm sau vòng khoá `B2` **chưa cắt**. ⚠️ **`A-6` cách hiểu `A` ⇒ điều này ⛔ KHÔNG chặn phép kiểm ⑮ hoàn thành** | **Board** *(qua `A-3`)* | 🟡 nợ có tên · ⛔ **không** chặn `E-1` |
 
 ### Vì sao `A-6` là mục QUẢN TRỊ, ⛔ không phải kỹ thuật
 
@@ -61,13 +61,31 @@ Cả **bốn** cơ chế bánh cóc đang chạy — ⑨ màu · ⑩ chữ · �
 đều **đã** trả lời **`A`**. Đề nghị Board chốt `A` và ghi vào Baseline §3.2 để
 lần sau ⛔ không phải hỏi lại.
 
-## 0.4 Sổ cập nhật
+## 0.4 🆕 `CI-1` · `CI-2` — hạ tầng kiểm thử
+
+| # | Mục | Chủ | Trạng thái |
+|---|---|---|---|
+| ~~**`CI-1`**~~ | 🔴 **CI ⛔ chỉ chạy 5/10 bài kiểm** — 188 phép đo bảo mật của Sprint I-1 chưa từng chạy tự động. **CI xanh ⛔ KHÔNG chứng minh `npm test` xanh** | CSA | ✅ **ĐÃ TRẢ 05/08** — Board duyệt **phương án B**; độ phủ **5/10 → 9/10** |
+| **`CI-2`** | 🟠 **`concurrency.cancel-in-progress` + bài kiểm gieo dữ liệu tạm** — tiến trình bị huỷ thì `finally` **⛔ không chạy** ⇒ còn lại tài khoản và dòng gieo **mồ côi** trên CSDL thật. Rủi ro **có sẵn** với 2 bài; nay **6 bài** nên lớn gấp ba | **Board** | 🟠 **MỞ** |
+
+### `CI-2` — ba lối xử, ⛔ chưa thi hành
+
+| | Nội dung | Đánh giá |
+|---|---|---|
+| **①** | Tắt `cancel-in-progress` cho `kiem-tra-song` | ⚠️ `concurrency` là cấu hình **cấp workflow** — đụng vào là đổi hành vi **cả hai job** |
+| **②** | Thêm bước dọn *(`scripts/seed-users.mjs --prune`)* chạy `if: always()` | ✅ rẻ, nhưng ⛔ không cứu được lượt bị `SIGKILL` |
+| **③** ⭐ | Tiền tố tài khoản tạm mang **mã lượt chạy**, + một job dọn định kỳ | ✅ chịu được cả huỷ lẫn sập, nhưng cần sửa `harness.mjs` |
+
+⛔ **Chưa chọn** — cần Board, và nó **⛔ không chặn Phase 2**.
+
+## 0.5 Sổ cập nhật
 
 ```
-26 mục  ·  2 đã trả (B-1 · B-2)  ·  1 trả một nửa (B-5)
-        ·  2 mục MỚI (A-6 · C-4)
+28 mục  ·  4 đã trả (B-1 · B-2 · A-6 · CI-1)  ·  1 trả một nửa (B-5)
+        ·  3 mục MỚI (A-6 ✅ · C-4 · CI-2)
 ⛔ 0 mục chặn Sprint I-2 Phase 2
-🔴 8 mục chặn Cổng C  ·  4 mục chặn Sprint I-4  ·  1 mục chặn ĐIỀU KIỆN RA I-2 (A-6)
+⛔ 0 mục chặn ĐIỀU KIỆN RA I-2  ← A-6 đã trả, C-4 hạ xuống "nợ có tên"
+🔴 8 mục chặn Cổng C  ·  4 mục chặn Sprint I-4
 ```
 
 ---

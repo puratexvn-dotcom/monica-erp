@@ -63,12 +63,59 @@ jobs:
       - name: Kiểm kiến trúc
         run: npm run test:arch
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # KIỂM TRA SỐNG
+  #
+  # ─── CI-1 · MỞ RỘNG ĐỘ PHỦ · 05/08/2026 ─────────────────────────────────
+  #
+  # Trước bản này CI chỉ chạy 5 trong 10 bài kiểm. Năm bài KHÔNG chạy — trong
+  # đó 188 phép đo bảo mật viết ở Sprint I-1 — chỉ sống khi có người gõ tay
+  # `npm test` trên máy mình. Đó ĐÚNG vấn đề mà tệp này được sinh ra để giải
+  # (xem khối ghi chú đầu tệp), và nó đã âm thầm quay lại.
+  #
+  # 🔴 HỆ QUẢ NGHIÊM TRỌNG NHẤT: **CI xanh KHÔNG chứng minh `npm test` xanh.**
+  # Bốn lượt chạy `success` hoàn toàn tương thích với việc `npm run verify`
+  # đang ĐỎ — và nó đang đỏ thật. Hai câu chuyện khác nhau, cùng một màu xanh.
+  #
+  # ─── VÌ SAO MỖI BÀI MỘT BƯỚC RIÊNG ──────────────────────────────────────
+  # Gộp cả 6 bài vào một bước thì GitHub chỉ hiện MỘT dấu đỏ, và phải mở log
+  # mới biết bài nào hỏng. Tách ra ⇒ đọc được PASS/FAIL từng bài ngay ở giao
+  # diện. Đắt hơn vài dòng YAML, rẻ hơn một lần lần mò log.
+  #
+  # ─── 🔴 MỘT BÀI CỐ Ý CHƯA ĐƯA VÀO ───────────────────────────────────────
+  # `security/md-internal-scope.test.mjs` — Board Decision 05/08/2026 (CI-1,
+  # phương án B). Nó ĐANG HỎNG 6 mục, và 6 mục đó đúng bằng 6 ngoại lệ CÓ CHỦ Ý
+  # của `TD-25` ⇒ `TC-1`. Đưa vào bây giờ ⇒ CI đỏ VÔ THỜI HẠN, và đèn đỏ vô
+  # thời hạn dạy cả đội đọc lướt qua màu đỏ — đúng cách `F-1` sống sót 20
+  # migration.
+  #
+  # ⛔ KHÔNG cho nó chạy ở chế độ "cảnh báo, không chặn": làm vậy là tạo tiền
+  # lệ *"bài kiểm được phép đỏ"*, trái `AC-3`.
+  #
+  # ⇒ Nó vào CI CÙNG LƯỢT với việc trả `TC-1` (4 lời gọi `.delete()` chuyển
+  #   sang xoá mềm). Khi đó độ phủ đạt 10/10.
+  #
+  # ⚠️ RỦI RO ĐÃ BIẾT — `concurrency.cancel-in-progress` ở trên sẽ HUỶ lượt
+  # đang chạy khi có push mới. Bài kiểm dọn dữ liệu tạm trong `finally`, mà
+  # tiến trình bị huỷ thì `finally` KHÔNG chạy ⇒ còn lại tài khoản và dòng gieo
+  # mồ côi. Rủi ro này CÓ SẴN với 2 bài; nay 6 bài nên nó lớn gấp ba. Chưa xử
+  # ở đây vì `concurrency` là cấu hình cấp workflow, đụng vào là đổi hành vi cả
+  # hai job. Đã ghi vào `GPR-001` để Board quyết.
+  # ══════════════════════════════════════════════════════════════════════════
   kiem-tra-song:
     name: Kiểm tra sống (phân quyền trên CSDL thật)
     runs-on: ubuntu-latest
     # Chỉ chạy khi nhánh nằm trong CHÍNH kho này — fork không có Secrets, và
     # cũng không nên có.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Bí mật khai MỘT LẦN ở cấp job. Trước đây mỗi bước tự khai lại ba biến —
+    # thêm bài kiểm thứ sáu là chép tay lần thứ sáu, và lần nào quên một biến
+    # thì bài đó TỰ TUYÊN BỐ BỎ QUA rồi thoát 0. "Bỏ qua" KHÁC "đạt", nhưng
+    # GitHub vẫn hiện dấu xanh.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -79,16 +126,35 @@ jobs:
 
       - run: npm ci
 
+      # ── Nền dữ liệu — chạy TRƯỚC mọi bài bảo mật ────────────────────────
+      # Bài bảo mật chạy trên nền sai sẽ cho kết luận sai mà vẫn xanh.
       - name: Toàn vẹn dữ liệu nền
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npm run test:regression
 
+      # ── Phân quyền người NGOÀI ──────────────────────────────────────────
       - name: Phân quyền người dùng bên ngoài
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npm run test:security
+
+      # ── CI-1 · bốn bài BỔ SUNG 05/08/2026 ───────────────────────────────
+      # Cả bốn đang PASS trên CSDL thật (đo 05/08/2026). Chúng vào CI vì đang
+      # xanh, KHÔNG phải vì chúng dễ.
+
+      # 90 phép đo · 14 vai × 5 đối tượng. Soi cả mức CỘT (5 cột thương lượng
+      # không tồn tại trong phép chiếu) lẫn mức DÒNG (DRAFT không lộ).
+      - name: Ma trận đọc VR-004 · VR-005
+        run: node tests/security/md-read-matrix.test.mjs
+
+      # 75 phép đo. Mọi kịch bản có ít nhất MỘT vai CHỜ THẤY > 0 — quy tắc K-3,
+      # thứ phân biệt "khoanh đúng" với "chặn phẳng".
+      - name: Ma trận ghi (UPDATE)
+        run: node tests/security/md-update-matrix.test.mjs
+
+      # Đi hết vòng đời chứng từ thay vì chỉ đo quyền ở mức bảng. Canh `B-1`
+      # (duyệt được chiết tính) và `B-3` (khoản mục bản đã duyệt bị khoá).
+      - name: Vòng đời chiết tính
+        run: node tests/security/costing-lifecycle.test.mjs
+
+      # 23 phép đo bề mặt phơi ra. KHÔNG thay thế `supabase/audits/A001` — ba
+      # phép kiểm cần `pg_catalog` vẫn phải chạy A001 thật.
+      - name: A001 runtime — bề mặt phơi ra
+        run: node tests/security/a001-runtime.test.mjs

@@ -710,9 +710,17 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 > [kế hoạch](planning/SPRINT_I2_PHASE2_PLAN.md) ·
 > [backlog](planning/SPRINT_I2_PHASE2_BACKLOG.md).
 >
-> 🔴 **Board cần trả lời `A-6` trước khi mở Phase 2:** *"5 phép kiểm mới"* nghĩa
-> là **chạy và xanh**, hay **xanh và ⛔ không còn nợ**? Cách hiểu thứ hai làm
-> **I-2 ⛔ không ra được** — nó bị chặn bởi `B2`, một thứ nằm **ngoài** Sprint.
+> ✅ **`A-6` ĐÃ TRẢ 05/08/2026 — Board chốt cách hiểu `A`.** Một *"phép kiểm
+> mới"* hoàn thành khi ① **đã xây dựng** ② **chạy được** ③ **PASS theo tiêu chí
+> Sprint**. ⛔ **Không** đòi xử xong Technical Debt / Governance cùng lúc — sổ
+> nợ **có tên, có chủ, có hạn** ⛔ không làm phép kiểm mất tư cách hoàn thành.
+> Ghi ở [Baseline §0.6](ARCHITECTURE_BASELINE.md).
+>
+> ✅ **`CI-1` ĐÃ TRẢ 05/08/2026 — độ phủ CI `5/10` → `9/10`.** Trước đó **188
+> phép đo bảo mật** của Sprint I-1 **chưa từng chạy tự động**, và **CI xanh ⛔
+> KHÔNG chứng minh `npm test` xanh**. `md-internal-scope` **cố ý chưa vào CI** —
+> nó đang đỏ 6 mục `TC-1`; vào CI cùng lượt với việc trả `TC-1` *(Board Decision,
+> phương án B)*.
 >
 > 🔴 **Technical Condition: 3 → 5.** `TC-4` *(`orders.status` ⛔ không ràng buộc
 > `CHECK`)* và `TC-5` *(mã ⛔ không biểu diễn nổi lô đã huỷ)* là chỗ lệch **có
@@ -806,7 +814,8 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | **Quy tắc chặn cứng SoD** | **9** |
 | **Khuyết tật đã biết chưa sửa** | **11** *(13 − `KD-2` − `KD-3` đã đóng 05/08)* |
 | **Mục còn mở** | **11** *(⛔ 0 chặn Freeze · ⛔ 0 chặn Sprint I-2)* |
-| **Khoản nợ quản trị** | **26** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) R1 *(2 đã trả · 2 mới)* |
+| **Khoản nợ quản trị** | **28** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) R1 *(4 đã trả · 3 mới)* |
+| **Độ phủ CI** | **9/10** bài kiểm *(`md-internal-scope` chờ `TC-1`)* |
 | **Technical Condition** | **5** — `TC-1`…`TC-5`; 3 chặn **Cổng C** |
 | **Phép đo tĩnh** *(⛔ không cần CSDL)* | **110** — 51 kiến trúc + 59 nghiệp vụ MD |
 

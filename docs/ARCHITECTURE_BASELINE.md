@@ -85,14 +85,29 @@ Phép kiểm ⑫ *(Phase 1)* lộ ra **hai chỗ lệch có sẵn từ migration
 ⇒ **`TC-1` · `TC-3` · `TC-4` cùng chặn Cổng C**, cùng một lý do: *khuyết tật vô
 hại khi bảng rỗng*. Nạp dữ liệu chủ là lúc cả ba đồng loạt trở thành thật.
 
-## 0.6 🔴 Board cần trả lời trước khi mở Phase 2
+## 0.6 ✅ ĐỊNH NGHĨA *"5 PHÉP KIỂM MỚI"* — Board chốt 05/08/2026
 
-> **"5 phép kiểm mới" *(§3.2)* nghĩa là 5 phép kiểm CHẠY VÀ XANH, hay xanh **và**
-> ⛔ KHÔNG CÒN NỢ trong sổ?**
+> **Board Decision 05/08/2026 — cách hiểu `A`.** Khép `GPR-001` `A-6`.
 
-`GPR-001` `A-6`. Cách hiểu **B** ⇒ **I-2 ⛔ không ra được**, vì phép kiểm ⑮ cần
-migration `033`, mà `033` nằm sau vòng khoá `B2` **chưa cắt**. Đề nghị chốt **A**
-và ghi thẳng vào §3.2.
+Một *"phép kiểm mới"* của điều kiện ra §3.2 được coi là **HOÀN THÀNH** khi thoả
+**cả ba**:
+
+```
+① ĐÃ ĐƯỢC XÂY DỰNG
+② CHẠY ĐƯỢC
+③ PASS theo tiêu chí của Sprint
+```
+
+🔑 **⛔ KHÔNG đòi phải xử xong toàn bộ Technical Debt hoặc Governance Pending
+cùng lúc.** Sổ nợ **có tên, có chủ, có hạn** ⛔ không làm một phép kiểm mất tư
+cách hoàn thành — đó chính là **cơ chế bánh cóc** mà ⑨ ⑩ ⑫ đã dùng.
+
+**Hệ quả trực tiếp:** phép kiểm ⑮ *(`request_id`)* **hoàn thành được** dù 7 bảng
+còn nợ chờ migration `033` — vì `033` bị chặn bởi vòng khoá `B2`, một thứ nằm
+**ngoài** Sprint. Cách hiểu `B` sẽ khiến Sprint I-2 ⛔ không ra được vì lý do
+⛔ không thuộc về nó.
+
+⚠️ **Ghi ở đây để lần sau ⛔ không phải hỏi lại** — §3.2 đọc kèm khoản này.
 
 ---
 

@@ -15,6 +15,89 @@
 
 ---
 
+## Chuẩn bị Sprint I-2 Phase 2 — 05/08/2026 · ✅ **HAI CỔNG GỠ BỎ**
+
+### ✅ `G-B` · CI trên Node 22 — **PASS**
+
+Đo trên **CI thật** *(GitHub Actions API, kho public)*, ⛔ không mô phỏng cục bộ —
+máy phát triển chạy Node 24 nên chạy lại ở đó ⛔ không chứng minh gì về Node 22
+trên `ubuntu-latest`.
+
+| Pipeline | Kết quả | Node 20 *(đối chứng)* |
+|---|---|---|
+| `kiem-tra-tinh` | ✅ **4/4 lượt · 0 job hỏng** · ~46s | ~52s |
+| `kiem-tra-song` | ✅ **4/4 lượt · 0 job hỏng** · ~28s | ~30s |
+
+**Node 22 nhanh hơn ~12% dù làm NHIỀU việc hơn** — nó chạy thêm 59 phép đo
+nghiệp vụ MD mà Node 20 chưa từng chạy. ⛔ Không hồi quy.
+
+⚠️ **Log CI cần quyền admin** *(`403`)* nên tôi ⛔ không đọc được dòng `59 đạt`
+theo nghĩa đen. Kết luận *"bài kiểm nghiệp vụ đã chạy và đạt"* là **`[PROVEN]`**
+từ 5 tiền đề đã đo, ⛔ **không** phải `[MEASURED]` trực tiếp — nếu Node < 22.6
+thì cờ bị từ chối ⇒ spawn thoát ≠ 0 ⇒ `run.mjs` báo HỎNG ⇒ bước phải đỏ.
+
+### 🔴 `CI-1` · CI ⛔ CHỈ CHẠY 5/10 BÀI KIỂM — phát hiện ngoài phạm vi `G-B`
+
+Phát hiện khi đọc `ci.yml` để kiểm Node 22. **⛔ Không phải lỗi Node 22** — nó
+**có sẵn từ trước Sprint I-1**.
+
+`ci.yml` ⛔ **không** gọi `npm test`; nó gọi ba script hẹp hơn. Năm bài **chưa
+từng chạy tự động**: `md-internal-scope` · `md-read-matrix` · `md-update-matrix`
+· `costing-lifecycle` · `a001-runtime` — **188 phép đo bảo mật của Sprint I-1**.
+
+> 🔴 **Hệ quả nặng nhất: CI xanh ⛔ KHÔNG chứng minh `npm test` xanh.** Bốn lượt
+> `success` hoàn toàn tương thích với việc `npm run verify` đang **ĐỎ** — và nó
+> **đang đỏ thật**. Hai câu chuyện khác nhau, cùng một màu xanh.
+>
+> Đây **đúng vấn đề `ci.yml` được sinh ra để giải** *(khối ghi chú đầu tệp:
+> "toàn bộ bằng chứng an toàn của RLS nằm trong một thư mục tạm trên máy một
+> người… ⛔ không ai khác chạy lại được")* — và nó đã âm thầm quay lại.
+
+**Board duyệt phương án `B`.** Độ phủ **`5/10` → `9/10`**:
+
+| Bài kiểm | Trước | Sau |
+|---|---|---|
+| `arch` · `md-formulas` · `seed-integrity` · `rls-external` · `anon-and-buyer` | ✅ | ✅ |
+| **`md-read-matrix`** *(90 phép đo)* | ⛔ | ✅ **THÊM** |
+| **`md-update-matrix`** *(75 phép đo)* | ⛔ | ✅ **THÊM** |
+| **`costing-lifecycle`** *(`B-1` · `B-3`)* | ⛔ | ✅ **THÊM** |
+| **`a001-runtime`** *(23 phép đo)* | ⛔ | ✅ **THÊM** |
+| `md-internal-scope` | ⛔ | ⛔ **CỐ Ý CHƯA** — xem dưới |
+
+**Ba quyết định thiết kế, ghi lại để khỏi tranh cãi sau:**
+
+1. **Mỗi bài một bước riêng.** Gộp cả 6 vào một bước thì GitHub chỉ hiện **một**
+   dấu đỏ, phải mở log mới biết bài nào hỏng. Đắt hơn vài dòng YAML, rẻ hơn một
+   lần lần mò log.
+2. **Bí mật khai một lần ở cấp job.** Trước đây mỗi bước tự khai lại ba biến;
+   thêm bài thứ sáu là chép tay lần thứ sáu, và quên một biến thì bài đó **tự
+   tuyên bố BỎ QUA rồi thoát 0** — GitHub vẫn hiện dấu xanh.
+3. 🔴 **`md-internal-scope` ⛔ KHÔNG vào CI, và ⛔ KHÔNG chạy ở chế độ "cảnh báo
+   không chặn".** Nó đang hỏng **đúng 6 mục** `TC-1`. Đưa vào ⇒ CI đỏ **vô thời
+   hạn**, mà đèn đỏ vô thời hạn dạy cả đội đọc lướt qua màu đỏ — đúng cách `F-1`
+   sống sót 20 migration. Cho chạy kiểu *"cảnh báo"* ⇒ tạo tiền lệ **bài kiểm
+   được phép đỏ**, trái `AC-3`. ⇒ Nó vào CI **cùng lượt** với việc trả `TC-1`.
+
+### 🟠 `CI-2` — rủi ro mới, ⛔ chưa xử
+
+`concurrency.cancel-in-progress` huỷ lượt đang chạy khi có push mới. Bài kiểm
+dọn dữ liệu tạm trong `finally`, mà tiến trình bị huỷ thì `finally` **⛔ không
+chạy** ⇒ còn lại **tài khoản và dòng gieo mồ côi** trên CSDL thật. Rủi ro **có
+sẵn** với 2 bài; nay **6 bài** nên lớn gấp ba. Ba lối xử ghi ở `GPR-001` §0.4 —
+**Board quyết**, ⛔ không chặn Phase 2.
+
+### ✅ `G-A` — Board chốt **cách hiểu `A`**
+
+Một *"phép kiểm mới"* hoàn thành khi ① **đã xây dựng** ② **chạy được**
+③ **PASS theo tiêu chí Sprint**. ⛔ **Không** đòi xử xong Technical Debt hoặc
+Governance Pending cùng lúc. Ghi vào [Baseline §0.6](docs/ARCHITECTURE_BASELINE.md);
+khép `GPR-001` `A-6`.
+
+⇒ Phép kiểm ⑮ *(`request_id`)* **hoàn thành được** dù 7 bảng còn nợ chờ `033` —
+`033` bị chặn bởi `B2`, một thứ nằm **ngoài** Sprint.
+
+---
+
 ## Sprint I-2 · Lưới an toàn — Phase 1 — 05/08/2026 · 🔒 **ĐÃ KHOÁ**
 
 > 🔒 **KHOÁ 05/08/2026** — Board Directive mục 5. Commit `6ee3dd24` · `19ca85be`,
