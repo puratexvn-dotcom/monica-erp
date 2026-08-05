@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AlertTriangle, CircleAlert, CheckCircle2, Clock3, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CircleAlert, CheckCircle2, Clock3, type LucideIcon } from 'lucide-react';
 
 import type { WorkItem, WorkItemSeverity } from '@/lib/mos/workspace/work-item';
 import { MODULE_IDENTITY, STATUS, type ModuleKey } from '@/lib/design/tokens';
@@ -123,31 +123,78 @@ export interface KpiItem {
   donVi?: string;
   /** Tô theo trạng thái khi con số **mang phán quyết** *(đạt/⛔ không đạt)*. */
   trangThai?: 'healthy' | 'warning' | 'critical';
+  /**
+   * 🔴 **`P33` · `P35` — LỐI ĐI TIẾP.**
+   *
+   * Một KPI ⛔ không `href` là một **ngõ cụt**: người đọc **biết có vấn đề** và
+   * **⛔ không biết làm gì**, nên họ **đi hỏi người khác** — đúng thứ `§13`
+   * muốn xoá. Nó cũng **trượt Phép thử Ba Giảm**.
+   *
+   * ⚠️ Để `?` vì TypeScript ⛔ **không** ép được *"phải có, trừ khi thật sự ⛔
+   * không có nơi nào để tới"*. Vế đó do **phép kiểm ⑲** canh, ⛔ không do kiểu.
+   */
+  href?: string;
+  /**
+   * 🔑 **`P34` · `P36` — CON SỐ NÀY TỪ ĐÂU RA.**
+   *
+   * ⛔ **Không phải lời bình.** Là **nguồn gốc đo được**: *"từ 12 phiếu kiểm
+   * hôm nay"*.
+   *
+   * ⚠️ Đây là chỗ `P36` sống hoặc chết. ⛔ Không có nó, một con số chỉ là **một
+   * khẳng định**; có nó, nó là **một kết luận có nguồn**.
+   */
+  nguonKey?: DictionaryKey;
+  nguonVars?: Record<string, string | number>;
 }
 
 export function KpiStrip({ kpi }: { kpi: readonly KpiItem[] }) {
   const { t } = useLanguage();
+  const nen = 'rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70';
 
   return (
     <section aria-label={t('workspace.kpi')} className="mb-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        {kpi.map((k) => (
-          <div key={k.id} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className={`${TYPE.overline} text-slate-500`}>{t(k.labelKey)}</p>
-            <p className={`${TYPE.metric} mt-2 ${k.trangThai ? STATUS[k.trangThai].text : 'text-slate-900'}`}>
-              {k.giaTri}
-              {/* Đơn vị nhỏ và nhạt hơn con số: nó là **ngữ cảnh**, ⛔ không
-                  phải dữ liệu. Cùng cỡ thì mắt phải đọc hai lần mới tách được
-                  đâu là số. */}
-              {/* ⚠️ Bản nháp đầu viết thêm `font-normal` ở đây và **bánh cóc
-                  chữ bắt ngay** — đúng thứ nó sinh ra để chặn. `TYPE.caption`
-                  đã mang sẵn nét chữ của nó; ghi đè bằng một lớp trần là mở
-                  lại đúng cánh cửa mà `TD-10` đã đóng. Sửa bằng THẺ, ⛔ không
-                  bằng cách thêm tệp vào sổ nợ. */}
-              {k.donVi && <span className={`${TYPE.caption} ml-1.5 text-slate-400`}>{k.donVi}</span>}
-            </p>
-          </div>
-        ))}
+        {kpi.map((k) => {
+          const than = (
+            <>
+              <p className={`${TYPE.overline} text-slate-500`}>{t(k.labelKey)}</p>
+              <p className={`${TYPE.metric} mt-2 ${k.trangThai ? STATUS[k.trangThai].text : 'text-slate-900'}`}>
+                {k.giaTri}
+                {/* Đơn vị nhỏ và nhạt hơn con số: nó là **ngữ cảnh**, ⛔ không
+                    phải dữ liệu. Cùng cỡ thì mắt phải đọc hai lần mới tách được
+                    đâu là số. */}
+                {/* ⚠️ Bản nháp đầu viết thêm `font-normal` ở đây và **bánh cóc
+                    chữ bắt ngay** — đúng thứ nó sinh ra để chặn. `TYPE.caption`
+                    đã mang sẵn nét chữ của nó. Sửa bằng THẺ, ⛔ không bằng cách
+                    thêm tệp vào sổ nợ. */}
+                {k.donVi && <span className={`${TYPE.caption} ml-1.5 text-slate-400`}>{k.donVi}</span>}
+              </p>
+              {/* `P34` · `P36` — nguồn gốc con số, ⛔ không phải lời bình. */}
+              {k.nguonKey && (
+                <p className={`${TYPE.caption} mt-1.5 text-slate-400`}>{t(k.nguonKey, k.nguonVars)}</p>
+              )}
+            </>
+          );
+
+          // `P33` — thẻ có lối đi tiếp thì **CẢ THẺ** là liên kết, ⛔ không phải
+          // một chữ *"xem thêm"* nhỏ ở góc. Vùng bấm càng lớn càng ít lần trượt
+          // tay, và trên điện thoại đó là khác biệt thật.
+          return k.href ? (
+            <Link
+              key={k.id}
+              href={k.href}
+              className={`${nen} group block transition hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400`}
+            >
+              {than}
+              <span className={`${TYPE.caption} mt-2 inline-flex items-center gap-1 text-slate-400 transition group-hover:text-slate-700`}>
+                {t('workspace.drillDown')}
+                <ArrowRight className="h-3 w-3" aria-hidden="true" />
+              </span>
+            </Link>
+          ) : (
+            <div key={k.id} className={nen}>{than}</div>
+          );
+        })}
       </div>
     </section>
   );

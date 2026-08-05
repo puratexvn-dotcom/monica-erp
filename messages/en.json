@@ -243,7 +243,9 @@
       "report": "One-tap report",
       "ai": "AI assistant",
       "guide": "Guidance"
-    }
+    },
+    "drillDown": "View detail",
+    "loadError": "Could not read data — the figures below are NOT MEASURED, not zero."
   },
   "work": {
     "qa": {
@@ -262,6 +264,7 @@
     "nhatKy": "Hourly inspection log",
     "ghiPhieu": "Record inspection",
     "xemDon": "Orders",
-    "sp": "pcs"
+    "sp": "pcs",
+    "nguon": "from {soPhieu} inspection report(s)"
   }
 }

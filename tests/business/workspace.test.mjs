@@ -12,7 +12,7 @@
 // ============================================================================
 import { scoreboard } from '../_lib/harness.mjs';
 import { chieuViec, demTheoMuc } from '../../lib/mos/workspace/work-item.ts';
-import { viecCuaQA, NGUONG_TY_LE_LOI, NGUONG_LOI_LAP } from '../../lib/mos/workspace/qa-work-items.ts';
+import { viecCuaQA, NGUONG_TY_LE_LOI, NGUONG_LOI_LAP, QA_NEO } from '../../lib/mos/workspace/qa-work-items.ts';
 import { kpiQA, duLieuQAHomNay } from '../../lib/mos/calculators/qa-kpi.calculator.ts';
 
 const s = scoreboard('LÕI WORKSPACE');
@@ -171,6 +171,50 @@ console.log('\n⑨ ENGINE CHIẾU VIỆC — ⛔ KHÔNG BIẾT DOMAIN NÀO CẢ'
   s.ok('Luật ⛔ không nổ thì ⛔ không sinh việc', v.length === 2);
   s.ok('Xếp lại theo mức khẩn', v.map((x) => x.id).join('|') === 'b|a');
   s.ok('Danh sách luật rỗng ⇒ ⛔ không sinh việc', chieuViec([], {}).length === 0);
+}
+
+console.log('\n⑩ 🔴 G-19 · MỌI VIỆC CẦN XỬ LÝ ĐỀU CÓ LỐI ĐI TIẾP (P33 · P35)');
+{
+  // Một dòng việc ⛔ không `href` khiến người đọc BIẾT có vấn đề mà ⛔ KHÔNG
+  // BIẾT LÀM GÌ ⇒ họ đi hỏi người khác — đúng thứ §13 muốn xoá, và nó trượt
+  // cả Phép thử Ba Giảm.
+  const canh = [
+    ['⛔ chưa kiểm', NEN],
+    ['vượt ngưỡng', voi({ soPhieuHomNay: 5, tongKiem: 100, tongLoi: 20 })],
+    ['chuyền nhiều lỗi', voi({ soPhieuHomNay: 5, tongKiem: 1000, tongLoi: 5,
+      loiTheoChuyen: [{ chuyen: 'C2', soLoi: 5 }] })],
+    ['lỗi lặp lại', voi({ soPhieuHomNay: 5, tongKiem: 1000, tongLoi: 5,
+      loiTheoLoai: [{ loai: 'Bỏ mũi', soLan: 4 }] })],
+  ];
+  for (const [ten, d] of canh) {
+    const canXuLy = viecCuaQA(d).filter((v) => v.severity !== 'INFO');
+    const cut = canXuLy.filter((v) => !v.href).map((v) => v.id);
+    s.ok(`${ten}: mọi việc CRITICAL/WARNING đều có href (${canXuLy.length} việc)`,
+      canXuLy.length > 0 && cut.length === 0, `ngõ cụt: ${cut.join(' · ')}`);
+  }
+
+  // 🔑 Vế NGƯỢC LẠI, và nó quan trọng ngang vế trên: việc mức `INFO` ⛔ KHÔNG
+  //    được có `href`. Nó ⛔ không phải việc phải làm, nên nó ⛔ không được giả
+  //    vờ bấm được — `P33` đòi lối đi cho việc CẦN XỬ LÝ, ⛔ không đòi cho một
+  //    lời trấn an.
+  const onDinh = viecCuaQA(voi({ soPhieuHomNay: 6, tongKiem: 900, tongLoi: 0 }));
+  s.ok('Việc mức INFO ⛔ KHÔNG có href — ⛔ không giả vờ bấm được',
+    onDinh.length === 1 && onDinh[0].severity === 'INFO' && !onDinh[0].href);
+
+  // Neo phải trỏ tới NƠI XỬ LÝ, ⛔ không trỏ bừa về đầu trang.
+  const chuaKiem = viecCuaQA(NEN).find((v) => v.id === 'qa.chua-kiem');
+  s.ok('Việc "⛔ chưa kiểm" dẫn tới NƠI GHI PHIẾU, ⛔ không tới bảng đang rỗng',
+    chuaKiem?.href === QA_NEO.ghiPhieu, String(chuaKiem?.href));
+
+  const vuot = viecCuaQA(voi({ soPhieuHomNay: 5, tongKiem: 100, tongLoi: 20 }))
+    .find((v) => v.id === 'qa.vuot-nguong-loi');
+  s.ok('Việc "vượt ngưỡng" dẫn tới BẰNG CHỨNG GỐC (P36)',
+    vuot?.href === QA_NEO.nhatKy, String(vuot?.href));
+
+  // Neo phải là neo trong trang, ⛔ không phải đường dẫn tuyệt đối viết nhầm.
+  s.ok('Mọi neo QA là neo trong trang (bắt đầu bằng `#`)',
+    Object.values(QA_NEO).every((h) => h.startsWith('#')),
+    Object.values(QA_NEO).join(' · '));
 }
 
 process.exit(s.ketThuc() ? 1 : 0);

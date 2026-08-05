@@ -1,8 +1,6 @@
 import { getQAReports, getOrdersForSelect, createQAReport } from './actions'
 import QaShell from './qa-shell'
-import { kpiQA, duLieuQAHomNay } from '@/lib/mos/calculators/qa-kpi.calculator'
-import { viecCuaQA, NGUONG_TY_LE_LOI } from '@/lib/mos/workspace/qa-work-items'
-import type { KpiItem } from '@/components/workspace/blocks'
+import { getQaCommandCenter } from './_services/command-center.service'
 
 // ============================================================================
 // QA WORKSPACE — MÀN HÌNH MẪU CỦA KHUNG WORKSPACE
@@ -27,33 +25,30 @@ import type { KpiItem } from '@/components/workspace/blocks'
 export const dynamic = 'force-dynamic'
 
 export default async function QADashboardPage() {
+  // 🔑 `G-18` — MÀN HÌNH ⛔ KHÔNG CÒN TỰ TÍNH GÌ.
+  //
+  // Trước bản này `page.tsx` gọi `getQAReports()` rồi tự gọi calculator: phép
+  // tính đã ra khỏi màn hình, nhưng **phần ĐỌC thì ⛔ chưa** — màn hình vẫn
+  // biết bảng nào tồn tại và tự quyết ngưỡng nào tô đỏ.
+  //
+  // Nay đúng bốn tầng *(`Product Constitution §4.1`)*:
+  //   Workspace ← Business Capability ← **Command Center** ← Business Data
+  const cc = await getQaCommandCenter()
+
+  // ⚠️ Hai lời gọi dưới đây phục vụ **BẢNG và BIỂU MẪU**, ⛔ không phục vụ KPI
+  // hay hộp thư việc. Chúng là dữ liệu **trình bày chi tiết**, ⛔ không phải
+  // phán đoán nghiệp vụ — nên chúng ⛔ không đi qua Command Center.
   const reports = await getQAReports()
   const orders = await getOrdersForSelect()
 
-  const k = kpiQA(reports)
-  const viec = viecCuaQA(duLieuQAHomNay(reports))
-
-  // ⚠️ `tyLeLoi` là con số DUY NHẤT ở đây mang **phán quyết** — nó nói *"đạt"*
-  // hay *"⛔ không đạt"*, nên nó là con số duy nhất được tô theo trạng thái.
-  // Tô màu ba KPI còn lại sẽ làm màu thôi mang nghĩa.
-  const kpi: KpiItem[] = [
-    { id: 'kiem', labelKey: 'qa.tongKiem', giaTri: k.tongKiem.toLocaleString('vi-VN'), donVi: 'sp' },
-    { id: 'dat', labelKey: 'qa.dat', giaTri: k.tongDat.toLocaleString('vi-VN'), donVi: 'sp' },
-    { id: 'loi', labelKey: 'qa.loi', giaTri: k.tongLoi.toLocaleString('vi-VN'), donVi: 'sp' },
-    {
-      id: 'ty-le',
-      labelKey: 'qa.tyLeLoi',
-      giaTri: `${k.tyLeLoi.toFixed(1)}%`,
-      trangThai: k.tyLeLoi > NGUONG_TY_LE_LOI ? 'critical' : 'healthy',
-    },
-  ]
-
   return (
-    <QaShell viec={viec} kpi={kpi}>
+    <QaShell viec={cc.viec} kpi={cc.kpi} loi={cc.loi}>
       {/* GRID CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LIST QA REPORTS (2 COLS) */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        {/* LIST QA REPORTS (2 COLS)
+            `id="nhat-ky"` — neo của `G-19`: mọi KPI và mọi việc *"vượt ngưỡng"*
+            đều dẫn về đây, tức về **bằng chứng gốc** (`P36`). */}
+        <div id="nhat-ky" className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-24">
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
             <h2 className="text-base font-semibold text-slate-800">Nhật Ký Kiểm Hàng Theo Giờ</h2>
           </div>
@@ -118,8 +113,10 @@ export default async function QADashboardPage() {
           </div>
         </div>
 
-        {/* FORM THÊM QA REPORT (1 COL) */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-fit">
+        {/* FORM THÊM QA REPORT (1 COL)
+            id="ghi-phieu" — neo của G-19: việc "chưa ghi phiếu nào hôm nay" dẫn
+            THẲNG tới đây, tức tới nơi LÀM CHO VIỆC ĐÓ BIẾN MẤT. */}
+        <div id="ghi-phieu" className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-fit scroll-mt-24">
           <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
             Nhập Báo Cáo QA Mới
           </h2>

@@ -5,7 +5,7 @@ import { MessagesSquare, PieChart, Sparkles, FileText, type LucideIcon } from 'l
 
 import type { WorkItem } from '@/lib/mos/workspace/work-item';
 import { WorkInbox, KpiStrip, QuickActions, BlockChoDuLieu, type KpiItem, type QuickAction } from './blocks';
-import { MODULE_IDENTITY, type ModuleKey } from '@/lib/design/tokens';
+import { MODULE_IDENTITY, STATUS, type ModuleKey } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage, type DictionaryKey } from '@/lib/i18n';
 
@@ -52,12 +52,20 @@ export interface WorkspaceShellProps {
   viec: readonly WorkItem[];
   kpi: readonly KpiItem[];
   hanhDongNhanh: readonly QuickAction[];
+  /**
+   * Lỗi đọc dữ liệu từ Command Center. `null`/bỏ trống = đọc được.
+   *
+   * ⚠️ **Phải hiện ra, ⛔ không được nuốt.** Màn hình rỗng vì *"⛔ không có
+   * việc nào"* và màn hình rỗng vì *"⛔ không đọc được CSDL"* trông **y hệt
+   * nhau** — và chỉ **một** trong hai là tin tốt.
+   */
+  loi?: string | null;
   /** Bảng biểu, biểu đồ — phần riêng của từng phân hệ. */
   children: React.ReactNode;
 }
 
 export default function WorkspaceShell({
-  moduleKey, tenModule, moTaKey, viec, kpi, hanhDongNhanh, children,
+  moduleKey, tenModule, moTaKey, viec, kpi, loi, hanhDongNhanh, children,
 }: WorkspaceShellProps) {
   const { t } = useLanguage();
   const mau = MODULE_IDENTITY[moduleKey];
@@ -72,6 +80,18 @@ export default function WorkspaceShell({
         <h1 className={`${TYPE.pageTitle} mt-1 text-slate-900`}>{tenModule}</h1>
         <p className={`${TYPE.body} mt-1.5 text-slate-500`}>{t(moTaKey)}</p>
       </header>
+
+      {/* ⚠️ Băng lỗi đứng TRƯỚC mọi khối dữ liệu. Đặt nó ở cuối trang thì
+          người dùng đọc xong bốn số 0 rồi mới biết là **⛔ chưa đọc được** —
+          và tới lúc đó họ đã tin vào bốn số đó rồi. */}
+      {loi && (
+        <p
+          role="alert"
+          className={`${TYPE.bodySm} ${STATUS.critical.chip} mb-6 rounded-xl px-4 py-3 ring-1`}
+        >
+          {t('workspace.loadError')} <span className="font-mono">{loi}</span>
+        </p>
+      )}
 
       <WorkInbox viec={viec} moduleKey={moduleKey} />
       <KpiStrip kpi={kpi} />

@@ -40,10 +40,13 @@ const VIEC_NHANH: readonly QuickAction[] = [
 export default function QaShell({
   viec,
   kpi,
+  loi,
   children,
 }: {
   viec: readonly WorkItem[];
   kpi: readonly KpiItem[];
+  /** Lỗi đọc dữ liệu từ Command Center. `null` = đọc được. */
+  loi?: string | null;
   children: React.ReactNode;
 }) {
   return (
@@ -54,6 +57,7 @@ export default function QaShell({
       moTaKey="appDesc.quality"
       viec={viec}
       kpi={kpi}
+      loi={loi}
       hanhDongNhanh={VIEC_NHANH}
     >
       {children}

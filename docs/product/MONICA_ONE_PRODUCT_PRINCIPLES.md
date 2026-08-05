@@ -157,6 +157,39 @@ phải qua đủ 28 nguyên tắc và toàn bộ `P-MEASURE`.
 thừa — nó là **thứ hay bị vi phạm nhất**, và bản nhắc lại là **phiếu bầu thứ
 hai** cho cùng một điều. Gộp lại là **xoá mất tín hiệu đó**.
 
+## X · KPI — BỐN ĐIỀU BOARD BỔ SUNG *(Execution Mode)* *(P34–P37)*
+
+| # | Nguyên tắc | Vi phạm trông như thế nào |
+|---|---|---|
+| **P34** | **Mọi KPI trả lời được *"VÌ SAO?"*** | một con số ⛔ không ai biết nó gồm những gì |
+| **P35** | **Mọi KPI gợi ý HÀNH ĐỘNG TIẾP THEO** | KPI đỏ mà ⛔ không nói nên làm gì |
+| **P36** | **Mọi KPI truy vết được tới BẰNG CHỨNG NGHIỆP VỤ** | con số ⛔ không mở ra được chứng từ sinh ra nó |
+| **P37** | 🔑 **Một dashboard ⛔ không có insight hành động được thì chỉ là một BÁO CÁO** | gọi *"dashboard"* thứ thực chất là bảng số |
+
+### 🔑 `P36` là điều khó nhất — và là điều phân biệt sản phẩm này với ERP khác
+
+*"Truy vết tới bằng chứng"* nghĩa là: bấm vào **`Tỷ lệ lỗi 4,2%`** phải ra được
+**đúng những phiếu kiểm đã tạo ra con số đó**.
+
+⚠️ Phần lớn ERP dừng ở **con số**. Người dùng tin hoặc ⛔ không tin, và **⛔
+không có cách nào kiểm** — nên khi con số trông sai, họ **đi hỏi người khác**.
+Đó chính là lần *"phải hỏi"* mà `Phép thử Ba Giảm` đếm.
+
+⇒ `P36` ⛔ **không** phải tính năng cao cấp. Nó là **điều kiện để người ta tin
+con số**, và ⛔ không có nó thì `P34` `P35` đều rỗng.
+
+### ⚠️ `P37` là **phép thử**, ⛔ không phải lời khuyên
+
+```
+Nhìn một màn hình ⇒ đếm số HÀNH ĐỘNG mở ra được từ nó.
+Bằng 0  ⇒ đó là một BÁO CÁO. Gọi đúng tên nó, hoặc sửa nó.
+```
+
+🔑 **Gọi một báo cáo là *"dashboard"* ⛔ không làm nó thành dashboard** — nó chỉ
+làm người xây tin rằng đã xong việc.
+
+---
+
 ### 🔑 `P33` là điều **thật sự mới** — và mạnh nhất trong ba
 
 `P6`…`P32` nói về **thứ tự**. `P33` nói về **ngõ cụt**:

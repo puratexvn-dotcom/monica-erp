@@ -34,6 +34,24 @@ export const NGUONG_TY_LE_LOI = 3;
  *  *"phải mở CAPA"*. Quyết định mở CAPA vẫn là của người. */
 export const NGUONG_LOI_LAP = 3;
 
+/**
+ * 🔴 `G-19` — NƠI XỬ LÝ CỦA TỪNG VIỆC.
+ *
+ * `P33`: mọi việc và mọi KPI phải **dẫn tới một hành động**. Một dòng việc
+ * ⛔ không lối đi tiếp khiến người đọc **biết có vấn đề** mà **⛔ không biết
+ * làm gì** ⇒ họ **đi hỏi người khác** — đúng thứ `§13` muốn xoá.
+ *
+ * ⚠️ Khai ở **lõi thuần** chứ ⛔ không ở màn hình: neo là **một phần của luật**
+ * *(việc này xử lý Ở ĐÂU)*, ⛔ không phải chi tiết trình bày. Đổi bố cục màn
+ * hình ⛔ không được làm mất lối đi của một việc.
+ */
+export const QA_NEO = {
+  /** Bảng nhật ký kiểm hàng — nơi **nhìn thấy bằng chứng**. */
+  nhatKy: '#nhat-ky',
+  /** Biểu mẫu ghi phiếu — nơi **làm cho việc biến mất**. */
+  ghiPhieu: '#ghi-phieu',
+} as const;
+
 /** Dữ liệu QA mà các luật cần. Cố ý **hẹp**: chỉ chừng này thì hàm kiểm được
  *  ⛔ không cần CSDL, và ⛔ không kéo theo cả kiểu `QAReport` của tầng app. */
 export interface DuLieuQA {
@@ -63,7 +81,10 @@ const LUAT: WorkItemRule<DuLieuQA>[] = [
     id: 'qa.chua-kiem',
     severity: 'CRITICAL',
     labelKey: 'work.qa.chuaKiem',
-    danhGia: (d) => (d.soPhieuHomNay === 0 ? { nổ: true } : { nổ: false }),
+    danhGia: (d) =>
+      // Việc này biến mất khi có phiếu ⇒ đưa thẳng tới NƠI GHI PHIẾU,
+      // ⛔ không đưa tới bảng nhật ký đang rỗng.
+      d.soPhieuHomNay === 0 ? { nổ: true, href: QA_NEO.ghiPhieu } : { nổ: false },
   },
   {
     id: 'qa.vuot-nguong-loi',
@@ -73,7 +94,7 @@ const LUAT: WorkItemRule<DuLieuQA>[] = [
       if (d.soPhieuHomNay === 0 || d.tongKiem === 0) return { nổ: false };
       const tyLe = defectRatePercent(d.tongLoi, d.tongKiem);
       return tyLe > NGUONG_TY_LE_LOI
-        ? { nổ: true, vars: { tyLe: tyLe.toFixed(1), nguong: NGUONG_TY_LE_LOI } }
+        ? { nổ: true, vars: { tyLe: tyLe.toFixed(1), nguong: NGUONG_TY_LE_LOI }, href: QA_NEO.nhatKy }
         : { nổ: false };
     },
   },
@@ -89,7 +110,7 @@ const LUAT: WorkItemRule<DuLieuQA>[] = [
       // và cũng ⛔ không nên: mười chuyền cùng có lỗi thì mười dòng việc làm
       // hộp thư thành một bảng thống kê thứ hai.
       const nang = [...d.loiTheoChuyen].sort((a, b) => b.soLoi - a.soLoi)[0];
-      return { nổ: true, vars: { chuyen: nang.chuyen, soLoi: nang.soLoi } };
+      return { nổ: true, vars: { chuyen: nang.chuyen, soLoi: nang.soLoi }, href: QA_NEO.nhatKy };
     },
   },
   {
@@ -100,7 +121,7 @@ const LUAT: WorkItemRule<DuLieuQA>[] = [
       const lap = [...d.loiTheoLoai]
         .filter((x) => x.soLan >= NGUONG_LOI_LAP)
         .sort((a, b) => b.soLan - a.soLan)[0];
-      return lap ? { nổ: true, vars: { loai: lap.loai, soLan: lap.soLan } } : { nổ: false };
+      return lap ? { nổ: true, vars: { loai: lap.loai, soLan: lap.soLan }, href: QA_NEO.nhatKy } : { nổ: false };
     },
   },
 
@@ -113,6 +134,9 @@ const LUAT: WorkItemRule<DuLieuQA>[] = [
     severity: 'INFO',
     labelKey: 'work.qa.onDinh',
     danhGia: (d) =>
+      // ⚠️ Việc mức `INFO` CỐ Ý ⛔ không có `href`: nó ⛔ không phải một việc
+      // phải làm, nên nó ⛔ không được giả vờ bấm được. `P33` đòi lối đi cho
+      // việc CẦN XỬ LÝ, ⛔ không đòi cho một lời trấn an.
       d.soPhieuHomNay > 0 ? { nổ: true, vars: { soPhieu: d.soPhieuHomNay } } : { nổ: false },
   },
 ];

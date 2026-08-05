@@ -243,7 +243,9 @@
       "report": "Báo cáo một chạm",
       "ai": "Trợ lý AI",
       "guide": "Hướng dẫn"
-    }
+    },
+    "drillDown": "Xem chi tiết",
+    "loadError": "Chưa đọc được dữ liệu — các con số bên dưới CHƯA đo được, không phải bằng 0."
   },
   "work": {
     "qa": {
@@ -262,6 +264,7 @@
     "nhatKy": "Nhật ký kiểm hàng theo giờ",
     "ghiPhieu": "Ghi phiếu kiểm",
     "xemDon": "Đơn hàng",
-    "sp": "sp"
+    "sp": "sp",
+    "nguon": "từ {soPhieu} phiếu kiểm"
   }
 }
