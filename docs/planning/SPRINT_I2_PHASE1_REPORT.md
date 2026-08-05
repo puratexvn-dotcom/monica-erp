@@ -7,7 +7,8 @@
 | **Thẩm quyền khởi động** | **Board Decision 05/08/2026** — *"Không chặn Sprint I-2 chỉ vì tài liệu, ADR hoặc certificate chưa hoàn tất"* |
 | **Điều kiện tiền đề** | [`TFC-001`](../audit/TECHNICAL_FOUNDATION_CERTIFICATE.md) ✅ — **0 Technical Blocker** |
 | **Ngày** | 2026-08-05 |
-| **Trạng thái** | ✅ **PHASE 1 HOÀN TẤT** |
+| **Trạng thái** | ✅ **PHASE 1 HOÀN TẤT — Board phê duyệt 05/08/2026** |
+| **Commit** | `6ee3dd24` — 13 tệp · +2001 / −14 |
 
 ---
 

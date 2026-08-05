@@ -9,6 +9,67 @@
 | **Phê chuẩn** | Architecture Board — Board Decision 04/08/2026 |
 | **Trạng thái** | 🔒 **ARCHITECTURE FROZEN · IMPLEMENTATION READY** |
 | **Chỉ mục** | [`PROJECT_MEMORY.md`](PROJECT_MEMORY.md) |
+| **Tu chính** | **R1 · 2026-08-05** — xem khối ngay dưới |
+
+---
+
+# §0 · TU CHÍNH R1 — 2026-08-05
+
+> ⚠️ **§1 Freeze Certificate bên dưới GIỮ NGUYÊN VĂN.** Board đã ký nó ngày
+> 04/08; Hiến pháp Điều 43.7 cấm viết lại lịch sử. Khối này **thêm vào**.
+
+## 0.1 Board Decision 05/08/2026 — Foundation tách làm hai
+
+```
+Technical Foundation    ✅ COMPLETE   TFC-001 · 0 Technical Blocker
+Governance Foundation   🟠 PENDING    GPR-001 · 24 mục · 0 mục chặn Sprint I-2
+
+⛔ Tài liệu · ADR · certificate chưa hoàn tất KHÔNG chặn Sprint.
+   Chỉ TECHNICAL BLOCKER mới chặn.
+```
+
+Định nghĩa **Technical Blocker** *(`TFC-001` §1)*: `TB-a` làm Sprint ⛔ không
+thực hiện được · `TB-b` bị đóng băng sâu hơn nếu Sprint chạy · `TB-c` lỗ hổng
+**đang** khai thác được, ⛔ không hàng rào nào khác.
+
+- ✅ [`TECHNICAL_FOUNDATION_CERTIFICATE.md`](audit/TECHNICAL_FOUNDATION_CERTIFICATE.md)
+- 🟠 [`GOVERNANCE_PENDING_REPORT.md`](audit/GOVERNANCE_PENDING_REPORT.md)
+- 📄 [`FOUNDATION_CLOSURE_REPORT.md`](audit/FOUNDATION_CLOSURE_REPORT.md) Revision 2
+
+## 0.2 Bổ sung vào Baseline — thứ §1 và §6 ⛔ chưa biết
+
+| Hạng mục | Baseline gốc | **Nay** |
+|---|---|---|
+| **ADR** | 15 tài liệu · 14 số hiệu | **18 tài liệu · 17 số hiệu** — thêm **ADR-018 · 019 · 020** *(cả ba ⏳ **chưa duyệt**)* |
+| **Migration đã chạy** | tới `040` | **`041` `042` `044` `045` `045b` `046`** · `043` **đã chạy rồi thu hồi** |
+| **Khuyết tật đã biết** | 13 | **11** — `KD-2` · `KD-3` đóng 05/08 |
+| **Mục còn mở** | 11 | **11** — `VR-001` đóng, +3 mục Board *(ADR · freeze · phản biện)* |
+| **Phép đo tĩnh** | 43 | **110** — 51 kiến trúc + 59 nghiệp vụ MD |
+
+🔴 **Năm migration đang chạy sản xuất dưới ba ADR chưa phê duyệt, ⛔ không ADR
+nào có phản biện độc lập.** Hiến pháp **Điều 4** · ADR-011 §2.2. Theo dõi ở
+`GPR-001` §1 nhóm `A`; **chặn Cổng C**, ⛔ **không** chặn Sprint I-2.
+
+## 0.3 Ba Technical Condition — chặn cổng SAU, ⛔ không chặn I-2
+
+| # | Nội dung | Chặn |
+|---|---|---|
+| `TC-1` | 6 bảng MD còn quyền `DELETE` cứng *(`TD-25`)* — 4 lời gọi `.delete()` còn sống | 🔴 **Cổng C** |
+| `TC-2` | Tính **generic** của Aggregate Immutability Engine là `[INFERRED]` — mới phủ **2/88** aggregate | 🔴 **Sprint I-4** |
+| `TC-3` | `saveSizeBreakdown` bù trừ thay cho giao dịch *(`TD-01`)* | 🔴 **Cổng C** |
+
+> 🔑 `TC-1` và `TC-3` cùng chặn **Cổng C** — cả hai là *"khuyết tật vô hại khi
+> bảng rỗng"*. **Nạp dữ liệu chủ là thời điểm chúng đồng loạt trở thành thật.**
+
+## 0.4 Tiến độ Sprint I-2
+
+| Điều kiện ra *(§3.2)* | Trạng thái |
+|---|---|
+| `test:arch` có đủ **5 phép kiểm mới** | 🟠 **1/5** — mục ⑫ *(vốn từ trạng thái, `TD-03`)* |
+| **MD có bài kiểm nghiệp vụ** | ✅ **ĐẠT** — 59 phép đo |
+
+**Phase 1 ✅ HOÀN TẤT** — [`SPRINT_I2_PHASE1_REPORT.md`](planning/SPRINT_I2_PHASE1_REPORT.md).
+Phase 2: 4 phép kiểm còn lại · bộ kiểm Warehouse · `TD-18`.
 
 ---
 
@@ -218,7 +279,7 @@ Bộ kiểm phép chiếu · bài kiểm rò chéo tenant/đối tác/**tương 
 |---|---|---|
 | **I-0** | 🔴 **Phê chuẩn** | Cổng B hoàn tất |
 | **I-1** | 🔴 **An toàn** | `pg_policies` trên CSDL thật cho thấy 8 bảng đã thu hẹp |
-| **I-2** | **Lưới an toàn** | `test:arch` có đủ 5 phép kiểm mới · MD có bài kiểm nghiệp vụ |
+| **I-2** | **Lưới an toàn** — 🔵 **ĐANG CHẠY · Phase 1 ✅ xong** | `test:arch` có đủ 5 phép kiểm mới *(**1/5**)* · MD có bài kiểm nghiệp vụ *(**✅ đạt**)* |
 | **I-3** | **Nền tảng** | Bài kiểm rò chéo tenant + chéo đối tác xanh |
 | **I-4** | **Vòng đời đơn hàng** | Một đơn **huỷ được trọn vẹn** có bằng chứng |
 | **I-5** | **Ranh giới Workspace** | ⛔ **0 route mang tên chức danh** |

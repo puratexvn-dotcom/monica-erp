@@ -84,6 +84,16 @@ Blocker**. Chi tiết: [`SPRINT_I2_PHASE1_REPORT.md`](docs/planning/SPRINT_I2_PH
 > ⚠️ **`npm run verify` vẫn ĐỎ**, và đỏ đúng bằng **6 ngoại lệ có chủ ý** của
 > `TD-25` ⇒ `TC-1` trong `TFC-001`. ⛔ Không nới ngưỡng để lấy màu xanh.
 
+### ✅ Đánh dấu hoàn thành
+
+**Sprint I-2 · Phase 1 — HOÀN TẤT 05/08/2026.** Board phê duyệt cùng ngày.
+Commit `6ee3dd24`. Ba hạng mục `P1-1` `P1-2` `P1-3` đều đóng, đo lại toàn bộ
+sau thay đổi, ⛔ không hồi quy.
+
+Tài liệu cập nhật theo cùng lượt: `PROJECT_MEMORY` **v1.1** *(khép `B-1` của
+`GPR-001` — 5 nhóm mâu thuẫn với nguồn)* · `ARCHITECTURE_BASELINE` **tu chính
+R1** *(§1 Certificate Board đã ký giữ nguyên văn — Điều 43.7)*.
+
 ### ⚠️ Chưa nghiệm thu được
 
 - **Câu truy vấn `order_milestones` mới thêm chưa từng chạy trên CSDL thật.**

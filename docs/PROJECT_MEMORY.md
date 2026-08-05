@@ -163,7 +163,7 @@ Mâu thuẫn thật ⇒ 🔴 **DỪNG**, ghi `NEEDS_CLARIFICATION`, Board phán 
 | [`architecture/NEEDS_CLARIFICATION.md`](architecture/NEEDS_CLARIFICATION.md) | **BKB Phần E** | Số hiệu `C1–C8` giữ nguyên |
 | [`architecture/CM_OPERATING_MODEL.md`](architecture/CM_OPERATING_MODEL.md) §1.3 · §3 | **BKB Phần B** | Xây trên 4 giả định sai `H1`–`H4` |
 
-## 2.3 ADR — 11 bản
+## 2.3 ADR — **18 tài liệu · 17 số hiệu**
 
 | ADR | Nội dung | Vị trí | Trạng thái |
 |---|---|---|---|
@@ -182,8 +182,24 @@ Mâu thuẫn thật ⇒ 🔴 **DỪNG**, ghi `NEEDS_CLARIFICATION`, Board phán 
 | **015** 🆕 | **14 Business Workspace** | `adr/` | ✅ **APPROVED 04/08** |
 | **016** 🆕 | **Enterprise Control Center** | `adr/` | ✅ **APPROVED 04/08** |
 | **017** 🆕 | **Trang chủ hai vùng** | `adr/` | ✅ **APPROVED 04/08** |
+| **018** 🆕 | **Thu hẹp `authenticated_only` — 23 bảng MD** | `adr/` | 🔴 **MỞ LẠI 05/08** · migration `042`·`044` **ĐÃ CHẠY** |
+| **019** 🆕 | **Vòng đời chiết tính — `042` chặn cả phép duyệt** | `adr/` | ⏳ **chờ duyệt** · migration `045`·`045b` **ĐÃ CHẠY** |
+| **020** 🆕 | **Aggregate Child Immutability** | `adr/` | ⏳ **chờ duyệt** · migration `046` **ĐÃ CHẠY** |
 
 🔴 **⚠️ KHUYẾT TẬT ĐÃ BIẾT: hai ADR-001 khác nhau.** Xem §8 `KD-1` — nay là mục **B3** của Cổng B.
+
+> 🔴 **ĐỌC KỸ BA DÒNG CUỐI BẢNG.** Năm migration đang chạy **sản xuất** dưới ba
+> ADR **chưa được Board phê duyệt**, và **⛔ không ADR nào có phản biện độc lập**
+> *(ADR-011 §1.3 chỉ định ChatGPT)*. Đây là **thủ tục hiến định bị đảo ngược**,
+> ⛔ không phải khoản nợ kỹ thuật — Hiến pháp **Điều 4** · CLAUDE.md §3.
+>
+> **Board Decision 05/08/2026: việc này ⛔ KHÔNG chặn Sprint I-2.** Nó được theo
+> dõi ở [`GOVERNANCE_PENDING_REPORT.md`](audit/GOVERNANCE_PENDING_REPORT.md)
+> `GPR-001` §1 nhóm `A`, và **chặn Cổng C**.
+>
+> ⚠️ Ba migration ấy **đúng về kỹ thuật** và đã thu hẹp bề mặt tấn công một cách
+> đo được. Bác chúng ⇒ hệ thống **kém an toàn hơn** hôm nay. Đề nghị của CSA là
+> **phê chuẩn hồi tố**, ⛔ không phải quay lui.
 
 ## 2.4 Tài liệu nghiệp vụ và audit
 
@@ -646,16 +662,16 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | Mã | Khuyết tật | Bằng chứng | Trạng thái |
 |---|---|---|---|
 | `KD-1` | **Hai `ADR-001` khác nhau** — `architecture/adr/` và `assignment/` | `ls` | ⏳ chờ gộp kho ADR |
-| `KD-2` | 🔴 **8 bảng MD ⛔ không có policy thu hẹp** — `costings`·`style_bom`·… | quét 48 migration | 🔴 **`VR-001` chưa chạy** |
-| `KD-3` | 🔴 **`po-twin.service.ts:132` hằng số `0`** cho `late_milestones` | đo mã | ⏳ chưa sửa |
-| `KD-4` | **`md-client.tsx` 886/900 dòng** — 14 dòng nữa gãy arch test | đo mã | ⏳ |
+| `KD-2` | ~~8 bảng MD ⛔ không có policy thu hẹp~~ | `VR-001` + `042` | ✅ **ĐÓNG 05/08** — `042` đã chạy, `authenticated_only` **22 → 0**. Còn **6 bảng** giữ `DELETE` là ngoại lệ có chủ ý `TD-25` ⇒ `TC-1` |
+| `KD-3` | ~~`po-twin.service.ts:132` hằng số `0` cho `late_milestones`~~ | đo mã | ✅ **ĐÓNG 05/08** — Sprint I-2 Phase 1. Luật đếm dời sang `milestone-lateness.calculator.ts`, **hai màn hình gọi cùng một hàm** |
+| `KD-4` | **`md-client.tsx` 886/900 dòng** — 14 dòng nữa gãy arch test | đo mã | ⏳ **Phase 2** |
 | `KD-5` | **`md-legacy-client.tsx` 437 dòng mã chết** — nơi **DUY NHẤT** gọi `garment-math` | 0 tệp import | ⚠️ nối lại trước khi xoá |
 | `KD-6` | **`/subcon` phục vụ 7 vai trò** gồm cả nhà thầu ngoài | `rbac.ts` | ⏳ |
 | `KD-7` | **`CLAUDE.md` §6 ghi "12 phân hệ"** — thực tế 16, đích 19 | `home-modules.ts:135` | ⏳ |
 | `KD-8` | **`CLAUDE.md` §6 ghi bottom nav 4 nút** — Hiến pháp §15 khai **5** | Hiến pháp | ⏳ |
-| `KD-9` | **8 bộ từ vựng trạng thái ⛔ không có luật chuyển** *(trừ `assignment.ts`)* | TD-03 | ⏳ |
+| `KD-9` | **8 bộ từ vựng trạng thái ⛔ không có luật chuyển** *(trừ `assignment.ts`)* | TD-03 | 🟠 **ĐO ĐƯỢC 05/08** — `arch.test.mjs` ⑫ nay canh **36 bộ**; **7 chỗ lệch thật** ghi ở `vocabulary-baseline.json`. *Luật chuyển* vẫn chưa có ⇒ còn mở |
 | `KD-10` | 🔴 **Vòng khoá SECURITY FREEZE** — `031d`–`031g` chặn nhau | `MIGRATION_INDEX` §5 | ⏳ chờ Board cắt |
-| `KD-11` | **MD ⛔ không có một bài kiểm nghiệp vụ nào** — 19.058 dòng | `find tests` | ⏳ |
+| `KD-11` | ~~MD ⛔ không có một bài kiểm nghiệp vụ nào~~ — 19.058 dòng | `find tests` | 🟠 **MỞ HẠNG MỤC 05/08** — `tests/business/md-formulas.test.mjs`, **59 đạt · 0 hỏng**. Phủ **công thức**; ⛔ chưa phủ Warehouse và luồng nghiệp vụ ⇒ Phase 2 |
 | `KD-12` | **`SOD-06`** GĐSX duyệt cả giá bán lẫn giá mua | `BDR-21` | ⚠️ mức cảnh báo |
 | `KD-13` | 🔴 **Kiến trúc ⛔ KHÔNG phủ dệt–may tích hợp dọc** | EDD-04 §11.3 | ✅ **giới hạn có tên** — `DL-079` |
 
@@ -666,7 +682,10 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 
 | # | Nội dung | Chặn gì | Ai xử |
 |---|---|---|---|
-| 1 | 🔴 **`VR-001`** — truy vấn `pg_policies` *(1 phút)* | 🔴 **chặn Implementation**, ⛔ không chặn Freeze | Board |
+| 1 | ~~`VR-001` — truy vấn `pg_policies`~~ | ✅ **XONG 04/08** — [`VR-001-KET-QUA.md`](audit/VR-001-KET-QUA.md). Khép Cổng B `B1` | — |
+| 1′ | 🔴 **Phán quyết ADR-018 · 019 · 020** — 5 migration đang chạy dưới ADR chưa duyệt | 🔴 **chặn Cổng C**, ⛔ **không** chặn Sprint I-2 *(Board 05/08)* | **Board** |
+| 1″ | 🔴 **Cắt hoặc gia hạn SECURITY FREEZE** bằng văn bản — Cổng B `B2` | 🔴 chặn mở Domain/Module mới | **Board** |
+| 1‴ | 🔴 **Phản biện độc lập ADR-020** — ADR duy nhất ⛔ không có hồ sơ nào | 🔴 chặn Sprint I-4 | ChatGPT |
 | 2 | `OQ-A` khấu trừ có tồn tại ⛔ không | dữ liệu chủ | Board |
 | 3 | `OQ-B` điều kiện thanh toán thực dùng | dữ liệu chủ | Board |
 | 4 | `OQ-C` công nợ nhà thầu tính theo gì | dữ liệu chủ | Board |
@@ -677,6 +696,14 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | 9 | Thời hạn phản biện tối đa | ADR-011 §4.2 | Board |
 
 🔴 **⛔ Không mục nào chặn Architecture Freeze.**
+
+> 🔑 **Board Decision 05/08/2026 — Foundation tách làm hai.**
+> **Technical Foundation ✅ COMPLETE** *(0 Technical Blocker —
+> [`TFC-001`](audit/TECHNICAL_FOUNDATION_CERTIFICATE.md))* ·
+> **Governance 🟠 PENDING** *(24 mục —
+> [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md))*.
+> **⛔ Tài liệu · ADR · certificate chưa xong ⛔ KHÔNG chặn Sprint.** Chỉ
+> **Technical Blocker** mới chặn. Sổ đầy đủ 24 mục ở `GPR-001` §6.
 
 ---
 ---
@@ -740,6 +767,7 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | Ngày | Phiên bản | Thay đổi |
 |---|---|---|
 | 2026-08-04 | 1.0 | Lập lần đầu — chỉ mục 13 EDD · 149 DL · 29 BDR · 11 ADR · 13 khuyết tật |
+| **2026-08-05** | **1.1** | **Đồng bộ với nguồn theo `PM-4`** — khép `B-1` của [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) §2. ① §2.3 `11 bản` → **18 tài liệu · 17 số hiệu**, bổ sung ADR-018·019·020 kèm cảnh báo 5 migration chạy dưới ADR chưa duyệt. ② §8 đóng `KD-2` *(042 đã chạy)* và `KD-3` *(TD-17 đã vá)*; hạ mức `KD-9` · `KD-11`. ③ §9 gỡ `VR-001` *(đã chạy 04/08 — mâu thuẫn với Baseline `B1` ✅ đã tồn tại từ 04/08)*, thêm 3 mục Board. ④ §12 số liệu khớp lại Baseline. ⑤ Ghi nhận **Board Decision 05/08 tách Foundation** và **Sprint I-2 Phase 1**. |
 
 ---
 
@@ -747,7 +775,8 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 
 | Chỉ số | Số |
 |---|---|
-| **Tài liệu Enterprise Design** | **13** *(12 approved · 1 chờ ký)* |
+| **Tài liệu Enterprise Design** | **14** *(khớp Baseline §6)* |
+| **ADR** | **18 tài liệu · 17 số hiệu** — `012`–`014` đặt chỗ · `001` trùng ⇒ `B3` |
 | **Quyết định kiến trúc `DL`** | **149** |
 | — trong đó **chịu lực** 🔴 | **19** |
 | **Board Decision `BDR`** | **29** *(27 Board quyết · 2 CSA tự quyết)* |
@@ -760,10 +789,12 @@ Nguy cơ trễ tàu *(sớm 2–4 tuần)* · **Nguy cơ LỖ** · Vượt chi p
 | **Loại chứng từ** | **76** |
 | **Business Capability L2** | **93** |
 | **Module / Capability** | **78** |
-| **Màn hình** | **~208** |
+| **Màn hình** | **~226** *(196 nội bộ + 30 cổng đối tác — khớp Baseline §2.2)* |
 | **Quy tắc chặn cứng SoD** | **9** |
-| **Khuyết tật đã biết chưa sửa** | **13** |
-| **Mục còn mở** | **9** *(⛔ 0 chặn Freeze)* |
+| **Khuyết tật đã biết chưa sửa** | **11** *(13 − `KD-2` − `KD-3` đã đóng 05/08)* |
+| **Mục còn mở** | **11** *(⛔ 0 chặn Freeze · ⛔ 0 chặn Sprint I-2)* |
+| **Khoản nợ quản trị** | **24** — [`GPR-001`](audit/GOVERNANCE_PENDING_REPORT.md) |
+| **Phép đo tĩnh** *(⛔ không cần CSDL)* | **110** — 51 kiến trúc + 59 nghiệp vụ MD |
 
 ---
 
