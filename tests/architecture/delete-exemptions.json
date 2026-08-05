@@ -1,0 +1,65 @@
+{
+  "_tai_lieu": [
+    "SỔ MIỄN TRỪ XOÁ CỨNG — TD-27 · Sprint I-2 Phase 2 · B2-1.",
+    "",
+    "Mọi lời gọi `.delete()` trong mã ứng dụng phải có một mục ở đây. Lời gọi ở",
+    "tệp KHÔNG có trong sổ ⇒ arch test HỎNG — kể cả khi tổng số vẫn là 4.",
+    "",
+    "⚠️ TRƯỚC BẢN NÀY mục ② dùng NGƯỠNG ĐẾM `NGUONG_DELETE = 4`. Ngưỡng cho phép",
+    "   THÊM một lời gọi mới miễn là BỚT một lời gọi cũ — nó không phân biệt được",
+    "   'nợ cũ' với 'nợ mới'. Đó chính là TD-27.",
+    "",
+    "🔑 NEO THEO `tep` + `bang`, KHÔNG theo số dòng. Số dòng trôi mỗi lần tệp bị",
+    "   sửa và sẽ sinh báo động giả (R-7). Trường `dong` chỉ để người đọc TRA,",
+    "   arch test KHÔNG dùng nó.",
+    "",
+    "🔑 `soLuong` chặn việc thêm lời gọi thứ hai vào một tệp ĐÃ được miễn trừ.",
+    "   Miễn trừ theo TỆP mà không đếm thì một tệp đã có tên trong sổ sẽ trở",
+    "   thành chỗ trú an toàn cho mọi lời gọi mới.",
+    "",
+    "⛔ KHÔNG thêm mục mới để cho bài kiểm xanh. Mỗi mục ở đây là một chỗ dữ liệu",
+    "   nghiệp vụ bị xoá VĨNH VIỄN, và Hiến pháp III đòi xoá mềm.",
+    "",
+    "Sổ này RỖNG là đích: khi cả 4 lời gọi chuyển sang xoá mềm/RPC, TC-1 đóng và",
+    "`md-internal-scope` vào được CI (Board Decision CI-1)."
+  ],
+
+  "mienTru": [
+    {
+      "tep": "app/(dashboard)/md/_actions/collaboration.actions.ts",
+      "ham": "deleteDocument",
+      "bang": ["md_documents"],
+      "soLuong": 1,
+      "dong": 60,
+      "no": "TD-25",
+      "lyDo": "Tài liệu đính kèm của chứng từ. Bảng chưa có cột `deleted_at`; thêm cột là ĐỔI LƯỢC ĐỒ ⇒ cần ADR riêng (ADR-018 §9.3 TD-25)."
+    },
+    {
+      "tep": "app/(dashboard)/md/_actions/commercial.actions.ts",
+      "ham": "deleteCostingItem",
+      "bang": ["costing_items"],
+      "soLuong": 1,
+      "dong": 270,
+      "no": "TD-25",
+      "lyDo": "Khoản mục chiết tính. ⚠️ Bảng này nay chịu trigger bất biến của 046: khoản mục của chiết tính ĐÃ DUYỆT bị khoá, nên lời gọi chỉ còn tác dụng trên bản NHÁP. Cần `deleted_at` ⇒ ADR riêng."
+    },
+    {
+      "tep": "app/(dashboard)/md/_actions/po.actions.ts",
+      "ham": "saveSizeBreakdown",
+      "bang": ["order_size_breakdown"],
+      "soLuong": 1,
+      "dong": 161,
+      "no": "TD-25 · TD-01 · TC-3",
+      "lyDo": "Xoá-rồi-ghi-lại bảng cỡ/màu. Đây KHÔNG phải xoá chứng từ mà là bước 1 của một phép ghi đè — và chính nó là TD-01 (bù trừ thay cho giao dịch). Trả cùng lượt với TC-3 bằng một RPC SECURITY DEFINER làm cả xoá lẫn ghi trong MỘT giao dịch."
+    },
+    {
+      "tep": "app/(dashboard)/md/_actions/style.actions.ts",
+      "ham": "deleteStyleChild",
+      "bang": ["style_colorways", "style_sizes", "style_operations", "style_bom"],
+      "soLuong": 1,
+      "dong": 211,
+      "no": "TD-25 · TD-35",
+      "lyDo": "Bảng con của mã hàng. ⚠️ Hàm nhận TÊN BẢNG ĐỘNG `from(table)` nên MỘT lời gọi phủ BỐN bảng. Ba bảng đầu nằm trong 6 ngoại lệ TD-25; `style_bom` thì KHÔNG — xem TD-35."
+    }
+  ]
+}

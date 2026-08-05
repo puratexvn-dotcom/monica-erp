@@ -17,6 +17,64 @@
 
 ## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
 
+### ⑬ `B2-1` · `.delete()` — ngưỡng đếm → **danh sách miễn trừ tường minh** — ✅ **HOÀN TẤT**
+
+Trả **`TD-27`**. Phép kiểm mới **thứ hai** của Sprint I-2 ⇒ điều kiện ra `E-1`
+đi từ **1/5 lên 2/5**.
+
+**Vấn đề:** `arch.test.mjs` dùng `NGUONG_DELETE = 4`. Ngưỡng đếm cho phép
+**thêm** lời gọi mới miễn là **bớt** lời gọi cũ — nó ⛔ không phân biệt được *nợ
+cũ* với *nợ mới*, nên chỉ chặn được lời gọi **thứ năm**.
+
+**Giải pháp:** sổ `delete-exemptions.json` khai **đích danh 4 vị trí**, mỗi mục
+ghi `tệp` · `hàm` · **`bảng đích`** · `soLuong` · mã nợ · **lý do**. Năm phép
+kiểm con:
+
+| # | Bắt gì |
+|---|---|
+| ① | `.delete()` ở tệp **⛔ không có trong sổ** ⇒ nợ MỚI |
+| ② | Mục trong sổ mà tệp **⛔ không còn** `.delete()` ⇒ mục **chết**, phải gỡ *(bánh cóc)* |
+| ③ | **`soLuong`** — thêm lời gọi **thứ hai** vào tệp đã miễn trừ. ⚠️ Miễn trừ theo TỆP mà ⛔ không đếm thì tệp có tên trong sổ thành **chỗ trú an toàn** cho mọi lời gọi mới |
+| ④ | **Bảng đích** đo được ⟷ khai báo — bắt lúc lời gọi đổi sang bảng khác |
+| ⑤ | Mục thiếu **lý do** hoặc **mã nợ** ⇒ mục đã bị lách |
+
+🔑 Neo theo **`tệp` + `bảng`**, ⛔ không theo số dòng — số dòng trôi mỗi lần tệp
+bị sửa và sinh báo động giả *(`R-7`)*.
+
+**Phép đo:** `test:arch` **51 → 56 đạt · 0 hỏng**. **Bốn lần tiêm lỗi, mỗi lần
+đỏ đúng chỗ**, khôi phục xanh lại:
+
+```
+tiêm .delete() ở tệp chưa đăng ký  ⛔ chưa đăng ký: …/tiem-thu.ts
+đổi tệp trong sổ thành tệp không có ⛔ mục chết + ⛔ nợ mới  (bắt CẢ HAI)
+thêm .delete() thứ hai vào tệp cũ   ⛔ collaboration.actions.ts (2 > 1)
+đổi bảng đích trong sổ              ⛔ đo được `costing_items`, sổ khai [bang_khac]
+```
+
+### 🔴 `TD-35` — sổ miễn trừ lộ ra một lỗi CHƯA AI THẤY
+
+Lập sổ bắt khai **bảng đích**, và chính chỗ đó lộ ra: `deleteStyleChild` nhận
+**tên bảng động** và giao diện gọi được cả bốn — kể cả **`style_bom`**.
+
+Nhưng `style_bom` ⛔ **không** nằm trong 6 ngoại lệ giữ `DELETE` của ADR-018
+§6.2 ⇒ `042` **đã thu hồi quyền**. Người dùng bấm *"Xoá"* ở tab định mức nguyên
+phụ liệu sẽ nhận **lỗi phân quyền**, ⛔ không phải thông báo nghiệp vụ.
+
+| Phát biểu | Nhãn |
+|---|---|
+| Giao diện gọi được `deleteStyleChild('style_bom', …)` | **`[MEASURED]`** |
+| `style_bom` ⛔ không thuộc 6 ngoại lệ `TD-25` | **`[MEASURED]`** |
+| Lời gọi đó **thất bại trên CSDL thật** | 🔴 **`[INFERRED]`** — bảng rỗng, ⛔ chưa đo được |
+
+**Vì sao nó lọt qua mọi lớp:** TypeScript thấy `'style_bom'` **nằm trong** kiểu
+union nên hợp lệ · bài kiểm phân quyền ghi `⚪ chưa đo được` vì bảng rỗng ·
+ngưỡng `.delete()` cũ chỉ **đếm**, ⛔ không nhìn **bảng đích** · ⛔ chưa ai nhập
+định mức thật.
+
+⇒ **Sổ miễn trừ là lớp ĐẦU TIÊN nhìn thấy nó** — đúng giá trị `TD-27` hứa.
+⛔ **Chưa sửa** *(Board: "⛔ không sửa ngoài hạng mục đang thực hiện")*. Đề nghị
+lối ① — bỏ `'style_bom'` khỏi union kiểu và khỏi `TABLE_OF`.
+
 ### 🔬 `B2-2a` · SPIKE đo phép kiểm ⑭ — ✅ **HOÀN TẤT**
 
 Hạng mục **đầu tiên** của Phase 2. Loại **spike**: chỉ đo, ⛔ không viết bài

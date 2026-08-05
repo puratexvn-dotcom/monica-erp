@@ -34,6 +34,20 @@ function quet(thuMuc, duoi = ['.ts', '.tsx']) {
 const doc = (p) => readFileSync(p, 'utf8');
 const rel = (p) => relative(ROOT, p).split(sep).join('/');
 
+/** Bỏ chú thích khối và chú thích dòng. `[^:]` giữ lại `https://`.
+ *
+ *  ⚠️ PHẢI BỎ CHÚ THÍCH TRƯỚC KHI QUÉT — bài học từ mục ⑨: tệp GHI LẠI quy tắc
+ *  (`app/home-modules.ts` có dòng giải thích chính quy tắc màu) sẽ bị báo vi
+ *  phạm, tức phép kiểm **trừng phạt đúng người đã ghi lại quy tắc**.
+ *
+ *  Đặt ở đây vì mục ② · ⑨ · ⑩ đều cần. Trước Sprint I-2 Phase 2 nó nằm trong
+ *  thân mục ⑨ nên mục ② ⛔ không dùng được. */
+function boChuThichSom(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+}
+
 const tepUngDung = [...quet('app'), ...quet('lib'), ...quet('components'), ...quet('hooks')];
 console.log(`Quét ${tepUngDung.length} tệp nguồn.\n`);
 
@@ -51,23 +65,96 @@ for (const p of tepUngDung) {
 s.ok(`\`any\` ≤ ${NGUONG_ANY} (đang có ${viPhamAny.length})`, viPhamAny.length <= NGUONG_ANY,
   viPhamAny.slice(0, 8).join(' · '));
 
-// ── 2. CẤM xoá cứng dữ liệu nghiệp vụ ──────────────────────────────────────
-console.log('\n② HIẾN PHÁP — cấm Hard-Delete dữ liệu nghiệp vụ');
-// `delete()` trên bảng nối thuần tuý (không mang dữ liệu nghiệp vụ) được miễn.
+// ── 2. CẤM xoá cứng dữ liệu nghiệp vụ · ⑬ TD-27 ────────────────────────────
+//
+// ─── VÌ SAO BỎ NGƯỠNG ĐẾM ────────────────────────────────────────────────
+// Bản trước dùng `NGUONG_DELETE = 4`. Ngưỡng đếm cho phép **THÊM** một lời gọi
+// mới miễn là **BỚT** một lời gọi cũ — nó ⛔ không phân biệt được *nợ cũ* với
+// *nợ mới*, nên chỉ chặn được lời gọi **thứ năm**. Đó chính là `TD-27`.
+//
+// Nay: **DANH SÁCH TƯỜNG MINH**. Lời gọi ở tệp ⛔ không có trong sổ ⇒ HỎNG, kể
+// cả khi tổng vẫn là 4. Cùng nguyên tắc với ⑫ *(vốn từ trạng thái)*.
+//
+// 🔑 NEO THEO `tệp` + `bảng`, ⛔ KHÔNG theo số dòng — số dòng trôi mỗi lần tệp
+//    bị sửa và sinh báo động giả (`R-7`). Trường `dong` trong sổ chỉ để TRA.
+//
+// 🔑 `soLuong` chặn việc thêm lời gọi **thứ hai** vào một tệp ĐÃ được miễn trừ.
+//    Miễn trừ theo TỆP mà ⛔ không đếm thì tệp có tên trong sổ trở thành **chỗ
+//    trú an toàn** cho mọi lời gọi mới — đúng lỗ hổng mà ngưỡng đếm vừa để lại.
+console.log('\n② HIẾN PHÁP — cấm Hard-Delete · ⑬ danh sách miễn trừ (TD-27)');
+
+// `delete()` trong bài kiểm và script chạy tay ⛔ không thuộc mã ứng dụng.
 const MIEN_DELETE = new Set(['tests', 'scripts']);
-const xoaCung = [];
-for (const p of tepUngDung) {
-  if ([...MIEN_DELETE].some((m) => rel(p).startsWith(m + '/'))) continue;
-  doc(p).split('\n').forEach((dong, i) => {
-    if (dong.trimStart().startsWith('//')) return;
-    if (/\.delete\(\)/.test(dong)) xoaCung.push(`${rel(p)}:${i + 1}`);
-  });
+
+/** Bảng đích của một lời gọi `.delete()`: tìm `from('X')` hoặc `from(bien)`
+ *  gần nhất phía TRƯỚC trong cùng tệp. Chuỗi `.from(x).delete()` có thể trải
+ *  nhiều dòng, nên phải soi cả khối chứ ⛔ không soi một dòng. */
+function bangCuaXoa(src, viTri) {
+  const truoc = src.slice(Math.max(0, viTri - 400), viTri);
+  const m = [...truoc.matchAll(/\.from\(\s*(?:'([a-z0-9_]+)'|([A-Za-z_$][\w$]*))\s*\)/g)];
+  if (!m.length) return null;
+  const cuoi = m[m.length - 1];
+  return cuoi[1] ?? `<động:${cuoi[2]}>`;
 }
-// Ngưỡng = hiện trạng sau khi Audit gỡ `deleteRow()`. Bốn chỗ còn lại là nợ
-// đã ghi nhận (TD-02), KHÔNG được sinh thêm chỗ thứ năm.
-const NGUONG_DELETE = 4;
-s.ok(`Hard-Delete ≤ ${NGUONG_DELETE} (đang có ${xoaCung.length})`, xoaCung.length <= NGUONG_DELETE,
-  xoaCung.join(' · '));
+
+const duongDanMienXoa = join(ROOT, 'tests/architecture/delete-exemptions.json');
+const soMienXoa = existsSync(duongDanMienXoa) ? JSON.parse(doc(duongDanMienXoa)) : null;
+s.ok('Sổ miễn trừ xoá cứng tồn tại (TD-27)', soMienXoa !== null,
+  'thiếu tests/architecture/delete-exemptions.json');
+
+if (soMienXoa) {
+  const theoTep = new Map(soMienXoa.mienTru.map((m) => [m.tep, m]));
+
+  // Đếm lời gọi thật, theo tệp
+  const thucTe = new Map();
+  for (const p of tepUngDung) {
+    if ([...MIEN_DELETE].some((m) => rel(p).startsWith(m + '/'))) continue;
+    const src = boChuThichSom(doc(p));
+    const hit = [...src.matchAll(/\.delete\(\)/g)];
+    if (!hit.length) continue;
+    thucTe.set(rel(p), hit.map((h) => bangCuaXoa(src, h.index)));
+  }
+
+  // ① Tệp có `.delete()` mà ⛔ KHÔNG có trong sổ ⇒ nợ MỚI
+  const noMoi = [...thucTe.keys()].filter((f) => !theoTep.has(f)).sort();
+  s.ok(`KHÔNG lời gọi Hard-Delete MỚI (${thucTe.size} tệp có trong sổ)`,
+    noMoi.length === 0, `chưa đăng ký: ${noMoi.join(' · ')}`);
+
+  // ② Mục trong sổ mà tệp ⛔ không còn `.delete()` ⇒ mục CHẾT, phải gỡ (bánh cóc)
+  const mucChet = [...theoTep.keys()].filter((f) => !thucTe.has(f)).sort();
+  s.ok('Sổ miễn trừ KHÔNG còn mục chết', mucChet.length === 0,
+    `đã hết xoá cứng — gỡ khỏi sổ: ${mucChet.join(' · ')}`);
+
+  // ③ Số lời gọi trong một tệp ⛔ không được vượt `soLuong` đã khai
+  const phinh = [...thucTe].filter(([f, ds]) => theoTep.has(f) && ds.length > theoTep.get(f).soLuong)
+    .map(([f, ds]) => `${f} (${ds.length} > ${theoTep.get(f).soLuong})`);
+  s.ok('KHÔNG tệp nào sinh thêm lời gọi xoá cứng', phinh.length === 0, phinh.join(' · '));
+
+  // ④ Bảng đích đo được phải KHỚP khai báo — bắt lúc lời gọi đổi sang bảng khác
+  const lechBang = [];
+  for (const [f, ds] of thucTe) {
+    const muc = theoTep.get(f);
+    if (!muc) continue;
+    for (const b of ds) {
+      if (b === null) { lechBang.push(`${f}: ⛔ không đọc được bảng đích`); continue; }
+      const dong = b.startsWith('<động:');            // `from(table)` — biến
+      if (dong ? muc.bang.length < 2 : !muc.bang.includes(b))
+        lechBang.push(`${f}: đo được \`${b}\`, sổ khai [${muc.bang}]`);
+    }
+  }
+  s.ok('Bảng đích KHỚP khai báo trong sổ', lechBang.length === 0, lechBang.join(' · '));
+
+  // ⑤ Mỗi mục phải có LÝ DO và mã nợ — mục ⛔ không lý do là mục đã bị lách
+  const thieuHoSo = soMienXoa.mienTru
+    .filter((m) => !m.lyDo || !m.no || !Array.isArray(m.bang) || !m.bang.length)
+    .map((m) => m.tep);
+  s.ok(`Mọi mục miễn trừ có lý do và mã nợ (${soMienXoa.mienTru.length} mục)`,
+    thieuHoSo.length === 0, thieuHoSo.join(' · '));
+
+  const tong = [...thucTe.values()].reduce((s2, d) => s2 + d.length, 0);
+  console.log(`   ↻ đang nợ ${tong} lời gọi ở ${thucTe.size} tệp — sổ RỖNG là đích (TC-1 đóng)`);
+}
+
 s.ok('Thư viện dùng chung KHÔNG xuất hàm xoá cứng tổng quát',
   !doc(join(ROOT, 'lib/supabase.ts')).includes('export async function deleteRow'));
 
@@ -187,12 +274,9 @@ const TIEN_TO =
   'bg|text|ring|border|from|via|to|fill|stroke|divide|outline|accent|decoration|placeholder|shadow';
 const RE_MAU = new RegExp(`\\b(?:${TIEN_TO})-(?:${SAC_DINH_DANH})-[0-9]{2,3}\\b`);
 
-/** Bỏ chú thích khối và chú thích dòng. `[^:]` giữ lại `https://`. */
-function boChuThich(src) {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
-}
+// `boChuThich` nay dùng chung — xem `boChuThichSom` khai ở đầu tệp. Mục ② cũng
+// cần nó, mà mục ② chạy TRƯỚC mục này.
+const boChuThich = boChuThichSom;
 
 const NGUON_THE_MAU = 'lib/design/tokens.ts';
 const duongDanNo = join(ROOT, 'tests/architecture/color-debt-baseline.json');

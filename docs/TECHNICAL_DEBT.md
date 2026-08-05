@@ -56,6 +56,7 @@ thì không bao giờ được trả. Sổ này là chỗ cố định đó.
 | [TD-12](#td-12) | Chưa có hệ chuyển động — thời lượng và đường cong tuỳ chỗ | 🟡 | mở | Quyết nghị Board 03/08/2026 |
 | [TD-13](#td-13) | i18n — chuỗi viết thẳng còn ở phần lớn màn hình | 🟡 | mở | Chỉ thị i18n 03/08/2026 |
 | [TD-34](#td-34) | `cut-ticket-basket.tsx` tự tính chỉ số — **ngoại lệ CÓ CHỦ Ý** của phép kiểm ⑭ | 🟡 | mở | Board Decision `Đ-3` · 05/08/2026 |
+| [TD-35](#td-35) | 🔴 `deleteStyleChild` còn chào lối xoá `style_bom` — **quyền đã bị `042` thu hồi** | 🔴 | mở | Sprint I-2 Phase 2 · `B2-1` |
 
 ### 🔴 SỔ NÀY KHÔNG CÒN ĐẦY ĐỦ — `TD-30`
 
@@ -736,6 +737,82 @@ tính là **sửa mã sản phẩm** ở phân hệ Kho — ngoài Backlog đã 
 **I-6** *(Object Control Tower)* — cùng lượt với việc dựng `MetricDefinition` và
 read-model, vì đó là chỗ *"hai màn hình cùng đối tượng ra cùng con số"* được
 giải một cách hệ thống thay vì vá từng chỗ.
+
+---
+
+<a id="td-35"></a>
+## TD-35 · `deleteStyleChild` CÒN CHÀO LỐI XOÁ `style_bom` — QUYỀN ĐÃ BỊ THU HỒI
+
+| | |
+|---|---|
+| **Mức** | 🔴 mở — **lỗi lộ ra với NGƯỜI DÙNG**, ⛔ không phải nợ thẩm mỹ |
+| **Phát hiện** | Sprint I-2 Phase 2 · `B2-1` — **lúc lập sổ miễn trừ xoá cứng** |
+| **Nơi** | [`style.actions.ts:205-211`](../app/(dashboard)/md/_actions/style.actions.ts) · [`style-detail-sheet.tsx:32,97`](../components/md/style/style-detail-sheet.tsx) |
+| **Vi phạm** | ⛔ Không vi phạm điều nào — đây là **hệ quả chưa được dọn** của ADR-018 |
+
+### Nội dung
+
+`deleteStyleChild` nhận **tên bảng động**:
+
+```ts
+table: 'style_colorways' | 'style_sizes' | 'style_operations' | 'style_bom'
+const { error } = await g.supabase.from(table).delete().eq('id', id);
+```
+
+Giao diện gọi được cả **bốn**: `style-detail-sheet.tsx:32` khai
+`TABLE_OF.bom = 'style_bom'`, và `:97` gọi `deleteStyleChild(TABLE_OF[sec], id)`.
+
+**Nhưng `style_bom` ⛔ KHÔNG nằm trong 6 ngoại lệ giữ quyền `DELETE`** của
+ADR-018 §6.2 — sáu bảng đó là `costing_items` · `style_colorways` ·
+`style_sizes` · `style_operations` · `order_size_breakdown` · `md_documents`.
+
+⇒ `042` **đã thu hồi** `DELETE` trên `style_bom`. Người dùng bấm *"Xoá"* ở tab
+định mức nguyên phụ liệu sẽ nhận **lỗi phân quyền**, ⛔ không phải thông báo
+nghiệp vụ.
+
+### Nhãn mức độ tin cậy
+
+| Phát biểu | Nhãn |
+|---|---|
+| Giao diện gọi được `deleteStyleChild('style_bom', …)` | **`[MEASURED]`** — đọc mã |
+| `style_bom` ⛔ không nằm trong 6 ngoại lệ `TD-25` | **`[MEASURED]`** — ADR-018 §6.2 |
+| Lời gọi đó **thất bại trên CSDL thật** | 🔴 **`[INFERRED]`** — suy từ thiết kế policy |
+
+⚠️ **⛔ CHƯA ĐO ĐƯỢC** vì `style_bom` đang **rỗng** — `md-internal-scope` ghi
+`⚪ chưa đo được · bảng rỗng · chờ Cổng C`. Đúng quy tắc `V.1`: ⛔ **không kết
+luận trên bảng rỗng**.
+
+### Vì sao nó lọt qua mọi lớp
+
+| Lớp | Vì sao ⛔ không bắt được |
+|---|---|
+| TypeScript | `'style_bom'` **nằm trong** kiểu union — hợp lệ về kiểu |
+| Bài kiểm phân quyền | `style_bom` rỗng ⇒ `⚪ chưa đo được` |
+| Ngưỡng `.delete()` cũ | chỉ **đếm** 4, ⛔ không nhìn **bảng đích** |
+| Người dùng | ⛔ chưa ai nhập định mức thật *(Cổng C chưa mở)* |
+
+🔑 **Sổ miễn trừ mới của ⑬ là lớp đầu tiên nhìn thấy nó** — vì nó bắt khai
+**bảng đích**, ⛔ không chỉ đếm lời gọi. Đây đúng giá trị mà `TD-27` hứa.
+
+### Cách trả
+
+| # | Lối | Đánh giá |
+|---|---|---|
+| ① | Bỏ `'style_bom'` khỏi union kiểu + bỏ `bom` khỏi `TABLE_OF` | ✅ rẻ · đúng hướng ADR-018 · **giao diện thôi chào một nút ⛔ không dùng được** |
+| ② | Cấp lại `DELETE` cho `style_bom` | ⛔ **⛔ không** — đi ngược ADR-018 đã chạy |
+| ③ | Chuyển sang xoá mềm | ✅ đúng đích, nhưng cần `deleted_at` ⇒ **ADR riêng** — gộp vào `TC-1` |
+
+⇒ Đề nghị **①** ngay *(sửa lỗi đã đo, được phép trong freeze)*, **③** khi trả `TC-1`.
+
+### Vì sao chưa trả
+
+Board Directive 05/08/2026: *"⛔ Không sửa ngoài hạng mục đang thực hiện."*
+`B2-1` là **dựng phép kiểm ⑬**, ⛔ không phải sửa `style.actions.ts`. Ghi sổ,
+trình Board.
+
+### Sprint đích
+
+**I-2 Phase 2** *(lối ①, nếu Board cho phép)* hoặc **cùng lượt `TC-1`** *(lối ③)*.
 
 ---
 
