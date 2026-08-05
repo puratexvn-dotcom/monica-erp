@@ -15,6 +15,60 @@
 
 ---
 
+## Sprint I-2 · Phase 2 — 05/08/2026 · 🔵 **ĐANG CHẠY**
+
+### 🔬 `B2-2a` · SPIKE đo phép kiểm ⑭ — ✅ **HOÀN TẤT**
+
+Hạng mục **đầu tiên** của Phase 2. Loại **spike**: chỉ đo, ⛔ không viết bài
+kiểm, ⛔ không sửa mã sản phẩm.
+
+🔴 **PHÁT HIỆN: ranh giới ⑭ trong kế hoạch SAI — 50% là nhiễu.**
+
+Đếm thì **đạt** *(24/95 tệp ≤ ngưỡng 40)*. Nhưng soi từng chỗ khớp thì
+**12/24 là dương tính giả**:
+
+| Mẫu §2.3 | Bắt | Trúng thật | Độ chính xác | Phán quyết |
+|---|---|---|---|---|
+| `A` `.reduce(` | 16 | 11 | 69% | ✅ **giữ + thu hẹp** ⇒ **100%** |
+| `B` `× 100` `÷ 100` | 2 | **0** | 🔴 **0%** | 🔴 **bỏ** |
+| `C` `Math.round/min/max` | 14 | **1** | 🔴 **7%** | 🔴 **bỏ** |
+
+`Math.min`/`Math.max` trong `components/` gần như **luôn** là *kẹp giá trị để
+vẽ* — cửa sổ cuộn, bề rộng thanh, thang biểu đồ, kẹp con trỏ bàn phím.
+`Math.round` gần như luôn là **định dạng**, thứ chính kế hoạch đã khai là ⛔
+không chặn. `× 100` chỉ bắt được **văn bản giải thích công thức**.
+
+> 🔑 **Một phép kiểm sai một nửa số lần ⛔ không sống nổi ba tháng** — nó sẽ bị
+> nới sổ nợ rồi bị gỡ. Đúng kịch bản `R-2`, và đúng bài học đã ghi ở mục ⑨ ⑩:
+> *"quy tắc ⛔ không thể tuân thủ thì người ta tắt nó đi"*.
+
+**Sau thu hẹp: 11 tệp · độ chính xác 100% · 0 dương tính giả.** Nặng nhất:
+`tabs-execution.tsx` một mình tính **sáu** chỉ số nghiệp vụ, và `costing-list.tsx`
+tính **biên lợi nhuận trung bình** — chỉ số **tiền**.
+
+### 🔴 Lỗi trong chính phép đo — bắt được và ghi lại
+
+Mẫu thu hẹp bản đầu `/\.reduce\s*\([^)]*=>\s*[^)]*\+/` trả **0 tệp**, vì
+`[^)]*` **⛔ không vượt qua dấu `)` của tham số `(s, r)`**. Thực tế là **11**.
+Tin con số đó ⇒ kết luận *"⛔ không tệp nào cộng dồn"* — **ngược hoàn toàn**.
+
+> Cùng họ với lỗi ⑫ ở Phase 1 *(`Map` khoá theo tên, hằng số thứ hai ghi đè im
+> lặng)*. **Hai lần liên tiếp, phép kiểm tự giấu mất đúng thứ nó sinh ra để
+> bắt.** Mẫu regex viết vội ⛔ không tự báo là mình sai — nó chỉ trả một con số
+> trông hợp lý.
+
+**Ảnh hưởng hệ thống: ⛔ KHÔNG CÓ.** ⛔ Không đụng mã, bài kiểm, migration.
+`test:arch` **51 đạt · 0 hỏng** · nghiệp vụ MD **59 đạt · 0 hỏng** · độ phủ CI
+**9/10** — cả ba ⛔ không đổi. Script đo nằm ở scratchpad, ⛔ không vào kho.
+
+**Backlog cập nhật:** `B2-2b` `Effort` **`L` → `M`** · ranh giới **3 mẫu → 1
+mẫu** · `R-2` từ *"cao, ⛔ chưa đo"* xuống *"đã đo, đã có cách xử"*.
+
+🔴 **Chờ Board:** `Đ-2` duyệt thu hẹp ranh giới · `Đ-3` chọn lối xử
+`cut-ticket-basket.tsx` *(chỗ trúng thật duy nhất của mẫu `C` bị bỏ)*.
+
+---
+
 ## Chuẩn bị Sprint I-2 Phase 2 — 05/08/2026 · ✅ **HAI CỔNG GỠ BỎ**
 
 ### ✅ `G-B` · CI trên Node 22 — **PASS**

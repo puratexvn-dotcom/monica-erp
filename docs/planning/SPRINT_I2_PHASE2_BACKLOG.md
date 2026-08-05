@@ -117,9 +117,26 @@ bị sửa và sẽ sinh báo động giả *(`R-7`)*.
 | | |
 |---|---|
 | **Priority** | 🔴 **P0** — phép kiểm mới #3 |
-| **Effort** | 🔴 **`L`** — rủi ro thiết kế cao nhất Phase 2 |
-| **Dependency** | `B2-0` |
+| **Effort** | ~~`L`~~ → ✅ **`M`** — hạ sau spike `B2-2a` |
+| **Dependency** | ~~`B2-0`~~ ✅ · **`B2-2a`** ✅ · 🟠 **`Đ-2` `Đ-3`** — Board duyệt thu hẹp ranh giới |
 | **Nợ trả** | `M-2` · `G6` · Cổng D |
+
+> ## 🔬 CẬP NHẬT SAU SPIKE `B2-2a` — 05/08/2026
+>
+> [`SPIKE-B2-2a-REPORT.md`](SPIKE-B2-2a-REPORT.md) · `[MEASURED]`
+>
+> 🔴 **Ranh giới §2.3 dưới đây SAI — 50% là nhiễu.** Số lượng đạt ngưỡng
+> *(24 ≤ 40)*, nhưng **12/24 là dương tính giả**.
+>
+> | Mẫu | Bắt | Trúng | Chính xác | Phán quyết |
+> |---|---|---|---|---|
+> | `A` `.reduce(` | 16 | 11 | 69% | ✅ **GIỮ + thu hẹp** *(chỉ khi có cộng dồn)* ⇒ **100%** |
+> | `B` `× 100` | 2 | **0** | 🔴 **0%** | 🔴 **BỎ** |
+> | `C` `Math.round/min/max` | 14 | **1** | 🔴 **7%** | 🔴 **BỎ** |
+>
+> ⇒ **Sổ nợ dự kiến: 11 tệp · độ chính xác 100% · 0 dương tính giả.**
+> ⇒ Bảng ranh giới bên dưới **giữ nguyên làm hồ sơ**, ⛔ không xoá — nhưng
+> `B2-2b` thi hành theo **§2.1 của báo cáo spike**, ⛔ không theo bảng đó.
 
 **Vì sao đắt hơn nó trông**: `TD-17` vừa là một ca thật của loại này. Nó bị bắt
 vì **có người đọc mã**, ⛔ không phải vì có phép kiểm.
