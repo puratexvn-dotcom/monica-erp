@@ -148,7 +148,7 @@ export type ModuleItem = ModuleReady | ModuleComingSoon;
 
 // ─── ① ĐIỀU HÀNH ────────────────────────────────────────────────────────────
 const DIEU_HANH: ModuleItem[] = [
-  { id: 'executive', name: 'Executive Center', descKey: 'appDesc.executive', shortKey: 'appShort.executive', valueKey: 'appValue.executive',
+  { id: 'executive', name: 'CEO', descKey: 'appDesc.executive', shortKey: 'appShort.executive', valueKey: 'appValue.executive',
     status: 'READY', href: '/giam-doc', icon: LayoutDashboard, key: 'executive', group: 'dieuHanh', primaryUser: 'giamdoc', workIntent: 'workIntent.executive' },
 ];
 
@@ -156,7 +156,7 @@ const DIEU_HANH: ModuleItem[] = [
 const KINH_DOANH: ModuleItem[] = [
   { id: 'crm', name: 'CRM', descKey: 'appDesc.crm', shortKey: 'appShort.crm', valueKey: 'appValue.crm',
     status: 'COMING_SOON', icon: Contact, key: 'commercial', group: 'kinhDoanh', primaryUser: null, workIntent: 'workIntent.crm' },
-  { id: 'commercial', name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
+  { id: 'commercial', name: 'Customer Portal', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
     status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial', group: 'kinhDoanh', primaryUser: 'buyer', workIntent: 'workIntent.commercial' },
   // ═══ 🔴 REV 6 — HAI APP MỚI THEO BOARD DIRECTIVE 06/08/2026 `EPIC 2` ═════
   // Board liệt kê **22 Business App bắt buộc có mặt** trên Homepage và ghi rõ
@@ -192,7 +192,7 @@ const KINH_DOANH: ModuleItem[] = [
 
 // ─── ③ SẢN XUẤT ─────────────────────────────────────────────────────────────
 const SAN_XUAT: ModuleItem[] = [
-  { id: 'planning', name: 'Planning', descKey: 'appDesc.planning', shortKey: 'appShort.planning', valueKey: 'appValue.planning',
+  { id: 'planning', name: 'Production Director', descKey: 'appDesc.planning', shortKey: 'appShort.planning', valueKey: 'appValue.planning',
     status: 'COMING_SOON', icon: CalendarRange, key: 'planning', group: 'sanXuat', primaryUser: null, workIntent: 'workIntent.planning' },
   { id: 'production', name: 'Production', descKey: 'appDesc.production', shortKey: 'appShort.production', valueKey: 'appValue.production',
     status: 'COMING_SOON', icon: Factory, key: 'production', group: 'sanXuat', primaryUser: null, workIntent: 'workIntent.production' },
@@ -204,7 +204,7 @@ const SAN_XUAT: ModuleItem[] = [
     status: 'READY', href: '/hoan-thanh', icon: PackageCheck, key: 'production', group: 'sanXuat', primaryUser: 'hoanthanh', workIntent: 'workIntent.finishingLeader' },
   { id: 'quality', name: 'Quality', descKey: 'appDesc.quality', shortKey: 'appShort.quality', valueKey: 'appValue.quality',
     status: 'READY', href: '/qa', icon: ShieldCheck, key: 'quality', group: 'sanXuat', primaryUser: 'qa', workIntent: 'workIntent.quality' },
-  { id: 'subcontract', name: 'Subcontract', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract', valueKey: 'appValue.subcontract',
+  { id: 'subcontract', name: 'Subcontract Portal', descKey: 'appDesc.subcontract', shortKey: 'appShort.subcontract', valueKey: 'appValue.subcontract',
     status: 'READY', href: '/subcon', icon: Users, key: 'subcontract', group: 'sanXuat', primaryUser: 'subcon', workIntent: 'workIntent.subcontract' },
 ];
 
@@ -283,8 +283,65 @@ export const MODULES_THEO_NHOM: ReadonlyArray<{ nhom: NhomKey; apps: readonly Mo
 // thật — và cú lệch đó **⛔ không phép kiểm nào bắt được**, nó chỉ hiện ra
 // thành một cú nhảy bố cục mà ⛔ không ai truy được nguyên nhân.
 
-/** Tổng số Business App. ⛔ Không nơi nào được viết cứng con số này. */
+// ════════════════════════════════════════════════════════════════════════════
+// 🔴 LAUNCHER v2 — TRẬT TỰ THEO TỔ CHỨC DOANH NGHIỆP
+// Board Directive 06/08/2026 · *Homepage Business Launcher v2*
+//
+// Board xếp lại 15 ô theo **thứ bậc tổ chức**, ⛔ không theo dòng chảy đơn hàng
+// như Rev 4. Ba hàng năm ô, đọc từ trái sang phải, trên xuống dưới:
+//
+//   ① điều hành + đối tác   CEO · Production Director · Customer Portal
+//                           · Subcontract Portal · CRM
+//   ② tạo ra sản phẩm       Merchandising · Cutting · Sewing · Finishing · Quality
+//   ③ đỡ phía sau           Kho NPL · Kho TP · Shipment · Finance · HR
+//
+// ⚠️ **⛔ KHÔNG có tiêu đề hàng, ⛔ không vạch ngăn, ⛔ không nhóm.** Ba "hàng"
+// trên chỉ là **hệ quả của lưới 5 cột**, ⛔ không phải ba khu. Trang chủ vẫn là
+// **một lưới phẳng** như màn hình điện thoại — `Product Constitution §2`.
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Thứ tự 15 ô trên Trang chủ. **Thứ tự này LÀ thiết kế** — vị trí một App là
+ *  trí nhớ cơ bắp *(`P13`)*, sắp lại phải có chỉ thị Board. */
+export const TRAT_TU_TRANG_CHU: readonly string[] = [
+  'executive', 'planning', 'commercial', 'subcontract', 'crm',
+  'merchandising', 'cuttingLeader', 'sewingLeader', 'finishingLeader', 'quality',
+  'warehouse', 'warehouseFinished', 'shipment', 'finance', 'humanResources',
+];
+
+/**
+ * Chín App **ẨN khỏi Trang chủ** — Board Directive 06/08/2026 mục 3.
+ *
+ * 🔑 **ẨN, ⛔ KHÔNG XOÁ.** Chúng vẫn nằm nguyên trong `MODULES`, vẫn có route,
+ * vẫn chịu đúng phân quyền cũ. Board ghi rõ: *"Modules remain in the system and
+ * can still be accessed by route or permission."*
+ *
+ * ⚠️ **MỘT CHỖ LỆCH TRONG CHỈ THỊ, VÀ ĐÂY LÀ CÁCH TÔI ĐỌC NÓ.**
+ * Danh sách ẩn của Board có `Planning`, nhưng hàng đầu lại có `Production
+ * Director` — mà chính Board chỉ định `Planning → Production Director`. Hai
+ * điều đó ⛔ không thể cùng đúng: ẩn `planning` thì hàng đầu mất một ô.
+ *
+ * ⇒ Tôi giữ `planning` *(nay tên là Production Director)* và ẩn `salesAdmin`
+ * thay vào — vì Board đã đưa *"Sales Admin"* xuống làm **phụ đề của CRM**, tức
+ * nó thôi đứng riêng. Cách đọc này cho đúng **15 hiện · 9 ẩn** như Board tính.
+ * Nếu Board muốn ngược lại, đổi đúng một dòng dưới đây.
+ */
+export const AN_KHOI_TRANG_CHU: readonly string[] = [
+  'production', 'sales', 'salesAdmin', 'costing', 'documents',
+  'platform', 'reporting', 'communication', 'ai',
+];
+
+/** 15 App hiện trên Trang chủ, **đúng thứ tự Board xếp**. */
+export const MODULES_TRANG_CHU: readonly ModuleItem[] = TRAT_TU_TRANG_CHU
+  .map((id) => MODULES.find((m) => m.id === id))
+  .filter((m): m is ModuleItem => Boolean(m));
+
+/** Tổng số Business App **trong hệ thống** *(kể cả ô ẩn khỏi Trang chủ)*.
+ *  ⛔ Không nơi nào được viết cứng con số này. */
 export const SO_BUSINESS_APP = MODULES.length;
+
+/** Số ô **hiện trên Trang chủ** — khung chờ dựng theo đây, nếu không nó sẽ vẽ
+ *  24 ô rồi nhảy còn 15 lúc dữ liệu về. */
+export const SO_O_TRANG_CHU = MODULES_TRANG_CHU.length;
 
 /** Số ô mỗi nhóm, đúng thứ tự hiển thị — khung chờ dựng theo đây. */
 export const SO_O_MOI_NHOM: readonly number[] = MODULES_THEO_NHOM.map((g) => g.apps.length);

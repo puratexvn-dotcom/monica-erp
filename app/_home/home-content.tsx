@@ -1,6 +1,9 @@
 'use client';
 
-import { MODULES } from '@/lib/mos/registry/business-apps';
+// 🔴 Launcher v2 — Board Directive 06/08/2026: 15 ô, trật tự theo tổ chức
+// doanh nghiệp. Chín ô còn lại ẨN khỏi Trang chủ nhưng ⛔ KHÔNG bị xoá khỏi hệ
+// thống — xem `AN_KHOI_TRANG_CHU` ở registry.
+import { MODULES_TRANG_CHU } from '@/lib/mos/registry/business-apps';
 import AppCard from './app-card';
 import { modulePermissionState } from '@/lib/mos/capability/visible-modules';
 import type { Role } from '@/lib/rbac';
@@ -326,7 +329,7 @@ export default function HomeContent({
             chờ 4 cột sẽ nhảy sang 3 cột lúc dữ liệu về — đúng thứ khung chờ
             sinh ra để tránh. */}
         <div className="mx-auto grid max-w-5xl grid-cols-3 gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:grid-cols-5">
-          {MODULES.map((mod) => (
+          {MODULES_TRANG_CHU.map((mod) => (
             <AppCard
               key={mod.id}
               mod={mod}

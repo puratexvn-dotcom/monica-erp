@@ -1,4 +1,4 @@
-import { SO_BUSINESS_APP } from '@/lib/mos/registry/business-apps';
+import { SO_O_TRANG_CHU } from '@/lib/mos/registry/business-apps';
 
 // ============================================================================
 // KHUNG CHỜ CỦA TRANG CHỦ
@@ -45,12 +45,12 @@ export default function HomeSkeleton() {
           phẳng. Lệch hình là **cú nhảy bố cục** đúng lúc người dùng vừa bắt
           đầu nhìn.
 
-          🔑 Số ô đọc từ `SO_BUSINESS_APP` — thêm một Business App là khung
+          🔑 Số ô đọc từ `SO_O_TRANG_CHU` — thêm một Business App là khung
           chờ **tự dài ra**, ⛔ không ai phải nhớ sửa. */}
       {/* ⚠️ Chuỗi lớp này phải **giống hệt** lưới thật ở `home-content.tsx`.
           Đọc cả hai cạnh nhau trước khi sửa một bên. */}
       <div className="grid grid-cols-3 gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:grid-cols-5">
-        {Array.from({ length: SO_BUSINESS_APP }, (_, i) => <OCho key={i} />)}
+        {Array.from({ length: SO_O_TRANG_CHU }, (_, i) => <OCho key={i} />)}
       </div>
     </div>
   );
