@@ -2,8 +2,20 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 
-import { WAREHOUSE_DICT } from '@/lib/dictionaries/warehouse';
-import { MD_DICT } from '@/lib/dictionaries/md';
+// 🔴 TỐI ƯU KHỞI ĐỘNG 06/08/2026 — `import type`, ⛔ KHÔNG `import` giá trị.
+//
+// Hai từ điển này nặng **82 KB** (`md.ts` 65 KB · `warehouse.ts` 17 KB). Nhập
+// giá trị ở đây là **ép chúng vào gói của MỌI trang**, kể cả Trang chủ — nơi
+// ⛔ không dùng một khoá nào của chúng. Đo được: chunk chứa từ điển MD mất
+// **1.897 ms** để tải và là tệp nặng nhất của Trang chủ.
+//
+// `import type` bị **xoá sạch lúc biên dịch** ⇒ union `DictionaryKey` vẫn đầy
+// đủ cho 28 tệp đang dùng, mà ⛔ không tốn một byte nào ở trình duyệt.
+//
+// Giá trị thật được **nhóm route `(dashboard)` đăng ký** lúc nạp chunk của nó —
+// xem `app/(dashboard)/dictionaries.tsx`. Trang chủ ⛔ không nạp nhóm đó.
+import type { WAREHOUSE_DICT } from '@/lib/dictionaries/warehouse';
+import type { MD_DICT } from '@/lib/dictionaries/md';
 
 import viMessages from '@/messages/vi.json';
 import enMessages from '@/messages/en.json';
@@ -135,10 +147,29 @@ const MESSAGES: Record<Language, Record<string, string>> = {
 // Khoá hiến định (messages/*.json) đứng SAU nên THẮNG khi trùng tên với từ
 // điển cũ. Nguồn hiến định luôn thắng lớp tương thích.
 const dictionary: Record<Language, Record<string, string>> = {
-  VN: { ...core.VN, ...WAREHOUSE_DICT.VN, ...MD_DICT.VN, ...MESSAGES.VN },
-  EN: { ...core.EN, ...WAREHOUSE_DICT.EN, ...MD_DICT.EN, ...MESSAGES.EN },
-  CN: { ...core.CN, ...WAREHOUSE_DICT.CN, ...MD_DICT.CN, ...MESSAGES.CN },
+  VN: { ...core.VN, ...MESSAGES.VN },
+  EN: { ...core.EN, ...MESSAGES.EN },
+  CN: { ...core.CN, ...MESSAGES.CN },
 };
+
+/**
+ * Đăng ký một từ điển NGÀNH vào từ điển đang chạy.
+ *
+ * 🔑 Gọi ở **module scope** của chunk route cần nó, ⛔ **không** trong
+ * `useEffect`: module scope chạy lúc chunk được nạp — tức **trước** khi
+ * component đầu tiên render. Nhờ vậy ⛔ không có khoảnh khắc nào `t()` trả về
+ * tên khoá thay vì bản dịch.
+ *
+ * ⚠️ Khoá hiến định (`messages/*.json`) vẫn phải THẮNG khi trùng tên, nên từ
+ * điển ngành được trộn vào **DƯỚI** `MESSAGES` — đúng thứ tự cũ.
+ */
+export function dangKyTuDienNganh(
+  d: Record<Language, Record<string, string>>,
+): void {
+  (['VN', 'EN', 'CN'] as const).forEach((L) => {
+    dictionary[L] = { ...d[L], ...dictionary[L] };
+  });
+}
 
 /**
  * Ép cây kiểu của tệp JSON thành union khoá phẳng `'nhóm.khoá'`.

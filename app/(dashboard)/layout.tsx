@@ -13,10 +13,14 @@
 // ============================================================================
 
 import DashboardTopbar from '@/components/dashboard-topbar';
+// 🔴 Nạp từ điển ngành CHỈ cho nhóm route này — Trang chủ ⛔ không gánh 82 KB
+// từ điển MD + Kho mà nó ⛔ không dùng. Xem `./dictionaries.tsx`.
+import DangKyTuDien from './dictionaries';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50">
+      <DangKyTuDien />
       <DashboardTopbar />
       <main className="w-full">{children}</main>
     </div>
