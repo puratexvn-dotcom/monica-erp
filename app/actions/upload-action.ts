@@ -37,12 +37,20 @@ export interface UploadResult {
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
+// 🔴 THÊM `application/pdf` — Board 06/08/2026: *"PO phải upload được hình ảnh
+// mẫu **và tài liệu đi kèm**."* Tech pack, bảng màu, chứng từ đều là PDF.
+//
+// ⚠️ **CỐ Ý ⛔ KHÔNG mở cho Word/Excel.** Hai định dạng đó mang **macro chạy
+// được**, và tệp ở đây được người ngoài *(nhà thầu, khách)* tải về mở trên máy
+// của họ. Mở allowlist cho chúng là quyết định **bảo mật**, ⛔ không phải tiện
+// ích — cần Board. Ai cần gửi Excel thì xuất PDF, hoặc chờ Board mở.
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/heic',
   'image/heif',
+  'application/pdf',
 ]);
 
 /** Phần mở rộng suy từ MIME, KHÔNG lấy từ tên tệp do client gửi */
@@ -52,6 +60,7 @@ const EXT_BY_MIME: Record<string, string> = {
   'image/webp': 'webp',
   'image/heic': 'heic',
   'image/heif': 'heif',
+  'application/pdf': 'pdf',
 };
 
 /**
@@ -85,7 +94,8 @@ export async function uploadEvidence(formData: FormData): Promise<UploadResult> 
   if (!ALLOWED_MIME.has(raw.type)) {
     return {
       ok: false,
-      message: `Định dạng không hỗ trợ (${raw.type || 'không rõ'}). Chỉ nhận JPG, PNG, WEBP, HEIC.`,
+      message: `Định dạng không hỗ trợ (${raw.type || 'không rõ'}). Chỉ nhận ảnh JPG, PNG, WEBP, HEIC và tài liệu PDF. `
+        + 'File Word/Excel xin xuất sang PDF trước khi tải lên.',
     };
   }
 

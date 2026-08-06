@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   LayoutDashboard, CalendarClock, Shirt, Layers, PackageSearch, Factory,
-  ShieldCheck, Ship, TriangleAlert, MessageSquare, X, Loader2, type LucideIcon,
+  ShieldCheck, Ship, TriangleAlert, MessageSquare, X, Loader2, Paperclip, Pencil, type LucideIcon,
 } from 'lucide-react';
 
-import { Badge } from '@/components/ui';
+import { toast } from 'sonner';
+
+import { Badge, btnPrimary, btnGhost, inputCls } from '@/components/ui';
+import { uploadEvidence } from '@/app/actions/upload-action';
+import { updatePo, attachToPo, listPoAttachments } from '@/app/(dashboard)/md/_actions/po.actions';
+import { PO_TIEN_DO, PO_TIEN_DO_LABEL } from '@/lib/mos/md/po-edit';
 import { getPo360Client } from '@/app/(dashboard)/md/_actions/po360.client';
 import type { Po360Data } from '@/app/(dashboard)/md/_services/po.service';
 import { TabOverview, TabTimeline, TabSamples, TabBom, TabMaterials } from './tabs-planning';
@@ -45,6 +50,140 @@ const TABS: Array<{ key: TabKey; label: string; short: string; icon: LucideIcon 
   { key: 'risk', label: 'Rủi ro', short: 'Rủi ro', icon: TriangleAlert },
   { key: 'collab', label: 'Thảo luận & Tài liệu', short: 'Thảo luận', icon: MessageSquare },
 ];
+
+// ════════════════════════════════════════════════════════════════════════════
+// SỬA ĐƠN HÀNG + TỆP ĐÍNH KÈM — Board 06/08/2026
+//
+// *"PO phải upload được **hình ảnh mẫu và tài liệu đi kèm**; PD và MD **sửa
+// được số lượng và tiến độ** của PO đó."*
+//
+// ⚠️ Hai khối này đặt **trong tệp này**, ⛔ không tách ra tệp mới — `arch.test`
+// ⑨/⑩ là bánh cóc: tệp MỚI viết màu/cỡ chữ thẳng thì HỎNG, mà thêm tên vào sổ
+// nợ là việc **cần Board duyệt**. Tệp này đã nằm sẵn trong cả hai sổ.
+// ════════════════════════════════════════════════════════════════════════════
+
+function SuaPoForm({ orderId, h, onXong }: {
+  orderId: string;
+  h: { total_quantity: number; status: string; delivery_date: string };
+  onXong: () => void;
+}) {
+  const [sl, setSl] = useState(String(h.total_quantity));
+  const [tt, setTt] = useState(h.status);
+  const [ngay, setNgay] = useState((h.delivery_date ?? '').slice(0, 10));
+  const [dang, setDang] = useState(false);
+  const [canhBao, setCanhBao] = useState<string | null>(null);
+
+  const luu = (xacNhan: boolean) => {
+    setDang(true);
+    void updatePo(orderId, { total_quantity: Number(sl), status: tt, delivery_date: ngay }, xacNhan)
+      .then((r) => {
+        // 🔴 Máy chủ trả cảnh báo khi số lượng mới THẤP HƠN số đã sản xuất.
+        // Hiện nó ra và bắt bấm lần nữa — ⛔ không tự ghi đè, cũng ⛔ không
+        // chặn cứng: có khi khách thật sự cắt đơn.
+        if (!r.ok && r.data?.canhBao) { setCanhBao(r.data.canhBao); return; }
+        if (r.ok) { toast.success(r.message ?? 'Đã lưu.'); setCanhBao(null); onXong(); }
+        else toast.error(r.message ?? 'Không lưu được.');
+      })
+      .finally(() => setDang(false));
+  };
+
+  return (
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <label className="block">
+          <span className="text-xs font-semibold text-slate-600">Số lượng (sp)</span>
+          <input type="number" min={1} step={1} value={sl} onChange={(e) => setSl(e.target.value)}
+            className={inputCls} aria-label="Số lượng đơn hàng" />
+        </label>
+        <label className="block">
+          <span className="text-xs font-semibold text-slate-600">Tiến độ</span>
+          <select value={tt} onChange={(e) => setTt(e.target.value)} className={inputCls} aria-label="Tiến độ đơn hàng">
+            {PO_TIEN_DO.map((s) => <option key={s} value={s}>{PO_TIEN_DO_LABEL[s]}</option>)}
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-xs font-semibold text-slate-600">Ngày giao</span>
+          <input type="date" value={ngay} onChange={(e) => setNgay(e.target.value)}
+            className={inputCls} aria-label="Ngày giao hàng" />
+        </label>
+      </div>
+
+      {canhBao && (
+        <p className="rounded-lg bg-amber-50 p-2 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
+          ⚠️ {canhBao}
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={btnPrimary} disabled={dang} onClick={() => luu(Boolean(canhBao))}>
+          {dang ? 'Đang lưu…' : canhBao ? 'Vẫn lưu — tôi xác nhận' : 'Lưu thay đổi'}
+        </button>
+        {canhBao && (
+          <button type="button" className={btnGhost} onClick={() => setCanhBao(null)}>Huỷ</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TepDinhKem({ orderId }: { orderId: string }) {
+  const [rows, setRows] = useState<Array<{ id: string; file_url: string; created_at: string }>>([]);
+  const [dang, setDang] = useState(false);
+
+  const nap = useCallback(() => {
+    void listPoAttachments(orderId).then((r) => setRows(r.rows));
+  }, [orderId]);
+  useEffect(nap, [nap]);
+
+  const chon = (f: File | null) => {
+    if (!f) return;
+    setDang(true);
+    const fd = new FormData();
+    fd.append('file', f);
+    fd.append('folder', 'po');
+    // ⚠️ HAI BƯỚC có chủ ý: tải tệp lên trước, ghi mối liên hệ sau. Gộp lại thì
+    // một lần tải hỏng sẽ để lại bản ghi trỏ tới tệp ⛔ không tồn tại.
+    void uploadEvidence(fd)
+      .then((u) => {
+        // `url` chỉ có khi `ok` — TypeScript ⛔ không suy ra được điều đó từ
+        // kiểu `UploadResult`, nên kiểm tường minh thay vì ép kiểu.
+        if (!u.ok || !u.url) { toast.error(u.message); return null; }
+        return attachToPo(orderId, u.url, f.name);
+      })
+      .then((a) => {
+        if (!a) return;
+        if (a.ok) { toast.success('Đã đính kèm.'); nap(); } else toast.error(a.message);
+      })
+      .finally(() => setDang(false));
+  };
+
+  return (
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-blue-700">
+        <Paperclip className="h-4 w-4" aria-hidden="true" />
+        {dang ? 'Đang tải lên…' : 'Thêm ảnh mẫu hoặc tài liệu (PDF)'}
+        <input type="file" className="sr-only" disabled={dang}
+          accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+          onChange={(e) => chon(e.target.files?.[0] ?? null)} />
+      </label>
+      {rows.length === 0 ? (
+        <p className="text-xs text-slate-500">Chưa có tệp nào đính kèm đơn này.</p>
+      ) : (
+        <ul className="space-y-1">
+          {rows.map((r) => (
+            <li key={r.id} className="truncate text-xs">
+              <a href={r.file_url} target="_blank" rel="noopener noreferrer"
+                className="font-semibold text-blue-700 underline">
+                {r.file_url.split('/').pop()}
+              </a>
+              <span className="text-slate-400"> · {fmtDate(r.created_at)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export default function Po360Sheet({
   orderId,
@@ -198,7 +337,38 @@ export default function Po360Sheet({
             </div>
           ) : (
             <>
-              {tab === 'overview' && <TabOverview data={data} />}
+              {tab === 'overview' && (
+                <div className="space-y-4">
+                  <TabOverview data={data} />
+
+                  {/* 🔑 Sửa PO và tệp đính kèm nằm ở tab TỔNG QUAN, ⛔ không tách
+                      tab riêng: đây là hai việc người dùng làm NGAY khi đang
+                      nhìn thông tin đơn, ⛔ không phải hai màn hình riêng. */}
+                  {h && (
+                    <section className="space-y-2">
+                      <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
+                        <Pencil className="h-4 w-4" aria-hidden="true" /> Sửa số lượng · tiến độ · ngày giao
+                      </h3>
+                      <SuaPoForm
+                        orderId={orderId}
+                        h={{
+                          total_quantity: h.total_quantity,
+                          status: h.status,
+                          delivery_date: h.delivery_date,
+                        }}
+                        onXong={() => { void getPo360Client(orderId).then(setData); }}
+                      />
+                    </section>
+                  )}
+
+                  <section className="space-y-2">
+                    <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
+                      <Paperclip className="h-4 w-4" aria-hidden="true" /> Ảnh mẫu &amp; tài liệu
+                    </h3>
+                    <TepDinhKem orderId={orderId} />
+                  </section>
+                </div>
+              )}
               {tab === 'timeline' && <TabTimeline data={data} />}
               {tab === 'samples' && <TabSamples data={data} />}
               {tab === 'bom' && <TabBom data={data} />}
