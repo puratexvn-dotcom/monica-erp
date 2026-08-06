@@ -13,6 +13,7 @@ import {
   type MaterialRequestRow,
   type ProductionOrderRow,
   type ShipmentRow,
+  type QaReportRow,
 } from './md-schema';
 
 // ============================================================================
@@ -105,6 +106,7 @@ export interface MdSnapshot {
   materialRequests: MaterialRequestRow[];
   productionOrders: ProductionOrderRow[];
   shipments: ShipmentRow[];
+  qaReports: QaReportRow[];
   /** Lỗi theo từng nhóm — KHÔNG gộp một biến, vì gộp thì bảng nào hỏng cũng
    *  hiện "chưa có dữ liệu", người dùng tưởng trống trong khi là lỗi kết nối. */
   errors: {
@@ -112,6 +114,7 @@ export interface MdSnapshot {
     materialRequests: string | null;
     productionOrders: string | null;
     shipments: string | null;
+    qaReports: string | null;
   };
 }
 
@@ -121,7 +124,11 @@ export async function loadMdSnapshot(): Promise<MdSnapshot> {
     materialRequests: [],
     productionOrders: [],
     shipments: [],
-    errors: { customers: null, materialRequests: null, productionOrders: null, shipments: null },
+    qaReports: [],
+    errors: {
+      customers: null, materialRequests: null, productionOrders: null,
+      shipments: null, qaReports: null,
+    },
   };
 
   const { supabase, error } = await guard();
@@ -133,12 +140,13 @@ export async function loadMdSnapshot(): Promise<MdSnapshot> {
         materialRequests: error,
         productionOrders: error,
         shipments: error,
+        qaReports: error,
       },
     };
   }
 
   // allSettled: một bảng lỗi không được kéo cả trang xuống
-  const [cRes, mRes, pRes, sRes] = await Promise.allSettled([
+  const [cRes, mRes, pRes, sRes, qRes] = await Promise.allSettled([
     supabase
       .from('customers')
       .select('id, customer_code, name, contact_person, phone, country, is_active')
@@ -160,6 +168,13 @@ export async function loadMdSnapshot(): Promise<MdSnapshot> {
       .select('id, shipment_no, container_no, destination_port, etd_date, status, evidence_path, orders ( po_number )')
       .order('created_at', { ascending: false })
       .limit(500),
+    // Biên bản kiểm hàng — MD chỉ ĐỌC. Nối chặng Kiểm hàng của dòng chảy, vốn
+    // trước đây phải khai ⚪ "chưa đo được" vì ⛔ không có đường dữ liệu nào.
+    supabase
+      .from('qa_audit_reports')
+      .select('id, inspected_qty, passed_qty, defect_qty, orders ( po_number )')
+      .order('created_at', { ascending: false })
+      .limit(1000),
   ]);
 
   const take = <TRaw, TOut>(
@@ -193,6 +208,7 @@ export async function loadMdSnapshot(): Promise<MdSnapshot> {
   type RawMr = Omit<MaterialRequestRow, 'po_number'> & WithPo;
   type RawPo = Omit<ProductionOrderRow, 'po_number'> & WithPo;
   type RawSh = Omit<ShipmentRow, 'po_number'> & WithPo;
+  type RawQa = Omit<QaReportRow, 'po_number'> & WithPo;
 
   const c = take<CustomerRow, CustomerRow>(cRes, 'danh sách khách hàng', (rows) => rows);
   const m = take<RawMr, MaterialRequestRow>(mRes, 'đề nghị mua NPL', (rows) =>
@@ -205,16 +221,28 @@ export async function loadMdSnapshot(): Promise<MdSnapshot> {
     rows.map((r) => ({ ...r, po_number: poOf(r) })),
   );
 
+  const q = take<RawQa, QaReportRow>(qRes, 'biên bản kiểm hàng', (rows) =>
+    rows.map((r) => ({
+      ...r,
+      inspected_qty: Number(r.inspected_qty),
+      passed_qty: Number(r.passed_qty),
+      defect_qty: Number(r.defect_qty),
+      po_number: poOf(r),
+    })),
+  );
+
   return {
     customers: c.rows,
     materialRequests: m.rows,
     productionOrders: p.rows,
     shipments: s.rows,
+    qaReports: q.rows,
     errors: {
       customers: c.error,
       materialRequests: m.error,
       productionOrders: p.error,
       shipments: s.error,
+      qaReports: q.error,
     },
   };
 }

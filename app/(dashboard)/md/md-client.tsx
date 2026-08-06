@@ -606,6 +606,7 @@ export default function MdClient({
                 po_number: s.po_number, status: s.status,
                 so: s.shipment_no, moc: s.etd_date, evidence_path: s.evidence_path,
               }))}
+              inspections={snap.qaReports}
               today={vnTodayISO()}
               onOpenTab={(t) => goTab(t as TabKey)}
             />

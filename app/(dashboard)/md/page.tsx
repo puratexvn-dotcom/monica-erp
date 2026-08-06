@@ -50,7 +50,11 @@ export default async function MerchandiserPage() {
       materialRequests: [],
       productionOrders: [],
       shipments: [],
-      errors: { customers: msg, materialRequests: msg, productionOrders: msg, shipments: msg },
+      qaReports: [],
+      errors: {
+        customers: msg, materialRequests: msg, productionOrders: msg,
+        shipments: msg, qaReports: msg,
+      },
     };
   }
 

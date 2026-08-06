@@ -185,6 +185,51 @@ console.log('\n⑭ soNgayConLai');
   ok('Thiếu dữ liệu ⇒ null', soNgayConLai(null, '2026-08-06') === null);
 }
 
+console.log('\n⑰ KIỂM HÀNG — nay ĐỌC ĐƯỢC từ biên bản QA');
+{
+  ok('⛔ Không truyền biên bản ⇒ vẫn KHONG_DO_DUOC',
+    chang(tinhHanhTrinh(base), 'KIEM_HANG') === 'KHONG_DO_DUOC',
+    'phải phân biệt "⛔ chưa có đường dữ liệu" với "có đường mà chưa ai kiểm"');
+  ok('Có đường nhưng ⛔ chưa biên bản nào ⇒ CHUA_TOI',
+    chang(tinhHanhTrinh({ ...base, inspections: [] }), 'KIEM_HANG') === 'CHUA_TOI');
+
+  const dangSx = tinhHanhTrinh({
+    ...base,
+    inspections: [{ po_number: PO, inspected_qty: 200, passed_qty: 190, defect_qty: 10 }],
+  });
+  ok('Có biên bản, SX chưa xong ⇒ DANG_LAM', chang(dangSx, 'KIEM_HANG') === 'DANG_LAM');
+  const viDangSx = dangSx.chang.find((c) => c.chang === 'KIEM_HANG').vi;
+  ok('Hiện SỐ THẬT: đã kiểm · lỗi · tỉ lệ',
+    viDangSx.includes('200') && viDangSx.includes('10') && viDangSx.includes('5%'), viDangSx);
+
+  const xong = tinhHanhTrinh({
+    ...base,
+    productions: [{ po_number: PO, status: 'COMPLETED' }],
+    inspections: [{ po_number: PO, inspected_qty: 100, passed_qty: 100, defect_qty: 0 }],
+  });
+  ok('SX xong + có biên bản ⇒ XONG', chang(xong, 'KIEM_HANG') === 'XONG');
+
+  ok('Biên bản của ĐƠN KHÁC ⛔ không lẫn vào',
+    chang(tinhHanhTrinh({
+      ...base, inspections: [{ po_number: 'PO-999', inspected_qty: 50, passed_qty: 50, defect_qty: 0 }],
+    }), 'KIEM_HANG') === 'CHUA_TOI');
+
+  // 🔴 `inspected_qty = 0` ⇒ chia cho 0. `NaN` lọt ra HTML là thứ nghi thức
+  //    nghiệm thu bắt phải soi.
+  const khong = tinhHanhTrinh({
+    ...base, inspections: [{ po_number: PO, inspected_qty: 0, passed_qty: 0, defect_qty: 0 }],
+  });
+  const viKhong = khong.chang.find((c) => c.chang === 'KIEM_HANG').vi;
+  ok('⛔ KHÔNG sinh NaN khi đã kiểm 0 sp',
+    !viKhong.includes('NaN') && viKhong.includes('chưa tính được'), viKhong);
+}
+
+console.log('\n⑱ % TIẾN ĐỘ khi Kiểm hàng đã đo được ⇒ mẫu số thành 6');
+{
+  const h = tinhHanhTrinh({ ...base, inspections: [] });
+  ok('Chỉ PO xong, 6 chặng đo được ⇒ 17%', h.phanTram === 17, `${h.phanTram}%`);
+}
+
 console.log('\n⑮ BƯỚC KẾ TIẾP — vòng đời chứng từ');
 {
   ok('NPL: DRAFT → SUBMITTED', buocKeTiepNPL('DRAFT').status === 'SUBMITTED');

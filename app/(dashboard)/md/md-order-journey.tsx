@@ -23,6 +23,7 @@ import { NoData } from '@/components/data-state';
 import {
   tinhHanhTrinh, CHANG, CHANG_LABEL, SUC_KHOE_LABEL,
   type Chang, type TrangThaiChang, type SucKhoe, type ChungTuCon, type HanhTrinh,
+  type BienBanKiem,
 } from '@/lib/mos/md/order-journey';
 import { fmtDate } from './md-tabs';
 
@@ -51,12 +52,13 @@ const SUC_KHOE_TONE: Record<SucKhoe, string> = {
 };
 
 export default function MdOrderJourney({
-  pos, materials, productions, shipments, today, onOpenTab,
+  pos, materials, productions, shipments, inspections, today, onOpenTab,
 }: {
   pos: { id: string; po_number: string; status: string; customer_name: string; delivery_date: string }[];
   materials: ChungTuCon[];
   productions: ChungTuCon[];
   shipments: ChungTuCon[];
+  inspections: BienBanKiem[];
   today: string;
   onOpenTab: (tab: 'po' | 'materials' | 'production' | 'shipments') => void;
 }) {
@@ -67,7 +69,7 @@ export default function MdOrderJourney({
     h: tinhHanhTrinh({
       poNumber: p.po_number,
       poStatus: p.status,
-      materials, productions, shipments,
+      materials, productions, shipments, inspections,
       deliveryDate: p.delivery_date,
       today,
     }),
@@ -106,10 +108,13 @@ export default function MdOrderJourney({
             </table>
           </div>
 
+          {/* 🔴 Nói thẳng giới hạn, ⛔ không để người đọc tự suy. */}
           <p className={`mt-3 ${tdMuted}`}>
-            ⚪ <strong>Kiểm hàng chưa đo được</strong> — MD chưa có đường dữ liệu sang Workspace QA.
-            Cột này ⛔ <strong>không</strong> nghĩa là &quot;chưa kiểm&quot;, và nó ⛔ <strong>không</strong> được
-            tính vào mẫu số của % tiến độ.
+            ⚠️ Chặng <strong>Kiểm hàng</strong> hiện <strong>số liệu thật</strong> từ biên bản QA
+            (số lượt kiểm · số lỗi · tỉ lệ). &quot;Đã xong&quot; ở đây nghĩa là{' '}
+            <strong>đã có biên bản kiểm cho lô đã sản xuất xong</strong> — ⛔ <strong>không</strong>{' '}
+            nghĩa là đã đạt AQL 2.5. Bảng biên bản ⛔ không ghi phán quyết cuối, và ngưỡng AQL là
+            quyết định của Board chứ ⛔ không phải của phần mềm.
           </p>
         </>
       )}

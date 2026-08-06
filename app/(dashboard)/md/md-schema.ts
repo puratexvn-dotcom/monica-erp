@@ -201,6 +201,18 @@ export interface ShipmentRow {
   po_number: string | null;
 }
 
+/** Biên bản kiểm hàng của QA — MD chỉ ĐỌC.
+ *
+ *  🔑 Bảng `qa_audit_reports` thuộc Workspace QA, gắn với đơn qua `order_id`.
+ *  MD đọc nó để trả lời chặng **Kiểm hàng** của dòng chảy — ⛔ không ghi. */
+export interface QaReportRow {
+  id: string;
+  inspected_qty: number;
+  passed_qty: number;
+  defect_qty: number;
+  po_number: string | null;
+}
+
 export const MR_STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Nháp',
   SUBMITTED: 'Đã trình',

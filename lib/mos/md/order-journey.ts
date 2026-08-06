@@ -66,6 +66,14 @@ export interface ChungTuCon {
   evidence_path?: string | null;
 }
 
+/** Biên bản kiểm hàng của QA — MD chỉ ĐỌC. */
+export interface BienBanKiem {
+  po_number: string | null;
+  inspected_qty: number;
+  passed_qty: number;
+  defect_qty: number;
+}
+
 export interface DauVaoHanhTrinh {
   poNumber: string;
   /** `orders.status` — chỉ dùng cho chặng `PO` và `HOAN_TAT`. */
@@ -73,6 +81,11 @@ export interface DauVaoHanhTrinh {
   materials: ChungTuCon[];
   productions: ChungTuCon[];
   shipments: ChungTuCon[];
+  /**
+   * Biên bản kiểm hàng. **⛔ Không truyền** ⇒ chặng Kiểm hàng vẫn khai
+   * `KHONG_DO_DUOC` — đúng như trước khi có đường dữ liệu QA.
+   */
+  inspections?: BienBanKiem[];
   /** Ngày giao hẹn khách — gốc của mọi phép tính sức khoẻ. */
   deliveryDate?: string | null;
   /** Hôm nay theo giờ VN (`YYYY-MM-DD`). Truyền vào để hàm THUẦN và kiểm được. */
@@ -222,15 +235,7 @@ export function tinhHanhTrinh(d: DauVaoHanhTrinh): HanhTrinh {
       moc: mocSom(sx),
       bangChung: bc(sx),
     },
-    {
-      // 🔴 Xem khối chú thích đầu tệp. ⛔ KHÔNG đổi thành `CHUA_TOI`.
-      chang: 'KIEM_HANG',
-      trangThai: 'KHONG_DO_DUOC',
-      vi: '⚪ Chưa đo được — MD chưa có đường dữ liệu sang Workspace QA',
-      chuTrach: CHU_TRACH.KIEM_HANG,
-      moc: null,
-      bangChung: [],
-    },
+    kiemHang(d.inspections, d.poNumber, sxXong),
     {
       chang: 'GIAO_HANG',
       trangThai: ghXong ? 'XONG' : gh.length > 0 ? 'DANG_LAM' : 'CHUA_TOI',
@@ -278,6 +283,47 @@ export function tinhHanhTrinh(d: DauVaoHanhTrinh): HanhTrinh {
     phanTram: tinhPhanTram(chang),
     viecKeTiep: tinhViecKeTiep(dungO, chang),
   };
+}
+
+/**
+ * Chặng **KIỂM HÀNG** — đọc từ `qa_audit_reports` của Workspace QA.
+ *
+ * 🔴 **MỘT GIỚI HẠN PHẢI NÓI RA.** Bảng biên bản kiểm ⛔ **không có** trường
+ * *"lô này đã ĐẠT AQL"*. Nó ghi **số lượt kiểm** và **số lỗi**, ⛔ không ghi
+ * **phán quyết cuối**. Vì vậy:
+ *
+ *   `XONG` ở đây nghĩa là **"đã có biên bản kiểm cho lô đã sản xuất xong"**,
+ *   ⛔ **KHÔNG** nghĩa là *"đã đạt AQL 2.5"*.
+ *
+ * Suy ra "đạt" từ tỉ lệ lỗi là **tự đặt ngưỡng nghiệp vụ** — mà ngưỡng AQL là
+ * quyết định của Board, ⛔ không phải của một hàm tiện ích. Giao diện vì vậy
+ * hiện **con số thật** *(đã kiểm N · lỗi X · tỉ lệ Y%)* để người đọc tự phán,
+ * thay vì một chữ "Đạt" ⛔ không ai ký.
+ *
+ * ⚠️ ⛔ Không truyền `inspections` ⇒ vẫn trả `KHONG_DO_DUOC` như cũ. Đó là chỗ
+ * phân biệt *"⛔ chưa có đường dữ liệu"* với *"có đường mà chưa ai kiểm"*.
+ */
+function kiemHang(
+  ds: BienBanKiem[] | undefined,
+  po: string,
+  sxXong: boolean,
+): ChangResult {
+  const chung = { chang: 'KIEM_HANG' as const, chuTrach: CHU_TRACH.KIEM_HANG, moc: null, bangChung: [] };
+  if (!ds) {
+    return { ...chung, trangThai: 'KHONG_DO_DUOC', vi: '⚪ Chưa đo được — chưa có đường dữ liệu sang Workspace QA' };
+  }
+  const cua = ds.filter((r) => r.po_number === po);
+  if (cua.length === 0) {
+    return { ...chung, trangThai: 'CHUA_TOI', vi: 'Chưa có biên bản kiểm nào cho đơn này' };
+  }
+  const kiem = cua.reduce((t, r) => t + (Number(r.inspected_qty) || 0), 0);
+  const loi = cua.reduce((t, r) => t + (Number(r.defect_qty) || 0), 0);
+  // ⚠️ Chia cho 0 ra `NaN`, và `NaN` lọt ra HTML là thứ nghi thức nghiệm thu
+  // bắt phải soi. Biên bản có thể ghi `inspected_qty = 0`.
+  const tiLe = kiem > 0 ? Math.round((loi / kiem) * 1000) / 10 : null;
+  const vi = `${cua.length} biên bản · đã kiểm ${kiem} sp · lỗi ${loi}`
+    + (tiLe === null ? ' · ⚪ chưa tính được tỉ lệ' : ` (${tiLe}%)`);
+  return { ...chung, trangThai: sxXong ? 'XONG' : 'DANG_LAM', vi };
 }
 
 /** Số ngày từ `today` tới `hen`. Âm = đã quá hạn. `null` khi thiếu dữ liệu. */
