@@ -3,6 +3,16 @@ import CatShell from './cat-shell'
 import { getCatCommandCenter } from './_services/command-center.service'
 import ActionForm from '@/components/forms/action-form'
 
+// 🔴 BIỂU ĐỒ TRƯỚC BẢNG — Board 06/08/2026. Nạp ĐỘNG: `recharts` ~100 kB.
+// ⚠️ BÍ DANH `napDong`: tệp có `export const dynamic = 'force-dynamic'`, trùng
+// tên thì hằng số CHE MẤT hàm — bẫy kinh điển của App Router.
+import napDong from 'next/dynamic'
+
+const CuttingCharts = napDong(() => import('@/components/cutting/cutting-charts'), {
+  ssr: false,
+  loading: () => <div className="h-52 rounded-xl border border-slate-200 bg-white" aria-hidden="true" />,
+})
+
 // ============================================================================
 // CUTTING WORKSPACE — Blueprint tầng ⑤
 //
@@ -30,6 +40,13 @@ export default async function CuttingPage() {
 
   return (
     <CatShell viec={cc.viec} kpi={cc.kpi} loi={cc.loi}>
+      {/* 🔴 HAI BIỂU ĐỒ CỦA TỔ CẮT — đặt TRƯỚC bảng nhật ký. Tổ trưởng hỏi
+          *"bàn nào cắt thiếu"* và *"bàn nào ăn vải vượt định mức"*; bảng trả
+          lời được cả hai nhưng bắt trừ nhẩm từng dòng. */}
+      <div className="mb-6">
+        <CuttingCharts tickets={tickets} />
+      </div>
+
       {/* GRID CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         

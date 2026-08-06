@@ -1,5 +1,5 @@
 import { cuttingWastePercent } from '@/lib/garment-math';
-import { laHomNayVN } from '@/lib/time';
+import { laHomNayVN, ngayVN, ngayVNCua } from '@/lib/time';
 import type { DuLieuCat } from '@/lib/mos/workspace/cat-work-items';
 
 // ============================================================================
@@ -98,3 +98,130 @@ export function duLieuCatHomNay(phieu: readonly PhieuCat[]): DuLieuCat {
   };
 }
 
+
+// ============================================================================
+// DỮ LIỆU VẼ CHO TỔ CẮT — Board 06/08/2026: *"luôn ưu tiên trực quan, biểu đồ"*
+//
+// 🔑 Tổ trưởng cắt hỏi đúng **hai câu** mỗi ngày:
+//   ① *"Bàn nào cắt thiếu so với kế hoạch?"*  — sản lượng
+//   ② *"Bàn nào ăn vải vượt định mức?"*       — tiền
+//
+// Bảng phiếu cắt trả lời được cả hai, nhưng bắt **trừ nhẩm từng dòng**. Hai
+// biểu đồ cột trả lời trong một cái liếc — và tổ trưởng đang đứng ở bàn cắt,
+// ⛔ không ngồi bàn giấy.
+//
+// ─── 🔴 VÌ SAO ⛔ KHÔNG KHOÁ CỨNG VÀO "HÔM NAY" ─────────────────────────
+// Bản đầu tôi lọc đúng `laHomNayVN`. Mở `/to-truong-cat` bằng phiên `cat001`
+// thật: **0 biểu đồ** — vì hôm nay chưa bàn nào cắt. Nhà máy ⛔ không cắt mỗi
+// ngày; một hộp trống mỗi sáng thì tổ trưởng thôi nhìn sau đúng ba hôm.
+//
+// ⇒ Ưu tiên **hôm nay**; hôm nay ⛔ chưa có thì lùi về **ngày cắt gần nhất**
+// và **ghi rõ ngày đó ra tiêu đề**. Đây ⛔ **không** phải bịa dữ liệu — nó là
+// dữ liệu thật, chỉ khác là màn hình **nói thẳng nó của ngày nào** thay vì để
+// người đọc tưởng là hôm nay.
+// ============================================================================
+
+/** Ngày nên vẽ: **hôm nay** nếu có phiếu, ⛔ không thì **ngày cắt gần nhất**.
+ *  `null` khi ⛔ chưa có phiếu nào. */
+export function ngayVeCat(phieu: readonly PhieuCat[]): string | null {
+  const ngay = phieu
+    .map((p) => ngayVNCua(p.created_at ?? null))
+    .filter((d): d is string => Boolean(d));
+  if (ngay.length === 0) return null;
+  const homNay = ngayVN();
+  return ngay.includes(homNay) ? homNay : ngay.sort().at(-1) ?? null;
+}
+
+// ============================================================================
+// DỮ LIỆU VẼ CHO TỔ CẮT — Board 06/08/2026: *"luôn ưu tiên trực quan, biểu đồ"*
+//
+// 🔑 Tổ trưởng cắt hỏi đúng **hai câu** mỗi ngày:
+//   ① *"Bàn nào cắt thiếu so với kế hoạch?"*  — sản lượng
+//   ② *"Bàn nào ăn vải vượt định mức?"*       — tiền
+//
+// Bảng phiếu cắt trả lời được cả hai, nhưng bắt **trừ nhẩm từng dòng**. Hai
+// biểu đồ cột trả lời trong một cái liếc — và tổ trưởng đang đứng ở bàn cắt,
+// ⛔ không ngồi bàn giấy.
+// ============================================================================
+
+export interface CotPhieuCat {
+  phieu: string;
+  'Kế hoạch': number;
+  'Thực cắt': number;
+  /** Thiếu so với kế hoạch. `0` khi đủ hoặc vượt. */
+  thieu: number;
+}
+
+export interface CotHaoHutCat {
+  phieu: string;
+  /** Hao hụt vải, phần trăm — con số mang phán quyết của khâu cắt. */
+  hao: number;
+  daTrai: number;
+  dauTam: number;
+  vaiLoi: number;
+}
+
+/** Kế hoạch ⟷ thực cắt của **các phiếu hôm nay**.
+ *
+ *  ⚠️ CHỈ lấy phiếu **đã cắt** *(`total_actual_pcs > 0`)*, đúng như
+ *  `duLieuCatHomNay` đã làm. Phiếu chưa cắt có thực tế `0` và sẽ vẽ thành một
+ *  cột trống cạnh cột kế hoạch cao ngất — trông y hệt *"cắt hụt toàn bộ"*.
+ *  Đó là **lời buộc tội sai**, và biểu đồ buộc tội sai thì tổ trưởng thôi nhìn
+ *  biểu đồ. */
+export function cotPhieuCat(phieu: readonly PhieuCat[], ngay: string | null): CotPhieuCat[] {
+  if (!ngay) return [];
+  return phieu
+    .filter((p) => ngayVNCua(p.created_at ?? null) === ngay && p.total_actual_pcs > 0)
+    .map((p) => ({
+      phieu: p.ticket_no,
+      'Kế hoạch': so(p.total_planned_pcs),
+      'Thực cắt': so(p.total_actual_pcs),
+      thieu: Math.max(0, so(p.total_planned_pcs) - so(p.total_actual_pcs)),
+    }));
+}
+
+/** Hao hụt vải theo từng phiếu, cùng ngày với biểu đồ sản lượng.
+ *
+ * ─── 🔴 VÌ SAO ⛔ KHÔNG VẼ "ĐỊNH MỨC ⟷ ĐÃ DÙNG" ────────────────────────
+ * Bản đầu tôi vẽ đúng cặp đó. Đọc số thật trong CSDL thì thấy ⛔ không so được:
+ *
+ *     SEED-CT-01   bom_allowance_m = 2.5     total_fabric_used_m = 828.4
+ *     PK-2026-001  bom_allowance_m = 70      total_fabric_used_m = 85
+ *
+ * `2.5` cho 1.188 sp rõ ràng là **mét trên MỘT sản phẩm**; `70` cho 50 sp lại
+ * giống **tổng mét**. Cùng một cột đang mang **hai đơn vị khác nhau**.
+ *
+ * ⚠️ Hệ quả có sẵn từ trước, ⛔ không phải do tôi: `duLieuCatHomNay` gắn cờ
+ * *"vượt định mức"* khi `total_fabric_used_m > bom_allowance_m` — với đơn vị
+ * lệch nhau thì cờ đó **bật cho MỌI phiếu**. Cảnh báo đúng-100%-số-dòng là
+ * cảnh báo ⛔ không mang tin gì, và người dùng sẽ thôi đọc nó.
+ *
+ * 🔑 Ý nghĩa của `bom_allowance_m` là **quyết định nghiệp vụ**, ⛔ không phải
+ * chuyện engineering đoán được ⇒ gác lại cho Board *(`G-6`)*.
+ *
+ * ⇒ Chỗ này vẽ **hao hụt %** thay thế: mọi đại lượng của nó *(đã trải · đầu
+ * tấm · vải lỗi)* đều là **mét tổng**, cùng đơn vị, ⛔ không mơ hồ. Nó cũng
+ * chính là con số `tyLeHaoHut` mà thẻ KPI phía trên đang hiện — nay tách được
+ * ra **từng phiếu** thay vì chỉ một số gộp.
+ *
+ * ⚠️ ⛔ KHÔNG tô màu theo ngưỡng: **⛔ chưa có ngưỡng hao hụt nào được Board
+ * phê duyệt**. Tự đặt một con số rồi tô đỏ là để phần mềm phán quyết thay
+ * Board — xem `G-6`.
+ */
+export function cotHaoHutCat(phieu: readonly PhieuCat[], ngay: string | null): CotHaoHutCat[] {
+  if (!ngay) return [];
+  return phieu
+    .filter((p) => ngayVNCua(p.created_at ?? null) === ngay && so(p.total_fabric_used_m) > 0)
+    .map((p) => {
+      const daTrai = so(p.total_fabric_used_m);
+      const dauTam = so(p.remnant_length_m);
+      const vaiLoi = so(p.defect_length_m);
+      return {
+        phieu: p.ticket_no,
+        hao: cuttingWastePercent(daTrai, daTrai - dauTam - vaiLoi),
+        daTrai,
+        dauTam,
+        vaiLoi,
+      };
+    });
+}

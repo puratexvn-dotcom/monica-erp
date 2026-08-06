@@ -51,6 +51,8 @@ Board *(Business Value · Schema · Phân quyền · Hướng kiến trúc)*.
 | `G-3` | Phễu hoàn thành ⛔ không phân biệt được *"ghi 0"* với *"chưa ai ghi"* khi đã có bản ghi khác trong ngày. Có cần cột `NULL`-able riêng? | Chạm **Schema** |
 | `G-4` | Ngưỡng AQL 2.5 — phần mềm ⛔ **chưa** ra phán quyết Đạt/⛔ Không đạt ở màn hình kiểm hàng | **Quyết định nghiệp vụ** |
 | `G-5` | Bản ghi `finishing_logs` tôi tạo khi kiểm chứng *(SEED-BD-01, 1 đạt/0 lỗi)* **còn nằm trong CSDL** — sổ ghi-thêm `K-1`, ứng dụng ⛔ không xoá được | Cần Board cho phép chạy `M00x` dọn |
+| `G-6` | 🔴 `cut_tickets.bom_allowance_m` đang mang **hai đơn vị khác nhau**: `SEED-CT-01 = 2,5` *(mét trên MỘT sp, cho 1.188 sp)* ⟷ `PK-2026-001 = 70` *(giống tổng mét, cho 50 sp)*. Hệ quả: cờ *"vượt định mức"* trong `duLieuCatHomNay` **bật cho MỌI phiếu** | **Ý nghĩa nghiệp vụ của cột** |
+| `G-7` | ⛔ **Chưa có ngưỡng hao hụt vải** nào được Board phê duyệt ⇒ biểu đồ hao hụt cố ý **⛔ không tô màu phán quyết** | **Quyết định nghiệp vụ** |
 
 ---
 
@@ -69,5 +71,5 @@ Board *(Business Value · Schema · Phân quyền · Hướng kiến trúc)*.
 |---|---|---|
 | 🔴 cao | Biểu mẫu xưởng **nuốt lỗi**: action trả `{error}` mà màn hình ⛔ không hiện gì — tổ trưởng tưởng đã lưu | Mất dữ liệu **âm thầm** |
 | 🔴 cao | `/giam-doc` `/ke-toan` `/kho` `/subcon` `/orders` — **0 biểu đồ** | Trái chỉ thị *"luôn ưu tiên trực quan"* |
-| 🟡 vừa | `/to-truong-cat` chưa có biểu đồ | Ba tổ chưa đủ bộ |
+| ✅ xong | `/to-truong-cat` — hai biểu đồ *(kế hoạch⟷thực cắt · hao hụt %)* | Đủ ba tổ |
 | 🟡 vừa | Báo cáo ngày gửi CEO · Production Director | Board đã yêu cầu tường minh |
