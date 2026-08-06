@@ -11,7 +11,7 @@ import {
   Plus, RefreshCw, AlertTriangle, Sparkles, Loader2, Handshake, ArrowUpRight,
 } from 'lucide-react';
 
-import { Card, Badge, thCls, tdCls, btnPrimary, btnGhost, SearchBox } from '@/components/ui';
+import { Card, btnPrimary, btnGhost } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
 import PoFormDialog from '../orders/po-form-dialog';
 import PoList from '@/components/md/po/po-list';
@@ -55,9 +55,13 @@ import { GROUP_TONE } from '@/components/md/semantic-tone';
 // 🔑 Siêu dữ liệu 13 tab dời sang `md-tabs.ts` — Board Directive 06/08/2026 ·
 // `KD-4` `TD-39`. Phép dời THUẦN: ⛔ không đổi nghiệp vụ, giao diện hay API.
 import {
-  nf, TABS, GROUPS, CREATE_LABEL, fmtDate,
+  TABS, GROUPS, CREATE_LABEL,
   type TabKey,
 } from './md-tabs';
+import {
+  MaterialRequestTable, ProductionOrderTable, ShipmentTable,
+} from './md-flow-tables';
+import MdOrderJourney from './md-order-journey';
 import type { PoOption } from './md-types';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRowsClient, listStylesClient } from './_actions/md360.client';
@@ -71,10 +75,6 @@ import {
   CustomerFormDialog as LegacyCustomerFormDialog,
   MaterialRequestDialog, ProductionOrderDialog, ShipmentFormDialog,
 } from './md-forms';
-import {
-  MATERIAL_CATEGORY_LABEL, MR_STATUS_LABEL, PROD_STATUS_LABEL, SHIPMENT_STATUS_LABEL,
-  type MaterialCategory,
-} from './md-schema';
 
 // ============================================================================
 // BÀN LÀM VIỆC MERCHANDISER — TRUNG TÂM QUẢN TRỊ VÒNG ĐỜI ĐƠN HÀNG
@@ -585,176 +585,51 @@ export default function MdClient({
         )}
 
         {tab === 'po' && (
-          <div className="p-4">
+          <div className="space-y-4 p-4">
+            {/* 🔑 "Đơn hàng đang ở đâu?" — Board Directive 06/08/2026.
+                Đặt TRÊN danh sách: câu hỏi này là câu merchandiser hỏi trước
+                khi hỏi "có những đơn nào". */}
+            <MdOrderJourney
+              pos={poRows}
+              materials={snap.materialRequests}
+              productions={snap.productionOrders}
+              shipments={snap.shipments}
+            />
             <PoList rows={poRows} error={poError} onRefresh={refresh} />
           </div>
         )}
 
-        {tab === 'materials' &&
-          (snap.errors.materialRequests ? (
-            <ErrorState message={snap.errors.materialRequests} onRetry={() => void refresh()} />
-          ) : snap.materialRequests.length === 0 ? (
-            <NoData
-              title="Chưa có đề nghị mua NPL"
-              sub="Bấm Sinh từ định mức để hệ thống tự tính nhu cầu từng loại nguyên phụ liệu theo mã hàng và số lượng đơn."
-            />
-          ) : (
-            <>
-            <SearchBox
-              value={q}
-              onChange={setQ}
-              placeholder="Tìm số phiếu, PO, tên nguyên phụ liệu..."
-              label="Tìm đề nghị mua NPL"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className={thCls}>Số phiếu</th>
-                    <th className={thCls}>PO</th>
-                    <th className={thCls}>Nguyên phụ liệu</th>
-                    <th className={thCls}>Loại</th>
-                    <th className={thCls}>Số lượng</th>
-                    <th className={thCls}>Cần ngày</th>
-                    <th className={thCls}>Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {timTrong(snap.materialRequests, (r) => [r.request_no, r.po_number, r.material_name]).map((r) => (
-                    <tr key={r.id} className="transition hover:bg-slate-50/70">
-                      <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{r.request_no}</td>
-                      <td className={`${tdCls} font-mono text-xs text-slate-500`}>{r.po_number ?? '—'}</td>
-                      <td className={`${tdCls} font-medium text-slate-800`}>{r.material_name}</td>
-                      <td className={`${tdCls} text-xs text-slate-500`}>
-                        {MATERIAL_CATEGORY_LABEL[r.category as MaterialCategory] ?? r.category}
-                      </td>
-                      <td className={`${tdCls} tabular-nums font-semibold`}>
-                        {nf.format(r.quantity)} <span className="font-normal text-slate-400">{r.unit}</span>
-                      </td>
-                      <td className={tdCls}>{fmtDate(r.needed_date)}</td>
-                      <td className={tdCls}>
-                        <Badge tone={r.status === 'REJECTED' ? 'rose' : r.status === 'RECEIVED' ? 'emerald' : 'indigo'}>
-                          {MR_STATUS_LABEL[r.status] ?? r.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            </>
-          ))}
+        {/* 🔑 Ba bảng dời sang `md-flow-tables.tsx` — Board Directive 06/08/2026
+            Step 1. Phép dời thuần; xem khối chú thích đầu tệp đó. */}
+        {tab === 'materials' && (
+          <MaterialRequestTable
+            rows={snap.materialRequests}
+            error={snap.errors.materialRequests}
+            onRetry={() => void refresh()}
+            q={q}
+            onQ={setQ}
+          />
+        )}
 
-        {tab === 'production' &&
-          (snap.errors.productionOrders ? (
-            <ErrorState message={snap.errors.productionOrders} onRetry={() => void refresh()} />
-          ) : snap.productionOrders.length === 0 ? (
-            <NoData
-              title="Chưa có lệnh sản xuất"
-              sub="Bấm Sinh từ SAM để tính số ngày sản xuất từ thời gian chuẩn của mã hàng và năng lực chuyền."
-            />
-          ) : (
-            <>
-            <SearchBox
-              value={q}
-              onChange={setQ}
-              placeholder="Tìm số lệnh sản xuất, mã PO..."
-              label="Tìm lệnh sản xuất"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className={thCls}>Số lệnh</th>
-                    <th className={thCls}>PO</th>
-                    <th className={thCls}>SL kế hoạch</th>
-                    <th className={thCls}>Bắt đầu</th>
-                    <th className={thCls}>Tới hạn</th>
-                    <th className={thCls}>Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {timTrong(snap.productionOrders, (p) => [p.order_no, p.po_number]).map((p) => (
-                    <tr key={p.id} className="transition hover:bg-slate-50/70">
-                      <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{p.order_no}</td>
-                      <td className={`${tdCls} font-mono text-xs text-slate-500`}>{p.po_number ?? '—'}</td>
-                      <td className={`${tdCls} tabular-nums font-semibold`}>{nf.format(p.planned_qty)} pcs</td>
-                      <td className={tdCls}>{fmtDate(p.start_date)}</td>
-                      <td className={tdCls}>{fmtDate(p.due_date)}</td>
-                      <td className={tdCls}>
-                        <Badge
-                          tone={
-                            p.status === 'CANCELLED' ? 'rose'
-                            : p.status === 'COMPLETED' ? 'emerald'
-                            : p.status === 'PENDING' ? 'amber'
-                            : 'indigo'
-                          }
-                        >
-                          {PROD_STATUS_LABEL[p.status] ?? p.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            </>
-          ))}
+        {tab === 'production' && (
+          <ProductionOrderTable
+            rows={snap.productionOrders}
+            error={snap.errors.productionOrders}
+            onRetry={() => void refresh()}
+            q={q}
+            onQ={setQ}
+          />
+        )}
 
-        {tab === 'shipments' &&
-          (snap.errors.shipments ? (
-            <ErrorState message={snap.errors.shipments} onRetry={() => void refresh()} />
-          ) : snap.shipments.length === 0 ? (
-            <NoData title="Chưa có lệnh giao hàng" sub="Bấm Tạo lệnh giao hàng để lập lệnh đầu tiên." />
-          ) : (
-            <>
-            <SearchBox
-              value={q}
-              onChange={setQ}
-              placeholder="Tìm số lệnh giao, PO, số container, cảng đến..."
-              label="Tìm lệnh giao hàng"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className={thCls}>Số lệnh</th>
-                    <th className={thCls}>PO</th>
-                    <th className={thCls}>Container</th>
-                    <th className={thCls}>Cảng đến</th>
-                    <th className={thCls}>ETD</th>
-                    <th className={thCls}>Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {timTrong(snap.shipments, (s) => [s.shipment_no, s.po_number, s.container_no, s.destination_port]).map((s) => (
-                    <tr key={s.id} className="transition hover:bg-slate-50/70">
-                      <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{s.shipment_no}</td>
-                      <td className={`${tdCls} font-mono text-xs text-slate-500`}>{s.po_number ?? '—'}</td>
-                      <td className={`${tdCls} font-mono text-xs`}>{s.container_no ?? '—'}</td>
-                      <td className={tdCls}>{s.destination_port ?? '—'}</td>
-                      <td className={tdCls}>{fmtDate(s.etd_date)}</td>
-                      <td className={tdCls}>
-                        {/* 🔴 Trước đây dựng thẳng `{s.status}` — mã gốc CSDL
-                            (`IN_TRANSIT`…) rơi ra màn hình tiếng Việt. */}
-                        <Badge
-                          tone={
-                            s.status === 'CANCELLED' ? 'rose'
-                            : s.status === 'DELIVERED' ? 'emerald'
-                            : s.status === 'DRAFT' ? 'amber'
-                            : 'indigo'
-                          }
-                        >
-                          {SHIPMENT_STATUS_LABEL[s.status] ?? s.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            </>
-          ))}
+        {tab === 'shipments' && (
+          <ShipmentTable
+            rows={snap.shipments}
+            error={snap.errors.shipments}
+            onRetry={() => void refresh()}
+            q={q}
+            onQ={setQ}
+          />
+        )}
 
         {/* ── NHÓM PHỐI HỢP ──────────────────────────────────────────── */}
         {tab === 'documents' && (

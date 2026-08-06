@@ -18,7 +18,6 @@
     "⛔ KHÔNG tự thêm vào `chuaPhanLoai` để cho bài kiểm xanh. Mỗi mục trong đó là",
     "   một chỗ mã và CSDL đang có thể nói hai thứ khác nhau."
   ],
-
   "anhXa": {
     "ASSIGNMENT_STATUSES": "assignments.status",
     "SCOPE_LEVELS": "assignments.scope_level",
@@ -57,7 +56,6 @@
     "ADJUST_REASONS": "stock_adjustments.reason_code",
     "MOVEMENT_TYPES": "stock_movements.movement_type"
   },
-
   "mienTrong": {
     "PO_STAGES": "DẪN XUẤT — po-flow.ts suy giai đoạn từ `orders.status`, không lưu cột nào.",
     "URGENCY_LEVELS": "DẪN XUẤT — tính từ ngày giao + điểm rủi ro. CLAUDE.md §2.5 cấm lưu.",
@@ -72,9 +70,10 @@
     "QUERY_ROOTS": "KHÔNG phải vốn từ nghiệp vụ — gốc query key của TanStack Query.",
     "TRANSLATION_KEYS": "KHÔNG phải vốn từ nghiệp vụ — ba mã ngôn ngữ, Hiến pháp Điều 45.",
     "PO_VIEWS": "KHÔNG phải vốn từ nghiệp vụ — tên các lát cắt màn hình PO 360°.",
-    "WH_ACTIONS": "KHÔNG phải vốn từ nghiệp vụ — tên hành động phân quyền, lib/rbac.ts."
+    "WH_ACTIONS": "KHÔNG phải vốn từ nghiệp vụ — tên hành động phân quyền, lib/rbac.ts.",
+    "CHANG": "DẪN XUẤT — order-journey.ts suy 6 chặng từ CHỨNG TỪ CON (phiếu NPL, lệnh SX, lô hàng), không lưu cột `current_stage` nào. CLAUDE.md §2.5 cấm lưu dữ liệu tính được.",
+    "TRANG_THAI_CHANG": "DẪN XUẤT — trạng thái mỗi chặng, tính tại chỗ. Gồm `KHONG_DO_DUOC` cho chặng Kiểm hàng vì MD chưa có đường dữ liệu QA (`V.1`: không kết luận trên bảng rỗng)."
   },
-
   "chuaPhanLoai": {
     "PO_STATUSES": "🔴 `orders.status` KHÔNG có ràng buộc CHECK nào — vốn từ chỉ sống trong một dòng CHÚ THÍCH ở 002_po_master_schema.sql:17, và chú thích đó liệt kê 4 giá trị trong khi mã khai 6 (thiếu SHIPPED, CANCELLED). Đây là bảng trung tâm của cả hệ thống. Cùng họ khuyết tật với TD-02. Sửa = thêm CHECK ⇒ migration ⇒ ADR.",
     "SHIPMENT_FLOW": "🔴 `shipments.status` (024, ALTER) có 9 giá trị; mã khai 8 — THIẾU `CANCELLED`. Trong khi 026b_shipment_cancel_guard.sql tồn tại đúng để canh phép huỷ. Mã không biểu diễn nổi một lô đã huỷ.",
@@ -85,12 +84,10 @@
     "UOMS": "🟡 `materials.uom` không có ràng buộc CHECK — 8 đơn vị chỉ được canh ở tầng Zod.",
     "CURRENCIES": "🟡 Không cột nào của MD ràng buộc tiền tệ; chỉ `assignment_commercial_terms.currency` có, và cột đó đã ánh xạ cho ASSIGNMENT_CURRENCIES. Cùng tập giá trị, khác thứ tự."
   },
-
   "trungTenDaBiet": [
     "INCOTERMS",
     "MATERIAL_CATEGORIES"
   ],
-
   "csdlKhongCoTrongMa": [
     "capa_logs.severity",
     "customers.incoterm",

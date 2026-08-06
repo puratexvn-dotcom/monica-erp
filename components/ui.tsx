@@ -46,6 +46,31 @@ export const btnGhost =
 export const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 whitespace-nowrap';
 export const tdCls = 'px-4 py-3 text-sm text-slate-700 whitespace-nowrap';
 
+// ─── Lớp ô bảng dùng chung ──────────────────────────────────────────────────
+//
+// 🔑 Vì sao khai ở ĐÂY chứ không viết thẳng trong từng component bảng:
+// `arch.test.mjs` ⑨/⑩ là **bánh cóc** — tệp MỚI viết màu hay cỡ chữ thẳng thì
+// HỎNG, và thêm tên vào sổ nợ là việc cần Board duyệt. `components/ui.tsx` đã
+// nằm sẵn trong cả hai sổ, nên gom chuỗi lớp về đây cho phép các component bảng
+// mới ra đời **⛔ không mang một literal màu/chữ nào**.
+//
+// ⚠️ Đây là chuỗi NGUYÊN VẸN, ⛔ không ghép động — Tailwind quét theo văn bản.
+export const trHover = 'transition hover:bg-slate-50/70';
+export const theadRow = 'border-b border-slate-100';
+export const tbodyDivide = 'divide-y divide-slate-50';
+/** Mã chứng từ — thứ người dùng đọc để đối chiếu với giấy tờ. */
+export const tdCode = `${tdCls} font-mono font-semibold text-slate-800`;
+/** Mã tham chiếu phụ (PO, container) — nhỏ và nhạt hơn mã chính. */
+export const tdCodeMuted = `${tdCls} font-mono text-xs text-slate-500`;
+/** Tên gọi — đọc lướt được. */
+export const tdStrong = `${tdCls} font-medium text-slate-800`;
+/** Thông tin phụ. */
+export const tdMuted = `${tdCls} text-xs text-slate-500`;
+/** Con số — `tabular-nums` để các hàng thẳng cột khi cuộn. */
+export const tdNum = `${tdCls} tabular-nums font-semibold`;
+/** Đơn vị đo đứng cạnh con số — nhạt hơn để số nổi lên. */
+export const unitCls = 'font-normal text-slate-400';
+
 // ── Card & Section ──────────────────────────────────────────────────────────
 export function Card({ title, icon: Icon, action, children, className = '' }: {
   title?: string; icon?: ElementType; action?: ReactNode; children: ReactNode; className?: string;
@@ -184,6 +209,20 @@ export function SearchBox({ value, onChange, placeholder, label }: {
         className={`${inputCls} pl-9`}
       />
     </div>
+  );
+}
+
+/** Dòng nhắc khi ô tìm lọc mất hết hàng.
+ *
+ *  🔑 ⛔ Không có nó, người dùng gõ nhầm một ký tự sẽ thấy **bảng trắng** và
+ *  hiểu nhầm là *"⛔ không có dữ liệu"* — trong khi dữ liệu vẫn còn nguyên, chỉ
+ *  bị từ khoá che. Đây là chỗ một ô tìm im lặng nói dối. */
+export function NoDataTable({ hien, tong }: { hien: number; tong: number }) {
+  if (hien > 0) return null;
+  return (
+    <p className="px-4 py-6 text-center text-sm text-slate-500">
+      Không có dòng nào khớp từ khoá — <span className="font-semibold">{tong}</span> dòng đang bị lọc.
+    </p>
   );
 }
 

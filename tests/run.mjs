@@ -43,6 +43,10 @@ const BAI = [
   // Hàm thuần, ⛔ không cần CSDL ⇒ chạy được trên CI ⛔ không bí mật, cùng hạng
   // với arch test. Mở hạng mục *"MD có bài kiểm nghiệp vụ"* — EDD-06 §7, I-2.
   ['business/md-formulas.test.mjs', 'Nghiệp vụ MD — công thức', false, CO_TS],
+  // "Đơn hàng đang ở đâu?" — Board Directive 06/08/2026. Canh bốn chỗ dễ sai
+  // nhất, trong đó có luật `V.1`: chặng Kiểm hàng phải khai ⚪ CHƯA ĐO ĐƯỢC
+  // *(MD ⛔ chưa có đường dữ liệu QA)*, ⛔ KHÔNG được hiện thành "chưa tới".
+  ['business/md-order-journey.test.mjs', 'MD — đơn hàng đang ở đâu', false, CO_TS],
   // ✅ `TD-36` đã trả — loader phân giải bí danh `@/…` và import thiếu đuôi, nên
   // bài này nay phủ ĐỦ 5/5 mô-đun Kho. Trước đó chỉ nạp được 2/5.
   ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false, CO_TS],
