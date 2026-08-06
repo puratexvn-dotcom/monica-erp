@@ -925,7 +925,13 @@ if (duTuDien && existsSync(duongDanSoApp)) {
   // ⚠️ Con số này ĐI THEO doanh nghiệp, ⛔ không đi theo mã. Board Rev 2:
   // *"⛔ không giới hạn ở 16 ô — Homepage phải phản ánh đúng doanh nghiệp"*.
   // Thêm Business App ⇒ SỬA CON SỐ NÀY, ⛔ không nới lỏng phép kiểm.
-  s.ok(`Sổ đăng ký có 22 Business App (đọc được ${soModule})`, soModule === 22);
+  //
+  // 16 *(Rev 1)* → 22 *(Rev 2)* → **24** *(Rev 6 · Board Directive 06/08/2026
+  // `EPIC 2`)*: bổ sung `Sales` và `Sales Admin` — hai tên có trong danh sách
+  // *"⛔ không được bỏ sót"* của Board mà Registry ⛔ chưa có.
+  const SO_APP_KY_VONG = 24;
+  s.ok(`Sổ đăng ký có ${SO_APP_KY_VONG} Business App (đọc được ${soModule})`,
+    soModule === SO_APP_KY_VONG);
 
   // ① Mỗi Module phải có ĐỦ BA lớp chữ. Thiếu một lớp là thiếu một khán giả:
   //    `appShort` → người vận hành trên điện thoại

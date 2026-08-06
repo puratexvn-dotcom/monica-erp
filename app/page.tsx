@@ -159,11 +159,29 @@ export default function HomePage() {
       <div className="relative z-10">
         <TopNavbar />
 
-        {/* ⚠️ Khoảng thở trên nới từ 12/16 lên 14/20. Trang chủ là màn hình đầu
-            tiên người dùng thấy mỗi sáng — nó phải mở ra bằng khoảng trống, chứ
-            không đập ngay vào mặt. Phần mềm rẻ tiền lấp đầy mọi pixel; phần mềm
-            đắt tiền để trống có chủ ý. */}
-        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:px-8">
+        {/* ⚠️ Khoảng thở trên từng nới 12/16 → 14/20 với lý do *"phần mềm đắt
+            tiền để trống có chủ ý"*. Lý do đó **vẫn đúng**, nhưng nó ⛔ không
+            phải ràng buộc — còn `HP-1` thì **là**.
+
+            🔴 REV 6 — hạ mốc `sm` từ `20` *(80px)* xuống `16` *(64px)*.
+            Đo trên bản dựng ở khổ **1366×768**, cột chiều dọc tới đáy dòng chú
+            thích của HÀNG Ô ĐẦU TIÊN:
+
+              thanh đầu `lg:min-h-[6.5rem]` 104 + đệm trên 80 + Hero ~203
+              + ô 164 + tên ~36 + chú thích ~21           ⇒ **~630px**
+
+            Trừ khung trình duyệt *(~100px)* và **thanh dưới cố định `h-14`
+            = 56px**, phần thấy được của màn 768 chỉ còn **~600px**. Tức dòng
+            chú thích của hàng đầu **nằm sau thanh dưới** — `HP-1` hỏng ở đúng
+            khổ laptop phổ biến nhất.
+
+            🔑 Ở khổ điện thoại ⛔ KHÔNG đổi *(`pt-14`)*: 844px cao dư sức, và
+            màn hẹp mới là nơi khoảng thở đầu trang đáng giá nhất.
+
+            ⚠️ Đây là **ước lượng số học trên CSS đã dựng**, ⛔ chưa phải phép
+            đo trên trình duyệt thật — tiện ích Chrome ⛔ không kết nối được ở
+            phiên này. Xem mục *"chưa kiểm được"* ở báo cáo. */}
+        <main className="mx-auto max-w-[1400px] px-4 pb-24 pt-14 sm:px-6 sm:pt-16 lg:px-8">
           {/* ⚡ HIỆU NĂNG — Board Rev 2: *"Homepage phải xuất hiện gần như
               tức thì… ⛔ không chờ dữ liệu Workspace mới hiển thị Homepage."*
 

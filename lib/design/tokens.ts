@@ -217,6 +217,34 @@ export const MODULE_SURFACE: Record<ModuleKey, ModuleSurface> = {
   platform:       { surface: 'bg-violet-50',  edge: 'ring-violet-200/70',  tileStrong: 'bg-violet-600 text-white' },
 };
 
+/**
+ * Màu QUẦNG SÁNG dưới ô Launcher — dạng `rgba()`, để đặt vào biến CSS.
+ *
+ * ═══ 🔴 VÌ SAO PHẢI CÓ HÀM NÀY — Board Rev 6 *"màu đậm, sắc nét, hiện đại"* ══
+ * Bóng của ô Launcher trước đây là **xám trung tính** *(`rgba(16,24,40,…)`)*.
+ * Xám dưới một ô màu bão hoà làm đúng một việc: **hút bớt sắc** của chính ô đó.
+ * Launcher hiện đại *(iOS · Raycast · Linear)* đổ bóng **bằng chính màu của
+ * biểu tượng** — nhờ vậy màu ⛔ không dừng ở mép ô mà **loang xuống mặt trang**,
+ * và đó là thứ khiến ô đọc ra là **vật phát sáng**, ⛔ không phải mảng màu dán.
+ *
+ * 🔑 Màu lấy từ `MODULE_IDENTITY[].chart` — **cùng một sắc** với biểu đồ và với
+ * ô. ⛔ Không sinh ra dải màu thứ hai, nên Điều 44.6 ⛔ không bị chạm: danh tính
+ * ⛔ không đổi, chỉ **được nói to hơn**.
+ *
+ * ⚠️ Trả `rgba()` chứ ⛔ không trả lớp Tailwind — vì độ trong suốt phải đổi
+ * theo trạng thái *(nghỉ ⟷ rê chuột)*, mà ghép chuỗi lớp Tailwind là **luật ②
+ * cấm**. Đưa qua **biến CSS** thì lớp Tailwind vẫn là chuỗi nguyên vẹn
+ * `var(--tile-glow)`, còn màu đi bằng `style` — ⛔ không đường nào bị bộ quét
+ * cắt mất.
+ */
+export function moduleGlow(key: ModuleKey, alpha: number): string {
+  const hex = MODULE_IDENTITY[key].chart;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 // ─── ①C MÀU THANH ĐIỀU HƯỚNG DƯỚI ─────────────────────────────────────────
 //
 // ⚠️ Năm nút này trước đây XÁM HẾT, chỉ đổi sang xanh khi đang mở. Xám hết

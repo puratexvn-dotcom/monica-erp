@@ -167,7 +167,9 @@
     "sewingLeader": "Run the sewing lines",
     "finishingLeader": "Run the finishing line",
     "warehouseFinished": "Finished goods",
-    "costing": "Costing • Approval"
+    "costing": "Costing • Approval",
+    "sales": "Deals • Revenue",
+    "salesAdmin": "Contracts • Order entry"
   },
   "appDesc": {
     "executive": "Factory-wide oversight and approvals",
@@ -191,7 +193,9 @@
     "sewingLeader": "Sewing lines, hourly output and needle safety",
     "finishingLeader": "Pressing, folding, packing and final check",
     "warehouseFinished": "Finished goods awaiting shipment",
-    "costing": "Cost breakdown and price approval"
+    "costing": "Cost breakdown and price approval",
+    "sales": "Targets, deal closing and revenue by customer",
+    "salesAdmin": "Contracts, order confirmation and commercial terms"
   },
   "landing": {
     "lead": "A unified operating platform for garment manufacturing.",
@@ -241,7 +245,9 @@
     "sewingLeader": "See a line fall behind within the hour, not at end of day.",
     "finishingLeader": "Goods leave on time, cartons complete, documents matching.",
     "warehouseFinished": "Know exactly how many cartons are waiting for a container.",
-    "costing": "Quote from real consumption, not from an estimate."
+    "costing": "Quote from real consumption, not from an estimate.",
+    "sales": "Know which deals are about to close before you book line capacity.",
+    "salesAdmin": "Orders enter the system once, on the terms that were actually signed."
   },
   "workspace": {
     "eyebrow": "Workspace",
@@ -368,6 +374,8 @@
     "communication": "Discuss against an order",
     "ai": "Ask AI and let it do the work",
     "documents": "Look up documents and tech packs",
-    "platform": "Provision accounts and access"
+    "platform": "Provision accounts and access",
+    "sales": "Close deals and track revenue",
+    "salesAdmin": "Draft contracts and confirm orders"
   }
 }

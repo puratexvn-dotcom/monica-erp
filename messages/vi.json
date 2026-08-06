@@ -167,7 +167,9 @@
     "sewingLeader": "Điều hành chuyền may",
     "finishingLeader": "Điều hành hoàn thành",
     "warehouseFinished": "Kho thành phẩm",
-    "costing": "Giá thành • Duyệt giá"
+    "costing": "Giá thành • Duyệt giá",
+    "sales": "Chốt đơn • Doanh số",
+    "salesAdmin": "Hợp đồng • Xác nhận đơn"
   },
   "appDesc": {
     "executive": "Điều hành và phê duyệt toàn nhà máy",
@@ -191,7 +193,9 @@
     "sewingLeader": "Chuyền may, sản lượng giờ và kim gãy",
     "finishingLeader": "Ủi, gấp, đóng gói và kiểm cuối",
     "warehouseFinished": "Kho thành phẩm chờ xuất",
-    "costing": "Chiết tính giá thành và duyệt giá"
+    "costing": "Chiết tính giá thành và duyệt giá",
+    "sales": "Chỉ tiêu, chốt đơn và doanh số theo khách",
+    "salesAdmin": "Hợp đồng, xác nhận đơn và điều khoản"
   },
   "landing": {
     "lead": "Nền tảng vận hành hợp nhất cho doanh nghiệp may mặc.",
@@ -241,7 +245,9 @@
     "sewingLeader": "Thấy chuyền tụt sản lượng trong giờ, không phải cuối ngày.",
     "finishingLeader": "Hàng ra khỏi xưởng đúng ngày, đủ thùng, khớp chứng từ.",
     "warehouseFinished": "Biết chính xác còn bao nhiêu thùng chờ container.",
-    "costing": "Chốt giá dựa trên định mức thật, không dựa trên ước lượng."
+    "costing": "Chốt giá dựa trên định mức thật, không dựa trên ước lượng.",
+    "sales": "Biết đơn nào sắp chốt trước khi xếp chuyền, không hứa suông với khách.",
+    "salesAdmin": "Đơn vào hệ thống đúng một lần, đúng điều khoản đã ký."
   },
   "workspace": {
     "eyebrow": "Không gian làm việc",
@@ -350,6 +356,8 @@
     "executive": "Xem toàn cảnh và phê duyệt",
     "crm": "Theo khách hàng và báo giá",
     "commercial": "Theo đơn hàng của khách",
+    "sales": "Chốt đơn và theo doanh số",
+    "salesAdmin": "Lập hợp đồng và xác nhận đơn",
     "merchandising": "Điều phối mã hàng và định mức",
     "planning": "Xếp kế hoạch và năng lực chuyền",
     "production": "Theo dõi toàn xưởng",

@@ -2,16 +2,33 @@
 
 import Link from 'next/link';
 import { Lock } from 'lucide-react';
+import type { CSSProperties } from 'react';
 
 import type { ModuleItem } from '../home-modules';
 import type { PermissionState } from '@/lib/mos/capability/visible-modules';
 import type { LiveStateOrNull } from '@/lib/mos/registry/live-state';
-import { MODULE_SURFACE, GLASS, GLASS_GLOW, STATUS } from '@/lib/design/tokens';
+import { MODULE_SURFACE, STATUS, moduleGlow } from '@/lib/design/tokens';
 import { TYPE } from '@/lib/design/typography';
 import { useLanguage } from '@/lib/i18n';
 
 // ============================================================================
-// BUSINESS APP — KHÔNG CÒN KHUNG. BIỂU TƯỢNG VÀ TÊN, HẾT.
+// BUSINESS APP — KHÔNG CÒN KHUNG. BIỂU TƯỢNG · TÊN · MỘT DÒNG MÔ TẢ.
+//
+// ═══ 🔴 BA THÀNH PHẦN, ⛔ KHÔNG BỐN — Board Rev 2, tái khẳng định Rev 6 ═══
+// *"Chỉ giữ: Icon · Tên · Một dòng mô tả ngắn. ⛔ Không thêm bất kỳ nội dung
+// nào khác lên Homepage."*
+//
+// Ô này dựng **đúng ba thứ đó và ⛔ không gì khác** — `mod.name` và
+// `t(mod.shortKey)`. Ba thứ khác **cố ý ⛔ KHÔNG lên ô**, chúng nằm ở `title`
+// tức chỉ hiện khi người xem **đã dừng lại**: `descKey` *(câu chức năng đầy
+// đủ)* · `valueKey` *(business value)* · câu giải thích vì sao ô ⛔ không mở
+// được. 🔑 Nhân một câu với 22 ô là 22 dòng chữ — mắt thôi **quét** và phải
+// **đọc**, mà quét-trong-hai-giây chính là lý do Launcher tồn tại.
+//
+// ⚠️ Ghi chú cũ ở đây viết *"BIỂU TƯỢNG VÀ TÊN, HẾT"* và *"Câu mô tả chuyển
+// vào thuộc tính `title`… ⛔ không còn chiếm chỗ trên lưới"*. **SAI** — dòng
+// mô tả ngắn ĐÃ quay lại từ Rev 2 *(xem cuối tệp)* và Board Rev 6 **yêu cầu
+// giữ nó**. Sửa 06/08/2026, ⛔ đừng đọc ghi chú cũ rồi đi xoá dòng đó.
 //
 // ═══ VÌ SAO BỎ HẲN KHUNG ════════════════════════════════════════════════
 // Cái khung không mang thông tin nào cả. Nó chỉ vẽ một đường bao quanh thứ
@@ -28,7 +45,9 @@ import { useLanguage } from '@/lib/i18n';
 // Khung biến mất nghĩa là mất luôn nền màu và mất luôn bóng đổ — hai thứ
 // trước đây làm nhiệm vụ nhận diện và tách lớp. Nên biểu tượng phải:
 //
-//   • TO HẲN LÊN            64 → 80px, đủ sức làm mỏ neo một mình
+//   • TO HẲN LÊN            đủ sức làm mỏ neo một mình. ⚠️ Từ Rev 6 cỡ ô
+//                           **co theo cột**, ⛔ không còn con số cứng nào —
+//                           trần 164px, sàn do bề rộng cột quyết định
 //   • BO GÓC MỀM            góc bo 28% cạnh — tỷ lệ của biểu tượng iOS, khác
 //                           hẳn góc bo của một cái thẻ
 //   • CÓ BÓNG RIÊNG         bóng nay thuộc về BIỂU TƯỢNG, không thuộc về hộp;
@@ -41,9 +60,9 @@ import { useLanguage } from '@/lib/i18n';
 // đúng hai dòng để mọi ô trong một hàng có đáy bằng nhau, dù tên dài ngắn khác
 // nhau và dù đang ở tiếng Việt, Anh hay Trung.
 //
-// ⚠️ Câu mô tả chuyển vào thuộc tính `title` — hiện khi rê chuột, không còn
-// chiếm chỗ trên lưới. Màn hình chính điện thoại không có dòng mô tả nào dưới
-// tên ứng dụng, và đó chính là lý do nó trông thoáng.
+// ⚠️ Chỉ câu mô tả **ĐẦY ĐỦ** ở trong `title`. Câu **RÚT GỌN** (`shortKey`)
+// vẫn dựng ra dưới tên — xem khối `Rev 2` ở cuối tệp để biết vì sao hai câu
+// khác nhau chứ ⛔ không phải một câu bị cắt.
 // ============================================================================
 
 /** Bốn màu chấm sống — lấy từ THẺ TRẠNG THÁI, ⛔ không viết màu thẳng.
@@ -106,12 +125,34 @@ export default function AppCard({
   //    tài liệu.
   const khongQuyen = state === 'UNAUTHORIZED';
 
-  // Bóng của BIỂU TƯỢNG, không phải của hộp. Hai lớp: một lớp sát để bắt mép,
-  // một lớp toả rộng và thấp để nó có vẻ đang nổi trên mặt trang.
-  const iconShadow =
-    'shadow-[0_2px_6px_-1px_rgba(16,24,40,0.14),0_16px_32px_-10px_rgba(16,24,40,0.26)]';
-  const iconShadowHover =
-    'group-hover:shadow-[0_6px_12px_-2px_rgba(16,24,40,0.18),0_28px_48px_-12px_rgba(16,24,40,0.34)]';
+  // ═══ 🔴 REV 6 — QUẦNG SÁNG MANG MÀU CỦA CHÍNH APP ══════════════════════
+  //
+  // 🔴 **VÀ NÓ SỬA MỘT LỖI THẬT, ⛔ không phải chuyện thẩm mỹ.**
+  // Bản trước dán **BỐN** lớp cùng khai `box-shadow` lên một thẻ: `GLASS` ·
+  // `GLASS_GLOW` · `iconShadow` · `iconShadowHover`. Cả bốn đều biên dịch ra
+  // `--tw-shadow`, nên chúng **⛔ không cộng vào nhau** — lớp nào đứng sau
+  // trong tệp CSS đã dựng thì **thắng tuyệt đối**, ba lớp còn lại bị **vứt
+  // sạch**. Tức ô Launcher xưa nay chỉ hiện **một** trong bốn hiệu ứng, và
+  // ⛔ không ai chọn nó — thứ tự sinh CSS của Tailwind chọn hộ.
+  //
+  // ⇒ Nay **MỘT khai báo cho mỗi trạng thái**, ba lớp gộp trong cùng một
+  // chuỗi: ① vệt sáng mép trên *(bề mặt)* ② bóng tiếp xúc *(vật chạm mặt
+  // phẳng)* ③ **quầng màu toả rộng** *(vật phát sáng)*.
+  //
+  // 🔑 Màu của ③ đi qua **biến CSS** `--tile-glow`, đặt bằng `style` ngay dưới.
+  // Lớp Tailwind vì vậy vẫn là **chuỗi nguyên vẹn**, ⛔ không ghép — đúng luật
+  // ② của `tokens.ts`, nên bộ quét ⛔ không thể cắt mất ở bản dựng thật.
+  const tileShadow =
+    'shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_2px_5px_-1px_rgba(16,24,40,0.16),0_16px_30px_-10px_var(--tile-glow)]';
+  const tileShadowHover =
+    'group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_5px_12px_-2px_rgba(16,24,40,0.18),0_28px_50px_-12px_var(--tile-glow-strong)]';
+
+  // ⚠️ Khai kiểu tường minh thay vì `as` — `any` bị arch test chặn, mà thuộc
+  // tính tuỳ biến `--*` thì `CSSProperties` chuẩn ⛔ không biết tới.
+  const glowVars: CSSProperties & Record<'--tile-glow' | '--tile-glow-strong', string> = {
+    '--tile-glow': moduleGlow(mod.key, khongQuyen ? 0.18 : 0.42),
+    '--tile-glow-strong': moduleGlow(mod.key, khongQuyen ? 0.3 : 0.62),
+  };
 
   // ─── TOOLTIP — nơi DUY NHẤT `Business Value` được hiện ────────────────────
   //
@@ -142,22 +183,62 @@ export default function AppCard({
 
   const inner = (
     <>
-      <span className="relative">
+      {/* 🔑 Bề rộng khai ở **hộp bọc**, ⛔ không ở ô.
+          Hộp bọc là một `flex item` dưới `items-center`, nên bề rộng của nó
+          **co theo nội dung**. Đặt `w-full` cho ô mà ⛔ không cho hộp bọc thì
+          `100%` đang trỏ vào một bề rộng chính nó phải suy ra từ ô — vòng
+          tròn, và trình duyệt sẽ rơi về cỡ nội dung *(24px của `<svg>`)*.
+          Khai ở hộp bọc thì `100%` có một con số thật để bám vào. */}
+      <span className="relative w-full max-w-[164px]">
         {/* rounded-[28%] — tỷ lệ bo góc của biểu tượng điện thoại. Dùng giá trị
             phần trăm để góc bo giãn theo kích thước ô ở từng khổ màn, giữ đúng
             dáng ở mọi cỡ. */}
-        {/* 80 → 96px. Bỏ khung rồi thì biểu tượng là mỏ neo DUY NHẤT; ở cỡ 80
-            nó vẫn còn dáng một cái nút, ở 96 nó thành một biểu tượng ứng dụng
-            thật sự. */}
-        {/* ⚠️ Điện thoại 56px · từ `sm` là 96px.
-            Bốn cột trên màn 390px chỉ chừa mỗi ô khoảng 80px, nên biểu tượng
-            80px của bản trước sẽ TRÀN ra ngoài ô. 56px để lại đủ lề hai bên và
-            vẫn là mỏ neo rõ ràng — đúng cỡ biểu tượng trên màn hình chính điện
-            thoại. */}
+        {/* ═══ 🔴 REV 6 — Ô CO THEO CỘT, ⛔ KHÔNG CÒN CỠ CỨNG ═════════════
+            Bản trước khai cứng `96px` ở điện thoại và `164px` từ `sm`. Cỡ
+            cứng ⛔ **không bao giờ biết cột rộng bao nhiêu**, và hậu quả đo
+            được ở hai khổ:
+
+              390px · 4 cột  ⇒ lòng ô **69px**, ô vẽ **96px**  → TRÀN 27px
+              640px · 4 cột  ⇒ lòng ô **120px**, ô vẽ **164px** → TRÀN 44px
+
+            Tràn thì lưới bị đẩy phình, khe hai bên bị nuốt, và trang đọc ra
+            **chật** — đúng triệu chứng Board mô tả. 🔑 Đây là **lỗi bố cục
+            thật**, ⛔ không phải chuyện thẩm mỹ.
+
+            ⇒ `w-full` + `aspect-square` + `max-w-[164px]`:
+              • ô **luôn vừa cột** ⇒ ⛔ **không thể** tràn ở bất kỳ khổ nào
+              • điện thoại 3 cột ⇒ ~98px *(cũ 96px nhưng đang tràn)*
+              • màn rộng vẫn dừng ở **164px** — ⛔ không phình vô hạn khi cột
+                giãn tới 244px
+
+            🔑 Cách này thay **hai mốc rời rạc** bằng **một đường liên tục**:
+            mọi bề ngang màn hình, kể cả các khổ ⛔ chưa ai thử, đều có ô đúng
+            tỷ lệ. Khai thêm mốc `md:` `lg:` chỉ vá được đúng khổ đã nghĩ ra.
+
+            `rounded-[28%]` — bo góc theo PHẦN TRĂM nên dáng góc giữ nguyên ở
+            mọi cỡ, đúng tỷ lệ biểu tượng điện thoại. */}
         <span
-          className={`flex h-[96px] w-[96px] items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 sm:h-[164px] sm:w-[164px] ${sf.tileStrong} ${GLASS} ${GLASS_GLOW} ${iconShadow} ${iconShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
+          style={glowVars}
+          className={`flex aspect-square w-full items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 ${sf.tileStrong} ${tileShadow} ${tileShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
         >
-          <Icon className="h-[46px] w-[46px] sm:h-[80px] sm:w-[80px]" strokeWidth={1.75} aria-hidden="true" />
+          {/* ═══ 🔴 REV 6 — NÉT VẼ TO HƠN VÀ DÀY HƠN ════════════════════
+              Board: *"Icon lớn hơn"* · *"sắc nét"*.
+
+              `48% → 54%` bề ngang ô, và nét `1.75 → 2`.
+
+              🔑 Hai con số này đi **cùng nhau, ⛔ không tách**. Phóng to một
+              nét mảnh chỉ cho ra một hình **loãng hơn** — nét giữ nguyên độ
+              dày trong khi khoảng trống quanh nó nở ra, nên biểu tượng càng
+              to càng **nhạt đi**. Dày thêm 0,25 giữ đúng **tỷ trọng mực trên
+              ô**, và đó mới là thứ mắt đọc ra là *"sắc nét"*.
+
+              ⚠️ Vẫn dừng ở 54%: `rounded-[28%]` cắt góc ô khá sâu, nên biểu
+              tượng vuông vượt quá ~56% sẽ **chạm vào phần bo góc**.
+
+              `h-auto` để ghi đè thuộc tính `height="24"` mà lucide đặt sẵn
+              trên thẻ `<svg>`; thiếu nó thì bề ngang co còn bề cao đứng yên
+              và biểu tượng bị **kéo dẹt**. */}
+          <Icon className="h-auto w-[54%]" strokeWidth={2} aria-hidden="true" />
         </span>
 
         {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt

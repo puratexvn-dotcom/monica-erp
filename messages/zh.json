@@ -167,7 +167,9 @@
     "sewingLeader": "管理缝制产线",
     "finishingLeader": "管理后整线",
     "warehouseFinished": "成品仓",
-    "costing": "成本 • 审批"
+    "costing": "成本 • 审批",
+    "sales": "成交 • 销售额",
+    "salesAdmin": "合同 • 订单确认"
   },
   "appDesc": {
     "executive": "全厂运营监控与审批",
@@ -191,7 +193,9 @@
     "sewingLeader": "缝制线、小时产量与断针安全",
     "finishingLeader": "熨烫、折叠、包装与终检",
     "warehouseFinished": "待出运的成品仓",
-    "costing": "成本核算与价格审批"
+    "costing": "成本核算与价格审批",
+    "sales": "目标、成交与按客户统计的销售额",
+    "salesAdmin": "合同、订单确认与商务条款"
   },
   "landing": {
     "lead": "服装制造业的统一运营平台。",
@@ -241,7 +245,9 @@
     "sewingLeader": "在当小时内发现掉队的产线，而不是等到收工。",
     "finishingLeader": "货物准时出厂、箱数齐全、单证一致。",
     "warehouseFinished": "准确知道还有多少箱在等柜。",
-    "costing": "依据真实用量报价，而不是凭估算。"
+    "costing": "依据真实用量报价，而不是凭估算。",
+    "sales": "在排产之前就知道哪些订单即将成交，不做空头承诺。",
+    "salesAdmin": "订单一次录入系统，条款与已签合同一致。"
   },
   "workspace": {
     "eyebrow": "工作空间",
@@ -368,6 +374,8 @@
     "communication": "围绕订单沟通",
     "ai": "向 AI 提问并交办",
     "documents": "查阅文件与 Tech pack",
-    "platform": "开通账号与权限"
+    "platform": "开通账号与权限",
+    "sales": "成交并跟踪销售额",
+    "salesAdmin": "拟合同与确认订单"
   }
 }

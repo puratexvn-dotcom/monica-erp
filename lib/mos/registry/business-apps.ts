@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Handshake, Briefcase, CalendarRange, Factory, ShieldCheck,
   Package, Ship, Users, Wallet, IdCard, PieChart, MessagesSquare, Sparkles,
   FileText, SlidersHorizontal, Contact, Scissors, Shirt, PackageCheck,
-  Warehouse, Calculator,
+  Warehouse, Calculator, TrendingUp, ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -158,6 +158,34 @@ const KINH_DOANH: ModuleItem[] = [
     status: 'COMING_SOON', icon: Contact, key: 'commercial', group: 'kinhDoanh', primaryUser: null, workIntent: 'workIntent.crm' },
   { id: 'commercial', name: 'Commercial', descKey: 'appDesc.commercial', shortKey: 'appShort.commercial', valueKey: 'appValue.commercial',
     status: 'READY', href: '/buyer', icon: Handshake, key: 'commercial', group: 'kinhDoanh', primaryUser: 'buyer', workIntent: 'workIntent.commercial' },
+  // ═══ 🔴 REV 6 — HAI APP MỚI THEO BOARD DIRECTIVE 06/08/2026 `EPIC 2` ═════
+  // Board liệt kê **22 Business App bắt buộc có mặt** trên Homepage và ghi rõ
+  // *"⛔ Không được bỏ sót"*. Đối chiếu từng dòng với Registry cho ra **đúng
+  // hai chỗ thiếu**: `Sales` và `Sales Admin`. Mọi tên còn lại đã có.
+  //
+  // ⚠️ Registry vẫn giữ `Production` và `Costing` — hai App **⛔ không** nằm
+  // trong danh sách Board. ⛔ Không xoá *(ràng buộc giao diện #2)*: danh sách
+  // Board là **mức sàn phải phủ**, ⛔ không phải mức trần được phép có.
+  // ⇒ Tổng **24 ô**, và `SO_BUSINESS_APP` tự cập nhật.
+  //
+  // ─── VÌ SAO TÁCH KHỎI `Commercial` ────────────────────────────────────────
+  // `Commercial` trả lời *"khách này đang mua gì"*; `Sales` trả lời *"tháng
+  // này chốt được bao nhiêu"*; `Sales Admin` trả lời *"đơn đã vào hệ thống
+  // đúng điều khoản đã ký ⛔ chưa"*. Ba câu hỏi, ba người hỏi, ba nhịp thời
+  // gian ⇒ ⛔ không gộp được vào một ô.
+  //
+  // 🔑 **Dùng chung dải màu `commercial`** — đúng luật Rev 2: màu là định danh
+  // của **NHÓM**, ⛔ không của từng App. ⇒ ⛔ **KHÔNG** thêm `ModuleKey` mới,
+  // nên `ADR-009` và Điều 44.6 ⛔ không bị chạm tới.
+  //
+  // ⚠️ Cả hai khai `COMING_SOON`: ⛔ chưa có route, ⛔ chưa có bảng, ⛔ chưa có
+  // policy. Đây là **ô Launcher**, ⛔ không phải Module mới ⇒ ⛔ **không** đụng
+  // `SECURITY FREEZE` *(MOS §XI.1 cấm mở Domain/Module/bảng nghiệp vụ — cả ba
+  // đều ⛔ không xảy ra ở đây)*.
+  { id: 'sales', name: 'Sales', descKey: 'appDesc.sales', shortKey: 'appShort.sales', valueKey: 'appValue.sales',
+    status: 'COMING_SOON', icon: TrendingUp, key: 'commercial', group: 'kinhDoanh', primaryUser: null, workIntent: 'workIntent.sales' },
+  { id: 'salesAdmin', name: 'Sales Admin', descKey: 'appDesc.salesAdmin', shortKey: 'appShort.salesAdmin', valueKey: 'appValue.salesAdmin',
+    status: 'COMING_SOON', icon: ClipboardList, key: 'commercial', group: 'kinhDoanh', primaryUser: null, workIntent: 'workIntent.salesAdmin' },
   { id: 'merchandising', name: 'Merchandising', descKey: 'appDesc.merchandising', shortKey: 'appShort.merchandising', valueKey: 'appValue.merchandising',
     status: 'READY', href: '/md', icon: Briefcase, key: 'merchandising', group: 'kinhDoanh', primaryUser: 'md', workIntent: 'workIntent.merchandising' },
 ];
@@ -216,7 +244,11 @@ const HO_TRO: ModuleItem[] = [
 ];
 
 /**
- * Cả 22 Business App, **theo đúng thứ tự nhóm**.
+ * Toàn bộ Business App, **theo đúng thứ tự nhóm**.
+ *
+ * ⚠️ ⛔ **Đừng viết con số vào câu này.** Ghi chú cũ ghi *"Cả 22 Business App"*
+ * và nó **sai ngay lượt thêm App kế tiếp** *(Rev 6 nâng lên 24)*. Cần con số
+ * thì đọc `SO_BUSINESS_APP`.
  *
  * ⚠️ Thứ tự là **ràng buộc**, ⛔ không phải chi tiết: vị trí một App trong lưới
  * là **trí nhớ cơ bắp** *(`P13`)*, và sắp lại phải qua ADR.

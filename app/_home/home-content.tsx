@@ -1,8 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-
 import { MODULES } from '@/lib/mos/registry/business-apps';
 import AppCard from './app-card';
 import { modulePermissionState } from '@/lib/mos/capability/visible-modules';
@@ -58,7 +55,6 @@ export default function HomeContent({
   //
   // 🔑 `modulePermissionState` thay `visibleModules`: từ **LỌC** sang **GÁN
   //    TRẠNG THÁI**. Cùng một `canAccess`, ⛔ không phải bản chép tay thứ hai.
-  const daDangNhap = role !== null;
 
   return (
     <>
@@ -89,7 +85,10 @@ export default function HomeContent({
           ⚠️ Bốn tầng chữ rút còn HAI. "Click a Business App to continue" gộp
           vào cùng dòng với tagline, ngăn bằng dấu chấm giữa. Phần mềm cao cấp
           không dạy người dùng rằng thẻ thì bấm được. */}
-      <section className="mb-12 sm:mb-16">
+      {/* ⚠️ `sm:mb-16 → sm:mb-12` — cùng phép đo `HP-1` với đệm trên ở
+          `page.tsx`. Hai chỗ này cộng lại trả về **32px** cho hàng ô đầu tiên
+          ở khổ 1366×768. Khổ điện thoại giữ nguyên `mb-12`. */}
+      <section className="mb-12">
         {/* ═══ 🔴 REV 5 — BRAND HIERARCHY, ⛔ KHÔNG PHẢI CĂN GIỮA CỤM ═════
             Board *(Hero Layout Clarification)*: *"Đây **⛔ không** phải yêu
             cầu căn giữa toàn bộ cụm Hero. **Chỉ có MONICA ONE** là trung tâm
@@ -169,47 +168,43 @@ export default function HomeContent({
           {t('brand.tagline')}
         </p>
 
-        {/* ── LANDING — chỉ khi CHƯA đăng nhập · Board `Q3` ──────────────
-            Người chưa đăng nhập nhận một trang GIỚI THIỆU: nói MONICA ONE là
-            gì, và mời đăng nhập. ⛔ Không bản đồ phân hệ.
+        {/* ── LANDING ĐÃ RỜI TRANG CHỦ — `UI-3` + yêu cầu Board 06/08/2026 ──
+            Trước đây, người CHƯA đăng nhập còn nhận thêm hai thứ ở ngay dưới
+            tagline: dòng dẫn `landing.lead` và nút `landing.signIn` → `/login`.
+            🔴 **Cả hai đã BỎ.** Hero giờ chỉ còn khối thương hiệu, và lưới
+            Business App đứng ngay sau nó — **giống hệt nhau** với khách và với
+            người đã đăng nhập.
 
-            ⚠️ Ba trụ cột này lặp lại ba dòng đã có ở `/login`. Đó là **cố ý**:
-            hai màn hình cùng đứng trước cánh cửa, và chúng phải nói **cùng một
-            câu chuyện**. Câu chữ nằm ở `messages/`, ⛔ không chép tay hai nơi. */}
-        {/* ── LỐI ĐĂNG NHẬP — chỉ khi CHƯA đăng nhập ─────────────────────
-            ⚠️ `UI-3` BỎ danh sách ba trụ cột khỏi trang chủ. Hai lý do:
-
+            ─── VÌ SAO ────────────────────────────────────────────────────
             ① `HP-1` *(baseline đã khoá)* đòi **hàng ô App đầu tiên phải thấy
-               được ⛔ KHÔNG cần cuộn** ở 1366×768 **và** 390×844. Danh sách ba
-               trụ cột cao ~180px và đứng ngay trên lưới — nó đẩy hàng đầu
+               được ⛔ KHÔNG cần cuộn** ở 1366×768 **và** 390×844. Dòng dẫn +
+               nút CTA cao ~110px và đứng ngay trên lưới — chúng đẩy hàng đầu
                xuống dưới nếp gấp đúng với khán giả cần thấy lưới nhất: khách.
+               *(Cùng lý do đã hạ ba trụ cột `landing.pillar*` ở lượt trước.)*
 
-            ② Ba dòng đó **lặp nguyên văn** ba dòng ở `/login`, và `/login` là
-               nơi chúng thuộc về — người đã bấm vào một Module thì đang **trên
-               đường vào**, ⛔ không còn cần được thuyết phục.
+            ② Trang chủ ⛔ **không phải cổng đăng nhập**. Hiến pháp §13.1: nó
+               là một **Business Operating System** — nhiệm vụ của nó là bày ra
+               bản đồ phân hệ. Việc mời đăng nhập thuộc về `/login`.
 
-            🔑 Khoá `landing.pillar*` **GIỮ NGUYÊN** ở cả ba tệp dịch: `/login`
-            vẫn dựng chúng. ⛔ Không xoá chữ, chỉ đổi chỗ dựng. */}
-        {!daDangNhap && (
-          <>
-            <p className={`${TYPE.bodyLg} mx-auto mt-4 max-w-xl text-slate-500`}>
-              {t('landing.lead')}
-            </p>
+            ─── LỐI VÀO `/login` ⛔ KHÔNG MẤT ─────────────────────────────
+            Đã **đo trên HTML đã dựng**, ⛔ không suy đoán: khách vẫn còn HAI
+            đường vào, và cả hai đều **có sẵn từ trước**, ⛔ không phải bù đắp
+            dựng thêm cho lượt này:
 
-            {/* Cao 44px — ngưỡng vùng chạm tối thiểu, đủ cho ngón tay. */}
-            <Link
-              href="/login"
-              // ⚠️ Cỡ chữ lấy từ `TYPE.label`, ⛔ không viết `text-sm font-bold`.
-              // Bản nháp đầu viết thẳng và **mục ⑩ bắt được ngay** — đúng thứ
-              // cơ chế bánh cóc sinh ra để chặn. Sửa bằng THẺ, ⛔ không bằng
-              // cách thêm tệp vào sổ nợ.
-              className={`${TYPE.label} mt-7 inline-flex min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-white shadow-lg transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 active:scale-[0.98]`}
-            >
-              {t('landing.signIn')}
-              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-            </Link>
-          </>
-        )}
+            ① Nút **Bàn làm việc** ở Bottom Nav — `app-bottom-nav.tsx:65` cho
+               `workbenchHref = role ? ROLE_HOME[role] : '/login'`. Đây là lối
+               vào **hiển thị**, nằm trong 5 nút Hiến pháp §15.3–§15.8 nên nó
+               ⛔ không thể lặng lẽ biến mất.
+            ② Bấm bất kỳ Business App nào ⇒ `middleware.ts` đẩy sang `/login`.
+
+            🔑 Cái mất là **lời mời**, ⛔ không phải **cánh cửa**.
+
+            🔑 Khoá `landing.lead` · `landing.signIn` · `landing.pillar*`
+            **GIỮ NGUYÊN** ở cả ba tệp dịch *(ràng buộc ② — ⛔ không xoá chữ cũ,
+            chỉ thôi dựng)*. ⚠️ Từ lượt này chúng **⛔ KHÔNG còn nơi nào dựng**:
+            `/login` kể cùng câu chuyện nhưng bằng bộ khoá RIÊNG `login.*`
+            *(xem `app/login/intro.tsx`)*. Đây là **kho chữ nằm chờ**, ⛔ không
+            phải chữ đang sống — đừng sửa nó rồi tưởng trang đổi theo. */}
       </section>
 
       {/* ══ WORK ZONE ĐÃ RỜI TRANG CHỦ — `UI-3` · ADR-021 ═══════════════════
@@ -232,26 +227,20 @@ export default function HomeContent({
           HƯỚNG, ⛔ không phải quyết định DỮ LIỆU, và ⛔ không mất gì. */}
 
       {/* ═══ LƯỚI BUSINESS APP — ngay dưới Hero ══════════════════════════
-          Mobile 2 · Tablet 3 · Desktop 4. Khoảng cách đều ở mọi mốc. */}
-      {/* ⚠️ Khoảng cách lưới NỚI RỘNG một nấc (3→4 ở màn hẹp, 4→5 từ sm).
-          Mười sáu thẻ là mật độ cao; khoảng cách hẹp làm chúng đọc ra như các ô
-          của MỘT bảng, khoảng cách rộng làm mỗi thẻ đọc ra như MỘT ứng dụng
-          riêng. Đây là thay đổi rẻ nhất và có tác dụng lớn nhất trong cả lượt
-          tinh chỉnh này. */}
-      {/* ⚠️ LƯỚI 4 CỘT Ở MÀN RỘNG — 16 mục chia đúng 4 hàng, thành một khối
-          VUÔNG. Bỏ khung rồi thì bố cục không còn đường viền nào để dựa vào,
-          nên hình dạng tổng thể của lưới trở thành thứ giữ trật tự thay cho
-          chúng. 4×4 là hình cân nhất có thể chia từ mười sáu.
+          **Điện thoại 3 · từ `sm` là 4.** Khoảng cách dọc luôn rộng hơn ngang.
 
-          ⚠️ `max-w-4xl mx-auto`: lưới HẸP HƠN phần chào phía trên. Bỏ khung
-          thì mỗi ô chỉ còn biểu tượng và một dòng chữ; trải chúng ra hết bề
-          ngang 1400px sẽ khiến mười sáu mục trôi nổi rời rạc. Thu lại thì
-          chúng thành MỘT khối, có mép trái mép phải rõ ràng, và khoảng trắng
-          hai bên trở thành khoảng thở có chủ đích.
+          ⚠️ Ghi chú cũ ở chỗ này ghi *"Mobile 2 · Tablet 3 · Desktop 4"* và
+          *"16 mục chia đúng 4 hàng, thành một khối VUÔNG"*. **Cả hai đã SAI**
+          từ lâu: lưới thực tế là 4 cột ở mọi khổ, còn số ô thì **đã đổi ba
+          lần** *(16 → 22 → 24)*. Lập luận *"khối vuông 4×4"* vì vậy ⛔ không
+          còn nền tảng nào — và bài học là **⛔ đừng viết số ô vào bố cục**.
+          Lưới ⛔ không được phép biết Registry có bao nhiêu mục.
 
-          ⚠️ Khoảng cách DỌC rộng hơn ngang (gap-y 10 so với gap-x 4). Tên có
-          thể xuống hai dòng, nên thiếu khoảng cách dọc thì chữ của hàng trên
-          dính vào biểu tượng của hàng dưới. */}
+          ⚠️ `max-w-5xl mx-auto`: lưới HẸP HƠN phần chào phía trên. Bỏ khung
+          thì mỗi ô chỉ còn biểu tượng và hai dòng chữ; trải chúng ra hết bề
+          ngang 1400px sẽ khiến các ô trôi nổi rời rạc. Thu lại thì chúng
+          thành MỘT khối, có mép trái mép phải rõ ràng, và khoảng trắng hai
+          bên trở thành khoảng thở có chủ đích. */}
       {/* `id="business-apps"` — đích đến của nút **`Monica`** ở thanh dưới.
           `Product Constitution §6`: *"Monica **chính là** Application Launcher"*
           ⇒ trên trang chủ nó cuộn thẳng xuống lưới App, bỏ qua khối thương
@@ -262,13 +251,39 @@ export default function HomeContent({
           đầu tiên bị thanh đó che mất, và cú bấm đưa người dùng tới đúng chỗ
           họ **⛔ không** nhìn thấy. */}
       <section id="business-apps" aria-label={t('home.appsLabel')} className="scroll-mt-24">
-        {/* ⚠️ BỐN CỘT Ở MỌI KHỔ MÀN, kể cả điện thoại.
-            Trên màn 390px, trừ đệm hai bên và ba khe giữa thì mỗi ô chỉ còn
-            khoảng 80px. Vì vậy khe ngang phải bóp xuống `gap-x-2` (8px) —
-            giữ `gap-x-4` như cũ sẽ ăn mất 48px, tức hơn một nửa bề ngang của
-            một ô.
-            Khe DỌC ngược lại vẫn phải rộng: tên App có thể xuống ba dòng ở khổ
-            hẹp, thiếu khoảng dọc thì chữ hàng trên chạm biểu tượng hàng dưới. */}
+        {/* ═══ 🔴 REV 6 — ĐIỆN THOẠI BA CỘT, ⛔ KHÔNG CÒN BỐN ════════════
+            Board Rev 6: *"Trên mobile chuyển từ 4 cột → 3 cột… mỗi Launcher
+            lớn hơn, khoảng trắng cân đối hơn, dễ bấm… **Ưu tiên chất lượng
+            trải nghiệm hơn số lượng icon trên một hàng.**"*
+
+            ─── PHÉP TÍNH, ⛔ không phải cảm tính ─────────────────────────
+            Màn 390px · `main` có `px-4` ⇒ còn **358px** để chia.
+
+              4 cột, `gap-x-1.5`  (6×3=18)  ⇒ (358−18)/4 = **85px** mỗi cột
+              3 cột, `gap-x-2`    (8×2=16)  ⇒ (358−16)/3 = **114px** mỗi cột
+
+            Mỗi ô có `p-2` ⇒ lòng ô **69px** *(cũ)* → **98px** *(mới)*.
+            Tức ô Launcher **to thêm ~42%**, ⛔ không phải nới vài pixel.
+
+            🔴 **VÀ NÓ VÁ MỘT LỖI THẬT.** Ở bản 4 cột, biểu tượng khai cứng
+            `w-[96px]` nhưng lòng ô chỉ **69px** — biểu tượng **RỘNG HƠN ô
+            chứa nó**. Lưới bị đẩy phình ra ⇒ đúng cái cảm giác *"chật, ⛔
+            không cân"* Board mô tả. Cỡ cứng ⛔ không bao giờ biết ô rộng bao
+            nhiêu; lượt này biểu tượng chuyển sang **co theo ô**
+            *(`app-card.tsx`)*, nên lỗi ⛔ không tái diễn ở bất kỳ khổ nào.
+
+            ─── KHE DỌC NỚI THEO ──────────────────────────────────────────
+            Ô to thêm 42% mà khe dọc giữ nguyên thì các hàng **dính vào
+            nhau** — trang trông ĐẶC hơn chứ ⛔ không thoáng hơn, tức ngược
+            hẳn điều Board yêu cầu. `gap-y` 6→8 ở điện thoại, 8→10 từ `sm`.
+
+            ⚠️ Khe DỌC vẫn rộng hơn khe NGANG ở mọi khổ. Tên App xuống hai–ba
+            dòng ở khổ hẹp; thiếu khoảng dọc thì chữ hàng trên chạm biểu
+            tượng hàng dưới và hai hàng đọc ra thành một.
+
+            ⚠️ Từ `sm` **GIỮ 4 cột** — Board chỉ nói *"trên mobile"*. ⛔ Không
+            tự nới sang màn rộng: ở đó ô đã 164px và bề ngang ⛔ chưa bao giờ
+            là thứ thiếu. */}
         {/* ═══ 🔴 REV 4 — MỘT LƯỚI PHẲNG, ⛔ KHÔNG CÒN NHÓM ═══════════════
             Board Rev 4: *"⛔ Không chia thành từng vùng. ⛔ Không có tiêu đề…
             ⛔ Không có bất kỳ đường phân cách nào… Toàn bộ Business Apps nằm
@@ -292,7 +307,7 @@ export default function HomeContent({
             🔑 Và màu vẫn theo nhóm *(Rev 2)*, nên **mắt vẫn thấy cụm** dù
             ⛔ không còn chữ nào nói ra. Đó đúng cách màn hình điện thoại
             hoạt động. */}
-        <div className="mx-auto grid max-w-5xl grid-cols-4 gap-x-1.5 gap-y-6 sm:gap-x-4 sm:gap-y-8">
+        <div className="mx-auto grid max-w-5xl grid-cols-3 gap-x-2 gap-y-8 sm:grid-cols-4 sm:gap-x-4 sm:gap-y-10">
           {MODULES.map((mod) => (
             <AppCard
               key={mod.id}
