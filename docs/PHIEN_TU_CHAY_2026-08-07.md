@@ -52,6 +52,9 @@ Board *(Business Value · Schema · Phân quyền · Hướng kiến trúc)*.
 | `G-4` | Ngưỡng AQL 2.5 — phần mềm ⛔ **chưa** ra phán quyết Đạt/⛔ Không đạt ở màn hình kiểm hàng | **Quyết định nghiệp vụ** |
 | `G-5` | Bản ghi `finishing_logs` tôi tạo khi kiểm chứng *(SEED-BD-01, 1 đạt/0 lỗi)* **còn nằm trong CSDL** — sổ ghi-thêm `K-1`, ứng dụng ⛔ không xoá được | Cần Board cho phép chạy `M00x` dọn |
 | `G-6` | 🔴 `cut_tickets.bom_allowance_m` đang mang **hai đơn vị khác nhau**: `SEED-CT-01 = 2,5` *(mét trên MỘT sp, cho 1.188 sp)* ⟷ `PK-2026-001 = 70` *(giống tổng mét, cho 50 sp)*. Hệ quả: cờ *"vượt định mức"* trong `duLieuCatHomNay` **bật cho MỌI phiếu** | **Ý nghĩa nghiệp vụ của cột** |
+| `G-8` | 🔴 `financial_records.order_id` trỏ tới UUID **⛔ không tồn tại trong `orders`** *(`a0000000-…-0002` · `…-0004`)* ⇒ bảng công nợ subcon ⛔ **không truy được về PO nào**. Sửa dữ liệu, hay thêm ràng buộc khoá ngoại? | Chạm **Schema + dữ liệu thật** |
+| `G-9` | 🔴 **0/14 đơn hàng có `unit_price`** ⇒ ⛔ không tính được doanh thu · lãi/lỗ · margin cho bất kỳ đơn nào. Ai nhập giá, nhập ở đâu, và có cần bắt buộc khi duyệt PO? | **Quyết định nghiệp vụ** |
+| `G-10` | `types/erp.ts` khai `Order` với **năm cột ⛔ không tồn tại**. Sửa hẳn tệp kiểu *(chạm nhiều màn hình)* hay bỏ dần? | Chạm **hướng kiến trúc** |
 | `G-7` | ⛔ **Chưa có ngưỡng hao hụt vải** nào được Board phê duyệt ⇒ biểu đồ hao hụt cố ý **⛔ không tô màu phán quyết** | **Quyết định nghiệp vụ** |
 
 ---

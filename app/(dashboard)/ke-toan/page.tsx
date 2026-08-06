@@ -23,6 +23,42 @@ import type { FinancialRecord, Order, Subcon } from '@/types/erp';
 
 const MODULE_PATH = '/ke-toan';
 
+// ============================================================================
+// 🔴 SỬA 07/08/2026 — MÀN HÌNH NÀY ĐANG ĐỌC NHỮNG CỘT ⛔ KHÔNG TỒN TẠI
+//
+// `types/erp.ts` khai `Order` có `po_code · product_name · target_qty ·
+// unit_price_fob · unit_price_cmt`. Bảng `orders` THẬT ⛔ **không có cột nào
+// trong số đó** — nó có `po_number · style_code · total_quantity · unit_price
+// · currency`.
+//
+// TypeScript **im lặng** vì kiểu đang nói dối; lúc chạy mọi trường thành
+// `undefined`, phép nhân ra `NaN`, và `fmtVND` biến `NaN` thành **`0 ₫`**.
+//
+// 🔑 Hậu quả đo được trên phiên `kt001` thật: bảng *"P&L PER PO"* hiện **14
+// dòng PO TRỐNG, mọi cột `0 ₫`, margin `0,0%`**. Kế toán đọc thành *"đơn nào
+// cũng hoà vốn"* — một phát biểu tài chính **sai** về 14 đơn hàng thật.
+//
+// ⚠️ Đây đúng thứ Hiến pháp cảnh báo: **mã ⛔ không bao giờ là nguồn chân lý**.
+// Kiểu dữ liệu cũng vậy — nó chỉ là *lời khai*, và lời khai này sai.
+//
+// ⇒ Khai lại hình dạng theo **CSDL đang chạy**, và ở đâu thiếu dữ liệu thì
+// **nói ⚪ chưa đo được**, ⛔ KHÔNG điền 0 *(`V.1`)*.
+// ============================================================================
+interface DonThat {
+  id: string;
+  po_number: string | null;
+  style_code: string | null;
+  total_quantity: number | null;
+  /** ⚠️ Đo được: **0/14 đơn có đơn giá**. Cột này gần như luôn `null`. */
+  unit_price: number | null;
+  currency: string | null;
+}
+
+/** Ô tiền ⛔ chưa tính được. `V.1`: *"⚪ chưa đo được"* ⛔ KHÁC *"0 ₫"*. */
+function OChua() {
+  return <span className="text-slate-400" title="Chưa có đơn giá FOB trên đơn hàng">⚪</span>;
+}
+
 export default function AccountingPage() {
   const { session, ready } = useSession();
   const { toast, showToast } = useToast();
@@ -52,7 +88,14 @@ export default function AccountingPage() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => subscribeTables(['financial_records', 'qa_logs'], () => { void load(); }), [load]);
 
-  const poCode = useCallback((id: string) => orders.find((o) => o.id === id)?.po_code ?? id, [orders]);
+  // ⚠️ Cột thật là `po_number`, ⛔ không phải `po_code`. Và khi ⛔ không tra
+  // được thì hiện **`⛔ không rõ`** chứ ⛔ KHÔNG đổ nguyên UUID ra màn hình —
+  // đó là thứ kế toán ⛔ không đọc được và cũng ⛔ không đối chiếu được.
+  const poCode = useCallback(
+    (id: string) =>
+      (orders as unknown as DonThat[]).find((o) => o.id === id)?.po_number ?? '⛔ không rõ đơn',
+    [orders],
+  );
   const subconName = useCallback((id: string) => subcons.find((s) => s.id === id)?.name ?? id, [subcons]);
 
   const kpi = useMemo(() => ({
@@ -63,15 +106,34 @@ export default function AccountingPage() {
   }), [finance]);
 
   // ── P&L per PO ────────────────────────────────────────────────────────────
-  const pnl = useMemo(() => orders.map((o) => {
-    const revenue = o.target_qty * o.unit_price_fob;
-    const cmt = o.target_qty * o.unit_price_cmt;
-    const npl = revenue * ((Number(nplCostPct) || 0) / 100);
-    const overhead = revenue * ((Number(overheadPct) || 0) / 100);
-    const profit = revenue - cmt - npl - overhead;
-    const marginPct = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { order: o, revenue, cmt, npl, overhead, profit, marginPct };
+  // 🔑 `null` nghĩa là **⛔ chưa tính được**, ⛔ không phải *"bằng 0"*. Mọi ô
+  // dưới đây phải giữ được sự phân biệt đó cho tới tận lúc vẽ ra màn hình —
+  // ép về 0 ở giữa đường là chỗ con số bắt đầu nói dối.
+  const pnl = useMemo(() => (orders as unknown as DonThat[]).map((o) => {
+    const sl = Number(o.total_quantity ?? 0) || 0;
+    const gia = o.unit_price == null ? null : Number(o.unit_price) || 0;
+    const revenue = gia == null || sl === 0 ? null : sl * gia;
+
+    // ⚠️ ⛔ KHÔNG CÓ ĐƠN GIÁ CMT TRÊN `orders`. Giá CMT nằm ở
+    // `financial_records.unit_price` — nhưng đó là giá **trả nhà thầu cho một
+    // bảng kê**, ⛔ không phải giá thành gia công của cả đơn. Suy một cái ra
+    // cái kia là **bịa số kế toán**, nên chỗ này để ⚪.
+    const cmt: number | null = null;
+
+    const npl = revenue == null ? null : revenue * ((Number(nplCostPct) || 0) / 100);
+    const overhead = revenue == null ? null : revenue * ((Number(overheadPct) || 0) / 100);
+    const profit = revenue == null || npl == null || overhead == null || cmt == null
+      ? null
+      : revenue - cmt - npl - overhead;
+    const marginPct = profit == null || revenue == null || revenue <= 0
+      ? null
+      : (profit / revenue) * 100;
+    return { order: o, sl, tien: o.currency ?? 'VND', revenue, cmt, npl, overhead, profit, marginPct };
   }), [orders, nplCostPct, overheadPct]);
+
+  /** Bao nhiêu đơn ⛔ chưa nhập đơn giá — đây là **việc của kế toán**, ⛔ không
+   *  phải một con số trang trí. */
+  const thieuGia = useMemo(() => pnl.filter((r) => r.revenue === null).length, [pnl]);
 
   // ── Cập nhật record ───────────────────────────────────────────────────────
   const recompute = (f: FinancialRecord): FinancialRecord => ({
@@ -115,10 +177,14 @@ export default function AccountingPage() {
   // ── Xuất CSV P&L ──────────────────────────────────────────────────────────
   const exportCsv = () => {
     const header = 'PO;Nhan hang;San pham;Doanh thu FOB;Chi phi CMT;Chi phi NPL (uoc);Overhead;Lai/Lo;Margin %';
+    // ⚠️ Ô ⛔ chưa tính được xuất ra chữ `CHUA_DO_DUOC`, ⛔ **không** xuất `0`.
+    // Tệp CSV đi ra ngoài phần mềm và ⛔ không mang theo màu ⚪ — một số `0`
+    // trong đó sẽ được đọc là **số liệu tài chính thật**.
+    const oCsv = (v: number | null) => (v == null ? 'CHUA_DO_DUOC' : String(Math.round(v)));
     const lines = pnl.map((r) => [
-      r.order.po_code, r.order.brand, r.order.product_name,
-      Math.round(r.revenue), Math.round(r.cmt), Math.round(r.npl), Math.round(r.overhead),
-      Math.round(r.profit), r.marginPct.toFixed(1),
+      r.order.po_number ?? '', r.order.style_code ?? '', r.tien,
+      oCsv(r.revenue), oCsv(r.cmt), oCsv(r.npl), oCsv(r.overhead),
+      oCsv(r.profit), r.marginPct == null ? 'CHUA_DO_DUOC' : r.marginPct.toFixed(1),
     ].join(';'));
     const blob = new Blob(['﻿' + [header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -229,6 +295,21 @@ export default function AccountingPage() {
             </label>
           </div>
         }>
+        {/* 🔴 NÓI THẲNG CÁI ĐANG THIẾU — `V.1`.
+            Bảng đầy ô ⚪ mà ⛔ không giải thích thì người đọc tưởng phần mềm
+            hỏng. Băng này biến nó thành **việc phải làm của kế toán**: đơn nào
+            chưa có đơn giá thì ⛔ không ai tính được lãi lỗ, kể cả làm tay. */}
+        {thieuGia > 0 && (
+          <p role="status" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            ⚠️ <strong>{thieuGia}/{pnl.length} đơn hàng chưa có đơn giá FOB</strong> trong CSDL
+            ⇒ ⛔ <strong>không</strong> tính được doanh thu, lãi/lỗ và margin cho những đơn đó.
+            <br />
+            <span className="text-xs">
+              Ô <strong>⚪</strong> nghĩa là <strong>chưa đo được</strong>, ⛔ <strong>không</strong> phải
+              &quot;bằng 0&quot;. Nhập đơn giá ở phân hệ <strong>Merchandising → PO</strong> rồi quay lại.
+            </span>
+          </p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>
@@ -246,19 +327,32 @@ export default function AccountingPage() {
             <tbody className="divide-y divide-slate-50">
               {pnl.map((r) => (
                 <tr key={r.order.id} className="transition hover:bg-slate-50/70">
-                  <td className={`${tdCls} font-semibold text-blue-700`}>{r.order.po_code}</td>
-                  <td className={tdCls}>{r.order.product_name}</td>
-                  <td className={`${tdCls} text-right tabular-nums`}>{fmtVND(r.revenue)}</td>
-                  <td className={`${tdCls} text-right tabular-nums text-slate-500`}>− {fmtVND(r.cmt)}</td>
-                  <td className={`${tdCls} text-right tabular-nums text-slate-500`}>− {fmtVND(r.npl)}</td>
-                  <td className={`${tdCls} text-right tabular-nums text-slate-500`}>− {fmtVND(r.overhead)}</td>
-                  <td className={`${tdCls} text-right font-bold tabular-nums ${r.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {fmtVND(r.profit)}
+                  <td className={`${tdCls} font-semibold text-blue-700`}>{r.order.po_number ?? '—'}</td>
+                  <td className={tdCls}>
+                    {r.order.style_code ?? '—'}
+                    <span className="ml-2 text-xs text-slate-400 tabular-nums">{fmtNum(r.sl)} sp</span>
+                  </td>
+                  <td className={`${tdCls} text-right tabular-nums`}>
+                    {r.revenue == null ? <OChua /> : `${fmtNum(r.revenue)} ${r.tien}`}
+                  </td>
+                  <td className={`${tdCls} text-right tabular-nums text-slate-500`}>
+                    {r.cmt == null ? <OChua /> : `− ${fmtNum(r.cmt)} ${r.tien}`}
+                  </td>
+                  <td className={`${tdCls} text-right tabular-nums text-slate-500`}>
+                    {r.npl == null ? <OChua /> : `− ${fmtNum(r.npl)} ${r.tien}`}
+                  </td>
+                  <td className={`${tdCls} text-right tabular-nums text-slate-500`}>
+                    {r.overhead == null ? <OChua /> : `− ${fmtNum(r.overhead)} ${r.tien}`}
+                  </td>
+                  <td className={`${tdCls} text-right font-bold tabular-nums ${r.profit == null ? '' : r.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {r.profit == null ? <OChua /> : `${fmtNum(r.profit)} ${r.tien}`}
                   </td>
                   <td className={tdCls + ' text-right'}>
-                    {r.profit >= 0
-                      ? <Badge tone="emerald" icon={TrendingUp}>{fmtPct(r.marginPct)}</Badge>
-                      : <Badge tone="rose" icon={TrendingDown}>{fmtPct(r.marginPct)}</Badge>}
+                    {r.marginPct == null
+                      ? <OChua />
+                      : r.marginPct >= 0
+                        ? <Badge tone="emerald" icon={TrendingUp}>{fmtPct(r.marginPct)}</Badge>
+                        : <Badge tone="rose" icon={TrendingDown}>{fmtPct(r.marginPct)}</Badge>}
                   </td>
                 </tr>
               ))}
