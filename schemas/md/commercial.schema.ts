@@ -193,6 +193,10 @@ export interface CostingRow {
   quoted_price: number | null;
   margin_percent: number | null;
   status: string;
+  /** Lý do bị từ chối / yêu cầu làm lại. `null` khi chưa từng bị trả lại.
+   *  🔑 Thiếu trường này thì MD thấy bản "Bị từ chối" mà ⛔ không biết sửa gì —
+   *  vòng trình duyệt sẽ chạy vô tận. */
+  reject_reason: string | null;
   created_at: string;
 }
 

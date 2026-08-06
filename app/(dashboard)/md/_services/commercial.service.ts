@@ -138,7 +138,7 @@ export async function getCustomer360(customerId: string): Promise<Customer360Dat
         .from('costings')
         .select(
           'id, costing_no, version, order_type, currency, quantity, target_price,' +
-            ' quoted_price, margin_percent, status, created_at,' +
+            ' quoted_price, margin_percent, status, reject_reason, created_at,' +
             ' customers ( name ), styles ( style_no )',
         )
         .eq('customer_id', customerId)
@@ -224,6 +224,7 @@ interface RawCosting {
   quoted_price: number | null;
   margin_percent: number | null;
   status: string;
+  reject_reason: string | null;
   created_at: string;
   customers: { name: string } | { name: string }[] | null;
   styles: { style_no: string } | { style_no: string }[] | null;
@@ -236,6 +237,7 @@ function toCostingRow(r: RawCosting): CostingRow {
     version: r.version,
     customer_name: one(r.customers)?.name ?? null,
     style_no: one(r.styles)?.style_no ?? null,
+    reject_reason: r.reject_reason ?? null,
     order_type: r.order_type,
     currency: r.currency,
     quantity: r.quantity === null ? null : Number(r.quantity),
@@ -256,7 +258,7 @@ export async function listCostings(): Promise<{ rows: CostingRow[]; error: strin
       .from('costings')
       .select(
         'id, costing_no, version, order_type, currency, quantity, target_price,' +
-          ' quoted_price, margin_percent, status, created_at,' +
+          ' quoted_price, margin_percent, status, reject_reason, created_at,' +
           ' customers ( name ), styles ( style_no )',
       )
       .order('created_at', { ascending: false })

@@ -51,6 +51,10 @@ const BAI = [
   // biên phải CHIA (1−b) chứ ⛔ không NHÂN (1+b), và hiệu suất chuyền ⛔ không
   // được bỏ qua. Thêm: MD TRÌNH, MD ⛔ KHÔNG DUYỆT.
   ['business/md-costing-operations.test.mjs', 'MD — chiết tính theo công đoạn', false, CO_TS],
+  // Hộp thư duyệt giá + báo cáo ngày. Canh ba chỗ biến báo cáo gửi sếp thành
+  // lời nói dối: "0 sp" khi thật ra "⚪ chưa ai báo", tỉ lệ lỗi 0% khi chưa
+  // kiểm, và cùng một bản chiết tính hiện SAI VIỆC cho sai vai.
+  ['business/md-daily-digest.test.mjs', 'MD — hộp thư duyệt giá & báo cáo ngày', false, CO_TS],
   // ✅ `TD-36` đã trả — loader phân giải bí danh `@/…` và import thiếu đuôi, nên
   // bài này nay phủ ĐỦ 5/5 mô-đun Kho. Trước đó chỉ nạp được 2/5.
   ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false, CO_TS],

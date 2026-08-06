@@ -9,6 +9,7 @@ import { DataTable, tdCls, Metric, fmtDate, fmtNum, fmtMoney } from '../po/tab-k
 import { COSTING_STATUS_LABEL, ORDER_TYPE_LABEL, labelOf } from '../po/labels';
 import CostingDetailSheet from './costing-detail-sheet';
 import type { Role } from '@/lib/rbac';
+import { xepHopThu } from '@/lib/mos/md/costing-inbox';
 import type { CostingRow } from '@/schemas/md';
 
 // ============================================================================
@@ -85,8 +86,42 @@ function CostingList({
 
   if (error) return <ErrorState message={error} onRetry={() => void onRefresh()} />;
 
+  // 🔴 HỘP THƯ DUYỆT GIÁ — Board 06/08/2026. Trả lời câu *"có bản nào đang chờ
+  // TÔI làm gì ⛔ không"* ngay từ `costings.status`, ⛔ không cần bảng thông báo.
+  // Cùng một bản `SUBMITTED` mang ý nghĩa NGƯỢC NHAU với hai vai — xem
+  // `lib/mos/md/costing-inbox.ts`.
+  const hopThu = xepHopThu(rows, role);
+
   return (
     <>
+      {hopThu.tomTat && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <p className="text-sm font-bold text-amber-900">🔔 {hopThu.tomTat}</p>
+          <ul className="mt-2 space-y-1">
+            {hopThu.canXuLy.map((m) => (
+              <li key={m.ban.id} className="text-xs text-amber-900">
+                <button
+                  type="button"
+                  onClick={() => setOpen(rows.find((r) => r.id === m.ban.id) ?? null)}
+                  className="font-bold underline"
+                >
+                  {m.ban.costing_no}
+                </button>
+                {m.ban.customer_name ? ` · ${m.ban.customer_name}` : ''} — {m.viec}
+                {/* Lý do trả lại phải hiện NGAY, ⛔ không bắt mở chi tiết mới
+                    thấy: ⛔ không biết sửa gì thì vòng trình duyệt chạy vô tận. */}
+                {m.lyDo && <span className="block pl-3 italic">↳ {m.lyDo}</span>}
+              </li>
+            ))}
+          </ul>
+          {hopThu.dangCho.length > 0 && (
+            <p className="mt-2 text-xs text-amber-800">
+              Ngoài ra {hopThu.dangCho.length} bản đang chờ phía bên kia xử lý.
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Metric label="Số chiết tính" value={fmtNum(stats.total)} sub={`${stats.versions} phiên bản`} />
         <Metric label="Đã duyệt" value={fmtNum(stats.approved)} tone="emerald" />
