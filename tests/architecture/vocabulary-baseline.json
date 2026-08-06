@@ -85,7 +85,8 @@
     "MATERIAL_CATEGORIES": "🟠 TRÙNG TÊN — schemas/md/common.ts `TRIM` (khớp `style_bom.category`), schemas/warehouse/common.ts `TRIMS`+`THREAD`. Khác nhau đúng một chữ cái; nhập nhầm miền là lỗi câm.",
     "AQL_RESULTS": "🟡 `qa_logs.aql_status` không có ràng buộc CHECK — mã khai PASS·FAIL·PENDING nhưng CSDL nhận mọi chuỗi.",
     "UOMS": "🟡 `materials.uom` không có ràng buộc CHECK — 8 đơn vị chỉ được canh ở tầng Zod.",
-    "CURRENCIES": "🟡 Không cột nào của MD ràng buộc tiền tệ; chỉ `assignment_commercial_terms.currency` có, và cột đó đã ánh xạ cho ASSIGNMENT_CURRENCIES. Cùng tập giá trị, khác thứ tự."
+    "CURRENCIES": "🟡 Không cột nào của MD ràng buộc tiền tệ; chỉ `assignment_commercial_terms.currency` có, và cột đó đã ánh xạ cho ASSIGNMENT_CURRENCIES. Cùng tập giá trị, khác thứ tự.",
+    "PO_TIEN_DO": "🔴 Cùng cảnh với `PO_STATUSES`: `orders.status` KHÔNG có ràng buộc CHECK nào (khuyết tật `TC-4`). PO_TIEN_DO chép 4 mã từ dòng CHÚ THÍCH của 002 để kiểm ở tầng ứng dụng trước khi ghi — vì CSDL sẽ nhận BẤT KỲ chuỗi nào. Xếp ở đây, KHÔNG ở anhXa, vì không có ràng buộc nào để đối chiếu."
   },
   "trungTenDaBiet": [
     "INCOTERMS",

@@ -14,6 +14,7 @@ import {
   NHOM_SAN_PHAM, KHAU,
 } from '../../lib/mos/md/operations.ts';
 import { duocDuyet, duocTrinh, kiemQuyen } from '../../lib/mos/md/costing-approval.ts';
+import { duocSuaPo, kiemSuaPo, canhBaoGiamSoLuong, PO_TIEN_DO } from '../../lib/mos/md/po-edit.ts';
 
 let dat = 0; const hong = [];
 const ok = (t, dk, g = '') => { if (dk) { dat++; console.log(`  ✅ ${t}`); return; } hong.push(t); console.log(`  ⛔ ${t}${g ? `\n       ${g}` : ''}`); };
@@ -128,6 +129,40 @@ console.log('\n⑧ 🔴 AI ĐƯỢC DUYỆT — MD TRÌNH, MD ⛔ KHÔNG DUYỆT
     'chặn mà ⛔ không giải thích thì người dùng bấm lại rồi gọi hỗ trợ');
   ok('MD trình thì cho qua', kiemQuyen('md', 'SUBMITTED').ok === true);
   ok('Giám đốc từ chối thì cho qua', kiemQuyen('giamdoc', 'REJECTED').ok === true);
+}
+
+console.log('\n⑨ SỬA PO — ai được sửa, và chặn dữ liệu vô nghĩa');
+{
+  ok('MD được sửa PO', duocSuaPo('md'));
+  ok('Giám đốc sản xuất được sửa PO', duocSuaPo('giamdoc'));
+  ok('QA ⛔ không được sửa PO', !duocSuaPo('qa'));
+  ok('Nhà thầu ngoài ⛔ không được sửa PO', !duocSuaPo('subcon'));
+  ok('⛔ Chưa đăng nhập ⇒ ⛔ không sửa được', !duocSuaPo(null));
+
+  const hopLe = { total_quantity: 5000, status: 'IN_PRODUCTION', delivery_date: '2026-09-30' };
+  ok('Dữ liệu đúng thì cho qua', kiemSuaPo(hopLe).ok === true);
+  ok('Số lượng 0 bị chặn', kiemSuaPo({ ...hopLe, total_quantity: 0 }).ok === false);
+  ok('Số lượng âm bị chặn', kiemSuaPo({ ...hopLe, total_quantity: -5 }).ok === false);
+  ok('Số lẻ bị chặn (⛔ không có sản phẩm nửa cái)',
+    kiemSuaPo({ ...hopLe, total_quantity: 10.5 }).ok === false);
+  ok('Trạng thái lạ bị chặn', kiemSuaPo({ ...hopLe, status: 'XYZ' }).ok === false);
+  ok('Ngày sai khuôn bị chặn', kiemSuaPo({ ...hopLe, delivery_date: '30/09/2026' }).ok === false);
+  ok('Lỗi có chỉ đúng TRƯỜNG nào sai',
+    kiemSuaPo({ ...hopLe, total_quantity: 0 }).truong === 'total_quantity');
+  ok('Đủ 4 trạng thái tiến độ', PO_TIEN_DO.length === 4);
+}
+
+console.log('\n⑩ 🔴 CẢNH BÁO GIẢM SỐ LƯỢNG THẤP HƠN SỐ ĐÃ SẢN XUẤT');
+{
+  ok('Giảm 5.000 → 3.000 trong khi đã làm 4.800 ⇒ CÓ cảnh báo',
+    canhBaoGiamSoLuong(3000, 4800) !== null,
+    'tiến độ sẽ thành 160% và mọi báo cáo sản lượng đọc ra là dối');
+  ok('Cảnh báo nêu cả hai con số',
+    (canhBaoGiamSoLuong(3000, 4800) ?? '').includes('3.000')
+    && (canhBaoGiamSoLuong(3000, 4800) ?? '').includes('4.800'));
+  ok('Tăng số lượng ⇒ ⛔ không cảnh báo', canhBaoGiamSoLuong(6000, 4800) === null);
+  ok('Bằng nhau ⇒ ⛔ không cảnh báo', canhBaoGiamSoLuong(4800, 4800) === null);
+  ok('⛔ Chưa sản xuất gì ⇒ ⛔ không cảnh báo', canhBaoGiamSoLuong(1000, 0) === null);
 }
 
 console.log('\n' + '═'.repeat(74));

@@ -10,15 +10,19 @@
 // tự duyệt được giá của chính mình. Đó là `SOD` bị thủng ở đúng chỗ đắt nhất:
 // giá bán.
 //
-// ─── 🔴 MỘT SỰ THẬT PHẢI NÓI RA ────────────────────────────────────────────
-// **Vai `productionDirector` ⛔ CHƯA TỒN TẠI trong hệ thống.** `lib/rbac.ts`
-// chỉ có: superadmin · giamdoc · md · qa · totruongmay · totruongcat ·
-// hoanthanh · kho · ketoan · subcon · buyer · khotruong · thukho · ketoanvattu.
+// ─── ✅ ĐÃ ĐƯỢC BOARD XÁC NHẬN 06/08/2026 ──────────────────────────────────
+// **Production Director CHÍNH LÀ giám đốc / giám đốc sản xuất — vai `giamdoc`.**
 //
-// Thêm một vai mới là chạm **Permission Model** — thẩm quyền của Board. Vì vậy
-// bản này để **`giamdoc`** làm người duyệt *(vai cấp cao nhất hiện có)*, và
-// khai chỗ đó ra ở đúng một hằng số để ngày Board mở vai `productionDirector`
-// thì sửa **một dòng**.
+// ⛔ **KHÔNG tạo vai `productionDirector` mới.**
+//
+// ⚠️ Bản trước của khối chú thích này ghi *"vai PD chưa tồn tại, cần Board mở
+// vai mới"* — **SAI**. Vai đã có sẵn, chỉ mang tên khác. Nhầm lẫn sinh ra vì
+// Trang chủ hiện **hai ô riêng** *(`CEO` ← module `executive`, `Production
+// Director` ← module `planning`)*, nên trông như hai người; thực tế **cùng một
+// người**: `giamdoc`.
+//
+// 🔑 Hệ quả: báo cáo tổng hợp của MD *"gửi CEO và Production Director"* là gửi
+// tới **cùng một vai** ở tầng phân quyền, dù là hai lối vào trên Trang chủ.
 // ============================================================================
 import type { Role } from '@/lib/rbac';
 

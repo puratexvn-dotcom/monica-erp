@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 
 import { guard, friendlyDbError, safeQuery } from '../_services/guard';
+import { writeAudit } from './audit';
+import { duocSuaPo, kiemSuaPo, canhBaoGiamSoLuong } from '@/lib/mos/md/po-edit';
 import {
   poFormSchema,
   sizeBreakdownSchema,
@@ -321,4 +323,107 @@ export async function postComment(input: unknown): Promise<ActionResult> {
     ok: true,
     message: mentions.length > 0 ? `Đã gửi và gọi ${mentions.length} bộ phận.` : 'Đã gửi.',
   };
+}
+
+// ─── SỬA ĐƠN HÀNG + ĐÍNH KÈM ────────────────────────────────────────────────
+//
+// Board 06/08/2026: *"PO phải **upload được hình ảnh mẫu và tài liệu đi kèm**;
+// PD và MD **sửa được số lượng và tiến độ** của PO đó."*
+//
+// ✅ **Production Director = giám đốc = vai `giamdoc`** *(Board xác nhận)*.
+//
+// ⛔ KHÔNG đụng lược đồ: `orders` đã có `total_quantity` · `status` ·
+// `delivery_date`; ảnh và tài liệu dùng bảng `attachments` (migration `001`)
+// cùng bucket `evidences` đã có sẵn.
+
+/**
+ * Sửa **số lượng · tiến độ · ngày giao** của một PO.
+ *
+ * 🔴 **Đọc lại số ĐÃ SẢN XUẤT trước khi cho sửa số lượng.** PO 5.000 cái đã may
+ * 4.800, sửa xuống 3.000 thì tiến độ thành **160%** và mọi báo cáo sản lượng
+ * đọc ra là dối. Hàm ⛔ không tự chặn *(có khi khách thật sự cắt đơn)* nhưng
+ * **bắt buộc người gọi xác nhận** qua cờ `xacNhanGiam`.
+ */
+export async function updatePo(
+  id: string,
+  v: { total_quantity: number; status: string; delivery_date: string },
+  xacNhanGiam = false,
+): Promise<ActionResult<{ canhBao?: string }>> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+
+  if (!duocSuaPo(g.role)) {
+    return { ok: false, message: 'Chỉ Merchandiser và Giám đốc sản xuất mới được sửa đơn hàng.' };
+  }
+  const kiem = kiemSuaPo(v);
+  if (!kiem.ok) return { ok: false, message: kiem.vi, fieldErrors: { [kiem.truong]: kiem.vi } };
+
+  const { data: truoc } = await g.supabase
+    .from('orders').select('total_quantity, status, delivery_date, po_number').eq('id', id).maybeSingle();
+  if (!truoc) return { ok: false, message: 'Không tìm thấy đơn hàng, hoặc bạn không có quyền xem nó.' };
+  const cu = truoc as { total_quantity: number; status: string; delivery_date: string; po_number: string };
+
+  // Số đã ghi nhận sản xuất — đọc từ lệnh sản xuất, ⛔ không đoán.
+  const { data: sx } = await g.supabase
+    .from('production_orders').select('planned_qty').eq('order_id', id).neq('status', 'CANCELLED');
+  const daLam = (sx ?? []).reduce((t, r) => t + Number((r as { planned_qty: number }).planned_qty || 0), 0);
+  const canhBao = canhBaoGiamSoLuong(v.total_quantity, daLam);
+  if (canhBao && !xacNhanGiam) return { ok: false, message: canhBao, data: { canhBao } };
+
+  const { error } = await g.supabase.from('orders').update({
+    total_quantity: v.total_quantity, status: v.status, delivery_date: v.delivery_date,
+  }).eq('id', id);
+  if (error) return { ok: false, message: friendlyDbError('updatePo', error) };
+
+  await writeAudit('ORDER', id, 'UPDATE', {
+    total_quantity: { from: cu.total_quantity, to: v.total_quantity },
+    status: { from: cu.status, to: v.status },
+    delivery_date: { from: cu.delivery_date, to: v.delivery_date },
+  });
+
+  revalidatePath(PATH);
+  return { ok: true, message: `Đã cập nhật đơn ${cu.po_number}.` };
+}
+
+/**
+ * Gắn một tệp **đã upload** vào PO — ảnh mẫu, tech pack, chứng từ.
+ *
+ * ⚠️ Hàm này ⛔ **không** nhận tệp. Việc tải lên do `uploadEvidence` làm *(nó đã
+ * kiểm loại tệp, dung lượng và ghi vào bucket `evidences`)*; ở đây chỉ **ghi
+ * mối liên hệ**. Tách hai việc để một lần tải lên hỏng ⛔ không tạo ra bản ghi
+ * trỏ tới tệp ⛔ không tồn tại.
+ */
+export async function attachToPo(
+  orderId: string, fileUrl: string, moTa?: string,
+): Promise<ActionResult> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+  if (!fileUrl || !/^https?:\/\//.test(fileUrl)) {
+    return { ok: false, message: 'Đường dẫn tệp không hợp lệ.' };
+  }
+
+  const { error } = await g.supabase.from('attachments').insert({
+    entity_type: 'ORDER', entity_id: orderId, file_url: fileUrl, uploaded_by: g.userId,
+  });
+  if (error) return { ok: false, message: friendlyDbError('attachToPo', error) };
+
+  await writeAudit('ORDER', orderId, 'UPDATE', {
+    attachment: { from: null, to: moTa?.trim() || fileUrl },
+  });
+  revalidatePath(PATH);
+  return { ok: true, message: 'Đã đính kèm tệp vào đơn hàng.' };
+}
+
+/** Danh sách tệp đã đính kèm của một PO. */
+export async function listPoAttachments(
+  orderId: string,
+): Promise<{ rows: Array<{ id: string; file_url: string; created_at: string }>; error: string | null }> {
+  const g = await guard();
+  if (!g.supabase) return { rows: [], error: g.error };
+  const { data, error } = await g.supabase
+    .from('attachments').select('id, file_url, created_at')
+    .eq('entity_type', 'ORDER').eq('entity_id', orderId)
+    .order('created_at', { ascending: false });
+  if (error) return { rows: [], error: friendlyDbError('listPoAttachments', error) };
+  return { rows: (data ?? []) as Array<{ id: string; file_url: string; created_at: string }>, error: null };
 }
