@@ -11,6 +11,7 @@ import {
 } from './actions'
 import MayShell from './may-shell'
 import { getMayCommandCenter } from './_services/command-center.service'
+import ActionForm from '@/components/forms/action-form'
 
 // ============================================================================
 // SEWING WORKSPACE — Blueprint tầng ⑤
@@ -164,19 +165,25 @@ export default async function SewingDashboardPage() {
             <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
               Ghi Nhận Sản Lượng Giờ
             </h2>
-            {/* 🔴 SỬA 07/08/2026 — TRUYỀN THẲNG SERVER ACTION.
-                Bản trước bọc trong closure `async (formData) => { await fn(formData) }`.
-                Closure đó nằm trong Server Component và ⛔ KHÔNG đánh dấu
-                `'use server'` ⇒ React ⛔ không serialize được ⇒ **cả trang 500**:
-                *"Functions cannot be passed directly to Client Components"*.
-                Hậu quả thật: tổ trưởng ⛔ KHÔNG NHẬP ĐƯỢC GÌ suốt thời gian đó,
-                nên `hourly_production_logs`/`finishing_logs` rỗng — và báo cáo
-                ngày của MD tưởng *"chưa ai báo cáo"* trong khi sự thật là
-                *"⛔ không ai báo cáo NỔI"*. */}
-            <form action={async (formData: FormData) => {
-              'use server'
-              await createHourlyProductionLog(formData)
-            }} className="space-y-4">
+            {/* 🔴 SỬA 07/08/2026 — HAI KHUYẾT TẬT CÙNG CHỖ NÀY.
+                ① Bản trước bọc Server Action trong closure ⛔ KHÔNG đánh dấu
+                   `'use server'` ⇒ React ⛔ không serialize được ⇒ **cả trang
+                   500**. Tổ trưởng ⛔ KHÔNG NHẬP ĐƯỢC GÌ suốt thời gian đó, nên
+                   `hourly_production_logs`/`finishing_logs` rỗng — báo cáo ngày
+                   của MD tưởng *"chưa ai báo cáo"*, sự thật là *"⛔ không ai
+                   báo cáo NỔI"*.
+                ② Giá trị trả về `{ error }` **rơi vào hư không** ⇒ nhập sai thì
+                   màn hình ⛔ KHÔNG HIỆN GÌ, y hệt lúc lưu thành công.
+                ⇒ Nay dùng `ActionForm` *(`components/forms/action-form.tsx`)*:
+                closure có `'use server'` bên trong, và kết quả được **hiện
+                thành lời** ngay đầu biểu mẫu. */}
+            <ActionForm
+              action={async (_truoc, formData) => {
+                'use server'
+                return await createHourlyProductionLog(formData)
+              }}
+              nutChu="Ghi nhận" className="space-y-4"
+            >
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Chọn Chuyền May <span className="text-red-500">*</span>
@@ -294,7 +301,7 @@ export default async function SewingDashboardPage() {
               >
                 Cập Nhật Sản Lượng Giờ
               </button>
-            </form>
+            </ActionForm>
           </div>
 
           {/* FORM 2: BÁO CÁO GÃY KIM AN TOÀN */}
@@ -302,10 +309,13 @@ export default async function SewingDashboardPage() {
             <h2 className="text-base font-semibold text-rose-900 mb-4 pb-3 border-b border-rose-100 flex items-center gap-2">
               <span>⚠️</span> Báo Cáo Sự Cố Gãy Kim
             </h2>
-            <form action={async (formData: FormData) => {
-              'use server'
-              await createNeedleBreakLog(formData)
-            }} className="space-y-4">
+            <ActionForm
+              action={async (_truoc, formData) => {
+                'use server'
+                return await createNeedleBreakLog(formData)
+              }}
+              nutChu="Ghi nhận" className="space-y-4"
+            >
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Chuyền May Xảy Ra Sự Cố <span className="text-red-500">*</span>
@@ -411,7 +421,7 @@ export default async function SewingDashboardPage() {
               >
                 Gửi Báo Cáo & Yêu Cầu Đổi Kim
               </button>
-            </form>
+            </ActionForm>
           </div>
 
         </div>

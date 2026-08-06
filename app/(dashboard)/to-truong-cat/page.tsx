@@ -1,6 +1,7 @@
 import { getCutTickets, getOptionsForCutting, createCutTicket } from './actions'
 import CatShell from './cat-shell'
 import { getCatCommandCenter } from './_services/command-center.service'
+import ActionForm from '@/components/forms/action-form'
 
 // ============================================================================
 // CUTTING WORKSPACE — Blueprint tầng ⑤
@@ -108,10 +109,13 @@ export default async function CuttingPage() {
           <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
             Lập Phiếu Bàn Cắt
           </h2>
-          <form action={async (formData: FormData) => {
-              'use server'
-              await createCutTicket(formData)
-            }} className="space-y-4">
+          <ActionForm
+              action={async (_truoc, formData) => {
+                'use server'
+                return await createCutTicket(formData)
+              }}
+              nutChu="Ghi nhận" className="space-y-4"
+            >
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Đơn Hàng PO <span className="text-red-500">*</span>
@@ -306,7 +310,7 @@ export default async function CuttingPage() {
             >
               Lập Phiếu & Sinh Mã Vạch Bundles
             </button>
-          </form>
+          </ActionForm>
         </div>
       </div>
     </CatShell>

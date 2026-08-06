@@ -1,4 +1,5 @@
 import { getLogisticsData, scanInCartonToFG, createShipment } from './actions'
+import ActionForm from '@/components/forms/action-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,22 +40,27 @@ export default async function LogisticsWarehousePage() {
               <span>🔫 Quét Mã Nhập Kho Thành Phẩm (Scan-in)</span>
               <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded">Có {pendingCount} thùng đang kẹt ở xưởng</span>
             </h2>
-            {/* 🔴 SỬA 07/08/2026 — TRUYỀN THẲNG SERVER ACTION.
-                Bản trước bọc trong closure `async (formData) => { await fn(formData) }`.
-                Closure đó nằm trong Server Component và ⛔ KHÔNG đánh dấu
-                `'use server'` ⇒ React ⛔ không serialize được ⇒ **cả trang 500**:
-                *"Functions cannot be passed directly to Client Components"*.
-                Hậu quả thật: tổ trưởng ⛔ KHÔNG NHẬP ĐƯỢC GÌ suốt thời gian đó,
-                nên `hourly_production_logs`/`finishing_logs` rỗng — và báo cáo
-                ngày của MD tưởng *"chưa ai báo cáo"* trong khi sự thật là
-                *"⛔ không ai báo cáo NỔI"*. */}
-            <form action={async (formData: FormData) => {
-              'use server'
-              await scanInCartonToFG(formData)
-            }} className="flex gap-2">
+            {/* 🔴 SỬA 07/08/2026 — HAI KHUYẾT TẬT CÙNG CHỖ NÀY.
+                ① Bản trước bọc Server Action trong closure ⛔ KHÔNG đánh dấu
+                   `'use server'` ⇒ React ⛔ không serialize được ⇒ **cả trang
+                   500**. Tổ trưởng ⛔ KHÔNG NHẬP ĐƯỢC GÌ suốt thời gian đó, nên
+                   `hourly_production_logs`/`finishing_logs` rỗng — báo cáo ngày
+                   của MD tưởng *"chưa ai báo cáo"*, sự thật là *"⛔ không ai
+                   báo cáo NỔI"*.
+                ② Giá trị trả về `{ error }` **rơi vào hư không** ⇒ nhập sai thì
+                   màn hình ⛔ KHÔNG HIỆN GÌ, y hệt lúc lưu thành công.
+                ⇒ Nay dùng `ActionForm` *(`components/forms/action-form.tsx`)*:
+                closure có `'use server'` bên trong, và kết quả được **hiện
+                thành lời** ngay đầu biểu mẫu. */}
+            <ActionForm
+              action={async (_truoc, formData) => {
+                'use server'
+                return await scanInCartonToFG(formData)
+              }}
+              nutChu="Nhập Kho (IN_FG)" className="flex gap-2"
+            >
               <input type="text" name="carton_code" placeholder="Quét Barcode Thùng (VD: CTN-PO-123...)" required autoFocus className="flex-1 px-4 py-2 border border-blue-300 rounded-lg font-mono text-sm shadow-inner" />
-              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Nhập Kho (IN_FG)</button>
-            </form>
+            </ActionForm>
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -85,15 +91,17 @@ export default async function LogisticsWarehousePage() {
         {/* TAB 2: QUẢN LÝ CONTAINER */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-fit">
           <h2 className="font-semibold text-slate-900 mb-4 border-b pb-2">Lập Container Xuất Khẩu</h2>
-          <form action={async (formData: FormData) => {
-              'use server'
-              await createShipment(formData)
-            }} className="space-y-4 mb-6">
+          <ActionForm
+              action={async (_truoc, formData) => {
+                'use server'
+                return await createShipment(formData)
+              }}
+              nutChu="Tạo Manifest" className="space-y-4 mb-6"
+            >
             <div><label className="block text-xs font-bold mb-1">Mã PO</label><input type="text" name="po_number" required className="w-full px-3 py-2 border rounded-lg text-sm" /></div>
             <div><label className="block text-xs font-bold mb-1">Số Container</label><input type="text" name="container_no" placeholder="VD: TEMU-123" required className="w-full px-3 py-2 border rounded-lg text-sm" /></div>
             <div><label className="block text-xs font-bold mb-1">Cảng Đích</label><input type="text" name="destination_port" defaultValue="USLAX" className="w-full px-3 py-2 border rounded-lg text-sm" /></div>
-            <button type="submit" className="w-full bg-slate-900 text-white font-medium py-2 rounded-lg text-sm">Tạo Manifest</button>
-          </form>
+          </ActionForm>
 
           <h3 className="font-semibold text-slate-800 text-sm mb-3">Danh sách Container</h3>
           <div className="space-y-2">
