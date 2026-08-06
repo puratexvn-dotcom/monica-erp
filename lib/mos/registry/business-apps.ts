@@ -218,7 +218,7 @@ const KHO_VAN: ModuleItem[] = [
 
 // ─── ⑤ HẬU CẦN ──────────────────────────────────────────────────────────────
 const HAU_CAN: ModuleItem[] = [
-  { id: 'shipment', name: 'Shipment', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment', valueKey: 'appValue.shipment',
+  { id: 'shipment', name: 'Logistics', descKey: 'appDesc.shipment', shortKey: 'appShort.shipment', valueKey: 'appValue.shipment',
     status: 'READY', href: '/xuat-hang', icon: Ship, key: 'shipment', group: 'hauCan', primaryUser: 'kho', workIntent: 'workIntent.shipment' },
 ];
 
@@ -315,15 +315,25 @@ export const TRAT_TU_TRANG_CHU: readonly string[] = [
  * vẫn chịu đúng phân quyền cũ. Board ghi rõ: *"Modules remain in the system and
  * can still be accessed by route or permission."*
  *
- * ⚠️ **MỘT CHỖ LỆCH TRONG CHỈ THỊ, VÀ ĐÂY LÀ CÁCH TÔI ĐỌC NÓ.**
- * Danh sách ẩn của Board có `Planning`, nhưng hàng đầu lại có `Production
- * Director` — mà chính Board chỉ định `Planning → Production Director`. Hai
- * điều đó ⛔ không thể cùng đúng: ẩn `planning` thì hàng đầu mất một ô.
+ * ⚠️ **CHỖ LỆCH TRONG CHỈ THỊ — ĐÃ ĐƯỢC BOARD ĐÍNH CHÍNH 06/08/2026.**
+ * Danh sách ẩn ban đầu có `Planning`, trong khi hàng đầu lại có `Production
+ * Director` *(chính là `planning` đổi tên)*. Board đã làm rõ:
  *
- * ⇒ Tôi giữ `planning` *(nay tên là Production Director)* và ẩn `salesAdmin`
- * thay vào — vì Board đã đưa *"Sales Admin"* xuống làm **phụ đề của CRM**, tức
- * nó thôi đứng riêng. Cách đọc này cho đúng **15 hiện · 9 ẩn** như Board tính.
- * Nếu Board muốn ngược lại, đổi đúng một dòng dưới đây.
+ *   > *"Production Director là người có trách nhiệm và quyền hạn cao nhất của
+ *   > sản xuất — họ **duyệt giá và kế hoạch**. MD là người **thực thi và giám
+ *   > sát** các quyết định đó, quyền hành sau Giám đốc sản xuất."*
+ *
+ * ⇒ `planning` **GIỮ LẠI** *(tên: Production Director)*, và `salesAdmin` bị ẩn
+ * thay vào — Board đã đưa *"Sales Admin"* xuống làm **phụ đề của CRM**, tức nó
+ * thôi đứng riêng. Đúng **15 hiện · 9 ẩn**.
+ *
+ * 🔑 Vì Production Director **duyệt giá**, việc `costing` nằm trong danh sách
+ * ẩn là **nhất quán**, ⛔ không phải bỏ sót: lối vào nghiệp vụ duyệt giá là ô
+ * Production Director, còn `costing` vẫn mở được bằng route + phân quyền.
+ *
+ * 🔑 Thứ bậc **Production Director → Merchandising** được thể hiện bằng **VỊ
+ * TRÍ**: PD ở hàng đầu, MD mở đầu hàng hai. ⛔ Không cần tiêu đề nhóm nào —
+ * lưới phẳng vẫn kể đúng thứ bậc.
  */
 export const AN_KHOI_TRANG_CHU: readonly string[] = [
   'production', 'sales', 'salesAdmin', 'costing', 'documents',
