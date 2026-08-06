@@ -47,6 +47,10 @@ const BAI = [
   // nhất, trong đó có luật `V.1`: chặng Kiểm hàng phải khai ⚪ CHƯA ĐO ĐƯỢC
   // *(MD ⛔ chưa có đường dữ liệu QA)*, ⛔ KHÔNG được hiện thành "chưa tới".
   ['business/md-order-journey.test.mjs', 'MD — đơn hàng đang ở đâu', false, CO_TS],
+  // Chiết tính theo công đoạn + ai được duyệt. Canh hai chỗ làm SAI GIÁ THÀNH:
+  // biên phải CHIA (1−b) chứ ⛔ không NHÂN (1+b), và hiệu suất chuyền ⛔ không
+  // được bỏ qua. Thêm: MD TRÌNH, MD ⛔ KHÔNG DUYỆT.
+  ['business/md-costing-operations.test.mjs', 'MD — chiết tính theo công đoạn', false, CO_TS],
   // ✅ `TD-36` đã trả — loader phân giải bí danh `@/…` và import thiếu đuôi, nên
   // bài này nay phủ ĐỦ 5/5 mô-đun Kho. Trước đó chỉ nạp được 2/5.
   ['business/warehouse-formulas.test.mjs', 'Nghiệp vụ Kho — công thức', false, CO_TS],

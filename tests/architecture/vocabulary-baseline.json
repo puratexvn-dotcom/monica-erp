@@ -73,7 +73,9 @@
     "WH_ACTIONS": "KHÔNG phải vốn từ nghiệp vụ — tên hành động phân quyền, lib/rbac.ts.",
     "CHANG": "DẪN XUẤT — order-journey.ts suy 6 chặng từ CHỨNG TỪ CON (phiếu NPL, lệnh SX, lô hàng), không lưu cột `current_stage` nào. CLAUDE.md §2.5 cấm lưu dữ liệu tính được.",
     "TRANG_THAI_CHANG": "DẪN XUẤT — trạng thái mỗi chặng, tính tại chỗ. Gồm `KHONG_DO_DUOC` cho chặng Kiểm hàng vì MD chưa có đường dữ liệu QA (`V.1`: không kết luận trên bảng rỗng).",
-    "SUC_KHOE": "DẪN XUẤT — 🟢/🟡/🔴 tính từ ngày giao + mốc chứng từ con, ngưỡng 7/21 ngày lấy nguyên của po-flow.ts. Không lưu cột nào."
+    "SUC_KHOE": "DẪN XUẤT — 🟢/🟡/🔴 tính từ ngày giao + mốc chứng từ con, ngưỡng 7/21 ngày lấy nguyên của po-flow.ts. Không lưu cột nào.",
+    "NHOM_SAN_PHAM": "DẪN XUẤT — nhóm sản phẩm chỉ để LỌC danh mục công đoạn trên màn hình chiết tính. Không lưu cột nào; `styles.product_group` là chuỗi tự do, không ràng buộc theo tập này.",
+    "KHAU": "DẪN XUẤT — bốn khâu (Cắt/May/Hoàn thành/Phụ trợ) chỉ để GOM NHÓM công đoạn cho dễ quét. Không lưu cột nào."
   },
   "chuaPhanLoai": {
     "PO_STATUSES": "🔴 `orders.status` KHÔNG có ràng buộc CHECK nào — vốn từ chỉ sống trong một dòng CHÚ THÍCH ở 002_po_master_schema.sql:17, và chú thích đó liệt kê 4 giá trị trong khi mã khai 6 (thiếu SHIPPED, CANCELLED). Đây là bảng trung tâm của cả hệ thống. Cùng họ khuyết tật với TD-02. Sửa = thêm CHECK ⇒ migration ⇒ ADR.",

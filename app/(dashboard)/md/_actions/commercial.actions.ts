@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache';
 
 import { guard, friendlyDbError, safeQuery } from '../_services/guard';
 import { writeAudit } from './audit';
+// Luật ai-được-duyệt nằm ở `lib/` — Cổng khách hàng và bảng tổng của Giám đốc
+// rồi cũng phải đọc đúng luật này.
+import { kiemQuyen } from '@/lib/mos/md/costing-approval';
 import {
   customerFormSchema,
   customerContactSchema,
@@ -310,6 +313,16 @@ export async function setCostingStatus(
 ): Promise<ActionResult> {
   const g = await guard();
   if (!g.supabase) return { ok: false, message: g.error };
+
+  // 🔴 CHỐT VAI — Board 06/08/2026: MD **trình**, MD ⛔ **không duyệt**.
+  //
+  // Trước bản này ⛔ không có dòng nào kiểm vai ở đây, và màn hình hiện nút
+  // "Duyệt" cho mọi người ⇒ **MD tự duyệt được giá của chính mình**.
+  //
+  // ⚠️ Kiểm ở MÁY CHỦ, ⛔ không chỉ ẩn nút: Server Action là **endpoint gọi
+  // thẳng được** *(CLAUDE.md §2.1)*. Ẩn nút chỉ là phép lịch sự với giao diện.
+  const q = kiemQuyen(g.role, status);
+  if (!q.ok) return { ok: false, message: q.vi };
 
   // Từ chối mà không nêu lý do thì người làm lại bản chiết tính không biết
   // phải sửa gì — vòng lặp trình duyệt sẽ chạy vô tận.

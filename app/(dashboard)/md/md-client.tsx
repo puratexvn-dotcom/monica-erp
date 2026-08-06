@@ -63,6 +63,7 @@ import {
 } from './md-flow-tables';
 import MdOrderJourney from './md-order-journey';
 import { vnTodayISO } from '@/lib/mos/po-flow';
+import type { Role } from '@/lib/rbac';
 import type { PoOption } from './md-types';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRowsClient, listStylesClient } from './_actions/md360.client';
@@ -113,6 +114,7 @@ const MdCharts = dynamic(() => import('@/components/md/dashboard/md-dashboard'),
 });
 
 export default function MdClient({
+  role,
   initialSnapshot,
   initialPoRows,
   initialPoError,
@@ -120,6 +122,7 @@ export default function MdClient({
   initialStyleError,
   poOptions,
 }: {
+  role: Role | null;
   initialSnapshot: MdSnapshot;
   initialPoRows: PoRow[];
   initialPoError: string | null;
@@ -573,7 +576,7 @@ export default function MdClient({
         {tab === 'costing' && (
           <div className="p-4">
             {costings === null ? Waiting : (
-              <CostingList rows={costings.rows} error={costings.error} onRefresh={reloaders.costing} />
+              <CostingList role={role} rows={costings.rows} error={costings.error} onRefresh={reloaders.costing} />
             )}
           </div>
         )}

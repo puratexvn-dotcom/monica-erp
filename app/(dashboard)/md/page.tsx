@@ -1,3 +1,4 @@
+import { guard } from './_services/guard';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRows } from './_services/po.service';
 import { listStyles } from './_services/style.service';
@@ -92,6 +93,10 @@ export default async function MerchandiserPage() {
     // ⛔ KHONG boc them lop can giua: WorkspaceShell da co mx-auto max-w-7xl.
     <>
       <MdClient
+        // 🔴 Vai truyền xuống CHỈ để giao diện ⛔ không mời người dùng bấm thứ
+        // chắc chắn bị từ chối. Hàng rào thật nằm ở `setCostingStatus` (máy chủ)
+        // và RLS — xem `lib/mos/md/costing-approval.ts`.
+        role={(await guard()).role}
         initialSnapshot={snapshot}
         initialPoRows={po.rows}
         initialPoError={po.error}

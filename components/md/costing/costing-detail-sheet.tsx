@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui';
 import { getCostingDetailClient } from '@/app/(dashboard)/md/_actions/md4.client';
+import type { Role } from '@/lib/rbac';
+import { duocDuyet, duocTrinh } from '@/lib/mos/md/costing-approval';
 import {
   setCostingStatus, reviseCosting, deleteCostingItem,
 } from '@/app/(dashboard)/md/_actions/commercial.actions';
@@ -34,10 +36,13 @@ const EMPTY: CostingDetail = {
 };
 
 export default function CostingDetailSheet({
+  role,
   costing,
   onClose,
   onChanged,
 }: {
+  /** Vai người đang xem. ⚠️ CHỈ để ẩn nút — hàng rào thật ở `setCostingStatus`. */
+  role: Role | null;
   costing: CostingRow | null;
   onClose: () => void;
   onChanged: () => void | Promise<void>;
@@ -147,16 +152,29 @@ export default function CostingDetailSheet({
             </div>
           </div>
 
+          {/* 🔴 MD TRÌNH · GIÁM ĐỐC SẢN XUẤT DUYỆT — Board 06/08/2026.
+              Trước bản này cả bốn nút hiện cho MỌI người, nên MD tự duyệt được
+              giá của chính mình. Ẩn nút ở đây CHỈ là phép lịch sự; chặn thật
+              nằm ở `setCostingStatus` — xem `lib/mos/md/costing-approval.ts`. */}
           <div className="mt-3 flex flex-wrap gap-2">
+            {duocTrinh(role) && (
             <button type="button" disabled={pending} onClick={() => decide('SUBMITTED')} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-600 disabled:opacity-50">
               <Send className="h-3.5 w-3.5" aria-hidden="true" /> Trình duyệt
             </button>
+            )}
+            {duocDuyet(role) && (<>
             <button type="button" disabled={pending} onClick={() => decide('APPROVED')} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-100 disabled:opacity-50">
               <Check className="h-3.5 w-3.5" aria-hidden="true" /> Duyệt
             </button>
             <button type="button" disabled={pending} onClick={() => decide('REJECTED')} className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-800 shadow-sm transition hover:bg-rose-100 disabled:opacity-50">
               <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Từ chối
             </button>
+            </>)}
+            {!duocDuyet(role) && (
+              <span className="inline-flex items-center rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-500">
+                Bản này do Giám đốc sản xuất duyệt
+              </span>
+            )}
             <button type="button" disabled={pending} onClick={() => act(() => reviseCosting(costing.id), 'Đã tạo phiên bản mới')} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 disabled:opacity-50">
               <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Làm bản mới
             </button>

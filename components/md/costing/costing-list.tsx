@@ -8,6 +8,7 @@ import { NoData, ErrorState } from '@/components/data-state';
 import { DataTable, tdCls, Metric, fmtDate, fmtNum, fmtMoney } from '../po/tab-kit';
 import { COSTING_STATUS_LABEL, ORDER_TYPE_LABEL, labelOf } from '../po/labels';
 import CostingDetailSheet from './costing-detail-sheet';
+import type { Role } from '@/lib/rbac';
 import type { CostingRow } from '@/schemas/md';
 
 // ============================================================================
@@ -28,10 +29,13 @@ function toneOfStatus(s: string) {
 }
 
 function CostingList({
+  role,
   rows,
   error,
   onRefresh,
 }: {
+  /** Vai người đang xem — chỉ để ẨN nút, ⛔ không phải hàng rào. */
+  role: Role | null;
   rows: CostingRow[];
   error: string | null;
   onRefresh: () => void | Promise<void>;
@@ -179,7 +183,7 @@ function CostingList({
         </div>
       )}
 
-      <CostingDetailSheet costing={open} onClose={() => setOpen(null)} onChanged={onRefresh} />
+      <CostingDetailSheet role={role} costing={open} onClose={() => setOpen(null)} onChanged={onRefresh} />
     </>
   );
 }
