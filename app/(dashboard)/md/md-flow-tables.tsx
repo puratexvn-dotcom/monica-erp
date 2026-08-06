@@ -18,12 +18,21 @@
 // và thêm tên vào sổ nợ là việc **cần Board duyệt**. Mọi lớp ô lấy từ
 // `components/ui` — tệp đó đã nằm sẵn trong cả hai sổ nợ.
 // ============================================================================
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+
 import {
-  Badge, NoDataTable, SearchBox, thCls, trHover, theadRow, tbodyDivide,
+  Badge, NoDataTable, SearchBox, btnGhost, thCls, trHover, theadRow, tbodyDivide,
   tdCode, tdCodeMuted, tdStrong, tdMuted, tdNum, unitCls,
 } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
 import { nf, fmtDate } from './md-tabs';
+import {
+  buocKeTiepNPL, buocKeTiepSanXuat, buocKeTiepGiaoHang, type BuocKeTiep,
+} from '@/lib/mos/md/flow-steps';
+import {
+  setMaterialRequestStatus, setProductionOrderStatus, setShipmentStatus,
+} from './_actions/flow.actions';
 import {
   MATERIAL_CATEGORY_LABEL, MR_STATUS_LABEL, PROD_STATUS_LABEL, SHIPMENT_STATUS_LABEL,
   type MaterialCategory, type MaterialRequestRow, type ProductionOrderRow, type ShipmentRow,
@@ -35,6 +44,51 @@ interface Khung<T> {
   onRetry: () => void;
   q: string;
   onQ: (v: string) => void;
+  /** Gọi sau khi đổi trạng thái xong để nạp lại số liệu. */
+  onDone: () => void;
+}
+
+/**
+ * Nút đẩy chứng từ đi MỘT bước.
+ *
+ * 🔑 Một nút, ⛔ không phải hộp chọn: thứ tự vòng đời là thứ phần mềm phải nhớ
+ * hộ người dùng. Chứng từ đã đóng ⇒ `buoc === null` ⇒ ⛔ KHÔNG dựng nút —
+ * một nút bấm vào ⛔ không làm gì là tệ hơn ⛔ không có nút.
+ *
+ * ⚠️ Nút chỉ là GỢI Ý. Máy chủ đọc lại trạng thái thật rồi mới quyết định
+ * (`flow.actions.ts`), nên bấm nhanh hai lần hay gọi thẳng action đều ⛔ không
+ * làm chứng từ nhảy cóc.
+ */
+function NutBuoc({ buoc, dang, onChay }: {
+  buoc: BuocKeTiep;
+  dang: boolean;
+  onChay: (status: string) => void;
+}) {
+  if (!buoc) return <span>—</span>;
+  return (
+    <button type="button" className={btnGhost} disabled={dang} onClick={() => onChay(buoc.status)}>
+      {dang ? 'Đang lưu…' : buoc.nhan}
+    </button>
+  );
+}
+
+/** Gom một chỗ: chạy action, báo kết quả, nạp lại. */
+function useDoiTrangThai(onDone: () => void) {
+  const [dang, setDang] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+  const chay = (id: string, fn: () => Promise<{ ok: boolean; message?: string }>) => {
+    setDang(id);
+    void fn()
+      .then((r) => {
+        // ⚠️ Báo THẬT: CSDL từ chối (RLS) thì người dùng phải thấy, ⛔ không
+        // được nuốt lỗi rồi để màn hình trông như đã lưu.
+        if (r.ok) toast.success(r.message ?? 'Đã cập nhật.');
+        else toast.error(r.message ?? 'Không cập nhật được.');
+        if (r.ok) startTransition(onDone);
+      })
+      .finally(() => setDang(null));
+  };
+  return { dang, chay };
 }
 
 /** Lọc phía client trên dữ liệu ĐÃ TẢI — ⛔ không truy vấn lại CSDL. */
@@ -44,7 +98,8 @@ function loc<T>(rows: T[], q: string, truong: (r: T) => (string | null)[]): T[] 
 }
 
 // ─── VẬT TƯ ────────────────────────────────────────────────────────────────
-export function MaterialRequestTable({ rows, error, onRetry, q, onQ }: Khung<MaterialRequestRow>) {
+export function MaterialRequestTable({ rows, error, onRetry, q, onQ, onDone }: Khung<MaterialRequestRow>) {
+  const { dang, chay } = useDoiTrangThai(onDone);
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (rows.length === 0) {
     return (
@@ -69,6 +124,7 @@ export function MaterialRequestTable({ rows, error, onRetry, q, onQ }: Khung<Mat
               <th className={thCls}>Số lượng</th>
               <th className={thCls}>Cần ngày</th>
               <th className={thCls}>Trạng thái</th>
+              <th className={thCls}>Bước kế tiếp</th>
             </tr>
           </thead>
           <tbody className={tbodyDivide}>
@@ -89,6 +145,13 @@ export function MaterialRequestTable({ rows, error, onRetry, q, onQ }: Khung<Mat
                     {MR_STATUS_LABEL[r.status] ?? r.status}
                   </Badge>
                 </td>
+                <td className={tdMuted}>
+                  <NutBuoc
+                    buoc={buocKeTiepNPL(r.status)}
+                    dang={dang === r.id}
+                    onChay={(st) => chay(r.id, () => setMaterialRequestStatus(r.id, st as never))}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -100,7 +163,8 @@ export function MaterialRequestTable({ rows, error, onRetry, q, onQ }: Khung<Mat
 }
 
 // ─── SẢN XUẤT ──────────────────────────────────────────────────────────────
-export function ProductionOrderTable({ rows, error, onRetry, q, onQ }: Khung<ProductionOrderRow>) {
+export function ProductionOrderTable({ rows, error, onRetry, q, onQ, onDone }: Khung<ProductionOrderRow>) {
+  const { dang, chay } = useDoiTrangThai(onDone);
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (rows.length === 0) {
     return (
@@ -124,6 +188,7 @@ export function ProductionOrderTable({ rows, error, onRetry, q, onQ }: Khung<Pro
               <th className={thCls}>Bắt đầu</th>
               <th className={thCls}>Tới hạn</th>
               <th className={thCls}>Trạng thái</th>
+              <th className={thCls}>Bước kế tiếp</th>
             </tr>
           </thead>
           <tbody className={tbodyDivide}>
@@ -146,6 +211,13 @@ export function ProductionOrderTable({ rows, error, onRetry, q, onQ }: Khung<Pro
                     {PROD_STATUS_LABEL[p.status] ?? p.status}
                   </Badge>
                 </td>
+                <td className={tdMuted}>
+                  <NutBuoc
+                    buoc={buocKeTiepSanXuat(p.status)}
+                    dang={dang === p.id}
+                    onChay={(st) => chay(p.id, () => setProductionOrderStatus(p.id, st as never))}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -157,7 +229,8 @@ export function ProductionOrderTable({ rows, error, onRetry, q, onQ }: Khung<Pro
 }
 
 // ─── GIAO HÀNG ─────────────────────────────────────────────────────────────
-export function ShipmentTable({ rows, error, onRetry, q, onQ }: Khung<ShipmentRow>) {
+export function ShipmentTable({ rows, error, onRetry, q, onQ, onDone }: Khung<ShipmentRow>) {
+  const { dang, chay } = useDoiTrangThai(onDone);
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (rows.length === 0) {
     return <NoData title="Chưa có lệnh giao hàng" sub="Bấm Tạo lệnh giao hàng để lập lệnh đầu tiên." />;
@@ -176,6 +249,7 @@ export function ShipmentTable({ rows, error, onRetry, q, onQ }: Khung<ShipmentRo
               <th className={thCls}>Cảng đến</th>
               <th className={thCls}>ETD</th>
               <th className={thCls}>Trạng thái</th>
+              <th className={thCls}>Bước kế tiếp</th>
             </tr>
           </thead>
           <tbody className={tbodyDivide}>
@@ -197,6 +271,13 @@ export function ShipmentTable({ rows, error, onRetry, q, onQ }: Khung<ShipmentRo
                   >
                     {SHIPMENT_STATUS_LABEL[s.status] ?? s.status}
                   </Badge>
+                </td>
+                <td className={tdMuted}>
+                  <NutBuoc
+                    buoc={buocKeTiepGiaoHang(s.status)}
+                    dang={dang === s.id}
+                    onChay={(st) => chay(s.id, () => setShipmentStatus(s.id, st as never))}
+                  />
                 </td>
               </tr>
             ))}

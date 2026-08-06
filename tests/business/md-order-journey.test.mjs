@@ -13,6 +13,9 @@
 import {
   tinhHanhTrinh, demTheoChang, CHANG, tinhPhanTram, soNgayConLai,
 } from '../../lib/mos/md/order-journey.ts';
+import {
+  buocKeTiepNPL, buocKeTiepSanXuat, buocKeTiepGiaoHang, TRANG_THAI_DONG,
+} from '../../lib/mos/md/flow-steps.ts';
 
 let dat = 0;
 const hong = [];
@@ -180,6 +183,28 @@ console.log('\n⑭ soNgayConLai');
   ok('Cùng ngày ⇒ 0', soNgayConLai('2026-08-06', '2026-08-06') === 0);
   ok('Quá hạn ⇒ âm', soNgayConLai('2026-08-01', '2026-08-06') === -5);
   ok('Thiếu dữ liệu ⇒ null', soNgayConLai(null, '2026-08-06') === null);
+}
+
+console.log('\n⑮ BƯỚC KẾ TIẾP — vòng đời chứng từ');
+{
+  ok('NPL: DRAFT → SUBMITTED', buocKeTiepNPL('DRAFT').status === 'SUBMITTED');
+  ok('NPL: SUBMITTED → APPROVED', buocKeTiepNPL('SUBMITTED').status === 'APPROVED');
+  ok('SX: PENDING → RELEASED', buocKeTiepSanXuat('PENDING').status === 'RELEASED');
+  ok('GH: DRAFT → BOOKED', buocKeTiepGiaoHang('DRAFT').status === 'BOOKED');
+  ok('GH đi hết chuỗi tới DELIVERED', buocKeTiepGiaoHang('CUSTOM_CLEARANCE').status === 'DELIVERED');
+}
+
+console.log('\n⑯ 🔴 CHỨNG TỪ ĐÃ ĐÓNG ⇒ ⛔ KHÔNG CÓ BƯỚC KẾ TIẾP');
+{
+  for (const st of ['RECEIVED', 'REJECTED']) {
+    ok(`NPL ${st} ⇒ null`, buocKeTiepNPL(st) === null,
+      'còn bước kế tiếp nghĩa là giao diện dựng nút SỬA ĐÈ chứng từ đã đóng');
+  }
+  ok('SX COMPLETED ⇒ null', buocKeTiepSanXuat('COMPLETED') === null);
+  ok('SX CANCELLED ⇒ null', buocKeTiepSanXuat('CANCELLED') === null);
+  ok('GH DELIVERED ⇒ null', buocKeTiepGiaoHang('DELIVERED') === null);
+  ok('Mã lạ ⇒ null, ⛔ không đoán bừa', buocKeTiepNPL('XYZ') === null);
+  ok('TRANG_THAI_DONG phủ đủ 5 mã đóng', TRANG_THAI_DONG.size === 5);
 }
 
 console.log('\n' + '═'.repeat(74));

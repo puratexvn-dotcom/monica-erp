@@ -622,6 +622,7 @@ export default function MdClient({
             onRetry={() => void refresh()}
             q={q}
             onQ={setQ}
+            onDone={() => void refresh()}
           />
         )}
 
@@ -632,6 +633,7 @@ export default function MdClient({
             onRetry={() => void refresh()}
             q={q}
             onQ={setQ}
+            onDone={() => void refresh()}
           />
         )}
 
@@ -642,6 +644,7 @@ export default function MdClient({
             onRetry={() => void refresh()}
             q={q}
             onQ={setQ}
+            onDone={() => void refresh()}
           />
         )}
 
