@@ -1,0 +1,15 @@
+admin001  /admin                    ✅             ok     0 bđ · 0 form sạch                  
+gd001     /giam-doc                 ✅             ok     3 bđ · 0 form sạch                  
+gd001     /orders                   ✅             ok     0 bđ · 0 form sạch                  
+gd001     /subcon                   ✅             ok     0 bđ · 0 form sạch                  
+md001     /md                       ✅             ok     4 bđ · 0 form sạch                  
+md001     /orders                   ✅             ok     0 bđ · 0 form sạch                  
+md001     /subcon                   ✅             ok     0 bđ · 0 form sạch                  
+kt001     /ke-toan                  ✅             ok     0 bđ · 0 form sạch                  
+qa001     /qa                       ✅             ok     0 bđ · 1 form sạch                  
+cat001    /to-truong-cat            ✅             ok     2 bđ · 1 form sạch                  
+may001    /to-truong-may            ✅             ok     1 bđ · 2 form sạch                  
+may001    /subcon                   ✅             ok     0 bđ · 0 form sạch                  
+ht001     /hoan-thanh               ✅             ok     1 bđ · 1 form sạch                  
+ht001     /to-truong-hoan-thanh     ✅             ok     0 bđ · 0 form sạch                  
+kh001     /buyer                    ✅             ok     0 bđ · 0 form sạch                  

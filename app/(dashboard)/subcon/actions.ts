@@ -46,7 +46,28 @@ export async function getSubconDashboardData() {
     .gt('quantity', 0)
     .limit(100)
 
-  if (bundleErr) throw new Error(`Lỗi lấy danh sách Bó hàng: ${bundleErr.message}`)
+  // 🔴 SỬA 07/08/2026 — ⛔ KHÔNG ĐỂ MỘT KHUYẾT TẬT ENUM GIẾT CẢ PHÂN HỆ.
+  //
+  // Câu truy vấn trên lọc `current_stage IN ('CUT_PASSED','SEWING_READY')`.
+  // Enum `bundle_stage_enum` *(migration `007b`)* chỉ có **bốn** giá trị:
+  // `CUT · SEWING · FINISHING · PACKED`. PostgreSQL trả lỗi:
+  //
+  //     invalid input value for enum bundle_stage_enum: "CUT_PASSED"
+  //
+  // `throw` ở đây làm **toàn bộ `/subcon` rơi vào `error.tsx`** — mất luôn
+  // danh sách nhà thầu, bảng đơn gia công, và mọi thứ khác vốn ⛔ không liên
+  // quan gì tới bó hàng. Đo được: `/subcon` hiện *"Không thể tải dữ liệu"*,
+  // mã lỗi `2418174174`, **0 biểu mẫu**.
+  //
+  // ⚠️ Khuyết tật gốc ĐÃ ĐƯỢC GHI NHẬN ở `supabase/seeds/S001` §cuối: migration
+  // `009` viết trigger gán `OUTSIDE_PROCESSING` và `SEWING_READY` — hai giá trị
+  // **chưa từng tồn tại**. Toàn bộ luồng xuất–nhận gia công **chưa từng chạy
+  // được**, và ⛔ không ai phát hiện vì hai bảng liên quan **rỗng**.
+  //
+  // 🔴 Sửa enum là **migration ⇒ cần ADR ⇒ thẩm quyền Board**. ⛔ KHÔNG tự làm.
+  // Việc làm được ngay: **cô lập** phần hỏng, trả về rỗng kèm lời khai, để
+  // phần còn lại của phân hệ sống.
+  const loiBoHang = bundleErr ? `${bundleErr.message}` : null
 
   // 4. Lấy danh sách Bó hàng đang ở xưởng ngoài (Cần thu hồi)
   const { data: processingBundles, error: procErr } = await supabase
@@ -62,13 +83,19 @@ export async function getSubconDashboardData() {
     `)
     .eq('current_stage', 'OUTSIDE_PROCESSING')
 
-  if (procErr) throw new Error(`Lỗi lấy Bó hàng gia công: ${procErr.message}`)
+  // Cùng lý do trên: `OUTSIDE_PROCESSING` cũng ⛔ không có trong enum.
+  const loiThuHoi = procErr ? `${procErr.message}` : null
 
   return {
     vendors: vendors || [],
     subconOrders: subconOrders || [],
     availableBundles: availableBundles || [],
     processingBundles: processingBundles || [],
+    // ⚠️ Trả lời khai ra ngoài để màn hình **nói thẳng cái đang hỏng**, ⛔
+    // không im lặng hiện danh sách rỗng — danh sách rỗng đọc thành *"⛔ không
+    // có bó hàng nào"*, một phát biểu **sai** về hàng đang nằm ngoài xưởng.
+    loiBoHang,
+    loiThuHoi,
   }
 }
 

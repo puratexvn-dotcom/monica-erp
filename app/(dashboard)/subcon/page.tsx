@@ -6,6 +6,16 @@ import {
 } from './actions'
 import { SubmitButton } from './submit-button'
 
+// 🔴 BIỂU ĐỒ TRƯỚC BẢNG — Board 06/08/2026. Nạp ĐỘNG: `recharts` ~100 kB.
+// ⚠️ BÍ DANH `napDong`: tệp có `export const dynamic = 'force-dynamic'`, trùng
+// tên thì hằng số CHE MẤT hàm — bẫy kinh điển của App Router.
+import napDong from 'next/dynamic'
+
+const SubconChart = napDong(() => import('@/components/subcon/subcon-chart'), {
+  ssr: false,
+  loading: () => <div className="h-64 rounded-xl border border-slate-200 bg-white" aria-hidden="true" />,
+})
+
 export const dynamic = 'force-dynamic'
 
 /* ============================================================================
@@ -71,6 +81,8 @@ export default async function SubconManagementPage() {
     subconOrders = [] as SubconOrderRow[],
     availableBundles = [] as BundleRow[],
     processingBundles = [] as BundleRow[],
+    loiBoHang = null as string | null,
+    loiThuHoi = null as string | null,
   } = (await getSubconDashboardData()) ?? {}
 
   // Helper an toàn bóc tách PO Number từ quan hệ lồng nhau Supabase (cut_tickets -> orders)
@@ -127,6 +139,31 @@ export default async function SubconManagementPage() {
           </span>
           Dữ liệu thời gian thực
         </span>
+      </div>
+
+      {/* 🔴 NÓI THẲNG PHẦN ĐANG HỎNG — ⛔ KHÔNG im lặng hiện danh sách rỗng.
+          Danh sách rỗng đọc thành *"⛔ không có bó hàng nào ở ngoài"*, một
+          phát biểu **sai** về hàng đã gửi đi mà chưa nhận về. */}
+      {(loiBoHang || loiThuHoi) && (
+        <div role="alert" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          ⛔ <strong>Luồng xuất – nhận bó hàng đang bị chặn ở tầng cơ sở dữ liệu.</strong>
+          <br />
+          <span className="text-xs">
+            Enum <code>bundle_stage_enum</code> chỉ có bốn giá trị{' '}
+            <code>CUT · SEWING · FINISHING · PACKED</code>, trong khi mã đang hỏi{' '}
+            <code>CUT_PASSED</code> · <code>SEWING_READY</code> · <code>OUTSIDE_PROCESSING</code>.
+            Khuyết tật đã ghi ở <code>supabase/seeds/S001</code>. Sửa cần <strong>migration + ADR</strong>{' '}
+            ⇒ đang chờ Board. Danh sách bó hàng bên dưới vì vậy <strong>trống ⛔ không phải vì hết hàng</strong>.
+          </span>
+        </div>
+      )}
+
+      {/* 🔴 BIỂU ĐỒ HÀNG CÒN Ở XƯỞNG NGOÀI — đặt TRƯỚC thẻ số và bảng.
+          Câu quan trọng nhất của gia công ngoài ⛔ không phải *"đã gửi bao
+          nhiêu"* mà là *"hàng của tôi còn nằm ngoài bao nhiêu"* — hàng đã trả
+          tiền vải, đã trả công cắt, và đang nằm ngoài tầm tay. */}
+      <div className="mb-5">
+        <SubconChart don={subconOrders} />
       </div>
 
       {/* METRICS CARDS */}

@@ -56,6 +56,7 @@ Board *(Business Value · Schema · Phân quyền · Hướng kiến trúc)*.
 | `G-9` | 🔴 **0/14 đơn hàng có `unit_price`** ⇒ ⛔ không tính được doanh thu · lãi/lỗ · margin cho bất kỳ đơn nào. Ai nhập giá, nhập ở đâu, và có cần bắt buộc khi duyệt PO? | **Quyết định nghiệp vụ** |
 | `G-10` | `types/erp.ts` khai `Order` với **năm cột ⛔ không tồn tại**. Sửa hẳn tệp kiểu *(chạm nhiều màn hình)* hay bỏ dần? | Chạm **hướng kiến trúc** |
 | `G-11` | 🔴 Cổng khách hàng nối buyer ⟷ khách bằng **claim JWT `buyer_brand`**, trong khi Playbook Điều XXX buộc phân giải từ `partner_accounts` *(có `is_active`)* — claim ⛔ không đổi khi quan hệ đối tác chấm dứt | **Mô hình phân quyền** |
+| `G-12` | 🔴 **`/subcon` chết hoàn toàn từ trước**: enum `bundle_stage_enum` chỉ có `CUT·SEWING·FINISHING·PACKED`, mã hỏi `CUT_PASSED`·`SEWING_READY`·`OUTSIDE_PROCESSING`. Đã cô lập để trang sống, nhưng **luồng xuất–nhận gia công vẫn ⛔ không chạy được** — sửa cần **migration + ADR** | **Migration + ADR** |
 | `G-7` | ⛔ **Chưa có ngưỡng hao hụt vải** nào được Board phê duyệt ⇒ biểu đồ hao hụt cố ý **⛔ không tô màu phán quyết** | **Quyết định nghiệp vụ** |
 
 ---
