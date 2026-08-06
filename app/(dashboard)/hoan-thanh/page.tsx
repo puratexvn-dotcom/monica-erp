@@ -135,13 +135,38 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
           </div>
           <div id="ghi-qc" className="scroll-mt-24 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
             <h2 className="font-semibold text-slate-900 mb-4 border-b pb-2">Cập Nhật QC & Kích Hoạt</h2>
-            <form action={async (formData) => { await createFinishingLog(formData) }} className="space-y-4">
+            {/* 🔴 SỬA 07/08/2026 — TRUYỀN THẲNG SERVER ACTION.
+                Bản trước bọc trong closure `async (formData) => { await fn(formData) }`.
+                Closure đó nằm trong Server Component và ⛔ KHÔNG đánh dấu
+                `'use server'` ⇒ React ⛔ không serialize được ⇒ **cả trang 500**:
+                *"Functions cannot be passed directly to Client Components"*.
+                Hậu quả thật: tổ trưởng ⛔ KHÔNG NHẬP ĐƯỢC GÌ suốt thời gian đó,
+                nên `hourly_production_logs`/`finishing_logs` rỗng — và báo cáo
+                ngày của MD tưởng *"chưa ai báo cáo"* trong khi sự thật là
+                *"⛔ không ai báo cáo NỔI"*. */}
+            <form action={async (formData: FormData) => {
+              'use server'
+              await createFinishingLog(formData)
+            }} className="space-y-4">
               <select name="bundle_id" required className="w-full px-3 py-2 border rounded-lg text-sm bg-white font-mono">
                 <option value="">-- Chọn Bundle Đang Xử Lý --</option>
                 {typedBundles.filter((b: BundleItem) => b.current_stage === 'SEWING' || b.current_stage === 'CUT').map((b: BundleItem) => (
                   <option key={b.id} value={b.id}>{b.bundle_code} (SL: {b.quantity})</option>
                 ))}
               </select>
+              {/* 🔴 THÊM 07/08/2026 — HAI Ô CẮT CHỈ · ỦI.
+                  `createFinishingLog` ĐÃ đọc `trimming_qty`/`ironing_qty` từ
+                  `FormData` từ trước, và cột cũng đã có trong `finishing_logs`
+                  (`007b`) — chỉ **biểu mẫu thiếu hai ô**. Hậu quả: hai cột đó
+                  ⛔ KHÔNG CÓ AI GHI, vĩnh viễn bằng 0, nên phễu hoàn thành vẽ
+                  ra cảnh vô lý *"kiểm cuối đạt 1 mà cắt chỉ 0, ủi 0"* — hàng
+                  qua khâu cuối mà chưa qua khâu đầu.
+                  ⚠️ ⛔ KHÔNG bắt buộc nhập: nhiều chuyền gộp cắt chỉ vào ủi.
+                  Bỏ trống ⇒ 0, và phễu sẽ nói thẳng là chưa ai ghi khâu đó. */}
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-xs font-bold text-slate-600 mb-1">Cắt chỉ (SL)</label><input type="number" name="trimming_qty" min={0} placeholder="0" className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" /></div>
+                <div><label className="block text-xs font-bold text-amber-600 mb-1">Ủi (SL)</label><input type="number" name="ironing_qty" min={0} placeholder="0" className="w-full px-3 py-2 border rounded-lg text-sm bg-amber-50" /></div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="block text-xs font-bold text-emerald-600 mb-1">QC Đạt (Passed)</label><input type="number" name="final_qc_passed_qty" required className="w-full px-3 py-2 border rounded-lg text-sm bg-emerald-50" /></div>
                 <div><label className="block text-xs font-bold text-rose-600 mb-1">QC Lỗi (Defect)</label><input type="number" name="final_qc_defect_qty" defaultValue={0} className="w-full px-3 py-2 border rounded-lg text-sm bg-rose-50" /></div>
@@ -156,7 +181,10 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div id="dong-thung" className="scroll-mt-24 bg-white rounded-xl border border-blue-200 shadow-sm p-6 h-fit bg-blue-50/30">
             <h2 className="font-semibold text-blue-900 mb-4 border-b border-blue-100 pb-2">In Mã Vạch & Đóng Thùng</h2>
-            <form action={async (formData) => { await createCarton(formData) }} className="space-y-4">
+            <form action={async (formData: FormData) => {
+              'use server'
+              await createCarton(formData)
+            }} className="space-y-4">
               <select name="bundle_id" required className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm bg-white font-mono">
                 <option value="">-- Chọn Bundle đã qua Final QC --</option>
                 {eligibleBundles.map((b: BundleItem) => {

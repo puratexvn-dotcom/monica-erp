@@ -19,7 +19,7 @@ import { getQaCommandCenter } from './_services/command-center.service'
 //
 // ⚠️ Biểu mẫu ghi phiếu và bảng nhật ký **giữ nguyên**, dựng ở Server
 // Component rồi truyền vào khung qua `children` — nhờ vậy `createQAReport`
-// vẫn là Server Action gắn thẳng vào `<form action={…}>`.
+// vẫn là Server Action gắn thẳng vào ` // vẫn là Server Action gắn thẳng vào `<form action={…}>`.
 // ============================================================================
 
 export const dynamic = 'force-dynamic'
@@ -120,7 +120,10 @@ export default async function QADashboardPage() {
           <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
             Nhập Báo Cáo QA Mới
           </h2>
-          <form action={async (formData) => { await createQAReport(formData) }} className="space-y-4">
+          <form action={async (formData: FormData) => {
+              'use server'
+              await createQAReport(formData)
+            }} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Chọn Đơn Hàng PO <span className="text-red-500">*</span>
