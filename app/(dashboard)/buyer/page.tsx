@@ -49,7 +49,31 @@ export default function BuyerPage() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [fb, setFb] = useState({ order_id: '', rating: 5, content: '' });
 
-  const myBrand = session?.user.buyer_brand ?? 'NORDIC EU';
+  // ============================================================================
+  // 🔴 SỬA 07/08/2026 — HAI KHUYẾT TẬT Ở CỔNG KHÁCH HÀNG
+  //
+  // ① **Mặc định cứng `'NORDIC EU'`.** Bất kỳ tài khoản buyer nào ⛔ chưa được
+  //    gán nhãn hàng đều mở ra một cổng đề tên *"Customer Portal — NORDIC EU"*.
+  //    Đo được: `kh001@monica.vn` đăng nhập và thấy đúng dòng đó.
+  //    🔑 Đây là **tên một bên thứ ba hiện trên màn hình của khách khác**.
+  //    ⛔ Không rò dữ liệu *(bộ lọc ⛔ không khớp đơn nào)*, nhưng với một cổng
+  //    đối ngoại thì bấy nhiêu đã đủ mất mặt.
+  //
+  // ② **Lọc theo `o.brand` — cột ⛔ KHÔNG TỒN TẠI** trong bảng `orders` thật
+  //    *(bảng có `customer_name` · `customer_id`)*. `undefined === 'NORDIC EU'`
+  //    luôn sai ⇒ cổng **luôn trống**, dù CSDL đang có 14 đơn.
+  //
+  // ⚠️ Nối buyer ⟷ khách hàng cho ĐÚNG là **mô hình phân quyền**, ⛔ không
+  // phải chuyện engineering tự quyết: Playbook Điều XXX buộc `partnerId` phải
+  // phân giải từ bảng `partner_accounts` *(có `is_active`)*, ⛔ **KHÔNG** lấy
+  // từ claim trong JWT — claim ⛔ không đổi khi quan hệ đối tác chấm dứt.
+  // `buyer_brand` ở đây **chính là một claim JWT**. ⇒ Gác cho Board (`G-11`),
+  // ⛔ không tự dựng mô hình mới lúc nửa đêm.
+  //
+  // ⇒ Việc làm được ngay: **bỏ mặc định cứng**, và khi tài khoản ⛔ chưa gán
+  // khách thì **nói thẳng lý do** thay vì đổ lỗi *"bạn ⛔ chưa có PO nào"*.
+  // ============================================================================
+  const myBrand = session?.user.buyer_brand ?? null;
 
   const load = useCallback(async () => {
     const { data, isMock } = await fetchTables(['orders', 'prod_logs', 'qa_logs', 'shipments', 'cutting_logs', 'bom', 'feedbacks']);
@@ -93,7 +117,9 @@ export default function BuyerPage() {
 
   const sendFeedback = async () => {
     const row: Feedback = {
-      id: genId('FB'), order_id: fb.order_id, buyer_user: session?.user.name ?? myBrand,
+      // ⚠️ `myBrand` nay có thể `null` ⇒ chuỗi cuối phải là một giá trị THẬT,
+      // ⛔ không phải `"null"` in ra sổ đánh giá.
+      id: genId('FB'), order_id: fb.order_id, buyer_user: session?.user.name ?? myBrand ?? '⛔ không rõ người gửi',
       rating: fb.rating, content: fb.content.trim(), created_at: new Date().toISOString(),
     };
     setFeedbacks((prev) => [row, ...prev]);
@@ -109,7 +135,7 @@ export default function BuyerPage() {
 
   return (
     <div>
-      <PageHeader title={`Customer Portal — ${myBrand}`}
+      <PageHeader title={myBrand ? `Customer Portal — ${myBrand}` : 'Customer Portal'}
         desc="Tiến độ sản xuất minh bạch theo thời gian thực · Real-time production transparency"
         action={
           <div className="flex items-center gap-2">
@@ -122,8 +148,23 @@ export default function BuyerPage() {
 
       {/* Timeline từng PO */}
       <div className="space-y-5">
+        {/* 🔴 HAI LÝ DO TRỐNG KHÁC NHAU ⇒ HAI CÂU KHÁC NHAU.
+            Gộp chúng thành *"bạn chưa có PO nào"* là **đổ lỗi cho khách** về
+            một sự cố cấu hình bên mình — và khách ⛔ không có cách nào tự sửa. */}
         {myOrders.length === 0 && (
-          <Card><EmptyState title="Chưa có PO nào thuộc nhãn hàng của bạn" sub="No purchase orders found for your brand" /></Card>
+          <Card>
+            {myBrand === null ? (
+              <EmptyState
+                title="Tài khoản của bạn chưa được gán khách hàng"
+                sub="Your account is not linked to a customer yet — please contact your Merchandiser."
+              />
+            ) : (
+              <EmptyState
+                title="Chưa có PO nào thuộc nhãn hàng của bạn"
+                sub="No purchase orders found for your brand"
+              />
+            )}
+          </Card>
         )}
         {myOrders.map((o) => {
           const { list, pct } = milestonesOf(o);
@@ -179,11 +220,18 @@ export default function BuyerPage() {
               </li>
             ))}
           </ul>
+          {/* 🔴 `V.1` — *"⛔ chưa kiểm lô nào"* ⛔ KHÁC *"DHU = 0,0%"*.
+              `0,0%` là lời khen chất lượng; nói nó khi ⛔ chưa ai kiểm là **hứa
+              với khách hàng một điều ⛔ chưa ai chứng minh**. */}
           <p className="border-t border-slate-50 px-5 py-2.5 text-[11px] text-slate-400">
-            Inline DHU hiện tại / Current inline DHU: <b>{fmtPct(dhu(
-              myQa.filter((q) => q.inspection_type === 'Inline').reduce((s, q) => s + q.qty_defect, 0),
-              myQa.filter((q) => q.inspection_type === 'Inline').reduce((s, q) => s + q.checked_qty, 0),
-            ))}</b>
+            {(() => {
+              const inline = myQa.filter((q) => q.inspection_type === 'Inline');
+              const daKiem = inline.reduce((s, q) => s + q.checked_qty, 0);
+              if (daKiem === 0) {
+                return <>Inline DHU hiện tại / Current inline DHU: <b>⚪ chưa kiểm lô nào / not inspected yet</b></>;
+              }
+              return <>Inline DHU hiện tại / Current inline DHU: <b>{fmtPct(dhu(inline.reduce((s, q) => s + q.qty_defect, 0), daKiem))}</b></>;
+            })()}
           </p>
         </Card>
 
