@@ -299,6 +299,15 @@
       "chuyenTutLai": "{chuyen} đang thấp nhất ({hieuSuat}%) — kiểm chuyền đó trước.",
       "suaLaiNhieu": "Tỷ lệ hàng sửa lại {tyLe}% vượt ngưỡng {nguong}%.",
       "onDinh": "Đã ghi {soPhieu} phiếu giờ, chưa có dấu hiệu bất thường."
+    },
+    "hoanThanh": {
+      "dongVuotPO": "Đơn {po} đã đóng {daDong} sp, vượt {theoDon} sp của đơn — dừng đóng thùng và đối chiếu ngay ({soPO} đơn)",
+      "chuaKiemCaiNao": "{soBundle} bundle đang chờ mà chưa ghi Final QC cái nào",
+      "choDongThung": "{soBundle} bundle đã qua Final QC đang chờ đóng thùng (bắt đầu từ {bundle})",
+      "tyLeLoiCao": "Tỷ lệ lỗi Final QC {tyLe}% vượt ngưỡng {nguong}% ({soLoi} sp lỗi)",
+      "nghenUi": "{soBundle} bundle nghẽn ở khâu ủi — {bundle} mới ủi {ui}/{catChi}",
+      "thungUnTaiXuong": "{soThung} thùng ứ tại xưởng, vượt ngưỡng {nguong} — chưa nhập kho thành phẩm",
+      "onDinh": "Tổ hoàn thành đang chạy ổn định — {tongDat} sp đã qua Final QC"
     }
   },
   "qa": {
@@ -377,5 +386,17 @@
     "ai": "Hỏi và nhờ AI làm giúp",
     "documents": "Tra tài liệu và tech pack",
     "platform": "Cấp tài khoản và phân quyền"
+  },
+  "hoanThanh": {
+    "finalQcDat": "Final QC đạt",
+    "tyLeLoi": "Tỷ lệ lỗi Final QC",
+    "choDongThung": "Chờ đóng thùng",
+    "thungTaiXuong": "Thùng tại xưởng",
+    "moBangWip": "Mở bảng bán thành phẩm",
+    "moDongThung": "Mở màn hình đóng thùng",
+    "moThungTaiXuong": "Xem thùng chờ nhập kho",
+    "moGhiQc": "Ghi Final QC",
+    "nguon": "từ {soBundle} bundle đang theo dõi",
+    "khuyenNghiUi": "{bundle} mới ủi {ui}/{catChi} — thông khâu ủi trước khi nhận thêm hàng."
   }
 }

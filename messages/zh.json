@@ -299,6 +299,15 @@
       "chuyenTutLai": "{chuyen} 最低（{hieuSuat}%）— 优先检查该线。",
       "suaLaiNhieu": "返修率 {tyLe}% 超过 {nguong}% 阈值。",
       "onDinh": "已录入 {soPhieu} 条小时记录，暂未发现异常。"
+    },
+    "hoanThanh": {
+      "dongVuotPO": "订单 {po} 已装 {daDong} 件，超出订单的 {theoDon} 件 — 立即停止装箱并核对（{soPO} 张订单）",
+      "chuaKiemCaiNao": "{soBundle} 个扎包在等，却还没录入任何终检",
+      "choDongThung": "{soBundle} 个已过终检的扎包在等装箱（从 {bundle} 开始）",
+      "tyLeLoiCao": "终检不良率 {tyLe}% 超过 {nguong}% 阈值（{soLoi} 件不良）",
+      "nghenUi": "{soBundle} 个扎包卡在整烫 — {bundle} 仅整烫 {ui}/{catChi}",
+      "thungUnTaiXuong": "{soThung} 箱积压在厂内，超过 {nguong} 阈值 — 尚未入成品仓",
+      "onDinh": "完成组运行平稳 — {tongDat} 件已过终检"
     }
   },
   "qa": {
@@ -377,5 +386,17 @@
     "platform": "开通账号与权限",
     "sales": "成交并跟踪销售额",
     "salesAdmin": "拟合同与确认订单"
+  },
+  "hoanThanh": {
+    "finalQcDat": "终检合格",
+    "tyLeLoi": "终检不良率",
+    "choDongThung": "待装箱",
+    "thungTaiXuong": "厂内待入库箱",
+    "moBangWip": "打开在制品表",
+    "moDongThung": "打开装箱界面",
+    "moThungTaiXuong": "查看待入库箱",
+    "moGhiQc": "录入终检",
+    "nguon": "来自 {soBundle} 个在跟踪的扎包",
+    "khuyenNghiUi": "{bundle} 仅整烫 {ui}/{catChi} — 先疏通整烫工序再接新活。"
   }
 }

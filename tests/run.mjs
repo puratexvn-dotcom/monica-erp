@@ -47,6 +47,7 @@ const BAI = [
   ['business/workspace.test.mjs', 'Lõi Workspace — việc & KPI', false, CO_TS],
   ['business/cutting.test.mjs', 'Lõi Cutting — luật & KPI tổ cắt', false, CO_TS],
   ['business/sewing.test.mjs', 'Lõi Sewing — luật & KPI chuyền may', false, CO_TS],
+  ['business/finishing.test.mjs', 'Lõi Finishing — luật & KPI tổ hoàn thành', false, CO_TS],
   ['regression/seed-integrity.test.mjs', 'Toàn vẹn dữ liệu nền', true],
   ['security/anon-and-buyer.test.mjs', 'Quét anon + Buyer', true],
   ['security/rls-external.test.mjs', 'Phân quyền người ngoài', true],

@@ -299,6 +299,15 @@
       "chuyenTutLai": "{chuyen} is lowest ({hieuSuat}%) — check that line first.",
       "suaLaiNhieu": "Rework rate {tyLe}% is above the {nguong}% threshold.",
       "onDinh": "{soPhieu} hourly log(s) recorded, nothing abnormal so far."
+    },
+    "hoanThanh": {
+      "dongVuotPO": "PO {po} has {daDong} pcs packed, over its {theoDon} pcs — stop packing and reconcile now ({soPO} POs)",
+      "chuaKiemCaiNao": "{soBundle} bundles waiting and no Final QC recorded yet",
+      "choDongThung": "{soBundle} bundles passed Final QC are waiting to be packed (starting with {bundle})",
+      "tyLeLoiCao": "Final QC defect rate {tyLe}% is over the {nguong}% threshold ({soLoi} pcs defective)",
+      "nghenUi": "{soBundle} bundles stuck at pressing — {bundle} is only pressed {ui}/{catChi}",
+      "thungUnTaiXuong": "{soThung} cartons piled up on site, over the {nguong} threshold — not yet in finished goods",
+      "onDinh": "Finishing is running steady — {tongDat} pcs through Final QC"
     }
   },
   "qa": {
@@ -377,5 +386,17 @@
     "platform": "Provision accounts and access",
     "sales": "Close deals and track revenue",
     "salesAdmin": "Draft contracts and confirm orders"
+  },
+  "hoanThanh": {
+    "finalQcDat": "Final QC passed",
+    "tyLeLoi": "Final QC defect rate",
+    "choDongThung": "Awaiting packing",
+    "thungTaiXuong": "Cartons on site",
+    "moBangWip": "Open WIP table",
+    "moDongThung": "Open packing screen",
+    "moThungTaiXuong": "View cartons awaiting warehouse",
+    "moGhiQc": "Record Final QC",
+    "nguon": "from {soBundle} bundles tracked",
+    "khuyenNghiUi": "{bundle} is only pressed {ui}/{catChi} — clear pressing before taking more work."
   }
 }
