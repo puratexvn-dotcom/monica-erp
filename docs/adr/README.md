@@ -25,6 +25,8 @@ Bắt buộc từ Migration 029 trở đi cho mọi thay đổi Domain Model ho�
 | [ADR-016](ADR-016-executive-center-enterprise-control-center.md) | Executive Center là Enterprise Control Center — ngoại lệ hiến định duy nhất của §5.4 | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* → §18.10 · §18.11 |
 | [ADR-017](ADR-017-trang-chu-hai-vung.md) | Trang chủ hai vùng — Work Zone + Launcher, sáu ràng buộc `WZ-1`…`WZ-6` | — | ✅ **Đã phê duyệt** *(Board, 04/08/2026)* → §13.3 |
 | [ADR-018](ADR-018-thu-hep-authenticated-only.md) | Thu hẹp `authenticated_only` trên 23 bảng Merchandising — phát hiện `F-2` | `042` *(chưa viết)* | ⏳ **Chờ phản biện + Board phê duyệt** · ⛔ **không viết SQL trước khi duyệt** |
+| [ADR-023](ADR-023-board-knowledge-system.md) | **Board Knowledge System** — Knowledge Object là đơn vị quản lý tri thức · chỉ mục ⛔ không bao giờ là nguồn | — *(thuần quản trị tài liệu)* | ✅ **Đã phê duyệt** *(Board, 06/08/2026)* · ⚠️ duyệt **⛔ không kèm phản biện độc lập** — miễn trừ theo vụ, xem §4.3 |
+| [ADR-024](ADR-024-board-golden-rule.md) | **BOARD GOLDEN RULE** — giá trị đứng trước sự tinh xảo kỹ thuật · chuẩn báo cáo bảy phần | — *(thuần quản trị)* | ✅ **Đã phê duyệt** *(Board Directive 06/08/2026)* · ⚠️ cùng chế độ miễn trừ phản biện |
 
 ⚠️ **ADR-010 đã được thi hành một phần trước khi phê duyệt**, theo chỉ thị trực
 tiếp của Board ngày 04/08/2026 (*"dựng lại nền quản trị"*). Ba tệp bị chạm:

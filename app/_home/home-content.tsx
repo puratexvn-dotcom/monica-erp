@@ -307,7 +307,25 @@ export default function HomeContent({
             🔑 Và màu vẫn theo nhóm *(Rev 2)*, nên **mắt vẫn thấy cụm** dù
             ⛔ không còn chữ nào nói ra. Đó đúng cách màn hình điện thoại
             hoạt động. */}
-        <div className="mx-auto grid max-w-5xl grid-cols-3 gap-x-2 gap-y-8 sm:grid-cols-4 sm:gap-x-4 sm:gap-y-10">
+        {/* ═══ 🔴 BA CỘT TRÊN TOÀN DẢI ĐIỆN THOẠI — Board 06/08/2026 ══════
+            Board: *"Đổi Business Launcher từ 4 cột → 3 cột… launcher lớn hơn,
+            dễ bấm hơn, khoảng trắng đẹp hơn."*
+
+            ⚠️ Điện thoại **đã là 3 cột từ Rev 6**. Chỗ còn 4 cột là dải
+            **640–767px** — `sm:` bắt đầu ở 640, mà điện thoại lớn nằm đúng
+            trong dải đó. Vì vậy mốc đổi cột dời `sm:` → `md:` *(768px)*:
+
+              < 768px   3 cột   ← toàn bộ điện thoại, kể cả máy lớn
+              ≥ 768px   4 cột   ← máy tính bảng và máy bàn, GIỮ NGUYÊN
+
+            🔑 Khoảng cách vẫn nới ở `sm:` như cũ — ô to thêm nhờ bớt một cột,
+            ⛔ không phải nhờ bóp khoảng trắng. Đó là vế *"khoảng trắng đẹp
+            hơn"*.
+
+            ⚠️ `home-skeleton.tsx` phải đổi **CÙNG MỘT MỐC**, nếu không khung
+            chờ 4 cột sẽ nhảy sang 3 cột lúc dữ liệu về — đúng thứ khung chờ
+            sinh ra để tránh. */}
+        <div className="mx-auto grid max-w-5xl grid-cols-3 gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:grid-cols-4">
           {MODULES.map((mod) => (
             <AppCard
               key={mod.id}

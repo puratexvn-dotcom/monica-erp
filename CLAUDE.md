@@ -7,6 +7,69 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+# 🔴 BOARD GOLDEN RULE — ĐỌC TRƯỚC KHI VIẾT BẤT KỲ BÁO CÁO NÀO
+
+> ### Engineering tạo ra SẢN PHẨM. Board tạo ra GIÁ TRỊ.
+
+**Board Directive 06/08/2026 · có hiệu lực NGAY** — [ADR-024](docs/adr/ADR-024-board-golden-rule.md)
+· chuẩn thi hành: [`docs/REPORT_STANDARD.md`](docs/REPORT_STANDARD.md)
+
+Mọi **báo cáo triển khai** *(Sprint · Audit · Implementation · trả lời Board)*
+**bắt buộc mở đầu** bằng đúng câu:
+
+```
+GIÁ TRỊ MỚI NÀO ĐÃ ĐƯỢC TẠO RA?
+```
+
+**Chỉ SAU KHI** trả lời câu đó mới được đánh giá **Architecture · Engineering ·
+Governance**, theo **bảy phần đúng thứ tự**:
+
+```
+① Business Value   ② User Value   ③ Commercial Value   ④ Product Alignment
+⑤ Architecture Impact   ⑥ Engineering Quality   ⑦ Governance Impact
+```
+
+🔑 **Thứ tự là toàn bộ nội dung của quy tắc.** Xếp Architecture lên đầu rồi thêm
+mục *"Value"* ở cuối là **⛔ không thi hành** — đó chỉ là đổi nhãn.
+
+🔴 **Board ưu tiên GIÁ TRỊ hơn sự tinh xảo kỹ thuật.** Giải pháp xuất sắc về kỹ
+thuật nhưng ⛔ không cải thiện giá trị sản phẩm · trải nghiệm người dùng · khác
+biệt thương mại · vận hành doanh nghiệp ⇒ **⛔ KHÔNG phải ưu tiên**.
+
+⚠️ **Bốn suy diễn SAI đã bị bác tường minh** ở [ADR-024 §4.3](docs/adr/ADR-024-board-golden-rule.md)
+— nguy hiểm nhất: *"RLS/bảo mật xuống ưu tiên vì ⛔ không bán được"*. `P-IRREV`
+vẫn đứng: **dữ liệu lộ ⛔ không thu hồi được.** Ưu tiên giá trị ⛔ **không** cho
+phép hạ chuẩn kỹ thuật — mở `REPORT_STANDARD.md` §4 trước khi tự cho mình ngoại lệ.
+
+⚠️ **⛔ Chưa có phép kiểm tự động** cho bảy phần *(nợ `TD-GR1`)*. Bộ kiểm chỉ canh
+`docs/REPORT_STANDARD.md` **tồn tại**. Cưỡng chế còn lại là **kỷ luật rà soát**.
+
+---
+
+# 🧠 KNOWLEDGE SYSTEM — tra tri thức quản trị ở đâu
+
+**[`docs/knowledge/`](docs/knowledge/README.md)** — [ADR-023](docs/adr/ADR-023-board-knowledge-system.md)
+✅ **đã phê duyệt** *(Board, 06/08/2026)*. Tri thức quản trị được quản lý bằng
+**Knowledge Object**: một đối tượng = **một tệp** `.md`, 7 loại, 10 trường, nối
+nhau bằng 9 vị từ quan hệ.
+
+| Cần gì | Đi tới |
+|---|---|
+| *"Board đang phải quyết gì?"* | [`INDEX.md`](docs/knowledge/INDEX.md) **§1** — bảng `PENDING_BOARD` |
+| *"Đổi cái này gãy cái gì?"* | [`INDEX.md`](docs/knowledge/INDEX.md) §4 — chiều nghịch do máy sinh |
+| Thêm/sửa đối tượng | [`SCHEMA.md`](docs/knowledge/SCHEMA.md) · rồi **`npm run knowledge`** |
+
+🔑 **Knowledge Object là CHỈ MỤC, ⛔ KHÔNG BAO GIỜ là NGUỒN.** Đối tượng ⟷ nguồn
+lệch nhau ⇒ **NGUỒN THẮNG**. Trích dẫn trong ADR/tài liệu vẫn phải dẫn **nguồn
+gốc** *(`Hiến pháp Điều 43.3` · `BDR-14` · `DL-057`)* — dẫn `KO-DEC-014` thay cho
+luật là **trích dẫn ⛔ không hợp lệ**.
+
+⚠️ Mới gieo **38 / ~230** mục. Phần còn lại — gồm **149 `DL`** — ở
+[`KO-PEN-005`](docs/knowledge/objects/pending/KO-PEN-005-lo-trinh-chuyen-doi-tri-thuc.md),
+🔴 **chờ Board**.
+
+---
+
 # MONICA ONE CONSTITUTION
 
 Before any design, coding, refactoring or architecture decision:

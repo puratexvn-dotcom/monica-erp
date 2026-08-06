@@ -217,3 +217,26 @@ export const PROD_STATUS_LABEL: Record<string, string> = {
   COMPLETED: 'Hoàn thành',
   CANCELLED: 'Đã huỷ',
 };
+
+/** Trạng thái lô hàng — **chín mã, đúng bằng ràng buộc `shipments_status_valid`
+ *  của migration `024`**. Chép từ CHECK constraint, ⛔ không tự nghĩ thêm mã.
+ *
+ *  🔴 **Vì sao có bảng này:** tab Giao hàng trước đây dựng thẳng `{s.status}` —
+ *  tức **mã gốc trong CSDL rơi ra màn hình tiếng Việt** (`IN_TRANSIT`,
+ *  `CUSTOM_CLEARANCE`). Mười hai bảng khác của MD đều tra nhãn; riêng bảng này
+ *  ⛔ không có bảng tra nào để mà tra.
+ *
+ *  Quy tắc dự án: enum đặt **cùng chỗ** với `Record<Enum, string>` nhãn tiếng
+ *  Việt; tra ⛔ không thấy thì **hiện mã gốc** — đó là lối thoát cho mã lạ, ⛔
+ *  không phải cách hiển thị mặc định cho chín mã đã biết trước. */
+export const SHIPMENT_STATUS_LABEL: Record<string, string> = {
+  DRAFT: 'Nháp',
+  BOOKED: 'Đã đặt chỗ',
+  LOADING: 'Đang đóng hàng',
+  DEPARTED: 'Đã rời cảng',
+  IN_TRANSIT: 'Đang trên đường',
+  ARRIVED_PORT: 'Đã tới cảng',
+  CUSTOM_CLEARANCE: 'Đang thông quan',
+  DELIVERED: 'Đã giao',
+  CANCELLED: 'Đã huỷ',
+};

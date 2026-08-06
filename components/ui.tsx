@@ -7,7 +7,7 @@
 // ============================================================================
 
 import { useEffect, useState, type ReactNode, type ElementType } from 'react';
-import { X, Inbox, ShieldAlert, CloudOff, Star } from 'lucide-react';
+import { X, Inbox, ShieldAlert, CloudOff, Star, Search } from 'lucide-react';
 
 export type Tone = 'indigo' | 'emerald' | 'rose' | 'amber' | 'slate';
 
@@ -154,6 +154,39 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 // ── Empty state ─────────────────────────────────────────────────────────────
+/** Ô tìm nhanh trong một bảng.
+ *
+ *  🔑 Đặt ở đây, ⛔ không đặt ở tệp mới: `PoList` · `StyleList` · `CustomerList`
+ *  · `InquiryList` · `CostingList` mỗi tệp tự dựng một ô tìm riêng, nên năm ô
+ *  ấy **đã lệch nhau** về khổ chữ và chỗ đặt biểu tượng. Một ô dùng chung thì
+ *  lần sau sửa một chỗ là đủ.
+ *
+ *  ⚠️ Đây là ô **lọc phía client trên dữ liệu đã tải** — ⛔ không phải tìm kiếm
+ *  toàn hệ. Nó ⛔ không gọi CSDL, nên nó ⛔ không thấy dòng nào chưa nạp về. */
+export function SearchBox({ value, onChange, placeholder, label }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  label: string;
+}) {
+  return (
+    <div className="relative mb-3">
+      <Search
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+        aria-hidden="true"
+      />
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        aria-label={label}
+        className={`${inputCls} pl-9`}
+      />
+    </div>
+  );
+}
+
 export function EmptyState({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="px-5 py-12 text-center text-slate-400">

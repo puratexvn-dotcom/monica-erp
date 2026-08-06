@@ -36,6 +36,10 @@ const CO_TS = [
 
 const BAI = [
   ['architecture/arch.test.mjs', 'Kiến trúc', false],
+  // Toàn vẹn Knowledge System — ADR-023. Thuần đọc tệp `.md`, ⛔ không cần CSDL,
+  // nên nó chạy cùng hạng với arch test. Bắt: siêu dữ liệu khuyết · quan hệ
+  // treo · nguồn đã bị xoá · và 🔴 đối tượng VƯỢT QUYỀN nguồn của chính nó.
+  ['governance/knowledge-objects.test.mjs', 'Knowledge System — toàn vẹn tri thức', false],
   // Hàm thuần, ⛔ không cần CSDL ⇒ chạy được trên CI ⛔ không bí mật, cùng hạng
   // với arch test. Mở hạng mục *"MD có bài kiểm nghiệp vụ"* — EDD-06 §7, I-2.
   ['business/md-formulas.test.mjs', 'Nghiệp vụ MD — công thức', false, CO_TS],

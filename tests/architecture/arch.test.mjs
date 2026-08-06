@@ -216,6 +216,11 @@ for (const f of [
   'docs/SECURITY_DEFINER_REGISTRY.md',
   'docs/MUTATION_POLICY.md',
   'docs/DOMAIN_GLOSSARY.md',
+  // BOARD GOLDEN RULE — Board Directive 06/08/2026 · ADR-024. Đây là RĂNG DUY
+  // NHẤT của chuẩn báo cáo: quét bảy phần trên mọi `*REPORT*.md` sẽ đánh hỏng
+  // ~10 báo cáo hợp lệ ra đời TRƯỚC luật, mà sửa chúng là viết lại lịch sử
+  // (Hiến pháp §43.7). Nợ `TD-GR1`.
+  'docs/REPORT_STANDARD.md',
 ]) s.ok(f, existsSync(join(ROOT, f)));
 
 // ── 7. MIGRATION — không được sửa tệp đã chạy ──────────────────────────────

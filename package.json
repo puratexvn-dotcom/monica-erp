@@ -15,6 +15,7 @@
     "bench": "node tests/performance/rls-overhead.bench.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test",
     "manuals": "node scripts/build-manuals.mjs",
+    "knowledge": "node scripts/build-knowledge-index.mjs",
     "predev": "node scripts/build-manuals.mjs",
     "prebuild": "node scripts/build-manuals.mjs"
   },

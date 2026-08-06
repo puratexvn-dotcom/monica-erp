@@ -2,21 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+// ⚠️ 13 biểu tượng tab + `LucideIcon` đã theo `TABS` sang `md-tabs.ts`. Giữ lại
+// ở đây những cái tệp này còn dựng thật — `AlertTriangle` vẫn dùng ở thanh tab.
+// `Users` **⛔ đã KHÔNG được dùng TỪ TRƯỚC** đợt tách — gỡ luôn, vì nó nằm đúng
+// dòng đang sửa và gỡ nó ⛔ không đổi hành vi.
 import {
-  Building2, PackageSearch, Boxes, Factory, Ship, Plus, RefreshCw, AlertTriangle, Shirt,
-  FileQuestion, Calculator, FileText, MessageSquare, ClipboardList, TriangleAlert, History,
-  Sparkles, Loader2, Handshake, ArrowUpRight,
-  type LucideIcon,
-  Users,
+  Plus, RefreshCw, AlertTriangle, Sparkles, Loader2, Handshake, ArrowUpRight,
 } from 'lucide-react';
 
-import { Card, Badge, thCls, tdCls, btnPrimary, btnGhost } from '@/components/ui';
+import { Card, Badge, thCls, tdCls, btnPrimary, btnGhost, SearchBox } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
 import PoFormDialog from '../orders/po-form-dialog';
 import PoList from '@/components/md/po/po-list';
 import StyleList from '@/components/md/style/style-list';
 import StyleFormDialog from '@/components/md/style/style-form-dialog';
-import dynamic from 'next/dynamic';
 import CustomerList from '@/components/md/crm/customer-list';
 import CustomerFormDialog from '@/components/md/crm/customer-form-dialog';
 import InquiryList from '@/components/md/rfq/inquiry-list';
@@ -52,6 +52,12 @@ import type {
   DocumentCenterRow, CommentCenterRow, ChangeCenterRow, RiskCenterRow,
 } from './_services/collaboration.service';
 import { GROUP_TONE } from '@/components/md/semantic-tone';
+// 🔑 Siêu dữ liệu 13 tab dời sang `md-tabs.ts` — Board Directive 06/08/2026 ·
+// `KD-4` `TD-39`. Phép dời THUẦN: ⛔ không đổi nghiệp vụ, giao diện hay API.
+import {
+  nf, TABS, GROUPS, CREATE_LABEL, fmtDate,
+  type TabKey,
+} from './md-tabs';
 import type { PoOption } from './md-types';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRowsClient, listStylesClient } from './_actions/md360.client';
@@ -66,7 +72,7 @@ import {
   MaterialRequestDialog, ProductionOrderDialog, ShipmentFormDialog,
 } from './md-forms';
 import {
-  MATERIAL_CATEGORY_LABEL, MR_STATUS_LABEL, PROD_STATUS_LABEL,
+  MATERIAL_CATEGORY_LABEL, MR_STATUS_LABEL, PROD_STATUS_LABEL, SHIPMENT_STATUS_LABEL,
   type MaterialCategory,
 } from './md-schema';
 
@@ -93,6 +99,8 @@ import {
 // Thư viện biểu đồ nặng gần 100 kB. Tách thành gói riêng, tải sau khi trang đã
 // dùng được: mạng ở xưởng chậm, không nên bắt chờ biểu đồ mới bấm được vào tab.
 // Khối chỉ số KHÔNG nằm trong gói này — nó không đụng tới thư viện biểu đồ.
+// ⚠️ Ở LẠI đây, ⛔ không sang `md-tabs.ts`: JSX trạng thái-đang-tải mang
+// `text-sm` — nợ chữ `TD-10` đã có. Xem khối chú thích đầu `md-tabs.ts`.
 const MdCharts = dynamic(() => import('@/components/md/dashboard/md-dashboard'), {
   ssr: false,
   loading: () => (
@@ -102,63 +110,6 @@ const MdCharts = dynamic(() => import('@/components/md/dashboard/md-dashboard'),
     </div>
   ),
 });
-
-const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
-
-type TabKey =
-  | 'customers' | 'rfq' | 'costing'
-  | 'styles' | 'po' | 'materials' | 'production' | 'shipments'
-  | 'documents' | 'comments' | 'changes' | 'risks' | 'audit';
-
-interface TabDef {
-  key: TabKey;
-  label: string;
-  short: string;
-  icon: LucideIcon;
-  group: 'Thương mại' | 'Triển khai' | 'Phối hợp';
-}
-
-const TABS: TabDef[] = [
-  { key: 'customers', label: 'Khách hàng', short: 'Khách', icon: Building2, group: 'Thương mại' },
-  { key: 'rfq', label: 'Yêu cầu báo giá', short: 'Báo giá', icon: FileQuestion, group: 'Thương mại' },
-  { key: 'costing', label: 'Chiết tính giá', short: 'Chiết tính', icon: Calculator, group: 'Thương mại' },
-  { key: 'styles', label: 'Mã hàng', short: 'Mã hàng', icon: Shirt, group: 'Triển khai' },
-  { key: 'po', label: 'Đơn hàng (PO)', short: 'PO', icon: PackageSearch, group: 'Triển khai' },
-  { key: 'materials', label: 'Vật tư', short: 'Vật tư', icon: Boxes, group: 'Triển khai' },
-  { key: 'production', label: 'Sản xuất', short: 'Sản xuất', icon: Factory, group: 'Triển khai' },
-  { key: 'shipments', label: 'Giao hàng', short: 'Giao', icon: Ship, group: 'Triển khai' },
-  { key: 'documents', label: 'Tài liệu', short: 'Tài liệu', icon: FileText, group: 'Phối hợp' },
-  { key: 'comments', label: 'Thảo luận', short: 'Thảo luận', icon: MessageSquare, group: 'Phối hợp' },
-  { key: 'changes', label: 'Yêu cầu thay đổi', short: 'Thay đổi', icon: ClipboardList, group: 'Phối hợp' },
-  { key: 'risks', label: 'Rủi ro', short: 'Rủi ro', icon: TriangleAlert, group: 'Phối hợp' },
-  { key: 'audit', label: 'Nhật ký', short: 'Nhật ký', icon: History, group: 'Phối hợp' },
-];
-
-const GROUPS = ['Thương mại', 'Triển khai', 'Phối hợp'] as const;
-
-function fmtDate(v: string | null): string {
-  if (!v) return '—';
-  const [y, m, d] = v.slice(0, 10).split('-');
-  return `${d}/${m}/${y}`;
-}
-
-/** Nhãn nút tạo mới của từng tab. Tab nào không tạo trực tiếp được thì để null
- *  và ẩn nút — hiện một nút bấm vào không làm gì là tệ hơn không có nút. */
-const CREATE_LABEL: Record<TabKey, string | null> = {
-  customers: 'Thêm khách hàng',
-  rfq: 'Nhận yêu cầu báo giá',
-  costing: 'Tạo bản chiết tính',
-  styles: 'Tạo mã hàng',
-  po: 'Tạo PO',
-  materials: 'Tạo thủ công',
-  production: 'Tạo thủ công',
-  shipments: 'Tạo lệnh giao hàng',
-  documents: null,
-  comments: null,
-  changes: null, // có nút riêng bên trong màn hình
-  risks: null,
-  audit: null,
-};
 
 export default function MdClient({
   initialSnapshot,
@@ -394,6 +345,20 @@ export default function MdClient({
     [dashboard.data, goTab],
   );
 
+  // ─── TÌM NHANH cho ba tab bảng trần (Vật tư · Sản xuất · Giao hàng) ──────
+  // Ba tab DUY NHẤT ⛔ không có ô tìm, mà lại là ba bảng DÀI NHẤT khi chạy
+  // thật. Lọc trên dữ liệu ĐÃ TẢI, ⛔ không truy vấn lại CSDL.
+  // Đổi tab thì xoá từ khoá — giữ lại sẽ khiến tab mới mở ra đã bị lọc sẵn.
+  const [q, setQ] = useState('');
+  useEffect(() => { setQ(''); }, [tab]);
+  const timTrong = useCallback(
+    <T,>(rows: T[], truong: (r: T) => (string | null)[]): T[] => {
+      const k = q.trim().toLowerCase();
+      return k ? rows.filter((r) => truong(r).some((v) => (v ?? '').toLowerCase().includes(k))) : rows;
+    },
+    [q],
+  );
+
   const active = TABS.find((t) => t.key === tab) ?? TABS[0];
   const createLabel = CREATE_LABEL[tab];
 
@@ -466,6 +431,8 @@ export default function MdClient({
           lần mỗi ngày thì đó là hàng chục cú bấm thừa.
           Ba khu điều hành ở trên vẫn giữ đúng thứ tự ưu tiên nhờ vị trí, không
           cần phải giấu phần còn lại đi mới nổi bật được. */}
+      {/* ⚠️ Thanh tab Ở LẠI đây: nó mang nợ màu/chữ `TD-07`·`TD-10` đã có, dời
+          sang tệp mới thì bánh cóc đọc ra là nợ MỚI — xem đầu `md-tabs.ts`. */}
       <div ref={tabBarRef} className="-mx-1 mb-5 space-y-2 px-1 pt-1">
         {GROUPS.map((g) => {
           // Mỗi nhóm một sắc màu riêng — xem bảng GROUP_TONE và số đo tương phản
@@ -632,6 +599,13 @@ export default function MdClient({
               sub="Bấm Sinh từ định mức để hệ thống tự tính nhu cầu từng loại nguyên phụ liệu theo mã hàng và số lượng đơn."
             />
           ) : (
+            <>
+            <SearchBox
+              value={q}
+              onChange={setQ}
+              placeholder="Tìm số phiếu, PO, tên nguyên phụ liệu..."
+              label="Tìm đề nghị mua NPL"
+            />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left">
                 <thead>
@@ -646,7 +620,7 @@ export default function MdClient({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {snap.materialRequests.map((r) => (
+                  {timTrong(snap.materialRequests, (r) => [r.request_no, r.po_number, r.material_name]).map((r) => (
                     <tr key={r.id} className="transition hover:bg-slate-50/70">
                       <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{r.request_no}</td>
                       <td className={`${tdCls} font-mono text-xs text-slate-500`}>{r.po_number ?? '—'}</td>
@@ -668,6 +642,7 @@ export default function MdClient({
                 </tbody>
               </table>
             </div>
+            </>
           ))}
 
         {tab === 'production' &&
@@ -679,6 +654,13 @@ export default function MdClient({
               sub="Bấm Sinh từ SAM để tính số ngày sản xuất từ thời gian chuẩn của mã hàng và năng lực chuyền."
             />
           ) : (
+            <>
+            <SearchBox
+              value={q}
+              onChange={setQ}
+              placeholder="Tìm số lệnh sản xuất, mã PO..."
+              label="Tìm lệnh sản xuất"
+            />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left">
                 <thead>
@@ -692,7 +674,7 @@ export default function MdClient({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {snap.productionOrders.map((p) => (
+                  {timTrong(snap.productionOrders, (p) => [p.order_no, p.po_number]).map((p) => (
                     <tr key={p.id} className="transition hover:bg-slate-50/70">
                       <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{p.order_no}</td>
                       <td className={`${tdCls} font-mono text-xs text-slate-500`}>{p.po_number ?? '—'}</td>
@@ -716,6 +698,7 @@ export default function MdClient({
                 </tbody>
               </table>
             </div>
+            </>
           ))}
 
         {tab === 'shipments' &&
@@ -724,6 +707,13 @@ export default function MdClient({
           ) : snap.shipments.length === 0 ? (
             <NoData title="Chưa có lệnh giao hàng" sub="Bấm Tạo lệnh giao hàng để lập lệnh đầu tiên." />
           ) : (
+            <>
+            <SearchBox
+              value={q}
+              onChange={setQ}
+              placeholder="Tìm số lệnh giao, PO, số container, cảng đến..."
+              label="Tìm lệnh giao hàng"
+            />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left">
                 <thead>
@@ -737,7 +727,7 @@ export default function MdClient({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {snap.shipments.map((s) => (
+                  {timTrong(snap.shipments, (s) => [s.shipment_no, s.po_number, s.container_no, s.destination_port]).map((s) => (
                     <tr key={s.id} className="transition hover:bg-slate-50/70">
                       <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{s.shipment_no}</td>
                       <td className={`${tdCls} font-mono text-xs text-slate-500`}>{s.po_number ?? '—'}</td>
@@ -745,13 +735,25 @@ export default function MdClient({
                       <td className={tdCls}>{s.destination_port ?? '—'}</td>
                       <td className={tdCls}>{fmtDate(s.etd_date)}</td>
                       <td className={tdCls}>
-                        <Badge tone={s.status === 'DRAFT' ? 'amber' : 'indigo'}>{s.status}</Badge>
+                        {/* 🔴 Trước đây dựng thẳng `{s.status}` — mã gốc CSDL
+                            (`IN_TRANSIT`…) rơi ra màn hình tiếng Việt. */}
+                        <Badge
+                          tone={
+                            s.status === 'CANCELLED' ? 'rose'
+                            : s.status === 'DELIVERED' ? 'emerald'
+                            : s.status === 'DRAFT' ? 'amber'
+                            : 'indigo'
+                          }
+                        >
+                          {SHIPMENT_STATUS_LABEL[s.status] ?? s.status}
+                        </Badge>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            </>
           ))}
 
         {/* ── NHÓM PHỐI HỢP ──────────────────────────────────────────── */}

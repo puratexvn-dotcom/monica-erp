@@ -15,6 +15,8 @@
     "betaHint": "đang phát triển",
     "comingSoon": "Sắp có",
     "comingSoonHint": "chưa mở, đang xây dựng",
+    "locked": "Chưa mở khoá",
+    "lockedHint": "Năng lực đã có trong hệ sinh thái MONICA ONE — chưa kích hoạt cho doanh nghiệp của bạn",
     "noAccess": "Chưa được cấp quyền",
     "noAccessHint": "Bạn chưa được cấp quyền vào phân hệ này",
     "signInHint": "Đăng nhập để mở phân hệ của bạn"
@@ -198,8 +200,6 @@
     "salesAdmin": "Hợp đồng, xác nhận đơn và điều khoản"
   },
   "landing": {
-    "lead": "Nền tảng vận hành hợp nhất cho doanh nghiệp may mặc.",
-    "signIn": "Đăng nhập để bắt đầu",
     "pillarOne": "Một nền tảng vận hành hợp nhất cho toàn doanh nghiệp",
     "pillarRole": "Không gian làm việc theo vai trò, phân quyền chặt",
     "pillarEvidence": "Mọi thao tác đều có bằng chứng và truy vết đầy đủ"

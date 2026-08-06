@@ -15,6 +15,8 @@
     "betaHint": "in development",
     "comingSoon": "Coming Soon",
     "comingSoonHint": "not open yet, under construction",
+    "locked": "Locked",
+    "lockedHint": "A capability of the MONICA ONE ecosystem — not yet enabled for your enterprise",
     "noAccess": "No access",
     "noAccessHint": "You have not been granted access to this workspace",
     "signInHint": "Sign in to open your workspace"
@@ -198,8 +200,6 @@
     "salesAdmin": "Contracts, order confirmation and commercial terms"
   },
   "landing": {
-    "lead": "A unified operating platform for garment manufacturing.",
-    "signIn": "Sign in to get started",
     "pillarOne": "One unified operating platform for the whole enterprise",
     "pillarRole": "Role-based workspaces with strict permissions",
     "pillarEvidence": "Every action carries evidence and a full audit trail"

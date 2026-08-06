@@ -15,6 +15,8 @@
     "betaHint": "开发中",
     "comingSoon": "即将推出",
     "comingSoonHint": "尚未开放，建设中",
+    "locked": "未解锁",
+    "lockedHint": "MONICA ONE 生态系统已具备的能力 — 尚未为贵企业启用",
     "noAccess": "无权限",
     "noAccessHint": "您尚未获得该工作空间的权限",
     "signInHint": "登录后打开您的工作空间"
@@ -198,8 +200,6 @@
     "salesAdmin": "合同、订单确认与商务条款"
   },
   "landing": {
-    "lead": "服装制造业的统一运营平台。",
-    "signIn": "登录以开始",
     "pillarOne": "面向全企业的统一运营平台",
     "pillarRole": "基于角色的工作空间，权限严格",
     "pillarEvidence": "每一次操作都有凭证和完整追溯"

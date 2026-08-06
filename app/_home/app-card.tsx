@@ -149,9 +149,16 @@ export default function AppCard({
 
   // ⚠️ Khai kiểu tường minh thay vì `as` — `any` bị arch test chặn, mà thuộc
   // tính tuỳ biến `--*` thì `CSSProperties` chuẩn ⛔ không biết tới.
+  // 🔴 Board Directive 06/08/2026 — ô KHOÁ hạ quầng sáng xuống **ngang mức ô
+  // ⛔ chưa được cấp quyền**. Đây là vế *"subtle visual treatment"*: ô vẫn
+  // **giữ nguyên màu định danh** *(Điều 44.6 — màu là THÔNG TIN)*, chỉ **bớt
+  // phát sáng**. Người dùng vẫn đọc ra *"đây là Kho"*, chỉ ⛔ không đọc ra
+  // *"bấm được"*.
+  const lamMo = khongQuyen || sapCo;
+
   const glowVars: CSSProperties & Record<'--tile-glow' | '--tile-glow-strong', string> = {
-    '--tile-glow': moduleGlow(mod.key, khongQuyen ? 0.18 : 0.42),
-    '--tile-glow-strong': moduleGlow(mod.key, khongQuyen ? 0.3 : 0.62),
+    '--tile-glow': moduleGlow(mod.key, lamMo ? 0.18 : 0.42),
+    '--tile-glow-strong': moduleGlow(mod.key, lamMo ? 0.3 : 0.62),
   };
 
   // ─── TOOLTIP — nơi DUY NHẤT `Business Value` được hiện ────────────────────
@@ -176,7 +183,7 @@ export default function AppCard({
    *  giao diện**"*. Câu trả lời của ADR-022 ⛔ không phải *"cứ hiện đại"* mà là
    *  **hiện KÈM LỜI NÓI** — dòng này là lời nói đó. */
   const duoiChuThich =
-    state === 'COMING_SOON' ? `\n${t('home.comingSoonHint')}`
+    state === 'COMING_SOON' ? `\n${t('home.lockedHint')}`
     : state === 'UNAUTHORIZED' ? `\n${t('home.noAccessHint')}`
     : state === 'ANONYMOUS' ? `\n${t('home.signInHint')}`
     : '';
@@ -219,7 +226,7 @@ export default function AppCard({
             mọi cỡ, đúng tỷ lệ biểu tượng điện thoại. */}
         <span
           style={glowVars}
-          className={`flex aspect-square w-full items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 ${sf.tileStrong} ${tileShadow} ${tileShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : ''}`}
+          className={`flex aspect-square w-full items-center justify-center rounded-[28%] transition-[transform,box-shadow,opacity] duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.06] group-active:scale-95 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 ${sf.tileStrong} ${tileShadow} ${tileShadowHover} ${khongQuyen ? 'opacity-50 group-hover:opacity-80' : sapCo ? 'opacity-50' : ''}`}
         >
           {/* ═══ 🔴 REV 6 — NÉT VẼ TO HƠN VÀ DÀY HƠN ════════════════════
               Board: *"Icon lớn hơn"* · *"sắc nét"*.
@@ -241,33 +248,51 @@ export default function AppCard({
           <Icon className="h-auto w-[54%]" strokeWidth={2} aria-hidden="true" />
         </span>
 
-        {/* Beta — chấm nhỏ ở góc trên phải biểu tượng, đúng chỗ điện thoại đặt
-            huy hiệu. Viền trắng để nó tách khỏi màu biểu tượng bên dưới. */}
-        {/* ⚠️ Ở khổ điện thoại chỉ còn MỘT CHẤM, từ `sm` mới hiện chữ "Beta".
-            Bản nháp đầu tôi bóp chữ xuống 9px cho vừa biểu tượng 56px — và
-            bài kiểm thang chữ chặn ngay, đúng lúc: 9px chính là cỡ đã bị loại
-            khỏi thang vì nằm dưới ngưỡng đọc được. Thu nhỏ chữ tới mức không
-            ai đọc nổi thì cái nhãn đó thôi làm nhãn.
-            Một chấm thì không cần đọc — nó chỉ cần được THẤY, và ở đó nó làm
-            đúng việc của mình. */}
+        {/* ═══ 🔴 TRẠNG THÁI KHOÁ — Board Directive 06/08/2026 ══════════════
+            Board **đảo lại** quyết định trước đó: ⛔ **không tách, ⛔ không ẩn**
+            App chưa mở. Chúng **giữ nguyên vị trí** trong lưới, và nhãn *"Sắp
+            có"* được thay bằng **ổ khoá**.
+
+            🔑 **Vì sao đổi chữ, ⛔ không chỉ đổi hình.** Board nói rõ ý nghĩa:
+            *"The lock indicates capability that **exists** within the MONICA
+            ONE ecosystem but is **not yet enabled**, rather than functionality
+            that **does not exist**."*
+
+            Chữ cũ ⛔ nói ngược lại điều đó: `comingSoonHint` = *"chưa mở, **đang
+            xây dựng**"* — tức *"thứ này CHƯA TỒN TẠI"*. Giữ ổ khoá mà giữ luôn
+            câu ấy thì hình mới nói một đằng, chữ cũ nói một nẻo. ⇒ khoá mới
+            `home.locked` · `home.lockedHint`.
+
+            ⚠️ `home.comingSoon` · `home.comingSoonHint` **GIỮ NGUYÊN** ở cả ba
+            tệp dịch *(ràng buộc ② — ⛔ không xoá chữ cũ, chỉ thôi dựng)*. Từ bản
+            này chúng **⛔ không còn nơi nào dựng** — kho chữ nằm chờ, ⛔ không
+            phải chữ đang sống.
+
+            ─── 🔑 HAI Ổ KHOÁ, HAI LÝ DO, ⛔ KHÔNG ĐƯỢC LẪN ─────────────────
+            Ô này và ô `UNAUTHORIZED` bên dưới nay **cùng dùng một hình ổ khoá**
+            — đó là chủ ý của Board *(một ngôn ngữ "khoá" duy nhất)*. Nhưng
+            ADR-022 §2.2 đòi giao diện phải **NÓI RA** người dùng đang gặp lý do
+            nào; hai ô khoá trông giống hệt mà ⛔ không nói gì thì đúng là *"lời
+            nói dối của giao diện"* mà ADR-017 cảnh báo.
+
+            ⇒ Hình **giống nhau**, chữ **khác nhau**, và chữ đi cả vào `title`
+            lẫn `sr-only`:
+              · chưa kích hoạt cho doanh nghiệp → `home.locked`
+              · đã đăng nhập, ⛔ chưa được cấp quyền → `home.noAccess`
+
+            Hai trạng thái ⛔ không bao giờ chồng nhau *(cùng một góc, và
+            `COMING_SOON` xét TRƯỚC phiên đăng nhập)*. */}
         {!moDuoc && (
-          <>
-            <span
-              className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-white shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:hidden"
-              aria-hidden="true"
-            >
-              <span className={`absolute inset-[3px] rounded-full ${sf.tileStrong}`} />
-            </span>
-            <span
-              className={`${TYPE.overline} absolute -right-1.5 -top-1.5 hidden rounded-full bg-white px-1.5 py-0.5 text-slate-500 shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:block`}
-            >
-              {t('home.comingSoon')}
-            </span>
-            {/* Khổ hẹp mất chữ "Beta", nên phải có lối đọc cho trình đọc màn
-                hình — nếu không, sáu App chưa mở trở thành không phân biệt
-                được với mười App đang chạy. */}
-            <span className="sr-only sm:hidden">{t('home.comingSoon')}</span>
-          </>
+          <span
+            className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-slate-500 shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:-right-1.5 sm:-top-1.5 sm:h-6 sm:w-6"
+            title={t('home.lockedHint')}
+          >
+            <Lock className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" strokeWidth={2.4} aria-hidden="true" />
+            {/* Trình đọc màn hình phải NGHE được điều mắt thấy — ⛔ không có
+                dòng này, mười hai App khoá trở thành ⛔ không phân biệt được
+                với mười hai App đang chạy. */}
+            <span className="sr-only">{t('home.locked')}</span>
+          </span>
         )}
 
         {/* ── Ổ KHOÁ — ô đã đăng nhập nhưng ⛔ chưa được cấp quyền ──────────
@@ -402,7 +427,18 @@ export default function AppCard({
         type="button"
         disabled
         aria-disabled="true"
-        className={`${base} cursor-not-allowed opacity-60`}
+        // 🔴 ĐÃ BỎ `opacity-60` trên TOÀN nút — Board Directive 06/08/2026.
+        //
+        // Hai lý do, và lý do thứ hai là lỗi thật:
+        // ① *"Subtle"* — làm mờ cả ô 40% là **nhấn mạnh** trạng thái khoá, đúng
+        //    thứ Board bảo thôi nhấn mạnh. Nay chỉ **biểu tượng** hạ độ mờ, y
+        //    hệt ô ⛔ chưa được cấp quyền.
+        // ② 🔴 **`LI-3`**: *"độ mờ chỉ đặt lên BIỂU TƯỢNG, ⛔ không đặt lên
+        //    chữ"* — chữ giữ nguyên màu thì tương phản 4,5:1 được giữ **theo
+        //    cấu trúc**. `opacity-60` trên nút kéo mờ **cả tên App lẫn dòng mô
+        //    tả**, tức mười hai ô đang nằm dưới ngưỡng tương phản. Nhánh
+        //    `UNAUTHORIZED` xưa nay vẫn làm đúng; chỉ nhánh này lệch.
+        className={`${base} cursor-not-allowed`}
         title={`${chuThich}${duoiChuThich}`}
       >
         {inner}

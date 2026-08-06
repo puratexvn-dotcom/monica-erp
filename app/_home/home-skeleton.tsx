@@ -49,7 +49,7 @@ export default function HomeSkeleton() {
           chờ **tự dài ra**, ⛔ không ai phải nhớ sửa. */}
       {/* ⚠️ Chuỗi lớp này phải **giống hệt** lưới thật ở `home-content.tsx`.
           Đọc cả hai cạnh nhau trước khi sửa một bên. */}
-      <div className="grid grid-cols-3 gap-x-2 gap-y-8 sm:grid-cols-4 sm:gap-x-4 sm:gap-y-10">
+      <div className="grid grid-cols-3 gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:grid-cols-4">
         {Array.from({ length: SO_BUSINESS_APP }, (_, i) => <OCho key={i} />)}
       </div>
     </div>
