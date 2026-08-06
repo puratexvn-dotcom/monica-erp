@@ -74,7 +74,9 @@ function PoList({
 
   const FILTERS: Array<{ key: Filter; label: string; count: number }> = [
     { key: 'all', label: 'Tất cả', count: stats.total },
-    { key: 'late', label: 'Trễ tiến độ', count: stats.late },
+    // ⚠️ "Trễ mốc T&A", ⛔ KHÔNG phải "Trễ tiến độ" — xem khối chú thích ở
+    // thẻ chỉ số bên dưới.
+    { key: 'late', label: 'Trễ mốc T&A', count: stats.late },
     { key: 'risk', label: 'Rủi ro cao', count: stats.risky },
   ];
 
@@ -83,11 +85,25 @@ function PoList({
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Metric label="Tổng đơn hàng" value={fmtNum(stats.total)} />
         <Metric label="Tổng sản lượng" value={fmtNum(stats.qty)} sub="sản phẩm" />
+        {/* 🔴 ĐỔI NHÃN — Board Decision 06/08/2026, phương án 3.
+            Chỉ số này đếm `late_milestones > 0`, tức **trễ MỐC T&A**. Bảng
+            "Đơn hàng đang ở đâu?" lại đếm **quá NGÀY GIAO**. Hai phép đo khác
+            nhau, và trước bản này cả hai cùng mang tên "Trễ tiến độ" — nên màn
+            hình hiện "6 đơn 🔴 Đã trễ" ngay cạnh thẻ ghi "Trễ tiến độ: 0".
+
+            🔑 Sửa bằng cách GỌI ĐÚNG TÊN, ⛔ không phải bằng cách đổi phép đo:
+            đổi phép đo là đổi định nghĩa nghiệp vụ, và đó là quyết định của
+            Board chứ ⛔ không phải của một lượt sửa giao diện.
+
+            ⚠️ `sub` cũ ghi "đúng lịch" khi đếm bằng 0 — câu đó **sai sự thật**
+            khi mốc T&A chưa có dữ liệu: ⛔ không có mốc nào thì đương nhiên
+            ⛔ không mốc nào trễ, mà đơn vẫn có thể đã quá ngày giao. Nay ghi
+            trung thực là "⛔ chưa ghi nhận mốc trễ". */}
         <Metric
-          label="Trễ tiến độ"
+          label="Trễ mốc T&A"
           value={fmtNum(stats.late)}
           tone={stats.late > 0 ? 'rose' : 'emerald'}
-          sub={stats.late > 0 ? 'cần xử lý ngay' : 'đúng lịch'}
+          sub={stats.late > 0 ? 'cần xử lý ngay' : 'chưa ghi nhận mốc trễ'}
         />
         <Metric
           label="Rủi ro cao"

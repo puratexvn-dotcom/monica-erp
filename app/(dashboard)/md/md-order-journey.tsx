@@ -87,7 +87,9 @@ export default function MdOrderJourney({
                 <tr className={theadRow}>
                   <th className={thCls}>PO</th>
                   <th className={thCls}>Khách hàng</th>
-                  <th className={thCls}>Sức khoẻ</th>
+                  {/* Nói rõ đo theo NGÀY GIAO — thẻ "Trễ mốc T&A" ở dưới đo
+                      thứ khác. Hai cột cùng tên là chỗ màn hình tự mâu thuẫn. */}
+                  <th className={thCls} title="Đo theo ngày giao hẹn khách">Sức khoẻ (theo ngày giao)</th>
                   <th className={thCls}>Tiến độ</th>
                   {CHANG.map((c) => <th key={c} className={thCls}>{CHANG_LABEL[c]}</th>)}
                   <th className={thCls}>Việc kế tiếp</th>

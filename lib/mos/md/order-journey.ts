@@ -116,10 +116,21 @@ export interface ChangResult {
 export const SUC_KHOE = ['ON_TRACK', 'AT_RISK', 'DELAYED'] as const;
 export type SucKhoe = (typeof SUC_KHOE)[number];
 
+/**
+ * 🔴 **Nhãn nói rõ ĐANG ĐO CÁI GÌ** — Board Decision 06/08/2026, phương án 3.
+ *
+ * Chỉ số `Trễ mốc T&A` ở danh sách PO đếm `late_milestones > 0`; ba mức dưới
+ * đây đo **ngày giao**. Hai phép đo khác nhau, và khi cả hai cùng mang tên
+ * *"trễ tiến độ"* thì màn hình tự mâu thuẫn: 6 dòng đỏ nằm cạnh một thẻ ghi
+ * *"Trễ tiến độ: 0"*.
+ *
+ * ⇒ Gọi đúng tên: **"Trễ giao"**. ⛔ KHÔNG hợp nhất hai phép đo — hợp nhất là
+ * đổi định nghĩa nghiệp vụ, và đó là quyết định của Board.
+ */
 export const SUC_KHOE_LABEL: Record<SucKhoe, string> = {
-  ON_TRACK: 'Đúng tiến độ',
-  AT_RISK: 'Có rủi ro',
-  DELAYED: 'Đã trễ',
+  ON_TRACK: 'Đúng hạn giao',
+  AT_RISK: 'Sắp tới hạn',
+  DELAYED: 'Trễ giao',
 };
 
 /** Việc kế tiếp — ⛔ không có thì `null`, và giao diện ⛔ không được bịa ra một
