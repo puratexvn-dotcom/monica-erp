@@ -42,7 +42,14 @@ export async function getSubconDashboardData() {
         orders ( po_number )
       )
     `)
-    .in('current_stage', ['CUT_PASSED', 'SEWING_READY'])
+    // 🔴 SỬA 07/08/2026 theo ADR-025 §2.1 + migration 047.
+    // Trước: `['CUT_PASSED','SEWING_READY']` — **⛔ không giá trị nào tồn tại**
+    // trong `bundle_stage_enum` ⇒ PostgreSQL ném lỗi ⇒ **cả `/subcon` chết**.
+    // ADR-025 phán: hai tên đó **trùng nghĩa với `CUT`** *("đã cắt xong, chờ
+    // khâu sau" CHÍNH LÀ sẵn sàng cho chuyền may")* nên ⛔ KHÔNG thêm vào enum
+    // — chỉ `OUTSIDE_PROCESSING` được thêm, vì nó mô tả một trạng thái vật lý
+    // ⛔ không thay thế được.
+    .in('current_stage', ['CUT'])
     .gt('quantity', 0)
     .limit(100)
 
@@ -67,6 +74,8 @@ export async function getSubconDashboardData() {
   // 🔴 Sửa enum là **migration ⇒ cần ADR ⇒ thẩm quyền Board**. ⛔ KHÔNG tự làm.
   // Việc làm được ngay: **cô lập** phần hỏng, trả về rỗng kèm lời khai, để
   // phần còn lại của phân hệ sống.
+  // ⚠️ GIỮ phép cô lập dù enum đã vá: một câu truy vấn hỏng ⛔ vẫn không được
+  // giết cả phân hệ. Sau `047` biến này sẽ là `null` và băng đỏ tự tắt.
   const loiBoHang = bundleErr ? `${bundleErr.message}` : null
 
   // 4. Lấy danh sách Bó hàng đang ở xưởng ngoài (Cần thu hồi)

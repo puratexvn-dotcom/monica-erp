@@ -116,3 +116,50 @@ mà quét ra **0**. Đã sửa phép quét.
 | 🟡 vừa | `/ke-toan` `/kho` `/orders` `/admin` `/to-truong-hoan-thanh` `/buyer` — **0 biểu đồ** | `/ke-toan` mọi ô đang ⚪ *(`G-9`)* nên vẽ ⛔ không có gì; số còn lại chưa rà |
 | 🟡 vừa | Đẩy báo cáo ngày *(chuông kêu)* cho CEO · PD | Hiện là *"gửi"* theo lối KÉO: mở trang mới thấy. Đẩy thật cần bảng `notifications` ⇒ **Schema, thẩm quyền Board** |
 | 🟡 vừa | `md-legacy-client.tsx` cũng đọc năm cột ⛔ không tồn tại | ⛔ Chưa gắn route nên ⛔ chưa hại ai — dọn cùng `G-10` |
+
+---
+
+## 6. VÒNG SÁNG 07/08 — Board duyệt cho sửa migration
+
+### 6.1 🔴 CẦN ANH LÀM MỘT VIỆC DUY NHẤT
+
+Dán **`supabase/migrations/047_bundle_lifecycle_and_bom_unit.sql`** vào
+**Supabase SQL Editor** rồi chạy. ⛔ Tôi **không** có đường chạy DDL — ⛔ không
+`psql`, ⛔ không gói `pg`, ⛔ không Supabase CLI. Tệp có sẵn **khối tự kiểm**
+ở cuối: chạy xong sẽ in bảng *kỳ vọng ⟷ thực tế*, đọc là biết đạt hay ⛔ không.
+
+Sau khi chạy, băng đỏ *"luồng gia công đang bị chặn"* ở `/subcon` **tự tắt**.
+
+### 6.2 Tài khoản — nay gõ TÊN TRẦN
+
+| Gõ vào ô đăng nhập | Vai |
+|---|---|
+| `admin001` | Quản trị hệ thống |
+| `gd001` | Giám đốc *(Production Director)* |
+| `md001` · `md002` | Merchandiser |
+| `kt001` | Kế toán |
+| `kho001` · `kho002` | Kho |
+| `qa001` | QA |
+| `cat001` · `may001` · `ht001` | Tổ cắt · Tổ may · Tổ hoàn thành |
+| `sub001` · `kh001` | Nhà thầu · Khách hàng |
+
+Mật khẩu: **`Monica12345@`** *(vài tài khoản chưa đăng nhập lần nào vẫn còn
+`monica123` + bắt đổi lần đầu)*.
+
+### 6.3 Dữ liệu gieo — `scripts/seed-van-hanh.mjs`
+
+⚠️ Đã gieo **một ngày vận hành 07/08** vào CSDL để báo cáo có nội dung.
+Mọi bản ghi mang dấu `[GIEO 07/08]` trong `notes`. Xoá sạch bằng:
+
+```
+node scripts/seed-van-hanh.mjs --xoa
+```
+
+🔑 Dữ liệu **cố ý ⛔ không đẹp**: có giờ tụt sau ăn trưa, có chuyền vượt
+ngưỡng lỗi, có bàn cắt hụt kế hoạch. Một ngày toàn 100% ⛔ không chứng minh
+được đường ngưỡng và cột cảnh báo có chạy hay ⛔ không.
+
+### 6.4 Còn chờ Board
+
+`G-2` `G-3` `G-4` `G-7` `G-9` `G-10` `G-11` — xem §2. `G-1` `G-6` `G-8` `G-12`
+đã đóng ở vòng này.

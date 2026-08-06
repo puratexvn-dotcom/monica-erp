@@ -89,11 +89,28 @@ export function duLieuCatHomNay(phieu: readonly PhieuCat[]): DuLieuCat {
     phieuThieu: homNay
       .filter((p) => p.total_actual_pcs > 0 && p.total_planned_pcs - p.total_actual_pcs > NGUONG_LECH)
       .map((p) => ({ maPhieu: p.ticket_no, thieu: p.total_planned_pcs - p.total_actual_pcs })),
+    // 🔴 SỬA 07/08/2026 theo ADR-025 §2.2 + migration 047.
+    //
+    // Bản trước so `total_fabric_used_m > bom_allowance_m` — **hai đại lượng
+    // khác đơn vị**: vế trái là TỔNG mét của cả phiếu, vế phải là định mức
+    // MỖI SẢN PHẨM. Với `SEED-CT-01` đó là so `828,4 m` với `2,5 m` ⇒ cờ
+    // *"vượt định mức"* **bật cho MỌI phiếu**.
+    //
+    // 🔑 Cảnh báo đúng-100%-số-dòng là cảnh báo ⛔ không mang tin gì — và
+    // người dùng sẽ **thôi đọc** nó, kể cả lúc nó đúng.
+    //
+    // ADR-025 chốt: `bom_allowance_m` là **mét trên MỘT sản phẩm** *(khách và
+    // nhà máy chốt định mức theo sản phẩm, ⛔ không theo lô — lô đổi số lượng
+    // liên tục còn định mức thì ⛔ không)*. Đơn vị nay ghi trong lược đồ bằng
+    // `COMMENT ON COLUMN`.
     phieuVuotDinhMuc: homNay
-      .filter((p) => so(p.bom_allowance_m) > 0 && so(p.total_fabric_used_m) > so(p.bom_allowance_m))
+      .filter((p) => {
+        const dinhMucCaPhieu = so(p.bom_allowance_m) * p.total_planned_pcs;
+        return dinhMucCaPhieu > 0 && so(p.total_fabric_used_m) > dinhMucCaPhieu;
+      })
       .map((p) => ({
         maPhieu: p.ticket_no,
-        vuot: so(p.total_fabric_used_m) - so(p.bom_allowance_m),
+        vuot: so(p.total_fabric_used_m) - so(p.bom_allowance_m) * p.total_planned_pcs,
       })),
   };
 }

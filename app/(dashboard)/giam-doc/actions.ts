@@ -21,6 +21,8 @@ export interface DashboardMetrics {
   // cột nào mà không cần mở phần tính toán ở dưới.
   activeNeedleAlerts: { line_name: string; operator: string; machine: string; date: string }[]
   qaAlertLines: { line_name: string; inspected: number; defects: number; rate: string }[]
+  /** TẤT CẢ chuyền có biên bản kiểm — cho biểu đồ. Xem chú thích ở nơi tính. */
+  qaAllLines: { line_name: string; inspected: number; defects: number; rate: string }[]
   wipBottleneckPOs: { po_number: string; cut: number; sewn: number; wip: number }[]
 }
 
@@ -126,13 +128,25 @@ export async function getExecutiveDashboardData(range: TimeRange = 'month'): Pro
     qaByLine[r.line_name].defects += r.defect_qty
   })
 
-  const qaAlertLines = Object.values(qaByLine)
+  // 🔴 SỬA 07/08/2026 — TÁCH "TẤT CẢ CHUYỀN" KHỎI "CHUYỀN VƯỢT NGƯỠNG".
+  //
+  // Trước đó chỉ có `qaAlertLines` (đã lọc `> 3%`), và biểu đồ *"chuyền nào
+  // vượt ngưỡng"* ăn thẳng danh sách đó ⇒ **mọi cột luôn đỏ**, đường ngưỡng
+  // 3% ⛔ không bao giờ cắt qua cột nào, và ⛔ không ai biết đường đó có vẽ
+  // đúng chỗ hay không.
+  //
+  // 🔑 Một biểu đồ mà **kết luận đã nằm sẵn trong dữ liệu đầu vào** ⛔ không
+  // chứng minh được gì. Đường ngưỡng chỉ có nghĩa khi có cột nằm **dưới** nó.
+  const qaAllLines = Object.values(qaByLine)
     .map(line => ({
       ...line,
       rate: line.inspected > 0 ? ((line.defects / line.inspected) * 100).toFixed(1) : '0.0'
     }))
-    .filter(line => parseFloat(line.rate) > 3.0) // Chỉ lấy các chuyền vượt ngưỡng đỏ 3%
     .sort((a, b) => parseFloat(b.rate) - parseFloat(a.rate))
+
+  // Bảng cảnh báo bên dưới VẪN chỉ liệt kê chuyền vượt ngưỡng — đó là **danh
+  // sách việc phải xử lý**, khác mục đích với biểu đồ **toàn cảnh**.
+  const qaAlertLines = qaAllLines.filter(line => parseFloat(line.rate) > 3.0)
 
   // Drill-down C: Danh sách gãy kim chưa tìm thấy mảnh (Rủi ro cực độ)
   const activeNeedleAlerts = needleLogs?.filter(n => !n.fragments_found).map(n => ({
@@ -155,6 +169,7 @@ export async function getExecutiveDashboardData(range: TimeRange = 'month'): Pro
     totalQaDefects,
     activeNeedleAlerts,
     qaAlertLines,
+    qaAllLines,
     wipBottleneckPOs
   }
 }

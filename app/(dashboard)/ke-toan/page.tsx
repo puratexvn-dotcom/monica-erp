@@ -77,6 +77,22 @@ export default function AccountingPage() {
   // Tham số P&L
   const [nplCostPct, setNplCostPct] = useState('52'); // % FOB ước tính cho NPL
   const [overheadPct, setOverheadPct] = useState('8'); // % FOB chi phí quản lý/điện nước/khấu hao
+  // 🔴 THÊM 07/08/2026 — NÚM GIẢ ĐỊNH THỨ BA: CMT % FOB.
+  //
+  // Trước đó cột CMT luôn ⚪ vì ⛔ **không có đơn giá CMT trên `orders`**, và
+  // ⚪ ở CMT kéo theo ⚪ ở **Lãi/Lỗ** và **Margin** — tức toàn bộ mục đích của
+  // bảng P&L.
+  //
+  // 🔑 Màn hình này VỐN ĐÃ vận hành bằng giả định: `NPL % FOB` và
+  // `Overhead % FOB` là hai núm kế toán tự đặt. CMT là **cùng loại đại lượng**
+  // — chi phí gia công ước theo % giá bán — nên núm thứ ba làm bảng **trọn
+  // vẹn** mà ⛔ không thêm một loại bịa nào mới.
+  //
+  // ⚠️ Mặc định `26%` là **giá trị khởi điểm để kế toán chỉnh**, ⛔ KHÔNG phải
+  // số liệu của doanh nghiệp này. Màn hình nói thẳng điều đó ở dòng chú thích
+  // dưới bảng — một con số giả định mà ⛔ không khai là giả định thì nó thành
+  // số liệu thật trong đầu người đọc.
+  const [cmtPct, setCmtPct] = useState('26');
 
   const load = useCallback(async () => {
     const { data, isMock } = await fetchTables(['financial_records', 'orders', 'subcons']);
@@ -114,11 +130,12 @@ export default function AccountingPage() {
     const gia = o.unit_price == null ? null : Number(o.unit_price) || 0;
     const revenue = gia == null || sl === 0 ? null : sl * gia;
 
-    // ⚠️ ⛔ KHÔNG CÓ ĐƠN GIÁ CMT TRÊN `orders`. Giá CMT nằm ở
-    // `financial_records.unit_price` — nhưng đó là giá **trả nhà thầu cho một
-    // bảng kê**, ⛔ không phải giá thành gia công của cả đơn. Suy một cái ra
-    // cái kia là **bịa số kế toán**, nên chỗ này để ⚪.
-    const cmt: number | null = null;
+    // ⚠️ VẪN ⛔ KHÔNG CÓ ĐƠN GIÁ CMT TRÊN `orders`, và `financial_records.
+    // unit_price` là giá trả nhà thầu cho **một bảng kê**, ⛔ không phải giá
+    // thành gia công của cả đơn — suy cái này ra cái kia là **bịa số kế toán**.
+    // ⇒ CMT tính bằng **giả định do kế toán đặt**, cùng cách với NPL và
+    // Overhead, và được khai rõ là giả định trên màn hình.
+    const cmt = revenue == null ? null : revenue * ((Number(cmtPct) || 0) / 100);
 
     const npl = revenue == null ? null : revenue * ((Number(nplCostPct) || 0) / 100);
     const overhead = revenue == null ? null : revenue * ((Number(overheadPct) || 0) / 100);
@@ -129,7 +146,7 @@ export default function AccountingPage() {
       ? null
       : (profit / revenue) * 100;
     return { order: o, sl, tien: o.currency ?? 'VND', revenue, cmt, npl, overhead, profit, marginPct };
-  }), [orders, nplCostPct, overheadPct]);
+  }), [orders, nplCostPct, overheadPct, cmtPct]);
 
   /** Bao nhiêu đơn ⛔ chưa nhập đơn giá — đây là **việc của kế toán**, ⛔ không
    *  phải một con số trang trí. */
@@ -289,6 +306,10 @@ export default function AccountingPage() {
               <input type="number" value={nplCostPct} onChange={(e) => setNplCostPct(e.target.value)}
                 className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-blue-400 focus:outline-none" />
             </label>
+            <label className="flex items-center gap-1.5">CMT % FOB
+              <input type="number" value={cmtPct} onChange={(e) => setCmtPct(e.target.value)}
+                className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-blue-400 focus:outline-none" />
+            </label>
             <label className="flex items-center gap-1.5">Overhead % FOB
               <input type="number" value={overheadPct} onChange={(e) => setOverheadPct(e.target.value)}
                 className="w-14 rounded-lg border border-slate-200 px-2 py-1 text-right tabular-nums focus:border-blue-400 focus:outline-none" />
@@ -310,6 +331,28 @@ export default function AccountingPage() {
             </span>
           </p>
         )}
+        {/* 🔴 KHAI RÕ ĐÂU LÀ SỐ THẬT, ĐÂU LÀ GIẢ ĐỊNH.
+            Ba trong bảy cột dưới đây sinh ra từ ba núm ở góc trên. Một bảng
+            lãi/lỗ ⛔ không nói điều đó sẽ được đọc như **số liệu kế toán**, và
+            đem đi báo cáo. */}
+        <p className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-600">
+          📐 <strong>Số thật từ CSDL:</strong> PO · mã hàng · số lượng · đơn giá FOB ⇒ <strong>Doanh thu</strong>.
+          {' '}
+          <strong>Giả định do kế toán đặt</strong> ở ba núm góc trên: <strong>CMT</strong> · <strong>NPL</strong> ·{' '}
+          <strong>Overhead</strong> ⇒ kéo theo <strong>Lãi/Lỗ</strong> và <strong>Margin</strong>.
+          {' '}⛔ <strong>Chưa</strong> có đơn giá CMT theo từng đơn trong CSDL — khi có, cột CMT sẽ lấy số thật.
+          <br />
+          {/* 🔴 Nói trước điều người đọc SẼ tự diễn giải sai.
+              Ba chi phí đều là % doanh thu ⇒ margin BẮT BUỘC bằng nhau ở mọi
+              đơn. Kế toán nhìn cột toàn `14,0%` rất dễ kết luận *"các đơn lãi
+              như nhau"* — trong khi sự thật là *"ta ⛔ chưa đo được đơn nào
+              khác đơn nào"*. `V.1` áp cho cả **số tính ra được**, ⛔ không chỉ
+              cho ô trống. */}
+          ⚠️ <strong>Mọi đơn đang ra cùng một margin</strong> vì cả ba chi phí đều tính theo{' '}
+          <strong>% doanh thu</strong> — đó là hệ quả của công thức, ⛔ <strong>không</strong> phải
+          phát hiện rằng các đơn lãi như nhau. Margin chỉ phân hoá khi có{' '}
+          <strong>chi phí thật theo từng đơn</strong> (định mức vải đã dùng · giờ công đã chạy).
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>

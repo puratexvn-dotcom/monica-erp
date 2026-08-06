@@ -155,8 +155,8 @@ export default async function ExecutiveDashboardPage({
           </p>
         </div>
         <div>
-          <h2 className="mb-2 text-sm font-bold text-slate-800">⚠️ Chuyền nào đang vượt ngưỡng lỗi</h2>
-          <BieuDoLoiChuyen rows={metrics.qaAlertLines} />
+          <h2 className="mb-2 text-sm font-bold text-slate-800">⚠️ Tỷ lệ lỗi theo chuyền</h2>
+          <BieuDoLoiChuyen rows={metrics.qaAllLines} />
           <p className="mt-1 text-xs text-slate-500">
             Đường đứt là <strong>ngưỡng cảnh báo vận hành 3%</strong> — ⛔ <strong>không</strong> phải AQL 2.5.
           </p>
