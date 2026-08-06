@@ -166,14 +166,15 @@ console.log('\n⑧ VƯỢT ĐỊNH MỨC — CHỈ XÉT PHIẾU CÓ KHAI ĐỊNH
     { ticket_no: 'CHUA-KHAI', total_planned_pcs: 10, total_actual_pcs: 10,
       bom_allowance_m: '0', total_fabric_used_m: '80', remnant_length_m: '0',
       defect_length_m: '0', created_at: nay },
+    // 5 m/sp × 10 sp = 50 m định mức cho cả phiếu; đã dùng 58,5 m ⇒ vượt 8,5 m.
     { ticket_no: 'VUOT', total_planned_pcs: 10, total_actual_pcs: 10,
-      bom_allowance_m: '50', total_fabric_used_m: '58.5', remnant_length_m: '0',
+      bom_allowance_m: '5', total_fabric_used_m: '58.5', remnant_length_m: '0',
       defect_length_m: '0', created_at: nay },
   ]);
   s.ok('Phiếu ⛔ CHƯA KHAI định mức ⛔ KHÔNG bị coi là vượt',
     d.phieuVuotDinhMuc.length === 1 && d.phieuVuotDinhMuc[0].maPhieu === 'VUOT',
     JSON.stringify(d.phieuVuotDinhMuc));
-  s.ok('Số mét vượt tính đúng (58,5 − 50 = 8,5)',
+  s.ok('Số mét vượt tính đúng (58,5 − 5×10 = 8,5)',
     Math.abs(d.phieuVuotDinhMuc[0].vuot - 8.5) < 1e-9,
     String(d.phieuVuotDinhMuc[0]?.vuot));
 }

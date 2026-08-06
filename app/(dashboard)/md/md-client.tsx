@@ -34,7 +34,6 @@ import {
 import { useMdDashboard } from '@/components/md/dashboard/use-md-dashboard';
 import MosTaskInbox from '@/components/mos/command-center/mos-task-inbox';
 import WorkspaceShell from '@/components/workspace/workspace-shell';
-import { VIEC_NHANH_MD } from '@/components/md/command-center/md-quick-actions';
 import MosKpiGrid from '@/components/mos/command-center/mos-kpi-grid';
 import MosAlertPanel from '@/components/mos/command-center/mos-alert-panel';
 import {
@@ -42,6 +41,7 @@ import {
   type MdKpiTarget,
 } from '@/components/md/command-center/md-feed';
 import ActionablePoList from '@/components/md/command-center/actionable-po';
+import MdWorkspaceHead from '@/components/md/command-center/md-workspace-head';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
 import type { CommandCenterData } from './_services/command-center.service';
@@ -149,6 +149,23 @@ export default function MdClient({
 
   // ─── COMMAND CENTER ──────────────────────────────────────────────────────
   const [cc, setCc] = useState<CommandCenterData | null>(null);
+
+  // 🔑 Ba mảng chứng từ con dựng MỘT LẦN, dùng chung cho Command Center và
+  // "Đơn hàng đang ở đâu?". Trước đây chỉ có màn hình hành trình map chúng;
+  // nay hai chỗ cùng cần — map hai lần là mở cửa cho **hai kết quả khác nhau
+  // trên cùng một màn hình**.
+  const ctMaterials = useMemo(() => snap.materialRequests.map((r) => ({
+    po_number: r.po_number, status: r.status,
+    so: r.request_no, moc: r.needed_date, evidence_path: r.evidence_path,
+  })), [snap.materialRequests]);
+  const ctProductions = useMemo(() => snap.productionOrders.map((p) => ({
+    po_number: p.po_number, status: p.status,
+    so: p.order_no, moc: p.due_date, evidence_path: p.evidence_path,
+  })), [snap.productionOrders]);
+  const ctShipments = useMemo(() => snap.shipments.map((x) => ({
+    po_number: x.po_number, status: x.status,
+    so: x.shipment_no, moc: x.etd_date, evidence_path: x.evidence_path,
+  })), [snap.shipments]);
   const loadCc = useCallback(() => {
     void getCommandCenterClient().then(setCc);
   }, []);
@@ -397,73 +414,63 @@ export default function MdClient({
       // Khung KHONG dung ba khoi o day — /md dat KPI BEN TRONG mot tab.
       bocCuc="tuyBien"
       feed={null}
-      hanhDongNhanh={VIEC_NHANH_MD}
+      // 🔴 MẢNG RỖNG — Board Directive 07/08 §2: hành động phải nằm ở **thẻ
+      // nổi bật**, ⛔ không phải một dải nút nhỏ. `MdActionCards` đã mang đủ
+      // cả hai lối cũ (`/orders` · `/subcon`) nên ⛔ không mất đường vào nào.
+      // ⚠️ Tệp `md-quick-actions.ts` **GIỮ NGUYÊN** trong kho (ràng buộc ②) —
+      // nó vẫn là khuôn hợp lệ của khung cho phân hệ khác; chỉ `/md` thôi dùng.
+      hanhDongNhanh={[]}
     >
-      {/* ═══ BA KHU ĐIỀU HÀNH ════════════════════════════════════════════
-          Máy bàn chia hai cột: cột trái rộng gấp rưỡi cho hai khu cần đọc
-          kỹ, cột phải cho cảnh báo luôn nằm trong tầm mắt. Điện thoại xếp
-          dọc theo đúng thứ tự khẩn: việc phải làm → đơn đang chạy → cảnh
-          báo đỏ. */}
-      {/* 🔴 BÁO CÁO NGÀY — đặt TRÊN mọi thứ khác. Board: *"mỗi ngày MD chỉ cần
-          kiểm tra lại các báo cáo"* ⇒ đây là thứ đầu tiên phải thấy khi mở máy.
-          Trực quan trước: biểu đồ ⇒ cảnh báo ⇒ nhắc việc. */}
-      {/* 🔴 BẢN TIN SÁNG CHỈ HIỆN Ở TAB MẶC ĐỊNH — sửa sau đợt rà thực chiến
-          06/08/2026.
-          
-          Trước bản này, **báo cáo ngày + việc cần làm + cảnh báo + 14 đơn đang
-          chạy** dựng lại ở **CẢ 13 TAB**. Vào tab "Vật tư" để duyệt một phiếu
-          NPL, người dùng phải cuộn qua toàn bộ bản tin sáng đã đọc từ lúc mở
-          máy. Đó là **trùng lặp**, ⛔ không phải nhắc nhở.
-          
-          🔑 Chọn tab nghiệp vụ = đã quyết định làm việc đó. Bản tin lùi thành
-          **một dòng tóm tắt** bấm được để quay lại — ⛔ không mất lối vào, chỉ
-          thôi chiếm chỗ. */}
-      {tab === 'po' ? (
-      <div className="mb-5">
-        <DailyDigestCard bc={baoCaoNgay} />
-      </div>
-      ) : (
+      {/* ═══ DNA WORKSPACE — Board Directive 07/08/2026 (MD UX Redesign v2) ═══
+          ① Command Center → ② Quick Actions → ③ Risk Center → ④ Business Flow
+          → ⑤ Task → ⑥ Data → ⑦ Report.
+
+          🔑 Thứ tự này **là toàn bộ nội dung của chỉ thị**. Board nói rõ MD mở
+          MONICA ONE để biết *"hôm nay cần làm gì · vấn đề nào cần xử lý · đơn
+          hàng đang ở đâu"* — ⛔ **không** phải để xem dashboard. Nên **danh
+          sách PO tụt xuống bậc ⑥**: nó là **dữ liệu chi tiết**, ⛔ không phải
+          thứ MD cần thấy đầu tiên.
+
+          ⚠️ Ba khối đầu gom trong `md-workspace-head.tsx` — xem chú thích ở đó
+          về lý do (trần 900 dòng của `md-client`, và ba khối phải đổi cùng nhau).
+
+          🔴 BA KHỐI NÀY CHỈ HIỆN Ở TAB MẶC ĐỊNH. Chọn một tab nghiệp vụ = đã
+          quyết định làm việc đó; dựng lại cả bản tin sáng ở 13 tab là **trùng
+          lặp**, ⛔ không phải nhắc nhở. */}
+      {tab !== 'po' ? (
         <button
           type="button"
           onClick={() => goTab('po')}
           className="mb-4 flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left transition hover:border-blue-300"
         >
           <span className="text-sm font-semibold text-slate-700">
-            📋 Báo cáo ngày · {baoCaoNgay.canhBao.length} cảnh báo
+            📋 Bàn điều hành · {baoCaoNgay.canhBao.length} vấn đề cần xử lý
             {baoCaoNgay.rong ? ' · ⚪ chưa ai báo cáo' : ''}
           </span>
-          <span className="text-xs font-bold text-blue-600">Xem ở tab Đơn hàng →</span>
+          <span className="text-xs font-bold text-blue-600">Về bàn điều hành →</span>
         </button>
-      )}
-
-      {tab !== 'po' ? null : cc === null ? (
+      ) : cc === null ? (
         <div className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-14 text-slate-400">
           <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
           <span className="text-sm font-medium">Đang tổng hợp việc cần làm...</span>
         </div>
       ) : (
-        <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="space-y-4 lg:col-span-3">
-            <MosTaskInbox
-              title="Việc cần làm hôm nay"
-              tasks={ccFeed?.tasks ?? []}
-              error={cc.errors.all}
-              wording={MD_URGENCY}
-              emptyTitle="Không có việc nào tới hạn"
-              emptyHint={MD_TASK_EMPTY_HINT}
-            />
-            <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />
-          </div>
-          <div className="lg:col-span-2">
-            <MosAlertPanel
-              title="Cảnh báo nguy cấp"
-              alerts={ccFeed?.alerts ?? []}
-              error={cc.errors.all}
-              emptyTitle="Không có cảnh báo đỏ nào"
-              watchingHint={MD_WATCHING_HINT}
-            />
-          </div>
-        </div>
+        <MdWorkspaceHead
+          pos={poRows}
+          materials={ctMaterials}
+          productions={ctProductions}
+          shipments={ctShipments}
+          inspections={snap.qaReports}
+          today={vnTodayISO()}
+          baoCao={baoCaoNgay}
+          tasks={ccFeed?.tasks ?? []}
+          alerts={ccFeed?.alerts ?? []}
+          loi={cc.errors.all}
+          onDi={(d) => goTab(d as TabKey)}
+          onTaoPo={() => setDialog('po')}
+          onTaoKhach={() => { goTab('customers'); setDialog('customers'); }}
+          onChietTinh={() => goTab('costing')}
+        />
       )}
 
       {/* ═══ KHU LÀM VIỆC — 13 TAB NGHIỆP VỤ ════════════════════════════
@@ -635,30 +642,49 @@ export default function MdClient({
 
         {tab === 'po' && (
           <div className="space-y-4 p-4">
-            {/* 🔑 "Đơn hàng đang ở đâu?" — Board Directive 06/08/2026.
-                Đặt TRÊN danh sách: câu hỏi này là câu merchandiser hỏi trước
-                khi hỏi "có những đơn nào". */}
+            {/* ④ BUSINESS FLOW — "Đơn hàng đang ở đâu?"
+                Board gọi đây là **điểm khác biệt của MONICA ONE**. Đứng trên
+                mọi bảng dữ liệu: merchandiser hỏi *"đơn tôi đang ở đâu"* TRƯỚC
+                khi hỏi *"có những đơn nào"*. */}
             <MdOrderJourney
               pos={poRows}
-              // 🔑 Truyền `so` · `moc` · `evidence_path` để cột BẰNG CHỨNG và
-              // MỐC có dữ liệu thật — ⛔ không bịa.
-              materials={snap.materialRequests.map((r) => ({
-                po_number: r.po_number, status: r.status,
-                so: r.request_no, moc: r.needed_date, evidence_path: r.evidence_path,
-              }))}
-              productions={snap.productionOrders.map((p) => ({
-                po_number: p.po_number, status: p.status,
-                so: p.order_no, moc: p.due_date, evidence_path: p.evidence_path,
-              }))}
-              shipments={snap.shipments.map((s) => ({
-                po_number: s.po_number, status: s.status,
-                so: s.shipment_no, moc: s.etd_date, evidence_path: s.evidence_path,
-              }))}
+              // 🔑 `so` · `moc` · `evidence_path` cho cột BẰNG CHỨNG và MỐC —
+              // ⛔ không bịa. Ba mảng này dựng MỘT LẦN ở trên và dùng chung với
+              // Command Center, ⛔ không map lại lần hai.
+              materials={ctMaterials}
+              productions={ctProductions}
+              shipments={ctShipments}
               inspections={snap.qaReports}
               today={vnTodayISO()}
               onOpenTab={(t) => goTab(t as TabKey)}
             />
+
+            {/* ⑤ TASK — Board §5: *"Tách rõ: **Risk** = hệ thống phát hiện vấn
+                đề; **Task** = MD cần hành động."* Rủi ro nằm ở khối ③ phía
+                trên; đây CHỈ còn việc phải làm. */}
+            <div id="viec-hom-nay" className="scroll-mt-24">
+              <MosTaskInbox
+                title="Việc cần làm hôm nay"
+                tasks={ccFeed?.tasks ?? []}
+                error={cc?.errors.all ?? null}
+                wording={MD_URGENCY}
+                emptyTitle="Không có việc nào tới hạn"
+                emptyHint={MD_TASK_EMPTY_HINT}
+              />
+            </div>
+
+            {/* ⑥ DATA — danh sách PO. Board: *"PO là dữ liệu chi tiết. ⛔ Không
+                phải thứ MD cần thấy đầu tiên."* */}
+            {cc && <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />}
             <PoList rows={poRows} error={poError} onRefresh={refresh} />
+
+            {/* ⑦ REPORT — báo cáo ngày lùi xuống CUỐI.
+                🔑 Nó ⛔ không mất đi và ⛔ không kém quan trọng — nó chỉ **thôi
+                đứng chắn** giữa MD và việc phải làm. Board: *"loại bỏ cảm giác
+                dashboard ERP"*. Các con số của nó đã được chưng ở dải **Thành
+                quả trong ngày** ngay khối ① — chỗ này là bản đầy đủ để đọc kỹ
+                và gửi giám đốc. */}
+            <DailyDigestCard bc={baoCaoNgay} />
           </div>
         )}
 

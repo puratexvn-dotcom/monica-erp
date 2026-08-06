@@ -60,10 +60,27 @@ export interface NguonDigest {
 export const MUC_DO = ['NGHIEM_TRONG', 'CANH_BAO', 'BINH_THUONG'] as const;
 export type MucDo = (typeof MUC_DO)[number];
 
+/** Nơi cảnh báo dẫn tới. Board Directive 07/08/2026 §3:
+ *  *"Mỗi cảnh báo phải dẫn tới hành động. ⛔ Không chỉ hiển thị số."*
+ *
+ *  🔑 Khai **tại nguồn**, ⛔ KHÔNG để màn hình bóc chuỗi `tieuDe` mà đoán ra.
+ *  Bóc chuỗi thì đổi một chữ trong câu cảnh báo là gãy phép điều hướng — mà
+ *  ⛔ không phép kiểm nào bắt được, vì cả hai vẫn là `string` hợp lệ. */
+export type DichCanhBao =
+  | 'po'          // danh sách & hành trình đơn hàng
+  | 'materials'   // phiếu NPL
+  | 'production'  // lệnh sản xuất
+  | 'shipments'   // lịch tàu
+  | 'subcon';     // nhà thầu ngoài
+
 export interface CanhBao {
   mucDo: MucDo;
   tieuDe: string;
   chiTiet: string;
+  /** Khu cần mở để xử lý. */
+  dich: DichCanhBao;
+  /** Mã PO liên quan, nếu cảnh báo gắn với một đơn cụ thể. */
+  poNumber?: string;
 }
 
 export interface ChiSo {
@@ -120,6 +137,7 @@ export function tongHopNgay(n: NguonDigest): BaoCaoNgay {
       mucDo: thucTe < keHoach * 0.7 ? 'NGHIEM_TRONG' : 'CANH_BAO',
       tieuDe: 'Sản lượng dưới kế hoạch',
       chiTiet: `Đạt ${lam((thucTe / keHoach) * 100)}% — thiếu ${keHoach - thucTe} sp so với kế hoạch ngày.`,
+      dich: 'production',
     });
   }
 
@@ -129,6 +147,7 @@ export function tongHopNgay(n: NguonDigest): BaoCaoNgay {
       mucDo: loiKiem / daKiem > 0.1 ? 'NGHIEM_TRONG' : 'CANH_BAO',
       tieuDe: 'Tỉ lệ lỗi vượt ngưỡng',
       chiTiet: `${loiKiem}/${daKiem} sp lỗi (${lam((loiKiem / daKiem) * 100)}%).`,
+      dich: 'production',
     });
   }
   if (loiChuyen > 0 && thucTe > 0 && loiChuyen / thucTe > 0.05) {
@@ -136,6 +155,7 @@ export function tongHopNgay(n: NguonDigest): BaoCaoNgay {
       mucDo: 'CANH_BAO',
       tieuDe: 'Lỗi tại chuyền cao',
       chiTiet: `${loiChuyen} sp lỗi trên ${thucTe} sp sản xuất.`,
+      dich: 'production',
     });
   }
 
@@ -145,6 +165,7 @@ export function tongHopNgay(n: NguonDigest): BaoCaoNgay {
       mucDo: 'CANH_BAO',
       tieuDe: 'Nhà thầu báo sự cố',
       chiTiet: `${suCoSubcon} sự cố từ ${n.subcon.filter((s) => s.issues > 0).length} nhà thầu.`,
+      dich: 'subcon',
     });
   }
 
@@ -153,11 +174,11 @@ export function tongHopNgay(n: NguonDigest): BaoCaoNgay {
     const conLai = soNgay(d.delivery_date, n.ngay);
     if (conLai === null || d.status === 'COMPLETED') continue;
     if (conLai < 0) {
-      canhBao.push({ mucDo: 'NGHIEM_TRONG', tieuDe: `Đơn ${d.po_number} đã quá hạn giao`, chiTiet: `Trễ ${-conLai} ngày.` });
+      canhBao.push({ mucDo: 'NGHIEM_TRONG', tieuDe: `Đơn ${d.po_number} đã quá hạn giao`, chiTiet: `Trễ ${-conLai} ngày.`, dich: 'po', poNumber: d.po_number });
     } else if (conLai <= NGUY_CAP) {
-      canhBao.push({ mucDo: 'NGHIEM_TRONG', tieuDe: `Đơn ${d.po_number} tới hạn trong ${conLai} ngày`, chiTiet: 'Kiểm tra tiến độ đóng gói và lịch tàu.' });
+      canhBao.push({ mucDo: 'NGHIEM_TRONG', tieuDe: `Đơn ${d.po_number} tới hạn trong ${conLai} ngày`, chiTiet: 'Kiểm tra tiến độ đóng gói và lịch tàu.', dich: 'shipments', poNumber: d.po_number });
     } else if (conLai <= CAN_DE_MAT) {
-      canhBao.push({ mucDo: 'CANH_BAO', tieuDe: `Đơn ${d.po_number} còn ${conLai} ngày`, chiTiet: 'Rà lại tiến độ trước khi vào tuần cuối.' });
+      canhBao.push({ mucDo: 'CANH_BAO', tieuDe: `Đơn ${d.po_number} còn ${conLai} ngày`, chiTiet: 'Rà lại tiến độ trước khi vào tuần cuối.', dich: 'po', poNumber: d.po_number });
     }
   }
 
@@ -169,6 +190,7 @@ export function tongHopNgay(n: NguonDigest): BaoCaoNgay {
         mucDo: 'NGHIEM_TRONG',
         tieuDe: `Phiếu NPL ${m.request_no} quá mốc cần hàng`,
         chiTiet: `Trễ ${-conLai} ngày và chưa nhận đủ — chuyền sẽ đói hàng.`,
+        dich: 'materials',
       });
     }
   }

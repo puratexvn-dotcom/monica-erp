@@ -253,6 +253,14 @@ export function QuickActions({ hanhDong, moduleKey }: { hanhDong: readonly Quick
   const { t } = useLanguage();
   const mau = MODULE_IDENTITY[moduleKey];
 
+  // 🔴 THÊM 07/08/2026 — MẢNG RỖNG ⇒ ⛔ KHÔNG DỰNG GÌ, kể cả tiêu đề.
+  //
+  // `/md` nay có **dải thẻ hành động riêng** (Board Directive 07/08 §2), nên
+  // nó truyền mảng rỗng vào đây. ⛔ Không có phép bảo vệ này thì màn hình hiện
+  // một tiêu đề *"Việc làm nhanh"* rồi **⛔ không có nút nào bên dưới** — trông
+  // y hệt một khối vừa hỏng.
+  if (hanhDong.length === 0) return null;
+
   return (
     <section aria-label={t('workspace.quickActions')} className="mb-8">
       <h2 className={`${TYPE.sectionTitle} mb-3 text-slate-900`}>{t('workspace.quickActions')}</h2>

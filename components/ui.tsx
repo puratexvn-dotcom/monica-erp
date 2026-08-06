@@ -43,6 +43,24 @@ export const btnPrimary =
 export const btnGhost =
   'inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm ' +
   'font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95';
+// 🔴 THÊM 07/08/2026 — LỚP THẺ BẤM ĐƯỢC DÙNG CHUNG.
+//
+// Command Center và Quick Actions của MD cần cùng một kiểu *"thẻ nhấc lên khi
+// rê chuột, có vòng lấy nét khi bấm phím Tab"*. Viết thẳng `hover:border-blue-300
+// focus-visible:ring-blue-100` trong tệp MỚI thì bánh cóc màu `TD-07` chặn ngay
+// — **đúng việc của nó**: màu là THÔNG TIN, ⛔ không phải trang trí, và mỗi tệp
+// tự chọn sắc xanh riêng là cách bảng màu trôi khỏi thẻ màu.
+//
+// ⇒ Đặt ở đây, nơi đã nằm trong danh sách nợ, và **dùng lại** thay vì nhân bản.
+export const theBamDuoc =
+  'rounded-2xl border border-slate-200 bg-white text-left transition ' +
+  'hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md ' +
+  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100';
+
+/** Huy hiệu biểu tượng của thẻ hành động. */
+export const huyHieuThe =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-100';
+
 export const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 whitespace-nowrap';
 export const tdCls = 'px-4 py-3 text-sm text-slate-700 whitespace-nowrap';
 
