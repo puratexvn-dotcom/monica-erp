@@ -10,7 +10,9 @@
 //   ③ chặng ⛔ không đo được ⛔ không được KHOÁ vị trí của cả đơn
 //   ④ "xong" nghĩa là MỌI chứng từ con đã xong, ⛔ không phải "có một cái xong"
 // ============================================================================
-import { tinhHanhTrinh, demTheoChang, CHANG } from '../../lib/mos/md/order-journey.ts';
+import {
+  tinhHanhTrinh, demTheoChang, CHANG, tinhPhanTram, soNgayConLai,
+} from '../../lib/mos/md/order-journey.ts';
 
 let dat = 0;
 const hong = [];
@@ -101,6 +103,83 @@ console.log('\n⑧ Đếm theo chặng');
   const dem = demTheoChang([a, b]);
   ok('2 đơn được xếp vào đúng 2 chặng', dem.VAT_TU === 1 && dem.SAN_XUAT === 1,
     JSON.stringify(dem));
+}
+
+console.log('\n⑨ SỨC KHOẺ — 🟢 / 🟡 / 🔴');
+{
+  const g = (over) => tinhHanhTrinh({ ...base, today: '2026-08-06', ...over });
+  ok('Còn 60 ngày ⇒ ON_TRACK', g({ deliveryDate: '2026-10-05' }).sucKhoe === 'ON_TRACK');
+  ok('Còn 15 ngày ⇒ AT_RISK', g({ deliveryDate: '2026-08-21' }).sucKhoe === 'AT_RISK');
+  ok('Còn 3 ngày ⇒ DELAYED', g({ deliveryDate: '2026-08-09' }).sucKhoe === 'DELAYED');
+  ok('Quá hạn ⇒ DELAYED', g({ deliveryDate: '2026-08-01' }).sucKhoe === 'DELAYED');
+  ok('⛔ Không có ngày giao ⇒ AT_RISK + nói rõ chưa đo được',
+    g({}).sucKhoe === 'AT_RISK' && g({}).viSucKhoe.includes('Chưa có ngày giao'),
+    '⛔ không được kết luận "đúng tiến độ" khi ⛔ không có ngày giao (`V.1`)');
+  ok('Đơn đã đóng ⇒ ON_TRACK', g({ poStatus: 'COMPLETED', deliveryDate: '2026-08-01' }).sucKhoe === 'ON_TRACK');
+}
+
+console.log('\n⑩ 🔴 MỘT MỐC CON QUÁ HẠN ⇒ ĐỎ, dù ngày giao còn xa');
+{
+  const h = tinhHanhTrinh({
+    ...base,
+    today: '2026-08-06',
+    deliveryDate: '2026-12-31',
+    materials: [{ po_number: PO, status: 'ORDERED', so: 'NPL-01', moc: '2026-08-01' }],
+  });
+  ok('Phiếu NPL trễ ⇒ DELAYED', h.sucKhoe === 'DELAYED',
+    'phiếu NPL trễ hôm nay là chuyền đói hàng ba tuần nữa — đó là điểm của việc theo dòng chảy');
+}
+
+console.log('\n⑪ 🔴 % HOÀN THÀNH bỏ chặng ⛔ không đo được khỏi MẪU SỐ');
+{
+  const h = tinhHanhTrinh(base);
+  ok('Chỉ PO xong ⇒ 20% (1/5, ⛔ không phải 1/6)', h.phanTram === 20, `${h.phanTram}%`);
+  const t = tinhHanhTrinh({
+    ...base, poStatus: 'COMPLETED',
+    materials: [{ po_number: PO, status: 'RECEIVED' }],
+    productions: [{ po_number: PO, status: 'COMPLETED' }],
+    shipments: [{ po_number: PO, status: 'DELIVERED' }],
+  });
+  ok('Xong hết 5 chặng đo được ⇒ 100%', t.phanTram === 100,
+    `${t.phanTram}% — tính Kiểm hàng vào mẫu số thì ⛔ KHÔNG đơn nào đạt 100% được`);
+  ok('tinhPhanTram bỏ đúng chặng KHONG_DO_DUOC',
+    tinhPhanTram([
+      { chang: 'PO', trangThai: 'XONG' }, { chang: 'KIEM_HANG', trangThai: 'KHONG_DO_DUOC' },
+    ]) === 100);
+}
+
+console.log('\n⑫ VIỆC KẾ TIẾP');
+{
+  const h = tinhHanhTrinh({ ...base, today: '2026-08-06' });
+  ok('Đang ở Vật tư ⇒ mở tab materials', h.viecKeTiep?.moTab === 'materials');
+  ok('Có nêu VAI phụ trách', Boolean(h.viecKeTiep?.ai));
+  const d = tinhHanhTrinh({ ...base, poStatus: 'COMPLETED' });
+  ok('Đơn đã đóng ⇒ ⛔ KHÔNG có việc kế tiếp', d.viecKeTiep === null,
+    'dựng nút bấm ⛔ không dẫn tới đâu là lời nói dối của giao diện');
+}
+
+console.log('\n⑬ BẰNG CHỨNG + MỐC + VAI');
+{
+  const h = tinhHanhTrinh({
+    ...base,
+    materials: [
+      { po_number: PO, status: 'ORDERED', so: 'NPL-02', moc: '2026-09-01', evidence_path: 'x.pdf' },
+      { po_number: PO, status: 'ORDERED', so: 'NPL-01', moc: '2026-08-20', evidence_path: null },
+    ],
+  });
+  const c = h.chang.find((x) => x.chang === 'VAT_TU');
+  ok('Gom đủ 2 bằng chứng', c.bangChung.length === 2);
+  ok('Phân biệt được chứng từ CÓ tệp và CHƯA có tệp',
+    c.bangChung.filter((b) => b.coTep).length === 1);
+  ok('Mốc lấy ngày SỚM NHẤT', c.moc === '2026-08-20', c.moc);
+  ok('Có vai phụ trách', c.chuTrach.length > 0);
+}
+
+console.log('\n⑭ soNgayConLai');
+{
+  ok('Cùng ngày ⇒ 0', soNgayConLai('2026-08-06', '2026-08-06') === 0);
+  ok('Quá hạn ⇒ âm', soNgayConLai('2026-08-01', '2026-08-06') === -5);
+  ok('Thiếu dữ liệu ⇒ null', soNgayConLai(null, '2026-08-06') === null);
 }
 
 console.log('\n' + '═'.repeat(74));

@@ -62,6 +62,7 @@ import {
   MaterialRequestTable, ProductionOrderTable, ShipmentTable,
 } from './md-flow-tables';
 import MdOrderJourney from './md-order-journey';
+import { vnTodayISO } from '@/lib/mos/po-flow';
 import type { PoOption } from './md-types';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRowsClient, listStylesClient } from './_actions/md360.client';
@@ -591,9 +592,22 @@ export default function MdClient({
                 khi hỏi "có những đơn nào". */}
             <MdOrderJourney
               pos={poRows}
-              materials={snap.materialRequests}
-              productions={snap.productionOrders}
-              shipments={snap.shipments}
+              // 🔑 Truyền `so` · `moc` · `evidence_path` để cột BẰNG CHỨNG và
+              // MỐC có dữ liệu thật — ⛔ không bịa.
+              materials={snap.materialRequests.map((r) => ({
+                po_number: r.po_number, status: r.status,
+                so: r.request_no, moc: r.needed_date, evidence_path: r.evidence_path,
+              }))}
+              productions={snap.productionOrders.map((p) => ({
+                po_number: p.po_number, status: p.status,
+                so: p.order_no, moc: p.due_date, evidence_path: p.evidence_path,
+              }))}
+              shipments={snap.shipments.map((s) => ({
+                po_number: s.po_number, status: s.status,
+                so: s.shipment_no, moc: s.etd_date, evidence_path: s.evidence_path,
+              }))}
+              today={vnTodayISO()}
+              onOpenTab={(t) => goTab(t as TabKey)}
             />
             <PoList rows={poRows} error={poError} onRefresh={refresh} />
           </div>
