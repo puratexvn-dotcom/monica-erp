@@ -62,6 +62,8 @@ import {
   MaterialRequestTable, ProductionOrderTable, ShipmentTable,
 } from './md-flow-tables';
 import MdOrderJourney from './md-order-journey';
+import DailyDigestCard from '@/components/md/dashboard/daily-digest-card';
+import type { BaoCaoNgay } from '@/lib/mos/md/daily-digest';
 import { vnTodayISO } from '@/lib/mos/po-flow';
 import type { Role } from '@/lib/rbac';
 import type { PoOption } from './md-types';
@@ -114,6 +116,7 @@ const MdCharts = dynamic(() => import('@/components/md/dashboard/md-dashboard'),
 });
 
 export default function MdClient({
+  baoCaoNgay,
   role,
   initialSnapshot,
   initialPoRows,
@@ -122,6 +125,7 @@ export default function MdClient({
   initialStyleError,
   poOptions,
 }: {
+  baoCaoNgay: BaoCaoNgay;
   role: Role | null;
   initialSnapshot: MdSnapshot;
   initialPoRows: PoRow[];
@@ -400,6 +404,13 @@ export default function MdClient({
           kỹ, cột phải cho cảnh báo luôn nằm trong tầm mắt. Điện thoại xếp
           dọc theo đúng thứ tự khẩn: việc phải làm → đơn đang chạy → cảnh
           báo đỏ. */}
+      {/* 🔴 BÁO CÁO NGÀY — đặt TRÊN mọi thứ khác. Board: *"mỗi ngày MD chỉ cần
+          kiểm tra lại các báo cáo"* ⇒ đây là thứ đầu tiên phải thấy khi mở máy.
+          Trực quan trước: biểu đồ ⇒ cảnh báo ⇒ nhắc việc. */}
+      <div className="mb-5">
+        <DailyDigestCard bc={baoCaoNgay} />
+      </div>
+
       {cc === null ? (
         <div className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-14 text-slate-400">
           <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />

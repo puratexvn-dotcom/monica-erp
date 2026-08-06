@@ -1,6 +1,18 @@
 import { getExecutiveDashboardData, TimeRange } from './actions'
 import Link from 'next/link'
 
+// 🔴 CÙNG MỘT BÁO CÁO NGÀY VỚI MD — Board 06/08/2026: *"tự tổng hợp thành một
+// báo cáo trực quan **gửi cho CEO và Production Director**"*.
+//
+// 🔑 Gọi ĐÚNG hàm `tongHopNgay` mà MD gọi. Hai màn hình vì vậy ⛔ **không thể**
+// ra hai con số khác nhau — điều sẽ xảy ra ngay lần đầu nếu mỗi bên tự tính.
+//
+// ⚠️ Đây là *"gửi"* theo lối KÉO: giám đốc mở trang là thấy. Đẩy thật (chuông
+// kêu) cần bảng `notifications` — Database Schema, thẩm quyền Board.
+import { napNguonDigest } from '../md/_services/daily-digest.service'
+import { tongHopNgay } from '@/lib/mos/md/daily-digest'
+import DailyDigestCard from '@/components/md/dashboard/daily-digest-card'
+
 export const dynamic = 'force-dynamic'
 
 export default async function ExecutiveDashboardPage({
@@ -9,7 +21,11 @@ export default async function ExecutiveDashboardPage({
   searchParams: { range?: string }
 }) {
   const currentRange = (searchParams.range as TimeRange) || 'month'
-  const metrics = await getExecutiveDashboardData(currentRange)
+  const [metrics, nguon] = await Promise.all([
+    getExecutiveDashboardData(currentRange),
+    napNguonDigest(),
+  ])
+  const baoCaoNgay = tongHopNgay(nguon)
 
   // Helpers cho styling Time Filter
   const getTabClass = (range: string) =>
@@ -46,6 +62,11 @@ export default async function ExecutiveDashboardPage({
           </Link>
         </div>
       </div>
+
+      {/* 🔴 BÁO CÁO NGÀY CỦA MD — cùng một hàm tổng hợp, cùng một con số.
+          Đặt NGAY DƯỚI tiêu đề: giám đốc mở trang là thấy hôm nay xưởng thế
+          nào, trước cả các chỉ số tài chính. */}
+      <DailyDigestCard bc={baoCaoNgay} />
 
       {/* TOP METRICS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

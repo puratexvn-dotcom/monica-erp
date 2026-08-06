@@ -2,6 +2,8 @@ import { guard } from './_services/guard';
 import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRows } from './_services/po.service';
 import { listStyles } from './_services/style.service';
+import { napNguonDigest } from './_services/daily-digest.service';
+import { tongHopNgay } from '@/lib/mos/md/daily-digest';
 import MdClient from './md-client';
 import type { PoOption } from './md-types';
 
@@ -33,10 +35,13 @@ export const dynamic = 'force-dynamic';
 export default async function MerchandiserPage() {
   // allSettled: một truy vấn lỗi không được kéo cả trang sang error boundary.
   // Mỗi nhóm dữ liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
-  const [snapRes, poRes, styleRes] = await Promise.allSettled([
+  const [snapRes, poRes, styleRes, digestRes] = await Promise.allSettled([
     loadMdSnapshot(),
     listPoRows(),
     listStyles(),
+    // Báo cáo ngày — Board 06/08/2026. Nguồn hỏng ⇒ digest tự ghi "⚪ chưa đo
+    // được" thay vì bịa số 0, nên ⛔ không cần nhánh lỗi riêng ở đây.
+    napNguonDigest(),
   ]);
 
   let snapshot: MdSnapshot;
@@ -93,6 +98,11 @@ export default async function MerchandiserPage() {
     // ⛔ KHONG boc them lop can giua: WorkspaceShell da co mx-auto max-w-7xl.
     <>
       <MdClient
+        baoCaoNgay={tongHopNgay(
+          digestRes.status === 'fulfilled'
+            ? digestRes.value
+            : { ngay: new Date().toISOString().slice(0, 10), sanLuong: [], subcon: [], kiem: [], don: [], nplTre: [] },
+        )}
         // 🔴 Vai truyền xuống CHỈ để giao diện ⛔ không mời người dùng bấm thứ
         // chắc chắn bị từ chối. Hàng rào thật nằm ở `setCostingStatus` (máy chủ)
         // và RLS — xem `lib/mos/md/costing-approval.ts`.
