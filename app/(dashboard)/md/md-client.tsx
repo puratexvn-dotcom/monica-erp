@@ -407,11 +407,36 @@ export default function MdClient({
       {/* 🔴 BÁO CÁO NGÀY — đặt TRÊN mọi thứ khác. Board: *"mỗi ngày MD chỉ cần
           kiểm tra lại các báo cáo"* ⇒ đây là thứ đầu tiên phải thấy khi mở máy.
           Trực quan trước: biểu đồ ⇒ cảnh báo ⇒ nhắc việc. */}
+      {/* 🔴 BẢN TIN SÁNG CHỈ HIỆN Ở TAB MẶC ĐỊNH — sửa sau đợt rà thực chiến
+          06/08/2026.
+          
+          Trước bản này, **báo cáo ngày + việc cần làm + cảnh báo + 14 đơn đang
+          chạy** dựng lại ở **CẢ 13 TAB**. Vào tab "Vật tư" để duyệt một phiếu
+          NPL, người dùng phải cuộn qua toàn bộ bản tin sáng đã đọc từ lúc mở
+          máy. Đó là **trùng lặp**, ⛔ không phải nhắc nhở.
+          
+          🔑 Chọn tab nghiệp vụ = đã quyết định làm việc đó. Bản tin lùi thành
+          **một dòng tóm tắt** bấm được để quay lại — ⛔ không mất lối vào, chỉ
+          thôi chiếm chỗ. */}
+      {tab === 'po' ? (
       <div className="mb-5">
         <DailyDigestCard bc={baoCaoNgay} />
       </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => goTab('po')}
+          className="mb-4 flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left transition hover:border-blue-300"
+        >
+          <span className="text-sm font-semibold text-slate-700">
+            📋 Báo cáo ngày · {baoCaoNgay.canhBao.length} cảnh báo
+            {baoCaoNgay.rong ? ' · ⚪ chưa ai báo cáo' : ''}
+          </span>
+          <span className="text-xs font-bold text-blue-600">Xem ở tab Đơn hàng →</span>
+        </button>
+      )}
 
-      {cc === null ? (
+      {tab !== 'po' ? null : cc === null ? (
         <div className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-14 text-slate-400">
           <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
           <span className="text-sm font-medium">Đang tổng hợp việc cần làm...</span>

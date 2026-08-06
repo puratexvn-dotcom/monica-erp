@@ -190,36 +190,21 @@ export default function WorkspaceShell({
       <BlockChoDuLieu tieuDeKey="workspace.calendar" lyDoKey="workspace.needsData" />
       <BlockChoDuLieu tieuDeKey="workspace.recent" lyDoKey="workspace.needsData" />
 
-      {/* ─── DẢI DỊCH VỤ TOÀN CỤC ──────────────────────────────────────
-          ⚠️ Đặt **cuối cùng**, và đó là chủ ý. Bốn dịch vụ này phục vụ **mọi**
-          Workspace nên chúng ⛔ không được tranh chỗ với việc của phân hệ. Khi
-          `Bottom Navigation` mở ra, dải này là lối vào **thứ hai** — ⛔ không
-          phải lối duy nhất. */}
-      <section aria-label={t('workspace.globalServices')} className="mt-10 border-t border-slate-200/70 pt-6">
-        <h2 className={`${TYPE.overline} mb-3 text-slate-500`}>{t('workspace.globalServices')}</h2>
-        <div className="flex flex-wrap gap-2.5">
-          {DICH_VU.map(({ id, labelKey, icon: Icon, key }) => (
-            // ⚠️ `<button disabled>`, ⛔ KHÔNG `<div>` mờ. Người đi bằng bàn
-            // phím và trình đọc màn hình phải **nghe được rằng nó bị khoá** —
-            // cùng lý do đã áp cho ô `COMING_SOON` ở trang chủ.
-            <button
-              key={id}
-              type="button"
-              disabled
-              aria-disabled="true"
-              title={t('home.comingSoonHint')}
-              className={`${TYPE.label} inline-flex min-h-[44px] cursor-not-allowed items-center gap-2 rounded-xl bg-white/60 px-4 text-slate-400 shadow-sm ring-1 ring-slate-200/70`}
-            >
-              <Icon className={`h-4 w-4 ${MODULE_IDENTITY[key].secondary} opacity-60`} aria-hidden="true" />
-              {t(labelKey)}
-              <span className={`${TYPE.overline} ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-500`}>
-                {t('home.comingSoon')}
-              </span>
-            </button>
-          ))}
-        </div>
-        <p className={`${TYPE.caption} mt-3 text-slate-400`}>{t('workspace.globalServicesHint')}</p>
-      </section>
+      {/* ─── DẢI DỊCH VỤ TOÀN CỤC — ĐÃ GỠ 06/08/2026 ────────────────────
+          🔴 Gỡ sau đợt rà thực chiến: dải này dựng **4 nút `SẮP CÓ` bị khoá**
+          ở **cuối MỌI Workspace**, và bốn dịch vụ đó **CHÍNH LÀ** bốn nút đang
+          chạy thật trên Bottom Nav *(Chat · Báo cáo · A.I · Hướng dẫn)*.
+
+          Chú thích cũ ở đây viết: *"khi Bottom Navigation mở ra, dải này là lối
+          vào THỨ HAI"*. Bottom Nav **đã mở** — nên dải này thôi là lối vào thứ
+          hai và trở thành **bản sao bị khoá** của thứ đang dùng được.
+
+          🔑 Cái giá thật: người dùng cuộn hết một Workspace và thứ cuối cùng họ
+          thấy là **bốn ô xám ghi "SẮP CÓ"**. Đó là ấn tượng *"phần mềm chưa
+          xong"* đặt ở đúng chỗ đáng lẽ phải là *"đã làm xong việc"*.
+
+          ⚠️ ⛔ KHÔNG xoá `DICH_VU` và các khoá i18n — chúng vẫn ở nguyên trong
+          tệp này để dùng lại nếu Board muốn một dải lối tắt THẬT SỰ mở được. */}
 
       {/* Lối về trang chủ — `EP-2`: nút `Home` phải về được Launcher từ **mọi**
           Workspace, nếu ⛔ không trang chủ thôi là *"điểm vào"* và chỉ còn là
