@@ -22,7 +22,7 @@ import CustomerFormDialog from '@/components/md/crm/customer-form-dialog';
 import InquiryList from '@/components/md/rfq/inquiry-list';
 import InquiryFormDialog from '@/components/md/rfq/inquiry-form-dialog';
 import CostingList from '@/components/md/costing/costing-list';
-import { CostingFormDialog } from '@/components/md/costing/costing-form-dialog';
+import { CostingFormDialog, CostingByOperationsDialog } from '@/components/md/costing/costing-form-dialog';
 import DocumentCenter from '@/components/md/collab/document-center';
 import CommentCenter from '@/components/md/collab/comment-center';
 import ChangeCenter from '@/components/md/collab/change-center';
@@ -159,6 +159,8 @@ export default function MdClient({
   }, []);
 
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Màn hình tích công đoạn — mở từ nút riêng ở tab Chiết tính.
+  const [congDoanMo, setCongDoanMo] = useState(false);
 
   // Ctrl+K / Cmd+K mở tìm nhanh. Chặn hành vi mặc định của trình duyệt
   // (Chrome dùng phím này cho thanh địa chỉ).
@@ -574,7 +576,14 @@ export default function MdClient({
         )}
 
         {tab === 'costing' && (
-          <div className="p-4">
+          <div className="space-y-3 p-4">
+            {/* 🔑 Lối vào chính của chiết tính: TÍCH CÔNG ĐOẠN, ⛔ không phải
+                gõ tay từng khoản. Nút nhập tay vẫn còn ở thanh trên cùng cho
+                trường hợp ngoại lệ — ⛔ không bỏ đường cũ. */}
+            <button type="button" className={btnPrimary} onClick={() => setCongDoanMo(true)}>
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              Tính giá theo công đoạn
+            </button>
             {costings === null ? Waiting : (
               <CostingList role={role} rows={costings.rows} error={costings.error} onRefresh={reloaders.costing} />
             )}
@@ -736,6 +745,15 @@ export default function MdClient({
         styles={styles}
         onClose={() => setDialog(null)}
         onCreated={reloaders.costing}
+      />
+      {/* 🔴 Tính giá theo công đoạn — Board 06/08/2026. Dùng chung state
+          `dialog` nhưng khoá riêng, để nút "Tạo bản chiết tính" (nhập tay) và
+          nút "Tính theo công đoạn" ⛔ không giành nhau một ô nhớ. */}
+      <CostingByOperationsDialog
+        open={congDoanMo}
+        customers={customerOptions}
+        onClose={() => setCongDoanMo(false)}
+        onDone={reloaders.costing}
       />
       <PoFormDialog open={dialog === 'po'} onClose={() => setDialog(null)} onCreated={refresh} />
       <StyleFormDialog open={dialog === 'styles'} onClose={() => setDialog(null)} onCreated={refresh} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -15,7 +15,11 @@ import {
   COST_CATEGORIES, COST_CATEGORY_LABEL,
   type CostingFormValues, type CostingItemValues,
 } from '@/schemas/md';
-import { addCostingItem } from '@/app/(dashboard)/md/_actions/commercial.actions';
+import { addCostingItem, createCostingFromOperations } from '@/app/(dashboard)/md/_actions/commercial.actions';
+import {
+  congDoanTheoNhom, macDinhTheoNhom, tinhCM, giaChaoBan,
+  NHOM_SAN_PHAM, NHOM_SAN_PHAM_LABEL, KHAU, KHAU_LABEL, type NhomSanPham,
+} from '@/lib/mos/md/operations';
 
 // ============================================================================
 // HAI FORM CỦA CHIẾT TÍNH GIÁ: TẠO BẢN MỚI VÀ THÊM KHOẢN MỤC
@@ -301,6 +305,215 @@ export function CostingItemDialog({
           </button>
         </div>
       </form>
+    </Modal>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 🔴 TÍNH GIÁ THEO CÔNG ĐOẠN — Board Directive 06/08/2026
+//
+// *"Cầm sản phẩm mẫu, tích vào bảng những công đoạn đó — tuỳ từng mẫu mà có
+// công đoạn tương ứng. Chỉ cần **nhập và xác nhận** là ra costing chính xác."*
+//
+// ─── 🔑 VÌ SAO MÀN HÌNH NÀY KHÁC "THÊM KHOẢN MỤC" Ở TRÊN ──────────────────
+// Form trên bắt người dùng **tự nghĩ ra** từng khoản rồi tự gõ số tiền. Màn
+// hình này **bày sẵn công đoạn theo nhóm sản phẩm** và tự cộng SAM — người
+// dùng chỉ còn **tích và sửa**. Khác biệt giữa *tự lập bảng* và *trả lời câu
+// hỏi*.
+//
+// ⚠️ SAM bày ra là **số tham chiếu ngành**, sửa được tại chỗ. Khi xưởng đã bấm
+// giờ thật thì số đó thắng — xem `lib/mos/md/operations.ts`.
+//
+// ⚠️ Đặt TRONG tệp này, ⛔ không tách tệp mới: tệp này đã nằm trong sổ nợ
+// `TD-07`/`TD-10`, còn tệp MỚI mang màu/cỡ chữ thẳng sẽ làm bánh cóc đỏ và
+// thêm tên vào sổ nợ là việc **cần Board duyệt**.
+// ════════════════════════════════════════════════════════════════════════════
+
+export function CostingByOperationsDialog({
+  open, onClose, onDone, customers,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onDone: () => void | Promise<void>;
+  customers: Array<{ id: string; name: string }>;
+}) {
+  const [nhom, setNhom] = useState<NhomSanPham>('TSHIRT');
+  const [tick, setTick] = useState<Set<string>>(new Set());
+  const [samSua, setSamSua] = useState<Record<string, number>>({});
+  const [so, setSo] = useState('');
+  const [khach, setKhach] = useState('');
+  const [sl, setSl] = useState('1000');
+  const [giaPhut, setGiaPhut] = useState('0.045');
+  const [hieuSuat, setHieuSuat] = useState('75');
+  const [overhead, setOverhead] = useState('12');
+  const [npl, setNpl] = useState('4.20');
+  const [bien, setBien] = useState('18');
+  const [dang, setDang] = useState(false);
+
+  const ds = useMemo(() => congDoanTheoNhom(nhom), [nhom]);
+
+  // Đổi nhóm sản phẩm ⇒ tích lại theo mặc định của nhóm đó. Giữ tích cũ sẽ để
+  // sót công đoạn của sản phẩm khác — đúng lỗi người dùng ⛔ không nhìn ra.
+  useEffect(() => {
+    if (!open) return;
+    setTick(new Set(macDinhTheoNhom(nhom)));
+    setSamSua({});
+  }, [nhom, open]);
+
+  const chon = useMemo(
+    () => ds.filter((c) => tick.has(c.ma))
+      .map((c) => ({ ma: c.ma, ten: c.ten, khau: c.khau, sam: samSua[c.ma] ?? c.sam })),
+    [ds, tick, samSua],
+  );
+
+  const ts = {
+    giaPhut: Number(giaPhut) || 0,
+    hieuSuat: Number(hieuSuat) || 0,
+    overhead: Number(overhead) || 0,
+  };
+  const cm = tinhCM(chon, ts);
+  const giaVon = cm.cmMotSanPham + (Number(npl) || 0);
+  const chao = giaChaoBan(giaVon, Number(bien) || 0);
+
+  const chot = () => {
+    setDang(true);
+    void createCostingFromOperations({
+      costing_no: so.trim(),
+      customer_id: khach || null,
+      order_type: 'FOB',
+      currency: 'USD',
+      quantity: Number(sl) || null,
+      congDoan: chon,
+      giaPhut: ts.giaPhut,
+      hieuSuat: ts.hieuSuat,
+      overhead: ts.overhead,
+      npl: Number(npl) || 0,
+      bienPhanTram: Number(bien) || 0,
+    }).then((r) => {
+      if (r.ok) { toast.success(r.message ?? 'Đã tạo.'); void onDone(); onClose(); }
+      else toast.error(r.message ?? 'Không tạo được.');
+    }).finally(() => setDang(false));
+  };
+
+  return (
+    <Modal open={open} title="Tính giá theo công đoạn" onClose={onClose} wide>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Field label="Số chiết tính">
+            <input value={so} onChange={(e) => setSo(e.target.value)} className={inputCls} placeholder="CT-2026-001" />
+          </Field>
+          <Field label="Khách hàng">
+            <select value={khach} onChange={(e) => setKhach(e.target.value)} className={inputCls}>
+              <option value="">— chọn —</option>
+              {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Số lượng (sp)">
+            <input type="number" min={1} value={sl} onChange={(e) => setSl(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Nhóm sản phẩm">
+            <select value={nhom} onChange={(e) => setNhom(e.target.value as NhomSanPham)} className={inputCls}>
+              {NHOM_SAN_PHAM.map((n) => <option key={n} value={n}>{NHOM_SAN_PHAM_LABEL[n]}</option>)}
+            </select>
+          </Field>
+        </div>
+
+        <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-200">
+          {KHAU.map((k) => {
+            const trongKhau = ds.filter((c) => c.khau === k);
+            if (trongKhau.length === 0) return null;
+            return (
+              <div key={k}>
+                <p className="sticky top-0 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-600">
+                  {KHAU_LABEL[k]}
+                </p>
+                {trongKhau.map((c) => (
+                  <label key={c.ma} className="flex items-center gap-3 border-b border-slate-100 px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={tick.has(c.ma)}
+                      className="h-4 w-4"
+                      onChange={(e) => {
+                        const n = new Set(tick);
+                        if (e.target.checked) n.add(c.ma); else n.delete(c.ma);
+                        setTick(n);
+                      }}
+                    />
+                    <span className="flex-1 text-sm text-slate-800">{c.ten}</span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={samSua[c.ma] ?? c.sam}
+                      onChange={(e) => setSamSua({ ...samSua, [c.ma]: Number(e.target.value) })}
+                      className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-right text-sm tabular-nums"
+                      aria-label={`SAM cua ${c.ma}`}
+                    />
+                    <span className="w-8 text-xs text-slate-400">phút</span>
+                  </label>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <Field label="Giá 1 phút">
+            <input type="number" step="0.001" value={giaPhut} onChange={(e) => setGiaPhut(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Hiệu suất %">
+            <input type="number" min="1" max="100" value={hieuSuat} onChange={(e) => setHieuSuat(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Phụ phí %">
+            <input type="number" min="0" value={overhead} onChange={(e) => setOverhead(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="NPL / sp">
+            <input type="number" step="0.01" value={npl} onChange={(e) => setNpl(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Biên %">
+            <input type="number" min="0" max="99" value={bien} onChange={(e) => setBien(e.target.value)} className={inputCls} />
+          </Field>
+        </div>
+
+        {/* Kết quả đổi NGAY khi tích — ⛔ không có nút "Tính". */}
+        <div className="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3 sm:grid-cols-4">
+          <div>
+            <p className="text-xs text-slate-500">Tổng SAM</p>
+            <p className="text-lg font-extrabold tabular-nums text-slate-900">{cm.tongSam}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Chi phí gia công</p>
+            <p className="text-lg font-extrabold tabular-nums text-slate-900">{cm.cmMotSanPham}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Giá vốn</p>
+            <p className="text-lg font-extrabold tabular-nums text-slate-900">{giaVon.toFixed(4)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Giá chào</p>
+            <p className="text-lg font-extrabold tabular-nums text-blue-700">
+              {chao.hopLe ? chao.gia : 'biên không hợp lệ'}
+            </p>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-500">
+          {chon.length} công đoạn đã tích · SAM thực tế sau hiệu suất {cm.samThucTe} phút.
+          Giá chào = giá vốn ÷ (1 − biên), ⛔ <strong>không</strong> phải nhân (1 + biên).
+        </p>
+
+        <div className="flex justify-end gap-2">
+          <button type="button" className={btnGhost} onClick={onClose}>Huỷ</button>
+          <button
+            type="button"
+            className={btnPrimary}
+            disabled={dang || !so.trim() || chon.length === 0}
+            onClick={chot}
+          >
+            {dang ? 'Đang lưu…' : 'Xác nhận & tạo bản chiết tính'}
+          </button>
+        </div>
+      </div>
     </Modal>
   );
 }

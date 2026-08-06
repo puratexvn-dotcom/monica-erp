@@ -6,7 +6,8 @@ import { guard, friendlyDbError, safeQuery } from '../_services/guard';
 import { writeAudit } from './audit';
 // Luật ai-được-duyệt nằm ở `lib/` — Cổng khách hàng và bảng tổng của Giám đốc
 // rồi cũng phải đọc đúng luật này.
-import { kiemQuyen } from '@/lib/mos/md/costing-approval';
+import { kiemQuyen, duocTrinh } from '@/lib/mos/md/costing-approval';
+import { tinhCM, giaChaoBan, type Khau } from '@/lib/mos/md/operations';
 import {
   customerFormSchema,
   customerContactSchema,
@@ -480,5 +481,132 @@ export async function reviseCosting(costingId: string): Promise<ActionResult<{ i
     ok: true,
     message: `Đã tạo phiên bản ${nextVersion} của ${s.costing_no}, chép sang ${copied} khoản mục. Bản cũ chuyển thành "đã có bản mới thay thế".`,
     data: { id: newId },
+  };
+}
+
+// ─── CHIẾT TÍNH TỪ CÔNG ĐOẠN ────────────────────────────────────────────────
+//
+// Board 06/08/2026: *"Cầm sản phẩm mẫu, tích vào bảng những công đoạn đó… chỉ
+// cần **nhập và xác nhận** là ra costing chính xác."*
+
+export interface TaoTuCongDoanInput {
+  costing_no: string;
+  customer_id?: string | null;
+  style_id?: string | null;
+  order_type: string;
+  currency: string;
+  quantity?: number | null;
+  /** Công đoạn đã tích, SAM có thể đã được sửa tại chỗ. */
+  congDoan: Array<{ ma: string; ten: string; khau: string; sam: number }>;
+  giaPhut: number;
+  hieuSuat: number;
+  overhead: number;
+  /** Chi phí nguyên phụ liệu cho MỘT sản phẩm. */
+  npl: number;
+  bienPhanTram: number;
+}
+
+/**
+ * Tạo bản chiết tính **kèm từng dòng công đoạn**.
+ *
+ * 🔑 **Mỗi công đoạn là MỘT dòng `costing_items`** *(category `CM`)*, với
+ * `consumption` = SAM và `unit_price` = **giá phút đã chia hiệu suất**. Cột
+ * `amount` do CSDL tự tính *(`GENERATED ALWAYS`)*, nên tổng tiền ⛔ không bao
+ * giờ lệch giữa các màn hình.
+ *
+ * ⚠️ Nhờ vậy bản chiết tính **⛔ không phụ thuộc danh mục công đoạn trong mã**:
+ * mai kia sửa SAM tham chiếu thì bản đã chốt vẫn giữ nguyên con số đã dùng.
+ *
+ * 🔴 Tính lại TOÀN BỘ ở máy chủ, ⛔ không tin con số client gửi lên — client chỉ
+ * gửi **lựa chọn**, giá thành do máy chủ tính.
+ */
+export async function createCostingFromOperations(
+  v: TaoTuCongDoanInput,
+): Promise<ActionResult<{ id: string; cm: number; giaVon: number; giaChao: number }>> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+  if (!duocTrinh(g.role)) {
+    return { ok: false, message: 'Bạn không có quyền lập bản chiết tính.' };
+  }
+  if (v.congDoan.length === 0) {
+    return { ok: false, message: 'Hãy tích ít nhất một công đoạn trước khi chốt.' };
+  }
+
+  const cm = tinhCM(
+    v.congDoan.map((c) => ({ ma: c.ma, ten: c.ten, khau: c.khau as Khau, sam: c.sam })),
+    { giaPhut: v.giaPhut, hieuSuat: v.hieuSuat, overhead: v.overhead },
+  );
+  const npl = Number.isFinite(v.npl) && v.npl > 0 ? v.npl : 0;
+  const giaVon = cm.cmMotSanPham + npl;
+  const chao = giaChaoBan(giaVon, v.bienPhanTram);
+  if (!chao.hopLe) {
+    return { ok: false, message: 'Biên lợi nhuận phải nằm trong khoảng 0–99%.' };
+  }
+
+  const { data, error } = await g.supabase.from('costings').insert({
+    costing_no: v.costing_no, version: 1,
+    style_id: nz(v.style_id ?? null), customer_id: nz(v.customer_id ?? null),
+    order_type: v.order_type, currency: v.currency,
+    quantity: v.quantity ?? null,
+    quoted_price: chao.gia,
+    margin_percent: v.bienPhanTram,
+    status: 'DRAFT',
+    notes: `Chiết tính theo ${v.congDoan.length} công đoạn · tổng SAM ${cm.tongSam}′ `
+      + `· hiệu suất ${v.hieuSuat}% · phụ phí ${v.overhead}%`,
+    created_by: g.userId,
+  }).select('id').single();
+
+  if (error) {
+    const msg = friendlyDbError('createCostingFromOperations', error);
+    return {
+      ok: false, message: msg,
+      fieldErrors: msg.includes('đã tồn tại') ? { costing_no: 'Số chiết tính này đã dùng' } : undefined,
+    };
+  }
+  const id = (data as { id: string }).id;
+
+  // Giá một phút SAU khi chia hiệu suất — nhân với SAM ra đúng tiền nhân công.
+  const giaPhutThuc = v.hieuSuat > 0 ? v.giaPhut / (v.hieuSuat / 100) : 0;
+  const dong = v.congDoan.map((c) => ({
+    costing_id: id, category: 'CM', item_name: c.ten,
+    unit: 'phút', consumption: c.sam, unit_price: giaPhutThuc,
+    notes: `${c.ma} · khâu ${c.khau}`,
+  }));
+  if (cm.overhead > 0) {
+    dong.push({
+      costing_id: id, category: 'OVERHEAD', item_name: `Phụ phí quản lý xưởng (${v.overhead}%)`,
+      unit: 'sp', consumption: 1, unit_price: cm.overhead, notes: 'tính trên chi phí nhân công',
+    });
+  }
+  if (npl > 0) {
+    dong.push({
+      costing_id: id, category: 'OTHER', item_name: 'Nguyên phụ liệu — tổng',
+      unit: 'sp', consumption: 1, unit_price: npl, notes: 'nhập gộp; tách chi tiết ở tab Cấu trúc NPL',
+    });
+  }
+
+  const { error: eItem } = await g.supabase.from('costing_items').insert(dong);
+  if (eItem) {
+    // ⚠️ Bản chiết tính đã tạo nhưng CHƯA có dòng nào ⇒ nói thẳng, ⛔ không
+    // báo thành công rồi để người dùng mở ra thấy trống.
+    return {
+      ok: false,
+      message: `Đã tạo bản ${v.costing_no} nhưng ⛔ không ghi được các dòng công đoạn: `
+        + friendlyDbError('createCostingFromOperations:items', eItem),
+    };
+  }
+
+  await writeAudit('COSTING', id, 'CREATE', {
+    costing_no: { from: null, to: v.costing_no },
+    so_cong_doan: { from: null, to: v.congDoan.length },
+    tong_sam: { from: null, to: cm.tongSam },
+    gia_chao: { from: null, to: chao.gia },
+  });
+
+  revalidatePath(PATH);
+  return {
+    ok: true,
+    message: `Đã tạo ${v.costing_no}: CM ${cm.cmMotSanPham} · giá chào ${chao.gia} ${v.currency}.`,
+    data: { id, cm: cm.cmMotSanPham, giaVon, giaChao: chao.gia },
   };
 }
