@@ -19,6 +19,14 @@
 | ④ | Trả lại `(dashboard)/dictionaries.tsx` *(vi phạm ràng buộc ②)* | — | `f6a3…` |
 | ⑤ | 🔴 **Sửa 5 trang nhập liệu của xưởng đang 500** | 5 tài khoản seed, 13 trang quét sạch | `4f4859b0` |
 | ⑥ | Thêm hai ô **Cắt chỉ · Ủi** vào biểu mẫu hoàn thành | phễu hết vẽ cảnh vô lý | `4f4859b0` |
+| ⑦ | 🔴 Biểu mẫu xưởng **hết nuốt lỗi** — 8 chỗ / 5 phân hệ | *"⛔ Chưa ghi được. Vui lòng chọn Mã vạch Phối kiện!"* | `a22b76ae` |
+| ⑧ | 🔴 Báo cáo ngày của **Production Director đang rỗng vĩnh viễn** *(mượn nhầm guard MD)* | `/md` hiện "1 sp" ⟷ `/giam-doc` hiện "⚪" | `0281e6c0` |
+| ⑨ | 🔴 **Lệch múi giờ 7 tiếng** trong báo cáo ngày + mốc `/giam-doc` theo giờ máy chủ | bản ghi 00:55 giờ VN ⛔ không lọt báo cáo | `0281e6c0` |
+| ⑩ | Hai **biểu đồ điều hành** cho bàn giám đốc | nút thắt WIP · lỗi theo chuyền có đường ngưỡng | `0281e6c0` |
+| ⑪ | Hai **biểu đồ tổ cắt** | kế hoạch⟷thực cắt · hao hụt % | `492db30b` |
+| ⑫ | 🔴 **P&L kế toán bịa `0 ₫ · margin 0,0%`** cho 14 đơn thật | nay PO thật + ô ⚪ + băng "14/14 chưa có đơn giá" | `3318f232` |
+| ⑬ | 🔴 **Cổng khách hàng đề tên nhãn bên thứ ba** & hứa "DHU 0,0%" | nay "Customer Portal" + "⚪ chưa kiểm lô nào" | `a84a0bb1` |
+| ⑭ | 🔴 **`/subcon` chết hoàn toàn** *(enum)* — cô lập + biểu đồ hàng còn ở ngoài | 0 form → 3 form · 1 biểu đồ · 1.400 sp | `ba502c18` |
 
 ### 🔴 Phát hiện lớn nhất của phiên
 
@@ -70,11 +78,41 @@ Board *(Business Value · Schema · Phân quyền · Hướng kiến trúc)*.
 
 ---
 
-## 4. HÀNG ĐỢI CÒN LẠI — tự chạy tiếp, ⛔ không cần hỏi
+## 4. QUÉT NGHIỆM THU CUỐI PHIÊN — 9 vai · 15 lượt mở · **0 vấn đề**
+
+Mỗi vai **đăng nhập thật** *(⛔ không dùng service key, ⛔ không giả phiên)*
+rồi mở đủ trang của vai đó:
+
+```
+admin001  /admin                 ✅  0 bđ · 0 form   sạch
+gd001     /giam-doc              ✅  3 bđ · 0 form   sạch
+gd001     /orders /subcon        ✅  1 bđ · 3 form   sạch
+md001     /md                    ✅  4 bđ · 0 form   sạch
+md001     /orders /subcon        ✅  1 bđ · 3 form   sạch
+kt001     /ke-toan               ✅  0 bđ · 0 form   sạch
+qa001     /qa                    ✅  0 bđ · 1 form   sạch
+cat001    /to-truong-cat         ✅  2 bđ · 1 form   sạch
+may001    /to-truong-may         ✅  1 bđ · 2 form   sạch
+ht001     /hoan-thanh            ✅  1 bđ · 1 form   sạch
+ht001     /to-truong-hoan-thanh  ✅  0 bđ · 0 form   sạch
+kh001     /buyer                 ✅  0 bđ · 0 form   sạch
+```
+
+*"sạch"* = ⛔ không lọt `undefined` · `NaN` · `[object Object]` · `Infinity`.
+
+⚠️ **Phép quét vòng đầu đã CHO ĐIỂM SAI.** Nó ghi `/subcon` là *"ok"* vì chỉ
+dò chuỗi của trang lỗi **chung**, trong khi phân hệ đó có `error.tsx` **riêng**.
+Cái để lộ ra sự thật là **đếm nội dung đáng lẽ phải có**: trang có ba biểu mẫu
+mà quét ra **0**. Đã sửa phép quét.
+
+🔑 Bài học của cả phiên: *"⛔ không thấy chữ lỗi"* ⛔ **KHÁC** *"trang chạy"*.
+
+---
+
+## 5. HÀNG ĐỢI CÒN LẠI
 
 | Ưu tiên | Việc | Vì sao |
 |---|---|---|
-| 🔴 cao | Biểu mẫu xưởng **nuốt lỗi**: action trả `{error}` mà màn hình ⛔ không hiện gì — tổ trưởng tưởng đã lưu | Mất dữ liệu **âm thầm** |
-| 🔴 cao | `/giam-doc` `/ke-toan` `/kho` `/subcon` `/orders` — **0 biểu đồ** | Trái chỉ thị *"luôn ưu tiên trực quan"* |
-| ✅ xong | `/to-truong-cat` — hai biểu đồ *(kế hoạch⟷thực cắt · hao hụt %)* | Đủ ba tổ |
-| 🟡 vừa | Báo cáo ngày gửi CEO · Production Director | Board đã yêu cầu tường minh |
+| 🟡 vừa | `/ke-toan` `/kho` `/orders` `/admin` `/to-truong-hoan-thanh` `/buyer` — **0 biểu đồ** | `/ke-toan` mọi ô đang ⚪ *(`G-9`)* nên vẽ ⛔ không có gì; số còn lại chưa rà |
+| 🟡 vừa | Đẩy báo cáo ngày *(chuông kêu)* cho CEO · PD | Hiện là *"gửi"* theo lối KÉO: mở trang mới thấy. Đẩy thật cần bảng `notifications` ⇒ **Schema, thẩm quyền Board** |
+| 🟡 vừa | `md-legacy-client.tsx` cũng đọc năm cột ⛔ không tồn tại | ⛔ Chưa gắn route nên ⛔ chưa hại ai — dọn cùng `G-10` |
