@@ -1,3 +1,9 @@
+// ⚠️ BÍ DANH `napDong`, ⛔ KHÔNG để tên `dynamic`: tệp này đã có
+// `export const dynamic = 'force-dynamic'` của Next, và hai thứ trùng tên thì
+// hằng số CHE MẤT hàm — lỗi `String has no call signatures`, cái bẫy kinh điển
+// của App Router.
+import napDong from 'next/dynamic'
+
 import {
   getSewingDashboardData,
   createHourlyProductionLog,
@@ -17,6 +23,15 @@ import { getMayCommandCenter } from './_services/command-center.service'
 // ============================================================================
 
 export const dynamic = 'force-dynamic'
+
+// 🔴 BIỂU ĐỒ TRƯỚC — Board 06/08/2026: *"luôn luôn ưu tiên trực quan"*.
+// Nạp ĐỘNG: `recharts` ~100 kB, ⛔ không được vào gói tải lần đầu.
+const HourlyChart = napDong(() => import('@/components/sewing/hourly-chart'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-56 rounded-xl border border-slate-200 bg-white" aria-hidden="true" />
+  ),
+})
 
 export default async function SewingDashboardPage() {
   const cc = await getMayCommandCenter()
@@ -134,6 +149,16 @@ export default async function SewingDashboardPage() {
         {/* CỘT NHẬP BÁO CÁO (1 COL) */}
         <div className="space-y-6">
           
+          {/* 🔴 BIỂU ĐỒ ĐỨNG TRƯỚC FORM. Tổ trưởng cần thấy *"chuyền đang tụt
+              ở giờ nào"* trong MỘT CÁI LIẾC — rồi mới nhập giờ kế tiếp. Bảng
+              nhật ký vẫn còn ở dưới, nhưng nó ⛔ không còn là thứ đầu tiên. */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              Sản lượng theo giờ hôm nay
+            </h2>
+            <HourlyChart rows={hourlyLogs} />
+          </div>
+
           {/* FORM 1: NHẬP SẢN LƯỢNG GIỜ — neo #ghi-san-luong */}
           <div id="ghi-san-luong" className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 scroll-mt-24">
             <h2 className="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
