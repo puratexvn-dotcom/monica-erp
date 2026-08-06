@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server';
 import { isRole, ROLE_LABEL } from '@/lib/rbac';
 import { AuthBackdrop, AuthLogo } from '@/components/auth/auth-backdrop';
 import UpdatePasswordForm from './form';
+import { tenDangNhapTuEmail } from '@/lib/dinh-danh';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,11 @@ export default async function UpdatePasswordPage() {
 
           {role && (
             <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600">
-              {user.email}
+              {/* 🔴 Hiện TÊN ĐĂNG NHẬP, ⛔ không hiện email — từ 07/08/2026
+                  người dùng đăng nhập bằng `md001`, nên bày `md001@monica.vn`
+                  ra đây là bắt họ đọc một thứ ⛔ không còn dùng để vào hệ
+                  thống nữa. */}
+              {tenDangNhapTuEmail(user.email)}
               <span className="text-slate-300">·</span>
               <span className="font-bold text-slate-900">{ROLE_LABEL[role]}</span>
             </p>

@@ -114,7 +114,7 @@ console.log(`Mật khẩu mặc định: ${DEFAULT_PASSWORD}   [buộc đổi �
 console.log('  ' + 'EMAIL'.padEnd(34) + 'VAI TRÒ'.padEnd(14) + 'HỌ TÊN');
 console.log('  ' + '-'.repeat(78));
 for (const u of USERS) {
-  console.log('  ' + `${u.local}@${EMAIL_DOMAIN}`.padEnd(34) + u.role.padEnd(14) + u.name);
+  console.log('  ' + u.local.padEnd(12) + `(${u.local}@${EMAIL_DOMAIN})`.padEnd(30) + u.role.padEnd(14) + u.name);
 }
 console.log('');
 

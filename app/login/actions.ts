@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { createClient } from '@/utils/supabase/server';
 import { isProtectedPath, isRole, ROLE_HOME } from '@/lib/rbac';
+import { emailTuTenDangNhap } from '@/lib/dinh-danh';
 
 export interface LoginState {
   error?: string;
@@ -24,22 +25,29 @@ function safeNext(next: string | null): string | null {
 }
 
 export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get('email') ?? '').trim();
+  // 🔴 07/08/2026 — NGƯỜI DÙNG GÕ **TÊN TÀI KHOẢN**, ⛔ KHÔNG GÕ EMAIL.
+  // Board: *"đổi tất cả thông tin đăng nhập thành md001, md002, kho001… ⛔
+  // không cần @monica.vn"*. Supabase Auth vẫn định danh bằng email, nên phép
+  // ghép nằm ở `lib/dinh-danh.ts` — **một chỗ duy nhất**, dùng chung với
+  // script seed và bài kiểm.
+  const nhapVao = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
   const next = safeNext(formData.get('next') ? String(formData.get('next')) : null);
 
-  if (!email || !password) {
-    return { error: 'Vui lòng nhập đầy đủ email và mật khẩu.' };
+  if (!nhapVao || !password) {
+    return { error: 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.' };
   }
+
+  const email = emailTuTenDangNhap(nhapVao);
 
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    // Cố ý KHÔNG nói rõ là sai email hay sai mật khẩu: phân biệt hai trường
-    // hợp giúp kẻ tấn công dò ra email nào có thật trong hệ thống.
-    return { error: 'Email hoặc mật khẩu không chính xác.' };
+    // Cố ý KHÔNG nói rõ là sai tên đăng nhập hay sai mật khẩu: phân biệt hai
+    // trường hợp giúp kẻ tấn công dò ra tài khoản nào có thật trong hệ thống.
+    return { error: 'Tên đăng nhập hoặc mật khẩu không chính xác.' };
   }
 
   const user = data.user;

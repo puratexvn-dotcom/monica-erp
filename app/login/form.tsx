@@ -67,8 +67,18 @@ export default function LoginForm({ next }: { next?: string }) {
           <input
             id="login-email"
             name="email"
-            type="email"
+            // 🔴 `type="text"`, ⛔ KHÔNG `type="email"`.
+            // Trình duyệt tự chặn `md001` vì ⛔ không có `@` — người dùng bấm
+            // Đăng nhập mà **⛔ không có gì xảy ra**, và ⛔ không thông điệp nào
+            // của ta hiện ra để giải thích. Phép hợp lệ hoá nay nằm ở
+            // `lib/dinh-danh.ts`, ⛔ không nằm ở trình duyệt.
+            type="text"
             required
+            // ⚠️ ⛔ KHÔNG viết hoa tự động trên điện thoại: `Md001` ⛔ không
+            // phải tên tài khoản, và tổ trưởng nhập ở xưởng bằng điện thoại.
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoComplete="username"
             autoFocus
             placeholder={t('login.emailPlaceholder')}
