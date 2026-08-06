@@ -325,7 +325,7 @@ export default function HomeContent({
             ⚠️ `home-skeleton.tsx` phải đổi **CÙNG MỘT MỐC**, nếu không khung
             chờ 4 cột sẽ nhảy sang 3 cột lúc dữ liệu về — đúng thứ khung chờ
             sinh ra để tránh. */}
-        <div className="mx-auto grid max-w-5xl grid-cols-3 gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:grid-cols-4">
+        <div className="mx-auto grid max-w-5xl grid-cols-3 gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:grid-cols-5">
           {MODULES.map((mod) => (
             <AppCard
               key={mod.id}

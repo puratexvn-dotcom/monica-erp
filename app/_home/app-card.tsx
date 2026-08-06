@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Lock } from 'lucide-react';
+import { Lock, Check } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
 import type { ModuleItem } from '../home-modules';
@@ -282,6 +282,18 @@ export default function AppCard({
 
             Hai trạng thái ⛔ không bao giờ chồng nhau *(cùng một góc, và
             `COMING_SOON` xét TRƯỚC phiên đăng nhập)*. */}
+        {/* ✓ App đã hoàn thiện — Board Directive 06/08/2026. Cùng khuôn huy
+            hiệu với ổ khoá, đổi màu và đổi hình: xanh lá = mở được. */}
+        {moDuoc && !khongQuyen && (
+          <span
+            className={`absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 sm:-right-1.5 sm:-top-1.5 sm:h-6 sm:w-6 ${STATUS.healthy.chip}`}
+            title={t('home.ready')}
+          >
+            <Check className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" strokeWidth={3} aria-hidden="true" />
+            <span className="sr-only">{t('home.ready')}</span>
+          </span>
+        )}
+
         {!moDuoc && (
           <span
             className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-slate-500 shadow-[0_1px_3px_rgba(16,24,40,0.16)] ring-1 ring-slate-200 sm:-right-1.5 sm:-top-1.5 sm:h-6 sm:w-6"
