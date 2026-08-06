@@ -158,3 +158,38 @@ export function duLieuHoanThanh(
     soThungTaiXuong: k.soThungTaiXuong,
   };
 }
+
+// ─── PHỄU HOÀN THÀNH ────────────────────────────────────────────────────────
+//
+// 🔴 Thêm 06/08/2026. Bản đầu tôi cộng bốn khâu **ngay trong component biểu
+// đồ**, và bài kiểm kiến trúc *"màn hình MỚI ⛔ không được tự tính"* chặn ngay —
+// đúng lúc.
+//
+// 🔑 Vì sao luật đó đúng: cùng bốn con số này sẽ xuất hiện ở KPI Command Center
+// và ở báo cáo ngày của MD. Mỗi nơi tự cộng là mỗi nơi có cơ hội cộng khác đi.
+
+export interface DongBoHoanThanh {
+  trimming_qty: number | null;
+  ironing_qty: number | null;
+  final_qc_passed_qty: number | null;
+  final_qc_defect_qty: number | null;
+}
+
+export interface KhauHoanThanh {
+  khau: string;
+  sl: number;
+  /** `true` ⇒ đây là phần **rơi ra khỏi phễu**, ⛔ không phải một bước của nó. */
+  laLoi?: boolean;
+}
+
+/** Cộng bốn khâu của tổ hoàn thành. Trả về **theo thứ tự dòng chảy**. */
+export function pheuHoanThanh(rows: readonly DongBoHoanThanh[]): KhauHoanThanh[] {
+  const tong = (f: (r: DongBoHoanThanh) => number | null) =>
+    rows.reduce((t, r) => t + (Number(f(r)) || 0), 0);
+  return [
+    { khau: 'Cắt chỉ', sl: tong((r) => r.trimming_qty) },
+    { khau: 'Ủi', sl: tong((r) => r.ironing_qty) },
+    { khau: 'Kiểm cuối đạt', sl: tong((r) => r.final_qc_passed_qty) },
+    { khau: 'Lỗi', sl: tong((r) => r.final_qc_defect_qty), laLoi: true },
+  ];
+}

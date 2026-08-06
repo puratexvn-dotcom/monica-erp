@@ -15,6 +15,7 @@
 // `STATUS` của `lib/design/tokens.ts`, lớp ô lấy từ `components/ui`.
 // ============================================================================
 import { useState } from 'react';
+import napDong from 'next/dynamic';
 import { ChevronRight, Paperclip, ArrowUpRight } from 'lucide-react';
 
 import { STATUS } from '@/lib/design/tokens';
@@ -27,12 +28,28 @@ import {
 } from '@/lib/mos/md/order-journey';
 import { fmtDate } from './md-tabs';
 
+// ⚠️ NẠP ĐỘNG — `recharts` ~100 kB. Tab PO là màn hình MD mở đầu tiên mỗi
+// sáng; gói tải lần đầu ⛔ không được phình vì một biểu đồ nằm dưới nếp gấp.
+const JourneyStageChart = napDong(() => import('@/components/md/journey-stage-chart'), {
+  ssr: false,
+  loading: () => <div className="h-52 w-full animate-pulse rounded-xl bg-slate-100" />,
+});
+
 const TONE: Record<TrangThaiChang, string> = {
   XONG: STATUS.healthy.chip,
   DANG_LAM: STATUS.inProgress.chip,
   CHUA_TOI: STATUS.draft.chip,
   KHONG_DO_DUOC: STATUS.waiting.chip,
 };
+/** Màu MỘT ĐOẠN của thanh tiến trình. Dùng `dot` (màu đặc) chứ ⛔ không dùng
+ *  `chip` (nền nhạt) — đoạn thanh chỉ vài pixel, nền nhạt sẽ ⛔ không nhìn ra. */
+const DOAN: Record<TrangThaiChang, string> = {
+  XONG: STATUS.healthy.dot,
+  DANG_LAM: STATUS.inProgress.dot,
+  CHUA_TOI: STATUS.draft.dot,
+  KHONG_DO_DUOC: STATUS.waiting.dot,
+};
+
 const KY_HIEU: Record<TrangThaiChang, string> = {
   XONG: '✓', DANG_LAM: '●', CHUA_TOI: '·', KHONG_DO_DUOC: '⚪',
 };
@@ -81,6 +98,13 @@ export default function MdOrderJourney({
         <NoData title="Chưa có đơn hàng nào" sub="Tạo PO để bắt đầu theo dõi dòng chảy." />
       ) : (
         <>
+          {/* 🔴 BIỂU ĐỒ TRƯỚC BẢNG — Board 06/08/2026: *"luôn luôn ưu tiên
+              trực quan"*. Bảng trả lời *"đơn NÀY ở đâu"*; biểu đồ trả lời
+              *"CẢ XƯỞNG đang ứ ở khâu nào"* — câu MD cần trước khi soi đơn. */}
+          <div className="mb-4">
+            <JourneyStageChart ds={ds.map((x) => x.h)} />
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left">
               <thead>
@@ -91,7 +115,11 @@ export default function MdOrderJourney({
                       thứ khác. Hai cột cùng tên là chỗ màn hình tự mâu thuẫn. */}
                   <th className={thCls} title="Đo theo ngày giao hẹn khách">Sức khoẻ (theo ngày giao)</th>
                   <th className={thCls}>Tiến độ</th>
-                  {CHANG.map((c) => <th key={c} className={thCls}>{CHANG_LABEL[c]}</th>)}
+                  {/* 🔴 SÁU CỘT CHẤM → MỘT THANH TIẾN TRÌNH — Board 06/08/2026:
+                      *"luôn luôn ưu tiên trực quan"*.
+                      Sáu cột riêng bắt mắt quét ngang rồi tự ghép lại thành
+                      *"đơn này đi tới đâu"*. Một thanh liền kể ngay câu đó. */}
+                  <th className={thCls}>Hành trình</th>
                   <th className={thCls}>Việc kế tiếp</th>
                 </tr>
               </thead>
@@ -150,13 +178,20 @@ function DongDon({ h, khach, mo, onMo, onOpenTab }: {
         <td className={tdMuted}>
           <span className="tabular-nums">{h.phanTram}%</span>
         </td>
-        {h.chang.map((c) => (
-          <td key={c.chang} className={tdMuted}>
-            <span className={`inline-flex items-center rounded-full px-2 py-0.5 ring-1 ${TONE[c.trangThai]}`} title={c.vi}>
-              {KY_HIEU[c.trangThai]}
-            </span>
-          </td>
-        ))}
+        {/* Thanh tiến trình: sáu đoạn liền nhau, mỗi đoạn một chặng. Rê chuột
+            vào đoạn nào ra câu giải thích của chặng đó. */}
+        <td className={tdMuted}>
+          <div className="flex min-w-[190px] gap-0.5" role="img"
+            aria-label={`Hành trình: ${h.chang.map((c) => `${CHANG_LABEL[c.chang as Chang]} ${TRANG_THAI_LABEL[c.trangThai]}`).join(', ')}`}>
+            {h.chang.map((c) => (
+              <span
+                key={c.chang}
+                title={`${CHANG_LABEL[c.chang as Chang]} — ${c.vi}`}
+                className={`h-2.5 flex-1 first:rounded-l-full last:rounded-r-full ${DOAN[c.trangThai]}`}
+              />
+            ))}
+          </div>
+        </td>
         <td className={tdMuted}>
           {vk ? (
             <button type="button" className={btnGhost} onClick={() => onOpenTab(vk.moTab)}>
@@ -168,7 +203,7 @@ function DongDon({ h, khach, mo, onMo, onOpenTab }: {
 
       {mo && (
         <tr>
-          <td colSpan={5 + CHANG.length}>
+          <td colSpan={6}>
             <div className="space-y-2 px-4 pb-4">
               {vk && (
                 <p className={tdMuted}>

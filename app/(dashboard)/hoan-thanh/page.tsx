@@ -1,3 +1,7 @@
+// ⚠️ BÍ DANH `napDong`: tệp này có `export const dynamic = 'force-dynamic'`,
+// trùng tên thì hằng số CHE MẤT hàm — bẫy kinh điển của App Router.
+import napDong from 'next/dynamic'
+
 import { getFinishingAndPackingData, createFinishingLog, createCarton } from './actions'
 import Link from 'next/link'
 
@@ -49,6 +53,12 @@ interface CartonItem {
   orders?: { po_number: string } | { po_number: string }[]
 }
 
+// 🔴 BIỂU ĐỒ TRƯỚC — Board 06/08/2026. Nạp ĐỘNG: `recharts` ~100 kB.
+const FinishingChart = napDong(() => import('@/components/finishing/finishing-chart'), {
+  ssr: false,
+  loading: () => <div className="h-56 rounded-xl border border-slate-200 bg-white" aria-hidden="true" />,
+})
+
 export default async function FinishingDepartmentPage({ searchParams }: { searchParams: { tab?: string } }) {
   const activeTab = searchParams.tab || 'finishing'
 
@@ -75,6 +85,14 @@ export default async function FinishingDepartmentPage({ searchParams }: { search
           <Link href="?tab=finishing" className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'finishing' ? 'bg-white shadow text-blue-600' : 'text-slate-600'}`}>1. Kiểm Soát Bán Thành Phẩm</Link>
           <Link href="?tab=packing" className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'packing' ? 'bg-white shadow text-blue-600' : 'text-slate-600'}`}>2. Đóng Thùng (Packing)</Link>
         </div>
+      </div>
+
+      {/* 🔴 PHỄU HOÀN THÀNH — trực quan TRƯỚC bảng bó hàng. Bốn khâu là MỘT
+          dòng chảy; xếp thành phễu thì chỗ nghẽn nhìn thấy ngay, thay vì bắt
+          mắt tự so từng cặp số. */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-base font-semibold text-slate-900">Phễu hoàn thành hôm nay</h3>
+        <FinishingChart rows={typedBundles} />
       </div>
 
       {/* ⚠️ BỐN Ô SỐ CŨ ĐÃ RỜI CHỖ NÀY — ⛔ KHÔNG BỊ XOÁ, ĐƯỢC NÂNG CẤP.
