@@ -9,9 +9,32 @@ import Link from 'next/link'
 //
 // ⚠️ Đây là *"gửi"* theo lối KÉO: giám đốc mở trang là thấy. Đẩy thật (chuông
 // kêu) cần bảng `notifications` — Database Schema, thẩm quyền Board.
-import { napNguonDigest } from '../md/_services/daily-digest.service'
+// 🔴 SỬA 07/08/2026 — DÙNG CHỐT QUYỀN CỦA CHÍNH BÀN GIÁM ĐỐC.
+// Bản trước gọi `napNguonDigest()`, mà hàm đó chốt quyền bằng guard của phân
+// hệ **MD**. Vai `giamdoc` ⛔ không có `/md` trong `MODULE_ACCESS` ⇒ guard luôn
+// từ chối ⇒ báo cáo ngày ở đây **vĩnh viễn rỗng**. Đo được: `/md` hiện *"Sản
+// lượng nội bộ 1 sp"* trong khi `/giam-doc` cùng lúc hiện *"⚪ chưa ai báo
+// cáo"*. Xem `./_services/guard.ts`.
+import { napNguonDigestVoi } from '../md/_services/daily-digest.service'
+import { guard } from './_services/guard'
+import { ngayVN } from '@/lib/time'
 import { tongHopNgay } from '@/lib/mos/md/daily-digest'
 import DailyDigestCard from '@/components/md/dashboard/daily-digest-card'
+
+// 🔴 BIỂU ĐỒ TRƯỚC BẢNG — Board 06/08/2026. Nạp ĐỘNG: `recharts` ~100 kB, ⛔
+// không được nằm trong gói tải lần đầu của bàn giám đốc.
+// ⚠️ BÍ DANH `napDong`: tệp có `export const dynamic = 'force-dynamic'`, trùng
+// tên thì hằng số CHE MẤT hàm — bẫy kinh điển của App Router.
+import napDong from 'next/dynamic'
+
+const BieuDoNutThat = napDong(
+  () => import('@/components/giam-doc/executive-charts').then((m) => m.BieuDoNutThat),
+  { ssr: false, loading: () => <div className="h-64 rounded-xl border border-slate-200 bg-white" aria-hidden="true" /> },
+)
+const BieuDoLoiChuyen = napDong(
+  () => import('@/components/giam-doc/executive-charts').then((m) => m.BieuDoLoiChuyen),
+  { ssr: false, loading: () => <div className="h-64 rounded-xl border border-slate-200 bg-white" aria-hidden="true" /> },
+)
 
 export const dynamic = 'force-dynamic'
 
@@ -21,9 +44,12 @@ export default async function ExecutiveDashboardPage({
   searchParams: { range?: string }
 }) {
   const currentRange = (searchParams.range as TimeRange) || 'month'
+  const g = await guard()
   const [metrics, nguon] = await Promise.all([
     getExecutiveDashboardData(currentRange),
-    napNguonDigest(),
+    g.supabase
+      ? napNguonDigestVoi(g.supabase)
+      : Promise.resolve({ ngay: ngayVN(), sanLuong: [], subcon: [], kiem: [], don: [], nplTre: [] }),
   ])
   const baoCaoNgay = tongHopNgay(nguon)
 
@@ -117,6 +143,26 @@ export default async function ExecutiveDashboardPage({
       {/* DRILL-DOWN SECTIONS (KHOAN SÂU DỮ LIỆU) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
+      {/* 🔴 HAI BIỂU ĐỒ ĐIỀU HÀNH — Board 06/08/2026: *"luôn luôn ưu tiên
+          trực quan, biểu đồ"*. Đặt TRƯỚC hai bảng bên dưới; bảng **giữ nguyên**
+          làm chỗ tra chi tiết, ⛔ không xoá. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h2 className="mb-2 text-sm font-bold text-slate-800">🔥 Hàng đang kẹt ở PO nào</h2>
+          <BieuDoNutThat rows={metrics.wipBottleneckPOs} />
+          <p className="mt-1 text-xs text-slate-500">
+            Cột <strong>Đang kẹt</strong> là hàng đã cắt mà chưa may xong — tiền nằm chết trên sàn.
+          </p>
+        </div>
+        <div>
+          <h2 className="mb-2 text-sm font-bold text-slate-800">⚠️ Chuyền nào đang vượt ngưỡng lỗi</h2>
+          <BieuDoLoiChuyen rows={metrics.qaAlertLines} />
+          <p className="mt-1 text-xs text-slate-500">
+            Đường đứt là <strong>ngưỡng cảnh báo vận hành 3%</strong> — ⛔ <strong>không</strong> phải AQL 2.5.
+          </p>
+        </div>
+      </div>
+
         {/* DRILL-DOWN 1: BOTTLENECK WIP */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">

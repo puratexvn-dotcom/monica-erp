@@ -80,3 +80,44 @@ export function hienThiVN(moc: string | Date | null | undefined): string {
   if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleString('vi-VN', { timeZone: MUI_GIO, hour12: false });
 }
+
+/**
+ * Khung thời gian của **một ngày làm việc theo giờ Việt Nam**, dạng chuỗi
+ * ISO **có mang độ lệch múi giờ** — để so với cột `TIMESTAMPTZ`.
+ *
+ * ─── 🔴 LỖI THẬT ĐÃ ĐO ĐƯỢC, 07/08/2026 ────────────────────────────────
+ * Báo cáo ngày của MD lọc nhật ký thế này:
+ *
+ *     .gte('created_at', `${ngay}T00:00:00`)
+ *     .lte('created_at', `${ngay}T23:59:59`)
+ *
+ * Chuỗi ⛔ **không có độ lệch** ⇒ PostgreSQL hiểu là **UTC**. Trong khi `ngay`
+ * là **ngày theo giờ Việt Nam**. Hai thứ lệch nhau đúng **7 giờ**.
+ *
+ * Hậu quả đo được lúc **01:24 ngày 07/08 giờ VN** *(= 18:24 ngày 06/08 UTC)*:
+ * một bản ghi `finishing_logs` vừa ghi xong **⛔ KHÔNG lọt vào báo cáo**, vì
+ * `18:24Z ngày 06/08` < `00:00Z ngày 07/08`.
+ *
+ * 🔑 Nghĩa là **mọi thứ tổ trưởng ca đêm ghi từ 00:00 đến 07:00 đều rơi ra
+ * ngoài báo cáo của ngày đó** — và lại lẫn vào báo cáo của ngày hôm trước.
+ * Nhà máy may chạy ca đêm; đây ⛔ không phải trường hợp hiếm.
+ *
+ * ⚠️ Độ lệch lấy từ `Intl` với `MUI_GIO`, ⛔ **không** viết `+07:00` cứng —
+ * viết cứng là đúng loại số ma thuật mà bài kiểm kiến trúc cấm.
+ */
+export function khungNgayVN(ngay: string = ngayVN()): { dau: string; cuoi: string } {
+  const lech = doLechMuiGio(ngay);
+  return { dau: `${ngay}T00:00:00${lech}`, cuoi: `${ngay}T23:59:59.999${lech}` };
+}
+
+/** Độ lệch múi giờ nhà máy tại một ngày, dạng `+07:00`. */
+function doLechMuiGio(ngay: string): string {
+  const phan = new Intl.DateTimeFormat('en-US', {
+    timeZone: MUI_GIO,
+    timeZoneName: 'longOffset',
+  }).formatToParts(new Date(`${ngay}T12:00:00Z`));
+  const ten = phan.find((p) => p.type === 'timeZoneName')?.value ?? '';
+  // `longOffset` cho ra `GMT+07:00`; lấy phần sau `GMT`.
+  const lech = ten.replace('GMT', '');
+  return lech || '+00:00';
+}

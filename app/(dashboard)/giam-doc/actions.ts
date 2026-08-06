@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { ngayVN, khungNgayVN } from '@/lib/time'
 
 export type TimeRange = 'today' | 'week' | 'month' | 'all'
 
@@ -27,20 +28,35 @@ export interface DashboardMetrics {
  * Xử lý hàm lấy ngày giờ theo Time Filter
  */
 function getDateRange(range: TimeRange) {
-  const now = new Date()
-  let startDate = new Date(0) // Mặc định là từ trước tới nay ('all')
+  // 🔴 SỬA 07/08/2026 — MỐC PHẢI THEO GIỜ NHÀ MÁY, ⛔ KHÔNG THEO GIỜ MÁY CHỦ.
+  //
+  // Bản trước dùng `now.setHours(0, 0, 0, 0)` — đó là **nửa đêm theo múi giờ
+  // của tiến trình Node**. Trên Vercel tiến trình chạy **UTC**, nên *"hôm nay"*
+  // của giám đốc bắt đầu lúc **07:00 sáng giờ Việt Nam**: toàn bộ ca sáng sớm
+  // rơi ra ngoài, còn ca đêm hôm trước thì lọt vào.
+  //
+  // ⚠️ `setHours` còn **sửa luôn `now` tại chỗ** *(nó là hàm đột biến)*, nên
+  // nhánh `week` bên dưới đọc phải một `now` đã bị dịch — một lỗi thứ hai nằm
+  // chồng lên lỗi thứ nhất.
+  //
+  // 🔑 Nay mọi mốc đi qua `khungNgayVN()` ở `lib/time.ts` — nguồn sự thật duy
+  // nhất cho giờ Việt Nam.
+  if (range === 'all') return new Date(0).toISOString()
 
-  if (range === 'today') {
-    startDate = new Date(now.setHours(0, 0, 0, 0))
-  } else if (range === 'week') {
-    const firstDay = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) // Thứ 2 đầu tuần
-    startDate = new Date(now.setDate(firstDay))
-    startDate.setHours(0, 0, 0, 0)
-  } else if (range === 'month') {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-  }
+  const homNay = ngayVN()
 
-  return startDate.toISOString()
+  if (range === 'today') return khungNgayVN(homNay).dau
+
+  if (range === 'month') return khungNgayVN(`${homNay.slice(0, 7)}-01`).dau
+
+  // `week` — lùi về thứ Hai của tuần hiện tại, tính theo NGÀY VIỆT NAM.
+  // Dựng mốc ở 12:00Z để phép cộng trừ ngày ⛔ không bao giờ nhảy sang ngày
+  // khác vì lệch múi giờ.
+  const giua = new Date(`${homNay}T12:00:00Z`)
+  const thu = giua.getUTCDay()                       // 0 = Chủ nhật
+  const luiVe = thu === 0 ? 6 : thu - 1
+  giua.setUTCDate(giua.getUTCDate() - luiVe)
+  return khungNgayVN(giua.toISOString().slice(0, 10)).dau
 }
 
 /**

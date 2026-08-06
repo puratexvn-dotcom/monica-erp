@@ -17,7 +17,8 @@ import 'server-only';
 // được"* thay vì bịa số 0.
 // ============================================================================
 import { guard } from './guard';
-import { ngayVN } from '@/lib/time';
+import type { createClient } from '@/utils/supabase/server';
+import { ngayVN, khungNgayVN } from '@/lib/time';
 import type { NguonDigest } from '@/lib/mos/md/daily-digest';
 
 // 🔴 SỬA 06/08/2026 — TRƯỚC ĐÓ TÔI ĐỌC NHẦM BẢNG.
@@ -51,16 +52,44 @@ interface RawNpl { request_no: string; needed_date: string | null }
 
 const so = (v: number | null | undefined): number => Number(v ?? 0) || 0;
 
-/** Nạp mọi nguồn của MỘT ngày. `ngay` mặc định hôm nay theo giờ Việt Nam. */
+type Sb = Awaited<ReturnType<typeof createClient>>;
+
+/** Nạp mọi nguồn của MỘT ngày, **dùng guard của phân hệ MD**.
+ *
+ *  ⚠️ CHỈ gọi từ trong `/md`. Bàn giám đốc phải gọi `napNguonDigestVoi()` với
+ *  chốt quyền của chính nó — xem khối chú thích ở hàm đó. */
 export async function napNguonDigest(ngay: string = ngayVN()): Promise<NguonDigest> {
   const g = await guard();
-  const rong: NguonDigest = { ngay, sanLuong: [], subcon: [], kiem: [], don: [], nplTre: [] };
-  if (!g.supabase) return rong;
-  const sb = g.supabase;
+  if (!g.supabase) return { ngay, sanLuong: [], subcon: [], kiem: [], don: [], nplTre: [] };
+  return napNguonDigestVoi(g.supabase, ngay);
+}
+
+/** Nạp mọi nguồn của MỘT ngày bằng **một phiên đã được chốt quyền sẵn**.
+ *
+ * ─── 🔴 VÌ SAO PHẢI TÁCH RA, 07/08/2026 ─────────────────────────────────
+ * `/giam-doc` từng gọi thẳng `napNguonDigest()`, mà hàm đó chốt quyền bằng
+ * guard của **phân hệ MD** (`MODULE_PATH = '/md'`). Vai `giamdoc` ⛔ không có
+ * `/md` trong `MODULE_ACCESS` ⇒ guard **luôn từ chối** ⇒ báo cáo ngày trên bàn
+ * giám đốc **vĩnh viễn rỗng**, và nó rỗng một cách *"có vẻ trung thực"*
+ * *(⚪ chưa ai báo cáo)* nên ⛔ không ai đi tra.
+ *
+ * 🔑 Người bị bịt mắt chính là **người ra quyết định cao nhất của sản xuất**.
+ *
+ * ⚠️ Hàm này ⛔ **KHÔNG tự chốt quyền** — nó nhận một phiên đã chốt. Nơi gọi
+ * **bắt buộc** phải gọi guard của phân hệ mình trước. RLS vẫn là hàng rào
+ * thật ở tầng dưới, nhưng ⛔ đừng dựa vào một mình nó.
+ */
+export async function napNguonDigestVoi(sb: Sb, ngay: string = ngayVN()): Promise<NguonDigest> {
 
   // Biên bản QA ⛔ không có cột `date` — lọc theo `created_at` trong ngày.
-  const dau = `${ngay}T00:00:00`;
-  const cuoi = `${ngay}T23:59:59`;
+  //
+  // 🔴 SỬA 07/08/2026 — MỐC PHẢI MANG ĐỘ LỆCH MÚI GIỜ.
+  // Bản trước viết `${ngay}T00:00:00` **⛔ không có độ lệch** ⇒ PostgreSQL hiểu
+  // là UTC, trong khi `ngay` là ngày theo giờ VN. Lệch đúng 7 giờ, nên **mọi
+  // thứ ghi từ 00:00 đến 07:00 giờ VN đều rơi ra ngoài báo cáo của ngày đó**.
+  // Đo được: bản ghi `finishing_logs` tạo lúc 01:24 ngày 07/08 giờ VN ⛔ không
+  // lọt vào báo cáo ngày 07/08. Xem `khungNgayVN()` ở `lib/time.ts`.
+  const { dau, cuoi } = khungNgayVN(ngay);
 
   const [sl, ht, sc, qa, don, npl] = await Promise.allSettled([
     // Sản lượng chuyền may — nơi tổ trưởng THẬT SỰ báo theo giờ.
