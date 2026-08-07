@@ -12,6 +12,8 @@ import {
   poFormSchema,
   PO_STATUSES,
   PO_STATUS_LABEL,
+  CURRENCIES,
+  CURRENCY_LABEL,
   vnToday,
   type PoFormValues,
 } from './po-schema';
@@ -44,6 +46,10 @@ export default function PoFormDialog({
       style_code: '',
       total_quantity: 0,
       delivery_date: '',
+      currency: 'USD',
+      // ⛔ KHÔNG đặt 0: `0` là *"giá bằng không"*, ⛔ không phải *"chưa chốt
+      // giá"*. Để trống ⇒ ghi `null` ⇒ báo cáo hiện ⚪ **chưa đo được**.
+      unit_price: undefined,
       status: 'APPROVED',
     },
   });
@@ -102,6 +108,38 @@ export default function PoFormDialog({
               {...register('total_quantity', { valueAsNumber: true })}
             />
             <ErrMsg>{errors.total_quantity?.message}</ErrMsg>
+          </Field>
+
+          {/* 🔴 THÊM 07/08/2026 — trước đó biểu mẫu ⛔ KHÔNG có ô nào nhập
+              giá trị thương mại của đơn, nên mọi PO do người dùng lập đều
+              ⛔ không tính được doanh thu. Xem `po-schema.ts`. */}
+          <Field label="Tiền tệ">
+            <select className={inputCls} {...register('currency')}>
+              {CURRENCIES.map((c) => (
+                <option key={c} value={c}>
+                  {CURRENCY_LABEL[c]}
+                </option>
+              ))}
+            </select>
+            <ErrMsg>{errors.currency?.message}</ErrMsg>
+          </Field>
+
+          <Field label="Đơn giá (mỗi sản phẩm)" hint="để trống nếu chưa chốt giá">
+            <input
+              className={inputCls}
+              type="number"
+              min={0}
+              step="0.0001"
+              inputMode="decimal"
+              placeholder="2.4750"
+              // Ô trống phải thành `undefined`, ⛔ KHÔNG thành `NaN`:
+              // `valueAsNumber` biến '' thành `NaN` và Zod báo *"Đơn giá phải
+              // là số"* ngay khi người dùng ⛔ không định nhập gì.
+              {...register('unit_price', {
+                setValueAs: (v) => (v === '' || v === null ? undefined : Number(v)),
+              })}
+            />
+            <ErrMsg>{errors.unit_price?.message}</ErrMsg>
           </Field>
 
           <Field label="Ngày giao" hint="không được ở quá khứ">

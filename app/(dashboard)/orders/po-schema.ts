@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { ngayVN } from '@/lib/time';
+// Dùng lại hằng tiền tệ + hàm dựng số thập phân ĐÃ CÓ, ⛔ không dựng bộ thứ
+// hai: hai danh sách tiền tệ là hai cơ hội để chúng lệch nhau.
+import { CURRENCIES, CURRENCY_LABEL, positiveDecimal } from '@/schemas/md';
+
+export { CURRENCIES, CURRENCY_LABEL };
 
 // ============================================================================
 // LƯỢC ĐỒ ĐƠN HÀNG (PO)
@@ -92,6 +97,34 @@ export const poFormSchema = z.object({
     .refine((v) => /^\d{4}-\d{2}-\d{2}$/.test(v), { message: 'Ngày giao không hợp lệ' })
     .refine(isRealDate, { message: 'Ngày giao không tồn tại' })
     .refine((v) => v >= vnToday(), { message: 'Ngày giao không được ở quá khứ' }),
+
+  // ── GIÁ TRỊ THƯƠNG MẠI CỦA ĐƠN ──────────────────────────────────────────
+  // 🔴 THÊM 07/08/2026 sau khi đi hết luồng nghiệp vụ bằng phiên MD thật.
+  //
+  // Đo được: 14/15 đơn trong CSDL **CÓ** `unit_price`; đơn DUY NHẤT thiếu là
+  // đơn vừa tạo **qua chính giao diện này**. Nghĩa là đường tạo PO của sản
+  // phẩm là **nguồn duy nhất sinh ra đơn ⛔ không có giá** — cột `unit_price`
+  // và `currency` đã tồn tại trong `orders`, lược đồ MD (`order.schema.ts`)
+  // đã khai chúng, nhưng biểu mẫu ⛔ **chưa từng có ô để nhập**.
+  //
+  // Hệ quả: mọi con số doanh thu · giá trị đơn · biên lợi nhuận dẫn xuất từ
+  // `orders` đều ⛔ không tính được cho đơn do người dùng tự lập.
+  //
+  // ⚠️ **`optional`, ⛔ KHÔNG bắt buộc** — đúng như `order.schema.ts:67` đã
+  // duyệt. MD thường mở PO trước khi chốt giá; ép nhập là **đổi quy tắc
+  // nghiệp vụ**, mà đó ⛔ không phải thẩm quyền của bước sửa lỗi này.
+  // ⚠️ ⛔ KHÔNG `.default('USD')`. Hai lý do:
+  //   ① `.default()` làm kiểu VÀO khác kiểu RA, mà React Hook Form dùng kiểu
+  //      VÀO ⇒ `zodResolver` ⛔ không khớp kiểu.
+  //   ② Quan trọng hơn: **tự chọn tiền tệ giúp người dùng là lỗi tiền bạc.**
+  //      Người gọi ⛔ không khai tiền tệ thì phải bị **từ chối**, ⛔ không phải
+  //      được lặng lẽ gán USD — một đơn VND bị hiểu thành USD sai 25.000 lần.
+  //      Ô chọn trên biểu mẫu luôn có sẵn giá trị nên người dùng ⛔ không gặp
+  //      lỗi này; nó chỉ chặn người gọi thẳng Server Action.
+  currency: z.enum(CURRENCIES),
+  // 4 số lẻ — giữ đúng độ chính xác của `order.schema.ts`: đơn giá gia công
+  // thường là 2,4750 USD/sp, làm tròn 2 số lệch hàng nghìn đô trên đơn lớn.
+  unit_price: positiveDecimal('Đơn giá', 4, 999_999).optional(),
 
   status: z.enum(PO_STATUSES),
 });

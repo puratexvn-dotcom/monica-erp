@@ -88,6 +88,11 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     style_code: parsed.data.style_code,
     total_quantity: parsed.data.total_quantity,
     delivery_date: parsed.data.delivery_date,
+    // Giá trị thương mại — xem chú thích ở `po-schema.ts`. `undefined` ⇒ ghi
+    // `null`, ⛔ KHÔNG ghi 0: `0` đọc thành *"đơn giá bằng không"*, một tin
+    // sai; `null` đọc thành *"⛔ chưa chốt giá"*, đúng sự thật.
+    currency: parsed.data.currency,
+    unit_price: parsed.data.unit_price ?? null,
     status: parsed.data.status,
   });
 
