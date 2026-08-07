@@ -351,18 +351,63 @@ BEGIN
   RAISE NOTICE '✅ TỰ KIỂM 049: 8/8 phép thử trigger ĐẠT.';
 END $$;
 
--- Policy phải TỒN TẠI (hành vi thì đo bằng phiên thật — xem ghi chú §⑥).
+-- ─── 6.4 · Policy do CHÍNH `049` tạo phải tồn tại ─────────────────────────
+--
+-- 🔴 SỬA 08/08/2026 — BẢN ĐẦU CỦA PHÉP KIỂM NÀY SAI, VÀ NÓ LÀM MIGRATION
+--    QUAY LUI TRÊN CSDL THẬT.
+--
+-- Bản đầu đòi đủ **BA** tên, trong đó có `costings_no_edit_after_approve`.
+-- Đó là **giả định về trạng thái CSDL**, ⛔ không phải điều `049` tạo ra:
+--   · `042` Mục 3 tạo policy tên đó
+--   · `043` (soạn trên một giả thuyết SAI) đã CHẠY rồi bị **xoá khỏi kho**
+--   · `044` tạo lại nó, nhưng chính tệp `044` ghi *"⛔ CHƯA CHẠY"*
+-- ⇒ Tên thật trên CSDL đang chạy **⛔ không đoán được từ kho** — đúng điều
+--   CLAUDE.md §3 cảnh báo: *"luôn đối chiếu với CSDL đang chạy, ⛔ không tin
+--   nội dung file migration hay trí nhớ."* Tôi đã vi phạm chính câu đó.
+--
+-- 🔑 NAY CHỈ KHẲNG ĐỊNH THỨ `049` CHỊU TRÁCH NHIỆM. Hàng rào cũ được **ĐO và
+--    BÁO CÁO**, ⛔ không dùng làm điều kiện đạt/hỏng — một migration ⛔ không
+--    được chết vì một tệp khác chưa chạy.
 DO $$
 DECLARE v_dem INT;
 BEGIN
   SELECT count(*) INTO v_dem FROM pg_policies
    WHERE schemaname = 'public' AND tablename = 'costings'
-     AND policyname IN ('costings_update','costings_only_director_approves',
-                        'costings_no_edit_after_approve');
-  IF v_dem <> 3 THEN
-    RAISE EXCEPTION '⛔ TỰ KIỂM 6.4: thiếu policy trên `costings` (thấy %/3).', v_dem;
+     AND policyname IN ('costings_update', 'costings_only_director_approves');
+  IF v_dem <> 2 THEN
+    RAISE EXCEPTION '⛔ TỰ KIỂM 6.4: `049` ⛔ không tạo đủ policy của mình (thấy %/2).', v_dem;
   END IF;
-  RAISE NOTICE '✅ TỰ KIỂM 049: 3/3 policy `costings` có mặt.';
+  RAISE NOTICE '✅ TỰ KIỂM 049: 2/2 policy do 049 tạo đã có mặt.';
+END $$;
+
+-- ─── 6.5 · ĐO hàng rào "chiết tính ĐÃ DUYỆT ⛔ không sửa được" ────────────
+--
+-- ⚠️ ĐO và BÁO, ⛔ KHÔNG chặn migration. Đây là hàng rào của `042`/`044`,
+--    ⛔ không thuộc phạm vi `049`. Nhưng nếu nó **⛔ không tồn tại** thì
+--    chiết tính đã duyệt đang sửa được — một lỗ hổng `Điều 8` (Evidence
+--    First) mà Board **phải biết**, ⛔ không được để nó chìm đi.
+DO $$
+DECLARE
+  v_khac INT;
+  v_ten  TEXT;
+BEGIN
+  SELECT count(*), string_agg(policyname, ', ')
+    INTO v_khac, v_ten
+    FROM pg_policies
+   WHERE schemaname = 'public' AND tablename = 'costings'
+     AND permissive = 'RESTRICTIVE'
+     AND cmd IN ('UPDATE', 'ALL')
+     AND policyname <> 'costings_only_director_approves';
+
+  IF v_khac = 0 THEN
+    RAISE WARNING '🔴 CẢNH BÁO 6.5 — LỖ HỔNG CÒN MỞ, ⛔ KHÔNG PHẢI DO 049: '
+      'costings ⛔ KHÔNG có policy RESTRICTIVE nào chặn sửa bản ĐÃ DUYỆT. '
+      'Nghĩa là chiết tính APPROVED hiện SỬA GIÁ ĐƯỢC (Hiến pháp Điều 8). '
+      'Nguyên nhân: 043 đã chạy rồi bị xoá khỏi kho; 044 (bản khôi phục) ghi '
+      'rõ "CHƯA CHẠY". ⇒ PHẢI chạy 044 sau migration này.';
+  ELSE
+    RAISE NOTICE '✅ TỰ KIỂM 049 — 6.5: hàng rào "đã duyệt ⛔ không sửa" CÓ (%). ', v_ten;
+  END IF;
 END $$;
 
 COMMIT;
@@ -392,7 +437,28 @@ UNION ALL
 SELECT 'mos_po_dang_san_xuat ĐÃ thu hồi quyền gọi của authenticated',
        (SELECT CASE WHEN has_function_privilege('authenticated',
                  'public.mos_po_dang_san_xuat(uuid)', 'EXECUTE')
-               THEN 'CÒN' ELSE 'ĐÃ THU HỒI' END), 'ĐÃ THU HỒI';
+               THEN 'CÒN' ELSE 'ĐÃ THU HỒI' END), 'ĐÃ THU HỒI'
+UNION ALL
+-- ⚠️ Dòng này ĐO hiện trạng, ⛔ không phải điều `049` tạo ra. `0` nghĩa là
+-- chiết tính ĐÃ DUYỆT hiện sửa giá được ⇒ phải chạy `044`.
+SELECT 'hàng rào "chiết tính đã duyệt ⛔ không sửa" (⛔ KHÔNG do 049 tạo)',
+       (SELECT count(*)::text FROM pg_policies
+         WHERE schemaname='public' AND tablename='costings'
+           AND permissive='RESTRICTIVE' AND cmd IN ('UPDATE','ALL')
+           AND policyname <> 'costings_only_director_approves'), '≥ 1';
+
+-- 🔎 CHẨN ĐOÁN — in ĐÚNG những policy đang có trên `costings`.
+-- CLAUDE.md §3: *"luôn đối chiếu với CSDL đang chạy."* Bản đầu của tệp này
+-- ĐOÁN tên policy từ kho và đã quay lui vì thế. Nay in ra để ⛔ không phải đoán.
+SELECT policyname   AS ten_policy,
+       permissive   AS loai,
+       cmd          AS lenh,
+       roles::text  AS vai,
+       COALESCE(qual, '—')       AS dieu_kien_using,
+       COALESCE(with_check, '—') AS dieu_kien_with_check
+  FROM pg_policies
+ WHERE schemaname = 'public' AND tablename = 'costings'
+ ORDER BY permissive DESC, cmd, policyname;
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- ⑧ 🔴 SAU KHI CHẠY — BẮT BUỘC ĐO BẰNG PHIÊN THẬT
