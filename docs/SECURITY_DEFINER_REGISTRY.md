@@ -70,6 +70,7 @@ Trạng thái đo ngày 02/08/2026, **sau** migration 038.
 | `mos_buyer_customer_id()` | 018 | đọc `buyer_accounts` — bảng mà **buyer bị chặn đọc**. Đây chính là lỗ khoét có chủ ý. | — | ✅ |
 | `mos_buyer_can_see_order()` | 018 | đọc `orders` bỏ qua RLS để **quyết định** RLS. Gọi trong policy nên không thể chịu RLS, sẽ đệ quy vô tận. | — | ✅ |
 | `mos_partner_id()` | 030 | đọc `partner_accounts` + `partners` — cả hai đều chặn đối tác | ADR-006 | ✅ |
+| `mos_po_dang_san_xuat(UUID)` | **049** | 🔴 Trigger `mos_guard_po_content_lock` chạy `SECURITY INVOKER`, nên câu đọc `production_orders` bên trong **chịu RLS của người gọi**. Vai ⛔ không đọc được bảng đó sẽ thấy *"⛔ không có lệnh nào"* và **đi vòng qua khoá** — đúng quy tắc `K-3`. Bắc cầu để phép thử luôn nhìn thấy SỰ THẬT. | ADR-027 | ⛔ **ĐÃ THU HỒI** |
 | `mos_is_partner()` | 030 | như trên | ADR-006 | ✅ |
 | `mos_partner_can()` | 030 | đọc `partner_permissions` — bảng đối tác bị chặn | ADR-006 | ✅ |
 | `mos_can_read_assignment()` | 030 | ghép `assignments` + quyền; nền của phân quyền theo tài nguyên | ADR-006 | ✅ |
@@ -203,6 +204,7 @@ chối** vào bài kiểm hồi quy của migration đó.
 | 02/08/2026 | `038b` chạy. A001 bản 2 xác nhận: **19/19 hàm `anon` bị chặn · 19/19 ghim `search_path` · 11/11 view `invoker` · 0 view cho `anon` đọc.** |
 | 05/08/2026 | ✅ **`A001` chạy lại sau `042` — ĐẠT.** `0/12` view chưa đăng ký · `0` view cho `anon` đọc · `0/20` hàm `anon` gọi được · `0` hàm thiếu `search_path`. Nghĩa vụ ② khép. `A001` được sửa để phân biệt **view chưa đăng ký** *(⛔)* với **ngoại lệ có ADR** *(⚠️, in tên)* — bằng danh sách **đích danh**, không phải ngưỡng, nên view thứ hai sinh do sơ suất vẫn ném lỗi như cũ | Claude |
 | 05/08/2026 | ⏳ **`042` đề xuất view `v_costing_approved` KHÔNG `security_invoker`** — chỗ đầu tiên phá bất biến *"11/11 view invoker"*. Buộc phải vậy vì phán quyết Board `VR-005` là phân quyền theo **cột**, thứ RLS không làm được. Đăng ký ở §2.4 kèm ba nghĩa vụ. **`A001` phải chạy lại ngay sau `042`.** |
+| 08/08/2026 | 🔴 **`049` thêm `mos_po_dang_san_xuat(UUID)`** — hàm `SECURITY DEFINER` **CÓ THAM SỐ** đầu tiên của sổ này. Vì có tham số nên nó là **kênh dò**: ai gọi được sẽ biết *"đơn X đã vào sản xuất chưa"* với quyền chủ sở hữu. ⇒ `REVOKE ALL ... FROM PUBLIC, anon, authenticated` ngay trong cùng migration — **chỉ trigger gọi nó**. Cột `anon` của hàm này là **⛔ ĐÃ THU HỒI**, ⛔ không phải ✅. |
 
 ## 6. RỦI RO CÒN LẠI — CHƯA ĐÓNG ĐƯỢC
 

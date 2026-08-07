@@ -1,4 +1,24 @@
 -- ============================================================================
+-- 🟡 CẬP NHẬT 08/08/2026 — HAI PHẦN CỦA TỆP NÀY ĐÃ ĐƯỢC THAY THẾ
+--
+--   §④ (khoá PO theo workflow)  ⇒  supabase/migrations/049_*.sql  — CHẠY ĐƯỢC
+--   §⑥ · §⑥b (duyệt giá + SoD)  ⇒  supabase/migrations/049_*.sql  — CHẠY ĐƯỢC
+--
+-- 🔴 CÒN LẠI TRONG TỆP NÀY, VẪN LÀ NHÁP: **§③ LƯU TRỮ MỀM** (`deleted_at` cho
+--    `md_documents` · `style_bom` · `material_requests`).
+--
+-- ⚠️ VÌ SAO ⛔ CHƯA GỘP VÀO `049`: thêm `deleted_at` **CHƯA ĐỦ**. Policy
+--    `SELECT` lọc dòng đã lưu trữ sẽ làm PostgREST trả **0 dòng** cho chính
+--    lệnh vừa lưu trữ — nó bọc mọi `PATCH` trong CTE có `RETURNING`, nên
+--    policy `SELECT` áp lên **DÒNG MỚI** (CLAUDE.md §7). Đó đúng là lý do
+--    `036b` phải dựng RPC cho xoá mềm.
+--    ⇒ Làm nửa vời sẽ khiến ba hàm `archiveTechPack`/`archiveBom`/
+--    `archiveMaterialRequest` báo *"RLS đã chặn"* dù dữ liệu đã đổi.
+--    Cần: cột + chỉ mục MỘT PHẦN + RPC lưu trữ + sửa 3 hàm ở tầng ứng dụng.
+--    Đó là một gói riêng, ⛔ không nhét chung vào một migration đang lành.
+-- ============================================================================
+
+-- ============================================================================
 -- 🔴 BẢN NHÁP — ⛔ CHƯA HOÀN CHỈNH · ⛔ CHƯA ĐƯỢC PHÉP CHẠY
 --
 -- 048 · LƯU TRỮ MỀM cho ba bảng MD  +  KHOÁ PO ở tầng CSDL
