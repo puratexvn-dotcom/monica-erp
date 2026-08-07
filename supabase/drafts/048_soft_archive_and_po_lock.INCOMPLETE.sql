@@ -1,4 +1,24 @@
 -- ============================================================================
+-- KHEP LAI 08/08/2026 — TOAN BO TEP NAY DA DUOC THAY THE BANG BAN CHAY DUOC
+--
+--   §④ khoá PO theo workflow        ⇒ migrations/049   ĐÃ CHẠY
+--   §⑥ ⑥b duyệt giá + SoD           ⇒ migrations/049   ĐÃ CHẠY
+--   (vá regression 42501 của 049)   ⇒ migrations/050   ĐÃ CHẠY
+--   §③ lưu trữ mềm 3 bảng           ⇒ migrations/052   ĐÃ CHẠY
+--   (đóng nốt TD-25 · 5 bảng cuối)  ⇒ migrations/053   ĐÃ CHẠY
+--
+-- ⚠️ GIỮ TỆP NÀY LẠI, ⛔ KHÔNG XOÁ. Nó ghi lại **đường suy nghĩ** dẫn tới bốn
+--    migration trên — gồm cả những phương án đã BỊ BÁC và lý do bác. Xoá đi là
+--    mất phần đắt nhất: người sau sẽ đề xuất lại đúng phương án đã bị bác.
+--
+-- 🔑 Riêng một điều trong tệp này hoá ra SAI, và phải nói rõ:
+--    §③ từng viết *"⛔ CHƯA VIẾT: gỡ ràng buộc UNIQUE cũ cần biết ĐÚNG TÊN"* —
+--    đúng, nhưng cách giải ⛔ không phải "chạy SELECT trước rồi viết tay".
+--    `052` và `053` **tự dò tên trong DO block**, nên migration chạy được trên
+--    mọi CSDL mà ⛔ không cần ai tra tay trước.
+-- ============================================================================
+
+-- ============================================================================
 -- 🟡 CẬP NHẬT 08/08/2026 — HAI PHẦN CỦA TỆP NÀY ĐÃ ĐƯỢC THAY THẾ
 --
 --   §④ (khoá PO theo workflow)  ⇒  supabase/migrations/049_*.sql  — CHẠY ĐƯỢC
