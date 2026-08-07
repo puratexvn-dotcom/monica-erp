@@ -106,6 +106,35 @@ export const positiveDecimal = (label: string, decimals = 2, max = 99_999_999) =
       message: `${label} chỉ được tối đa ${decimals} chữ số thập phân`,
     });
 
+/**
+ * Số thập phân **cho phép bằng 0**.
+ *
+ * 🔴 **PHÁT HIỆN TRONG UAT 07/08/2026 — LỖI THẬT, ĐO ĐƯỢC.**
+ * `customers.credit_limit` dùng `positiveDecimal`, mà `positiveDecimal` bác số
+ * `0`. Trên CSDL đang chạy có **5/17 khách hàng mang `credit_limit = 0`** ⇒
+ * năm hồ sơ đó **⛔ KHÔNG lưu được** từ hộp thoại Sửa: form đổ đúng giá trị
+ * `0` từ CSDL, rồi chính lược đồ bác nó với câu *"Hạn mức công nợ phải lớn
+ * hơn 0"*. Người dùng ⛔ không có cách nào thoát — sửa ô khác cũng ⛔ không lưu
+ * được.
+ *
+ * 🔑 Và `0` ở đây là **một phát biểu nghiệp vụ THẬT**: *"khách này ⛔ không
+ * được nợ đồng nào"* — khác hẳn `null` = *"⛔ chưa khai hạn mức"*. Bác nó là
+ * bác một sự thật.
+ *
+ * ⚠️ Lỗi này **⛔ không lộ ra khi chỉ có form Tạo mới**: lúc tạo, người dùng
+ * để trống ⇒ `undefined` ⇒ lược đồ cho qua. Nó chỉ hiện khi có đường **Sửa** —
+ * và đó là đường `BUG-5` vừa mở.
+ */
+export const nonNegativeDecimal = (label: string, decimals = 2, max = 99_999_999) =>
+  z
+    .number({ error: `${label} phải là số` })
+    .min(0, `${label} ⛔ không được là số âm`)
+    .max(max, `${label} vượt ngưỡng cho phép`)
+    .refine((v) => Number.isFinite(v), { message: `${label} không hợp lệ` })
+    .refine((v) => Number(v.toFixed(decimals)) === v, {
+      message: `${label} chỉ được tối đa ${decimals} chữ số thập phân`,
+    });
+
 /** Cho phép bằng 0 — dùng cho số lượng theo size (có size đặt 0 chiếc) */
 export const nonNegativeInt = (label: string, max = 99_999_999) =>
   z

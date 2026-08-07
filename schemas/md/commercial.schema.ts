@@ -12,6 +12,7 @@ import {
   optionalPhone,
   positiveInt,
   positiveDecimal,
+  nonNegativeDecimal,
   percentField,
   ORDER_TYPES,
   INCOTERMS,
@@ -38,7 +39,11 @@ export const customerFormSchema = z.object({
   currency: z.enum(CURRENCIES).default('USD'),
   incoterm: z.enum(INCOTERMS).default('FOB'),
   payment_term: optionalText('Điều khoản thanh toán', 100),
-  credit_limit: positiveDecimal('Hạn mức công nợ', 2, 999_999_999).optional(),
+  // 🔴 `nonNegative`, ⛔ KHÔNG `positive` — lỗi thật tìm ra trong UAT
+  // 07/08/2026: 5/17 khách hàng đang mang `credit_limit = 0` và ⛔ KHÔNG lưu
+  // được từ hộp thoại Sửa. `0` = *"⛔ không cho nợ"*, một phát biểu nghiệp vụ
+  // THẬT, khác `null` = *"⛔ chưa khai"*. Xem chú thích ở `nonNegativeDecimal`.
+  credit_limit: nonNegativeDecimal('Hạn mức công nợ', 2, 999_999_999).optional(),
   notes: optionalText('Ghi chú', 2000),
 });
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;
