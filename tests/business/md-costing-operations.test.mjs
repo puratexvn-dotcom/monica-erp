@@ -19,7 +19,7 @@ import { duocSuaPo, kiemSuaPo, canhBaoGiamSoLuong, PO_TIEN_DO } from '../../lib/
 // `BUG-5` (lưu trữ ⛔ không mượn trạng thái mang nghĩa khác).
 import {
   phanQuyetSuaPo, phanQuyetMoLaiPo, phanQuyetSua, duocMoLai, luuTruDuoc,
-  PO_SAU_KHI_MO_LAI,
+  PO_SAU_KHI_MO_LAI, LUAT,
 } from '../../lib/mos/md/document-lock.ts';
 // 🔴 Board Directive *MD Final Input Experience* 08/08/2026 §A — hạn mức công
 // nợ `0` ⟷ `NULL`.
@@ -257,16 +257,21 @@ console.log('\n⑨d 🔴 LƯU TRỮ — chỉ dùng trạng thái CÓ THẬT và
   ok('Yêu cầu báo giá lưu trữ được (CANCELLED có trong CHECK của 015)', luuTruDuoc('INQUIRY'));
   ok('Chiết tính lưu trữ được (SUPERSEDED — đúng đường reviseCosting)', luuTruDuoc('COSTING'));
 
-  // 🔴 Ba bảng dưới đây ⛔ KHÔNG có cột trạng thái lẫn `deleted_at`.
-  // ⚠️ Bài kiểm này khẳng định điều **⛔ CHƯA làm được** — đúng `V.1`: ghi
-  // *"⚪ chưa đo được"* thay vì ✅. Nó sẽ ĐỎ đúng lúc `ADR-027` được chạy, và
-  // đó là lời nhắc phải quay lại mở khoá ba hàm lưu trữ đang từ chối.
-  ok('🔴 Tech Pack ⛔ CHƯA lưu trữ được — md_documents thiếu deleted_at (ADR-027)',
-    luuTruDuoc('TECH_PACK') === false);
-  ok('🔴 BOM ⛔ CHƯA lưu trữ được — style_bom thiếu deleted_at (ADR-027)',
-    luuTruDuoc('BOM') === false);
-  ok('🔴 Yêu cầu NPL ⛔ CHƯA lưu trữ được — "REJECTED" ⛔ KHÔNG nghĩa là "đã lưu trữ"',
-    luuTruDuoc('MATERIAL_REQUEST') === false);
+  // 🟢 08/08/2026 · migration `052` — BA LOẠI NÀY NAY LƯU TRỮ ĐƯỢC.
+  //
+  // ⚠️ Bài kiểm cũ ở đây khẳng định chúng **⛔ CHƯA làm được**, và ghi rõ *"nó
+  // sẽ ĐỎ đúng lúc ADR-027 được chạy, và đó là lời nhắc phải quay lại mở khoá"*.
+  // 🔑 Nó **đã đỏ đúng lúc**, và đây là lượt quay lại đó. Một bài kiểm mô tả
+  // trạng thái CHƯA XONG phải được sửa khi việc xong — ⛔ không phải xoá đi.
+  ok('🟢 Tech Pack lưu trữ được (052 · deleted_at)', luuTruDuoc('TECH_PACK'));
+  ok('🟢 BOM lưu trữ được (052 · deleted_at)', luuTruDuoc('BOM'));
+  ok('🟢 Yêu cầu NPL lưu trữ được (052 · deleted_at)', luuTruDuoc('MATERIAL_REQUEST'));
+  // 🔴 VẪN ⛔ KHÔNG mượn `REJECTED`: "bị từ chối" là sự kiện nghiệp vụ KHÁC.
+  ok('🔴 Yêu cầu NPL lưu trữ bằng `deleted_at`, ⛔ KHÔNG bằng `REJECTED`',
+    LUAT.MATERIAL_REQUEST.trangThaiLuuTru === 'deleted_at');
+  ok('Cả 8 chứng từ nay đều có chỗ lưu trữ trung thực',
+    ['CUSTOMER','INQUIRY','COSTING','STYLE','TECH_PACK','BOM','MATERIAL_REQUEST','ORDER']
+      .every((k) => luuTruDuoc(k)));
 
   // Chiết tính ĐÃ DUYỆT bị ba tầng CSDL khoá (RLS 042 · trigger 045 · con 046).
   // Tầng luật phải khai ĐÚNG như vậy, ⛔ không thì người dùng nhận mã 23514.

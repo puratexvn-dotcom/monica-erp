@@ -279,19 +279,20 @@ export const LUAT: Record<LoaiChungTu, LuatChungTu> = {
     cotTrangThai: null,
     khoaTuyetDoi: [],
     khoa: [],
-    // ⛔ CHƯA CÓ. `md_documents` ⛔ không có cột trạng thái lẫn `deleted_at`.
-    trangThaiLuuTru: null,
-    ghiChuLuuTru: '⛔ CHƯA lưu trữ được: bảng md_documents ⛔ không có cột trạng thái '
-      + 'hay deleted_at. Cần migration — ADR-027, đang bị SECURITY FREEZE chặn.',
+    // 🟢 08/08/2026 · migration `052` — ĐÃ CÓ `deleted_at`.
+    trangThaiLuuTru: 'deleted_at',
+    ghiChuLuuTru: 'Xoá mềm — tệp gốc và mọi phiên bản GIỮ NGUYÊN, chỉ thôi hiện '
+      + 'ở danh sách. Khôi phục được.',
   },
   BOM: {
     nhan: 'Định mức NPL (BOM)',
     cotTrangThai: null,
     khoaTuyetDoi: [],
     khoa: [],
-    trangThaiLuuTru: null,
-    ghiChuLuuTru: '⛔ CHƯA lưu trữ được: bảng style_bom ⛔ không có cột trạng thái '
-      + 'hay deleted_at. Cần migration — ADR-027, đang bị SECURITY FREEZE chặn.',
+    // 🟢 08/08/2026 · migration `052`.
+    trangThaiLuuTru: 'deleted_at',
+    ghiChuLuuTru: 'Xoá mềm — dòng định mức GIỮ NGUYÊN, chỉ thôi tính vào nhu cầu '
+      + 'NPL. Khôi phục được.',
   },
   MATERIAL_REQUEST: {
     nhan: 'Yêu cầu NPL',
@@ -302,10 +303,13 @@ export const LUAT: Record<LoaiChungTu, LuatChungTu> = {
     // `ORDERED` ⇒ đã đặt nhà cung cấp. Còn gỡ được, nhưng phải qua Yêu cầu
     // thay đổi để mua hàng cùng thấy.
     khoa: ['ORDERED'],
-    trangThaiLuuTru: null,
-    ghiChuLuuTru: '⛔ CHƯA lưu trữ được: `REJECTED` nghĩa là "BỊ TỪ CHỐI", ⛔ KHÔNG '
-      + 'phải "đã lưu trữ". Mượn nó là ghi sai sự thật nghiệp vụ. Cần cột '
-      + 'deleted_at — ADR-027.',
+    // 🟢 08/08/2026 · migration `052`. ⚠️ VẪN ⛔ KHÔNG mượn `REJECTED` — "bị từ
+    // chối" ⛔ KHÔNG đồng nghĩa "đã lưu trữ", và nay ⛔ không cần mượn nữa.
+    // 🔴 `052` còn chặn ở CSDL: phiếu ĐÃ NHẬN KHO (`RECEIVED`) ⛔ không lưu trữ
+    // được — nó là chứng từ đối ứng của một phiếu nhập, gỡ đi là lệch tồn kho.
+    trangThaiLuuTru: 'deleted_at',
+    ghiChuLuuTru: 'Xoá mềm — phiếu GIỮ NGUYÊN để tra cứu. ⚠️ Phiếu ĐÃ NHẬN KHO '
+      + '(RECEIVED) ⛔ không lưu trữ được: nó đối ứng một phiếu nhập kho.',
   },
   ORDER: {
     nhan: 'Đơn hàng (PO)',

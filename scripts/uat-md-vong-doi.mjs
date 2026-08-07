@@ -407,7 +407,62 @@ console.log('\n⑭ ĐÓNG LẠI');
     Boolean(cuoi?.to?.po_number && cuoi?.to?.customer_id && cuoi?.to?.style_id));
 }
 
-// ═══ ⑮ PHÂN QUYỀN ══════════════════════════════════════════════════════════
+// ═══ ⑮ LƯU TRỮ MỀM (052) ═══════════════════════════════════════════════════
+console.log('
+⑮ LƯU TRỮ MỀM — 3 bảng có `deleted_at`');
+{
+  // 🔴 Phép thử QUAN TRỌNG NHẤT của `052`: PostgREST bọc PATCH trong CTE có
+  // RETURNING, nên nếu lưu trữ đi bằng UPDATE thẳng thì nó BÁO LỖI dù dữ liệu
+  // đã đổi. Ở đây phải thấy `ok:true` — tức RPC đã làm đúng việc.
+  const rTp = await goi(md, '/md', 'archiveTechPack', [S.doc]);
+  ok('🔴 15.1 Lưu trữ Tech Pack ⇒ ok (RPC, ⛔ không báo lỗi giả)',
+    rTp.ok === true, JSON.stringify(rTp).slice(0, 250));
+
+  const { data: dRaw } = await admin.from('md_documents').select('deleted_at').eq('id', S.doc ?? '').maybeSingle();
+  ok('15.2 CSDL ĐÃ ghi `deleted_at`', Boolean(dRaw?.deleted_at));
+
+  // Dòng đã lưu trữ phải BIẾN MẤT khỏi câu đọc thường của người dùng.
+  const { data: mdThay } = await md.sb.from('md_documents').select('id').eq('id', S.doc ?? '');
+  ok('🔴 15.3 Policy ẨN dòng đã lưu trữ khỏi phiên md', (mdThay ?? []).length === 0);
+
+  // ⚠️ Và phải TÌM LẠI được — ⛔ không thì lưu trữ là cửa MỘT CHIỀU.
+  const rDs = await goi(md, '/md', 'listDaLuuTru', ['md_documents']);
+  ok('🔴 15.4 Vẫn LIỆT KÊ được dòng đã lưu trữ (⛔ không phải cửa một chiều)',
+    (rDs.rows ?? []).some((x) => x.id === S.doc), JSON.stringify(rDs).slice(0, 200));
+
+  const rKp = await goi(md, '/md', 'restoreTechPack', [S.doc]);
+  ok('15.5 Khôi phục được', rKp.ok === true, JSON.stringify(rKp).slice(0, 200));
+  const { data: mdThay2 } = await md.sb.from('md_documents').select('id').eq('id', S.doc ?? '');
+  ok('15.6 Khôi phục xong thì HIỆN LẠI', (mdThay2 ?? []).length === 1);
+
+  // BOM
+  ok('15.7 Lưu trữ BOM', (await goi(md, '/md', 'archiveBom', [S.bom])).ok === true);
+  const { data: bomThay } = await md.sb.from('style_bom').select('id').eq('id', S.bom ?? '');
+  ok('15.8 BOM đã lưu trữ biến khỏi danh sách', (bomThay ?? []).length === 0);
+
+  // 🔴 Yêu cầu NPL ĐÃ NHẬN KHO ⇒ CSDL phải TỪ CHỐI lưu trữ (luật nghiệp vụ).
+  await admin.from('material_requests').update({ status: 'RECEIVED' }).eq('id', S.mr ?? '');
+  const rMr = await goi(md, '/md', 'archiveMaterialRequest', [S.mr]);
+  ok('🔴 15.9 Phiếu NPL ĐÃ NHẬN KHO ⇒ ⛔ KHÔNG lưu trữ được (lệch tồn kho)',
+    rMr.ok === false, JSON.stringify(rMr).slice(0, 200));
+  await admin.from('material_requests').update({ status: 'DRAFT' }).eq('id', S.mr ?? '');
+  ok('15.10 Phiếu chưa nhận kho thì lưu trữ được',
+    (await goi(md, '/md', 'archiveMaterialRequest', [S.mr])).ok === true);
+
+  // 🔴 Chỉ mục MỘT PHẦN: số phiếu đã lưu trữ phải DÙNG LẠI được.
+  const rLai = await goi(md, '/md', 'createMaterialRequest', [{
+    request_no: `${TAG}-NPL`, order_id: S.po, material_name: 'Lập lại sau khi lưu trữ',
+    category: 'FABRIC', quantity: 100, unit: 'm', needed_date: '2026-09-15',
+    notes: '', evidence_path: '',
+  }]);
+  ok('🔴 15.11 Lập LẠI được số phiếu đã lưu trữ (chỉ mục MỘT PHẦN)',
+    rLai.ok === true, JSON.stringify(rLai).slice(0, 200));
+  const { data: mrLai } = await admin.from('material_requests').select('id')
+    .eq('request_no', `${TAG}-NPL`).is('deleted_at', null);
+  for (const r of mrLai ?? []) rac.mr.push(r.id);
+}
+
+// ═══ ⑯ PHÂN QUYỀN ══════════════════════════════════════════════════════════
 console.log('\n⑮ PHÂN QUYỀN');
 {
   const ban = {
@@ -416,20 +471,20 @@ console.log('\n⑮ PHÂN QUYỀN');
     email: 'a@x.com', country: 'Nhật Bản', address: 'Tokyo', tax_code: '123',
     currency: 'USD', incoterm: 'FOB', payment_term: 'T/T 30 ngày', credit_limit: 0, notes: 'UAT',
   };
-  ok('15.1 md002 (cùng vai MD) sửa được khách hàng',
+  ok('16.1 md002 (cùng vai MD) sửa được khách hàng',
     (await goi(md2, '/md', 'updateCustomer', [S.khach, ban])).ok === true);
   const { data: nk } = await admin.from('activity_log').select('actor_id')
     .eq('entity_type', 'CUSTOMER').eq('entity_id', S.khach ?? '')
     .order('created_at', { ascending: false }).limit(1);
-  ok('🔴 15.2 Nhật ký ghi ĐÚNG md002 là người sửa', nk?.[0]?.actor_id === md2.user.id);
+  ok('🔴 16.2 Nhật ký ghi ĐÚNG md002 là người sửa', nk?.[0]?.actor_id === md2.user.id);
 
   // QA bị **middleware** chặn TRƯỚC khi action chạy ⇒ phản hồi ⛔ không mang
   // `ok`. "⛔ Không có kết quả" CŨNG là bị chặn — thậm chí chặn SỚM HƠN.
-  ok('🔴 15.3 QA ⛔ KHÔNG sửa được dữ liệu MD',
+  ok('🔴 16.3 QA ⛔ KHÔNG sửa được dữ liệu MD',
     (await goi(qa, '/md', 'updateCustomer', [S.khach, ban])).ok !== true);
   const { data: qUp } = await qa.sb.from('customers').update({ name: 'QA-HACK' }).eq('id', S.khach ?? '').select('id');
-  ok('🔴 15.4 RLS chặn QA ghi thẳng vào `customers`', (qUp ?? []).length === 0);
-  ok('🔴 15.5 md ⛔ KHÔNG tự duyệt giá được ở tầng CSDL (SoD thật — 049)',
+  ok('🔴 16.4 RLS chặn QA ghi thẳng vào `customers`', (qUp ?? []).length === 0);
+  ok('🔴 16.5 md ⛔ KHÔNG tự duyệt giá được ở tầng CSDL (SoD thật — 049)',
     ((await md.sb.from('costings').update({ status: 'APPROVED' }).eq('id', S.costing ?? '').select('id')).data ?? []).length === 0);
 }
 

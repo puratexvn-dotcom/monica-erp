@@ -46,12 +46,12 @@ import { materialRequestSchema } from '../md-schema';
 // vai `authenticated` trên 16 bảng MD — xoá cứng ở đây sẽ đổ `42501` ngay.
 // Tầng CSDL và tầng này nói **cùng một câu**, và tầng CSDL nói trước.
 //
-// ⚠️ **BA BẢNG ⛔ CHƯA LƯU TRỮ ĐƯỢC** *(`md_documents` · `style_bom` ·
-// `material_requests`)*: chúng ⛔ không có cột trạng thái lẫn `deleted_at`.
-// Hàm lưu trữ của chúng **từ chối tường minh** và nói rõ cần gì — xem
-// `ADR-027`. ⛔ **KHÔNG** mượn một trạng thái sẵn có mang nghĩa khác *(ví dụ
-// `REJECTED`)* để giả làm "đã lưu trữ": đó là **ghi sai sự thật nghiệp vụ vào
-// CSDL**, và `NULL`/thiếu là phát biểu trung thực hơn *(CLAUDE.md §2.5)*.
+// ─── 🟢 08/08/2026 · MIGRATION `052` — LƯU TRỮ MỀM ĐÃ ĐỦ TÁM CHỨNG TỪ ────
+// `md_documents` · `style_bom` · `material_requests` nay CÓ `deleted_at`.
+// ⚠️ VẪN ⛔ KHÔNG mượn `REJECTED` làm "đã lưu trữ" — *"bị từ chối"* là một sự
+// kiện nghiệp vụ KHÁC, và nay ⛔ không cần mượn nữa.
+//
+// 🔑 Ba loại đó đi qua **RPC**, ⛔ không `UPDATE` thẳng — xem `luuTruMem()`.
 // ============================================================================
 
 const PATH = '/md';
@@ -270,6 +270,74 @@ async function ghiLuuTru(
   return { ok: true, message: `Đã lưu trữ ${moTa}. Dữ liệu GIỮ NGUYÊN, chỉ thôi hiệu lực.` };
 }
 
+/** Ba bảng có `deleted_at` — khớp đúng danh sách trong RPC của `052`. */
+type BangMem = 'md_documents' | 'style_bom' | 'material_requests';
+
+/**
+ * 🟢 **LƯU TRỮ MỀM QUA RPC** — migration `052`.
+ *
+ * ─── ⚠️ VÌ SAO ⛔ KHÔNG `UPDATE` THẲNG NHƯ BỐN LOẠI KIA ─────────────────
+ * PostgREST bọc mọi `PATCH` trong CTE có `RETURNING`, **bất kể** header
+ * `Prefer`. Vì có `RETURNING`, PostgreSQL áp policy `SELECT` lên **DÒNG MỚI**.
+ * Policy `<bảng>_an_da_luu_tru` lọc `deleted_at IS NULL` ⇒ dòng vừa lưu trữ
+ * **theo định nghĩa** ⛔ không thoả nữa ⇒ lệnh trả **0 dòng**.
+ *
+ * 🔴 Nếu vẫn dùng `ghiLuuTru()`, hàm sẽ báo *"⛔ không có dòng nào được cập
+ * nhật — RLS đã chặn"* **dù dữ liệu ĐÃ đổi**. Người dùng bấm lại, và mỗi lần
+ * bấm đều "thất bại" trong khi thực ra thành công.
+ *
+ * ⇒ Đi qua RPC `SECURITY DEFINER` — đúng khuôn `036b` đã chạy thật.
+ * 🔑 Bốn loại còn lại *(khách hàng · RFQ · chiết tính · mã hàng)* dùng **cột
+ * trạng thái nghiệp vụ**, ⛔ không phải `deleted_at`, nên ⛔ không bị policy
+ * này lọc và vẫn đi đường `ghiLuuTru()` bình thường.
+ */
+async function luuTruMem(
+  loai: Exclude<LoaiChungTu, 'ORDER'>,
+  bang: BangMem,
+  id: string,
+  moTa: string,
+): Promise<ActionResult> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+
+  // Ảnh chụp TRƯỚC — đọc lúc dòng còn hiện, vì sau khi lưu trữ policy sẽ ẩn nó.
+  const { data: cu } = await g.supabase.from(bang).select('*').eq('id', id).maybeSingle();
+  if (!cu) return { ok: false, message: `Không tìm thấy ${moTa}, hoặc nó đã được lưu trữ.` };
+
+  const { error } = await g.supabase.rpc('mos_md_luu_tru', { p_bang: bang, p_id: id });
+  if (error) return { ok: false, message: friendlyDbError(`luuTruMem:${bang}`, error) };
+
+  // ⚠️ `DELETE` trong sổ kiểm toán dù ⛔ không dòng nào bị xoá: nhật ký nói **ý
+  // định nghiệp vụ** *("chứng từ này thôi hiệu lực")*, ⛔ không nói cơ chế.
+  await writeVersion(loai, id, 'DELETE', cu as Record<string, unknown>, {
+    ...(cu as Record<string, unknown>), deleted_at: new Date().toISOString(),
+  });
+
+  revalidatePath(PATH);
+  return { ok: true, message: `Đã lưu trữ ${moTa}. Dữ liệu GIỮ NGUYÊN — khôi phục được.` };
+}
+
+/** Khôi phục một dòng đã lưu trữ mềm. */
+async function khoiPhucMem(
+  loai: Exclude<LoaiChungTu, 'ORDER'>,
+  bang: BangMem,
+  id: string,
+  moTa: string,
+): Promise<ActionResult> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+
+  const { error } = await g.supabase.rpc('mos_md_khoi_phuc', { p_bang: bang, p_id: id });
+  if (error) return { ok: false, message: friendlyDbError(`khoiPhucMem:${bang}`, error) };
+
+  // Đọc SAU khi khôi phục — lúc này policy đã cho thấy lại.
+  const { data: sau } = await g.supabase.from(bang).select('*').eq('id', id).maybeSingle();
+  await writeVersion(loai, id, 'UPDATE', null, (sau ?? {}) as Record<string, unknown>);
+
+  revalidatePath(PATH);
+  return { ok: true, message: `Đã khôi phục ${moTa}.` };
+}
+
 // ─── 1. KHÁCH HÀNG ─────────────────────────────────────────────────────────
 
 export async function updateCustomer(id: string, input: unknown): Promise<ActionResult> {
@@ -485,11 +553,14 @@ export async function updateTechPack(
   };
 }
 
-/** 🔴 **TỪ CHỐI TƯỜNG MINH.** `md_documents` ⛔ không có cột trạng thái lẫn
- *  `deleted_at` ⇒ ⛔ không có cách nào đánh dấu "đã lưu trữ" mà ⛔ không nói
- *  dối. Xem `ADR-027`. */
+/** 🟢 Lưu trữ mềm — migration `052`. Tệp gốc và mọi phiên bản GIỮ NGUYÊN. */
 export async function archiveTechPack(id: string): Promise<ActionResult> {
-  return ghiLuuTru('TECH_PACK', id, {}, 'tài liệu');
+  return luuTruMem('TECH_PACK', 'md_documents', id, 'tài liệu');
+}
+
+/** Khôi phục một tài liệu đã lưu trữ. */
+export async function restoreTechPack(id: string): Promise<ActionResult> {
+  return khoiPhucMem('TECH_PACK', 'md_documents', id, 'tài liệu');
 }
 
 // ─── 6. ĐỊNH MỨC NPL (BOM) ─────────────────────────────────────────────────
@@ -517,10 +588,14 @@ export async function updateBom(id: string, input: unknown): Promise<ActionResul
   }, `định mức ${v.item_name}`);
 }
 
-/** 🔴 **TỪ CHỐI TƯỜNG MINH** — `style_bom` ⛔ không có cột trạng thái lẫn
- *  `deleted_at`. Xem `ADR-027`. */
+/** 🟢 Lưu trữ mềm — migration `052`. Dòng định mức GIỮ NGUYÊN, chỉ thôi tính
+ *  vào nhu cầu NPL. */
 export async function archiveBom(id: string): Promise<ActionResult> {
-  return ghiLuuTru('BOM', id, {}, 'định mức NPL');
+  return luuTruMem('BOM', 'style_bom', id, 'định mức NPL');
+}
+
+export async function restoreBom(id: string): Promise<ActionResult> {
+  return khoiPhucMem('BOM', 'style_bom', id, 'định mức NPL');
 }
 
 // ─── 7. YÊU CẦU NPL ────────────────────────────────────────────────────────
@@ -545,10 +620,39 @@ export async function updateMaterialRequest(id: string, input: unknown): Promise
   }, `yêu cầu NPL ${v.request_no}`);
 }
 
-/** 🔴 **TỪ CHỐI TƯỜNG MINH.** `material_requests` **CÓ** trạng thái `REJECTED`,
- *  nhưng *"bị từ chối"* ⛔ **KHÔNG** đồng nghĩa *"đã lưu trữ"* — mượn nó là ghi
- *  một sự kiện nghiệp vụ **⛔ chưa từng xảy ra** vào CSDL, rồi mọi báo cáo
- *  *"tỷ lệ yêu cầu bị từ chối"* đọc ra là dối. Xem `ADR-027`. */
+/**
+ * 🟢 Lưu trữ mềm — migration `052`.
+ *
+ * ⚠️ VẪN ⛔ KHÔNG mượn `REJECTED`: *"bị từ chối"* ⛔ **KHÔNG** đồng nghĩa
+ * *"đã lưu trữ"*, và nay ⛔ không cần mượn nữa vì đã có `deleted_at` thật.
+ *
+ * 🔴 `052` còn chặn ở **tầng CSDL**: phiếu ĐÃ NHẬN KHO (`RECEIVED`) ⛔ không
+ * lưu trữ được — nó là chứng từ đối ứng của một phiếu nhập, gỡ đi là lệch tồn
+ * kho mà ⛔ không lỗi nào nổ ra.
+ */
 export async function archiveMaterialRequest(id: string): Promise<ActionResult> {
-  return ghiLuuTru('MATERIAL_REQUEST', id, {}, 'yêu cầu NPL');
+  return luuTruMem('MATERIAL_REQUEST', 'material_requests', id, 'yêu cầu NPL');
+}
+
+export async function restoreMaterialRequest(id: string): Promise<ActionResult> {
+  return khoiPhucMem('MATERIAL_REQUEST', 'material_requests', id, 'yêu cầu NPL');
+}
+
+/**
+ * Danh sách dòng **ĐÃ LƯU TRỮ** của một bảng.
+ *
+ * 🔴 **⛔ KHÔNG PHẢI TIỆN NGHI — LÀ AN TOÀN.** Policy `<bảng>_an_da_luu_tru`
+ * ẩn chúng khỏi mọi câu `SELECT` thường, nên ⛔ không có hàm này thì lưu trữ là
+ * **cửa MỘT CHIỀU**: bấm nhầm một cái, dòng biến mất và ⛔ không ai tìm lại
+ * được để khôi phục. Một thao tác đảo ngược được mà ⛔ không có đường đảo là
+ * một thao tác **⛔ không đảo ngược được trên thực tế**.
+ */
+export async function listDaLuuTru(
+  bang: 'md_documents' | 'style_bom' | 'material_requests',
+): Promise<{ rows: Array<{ id: string; nhan: string; deleted_at: string }>; error: string | null }> {
+  const g = await guard();
+  if (!g.supabase) return { rows: [], error: g.error };
+  const { data, error } = await g.supabase.rpc('mos_md_ds_luu_tru', { p_bang: bang });
+  if (error) return { rows: [], error: friendlyDbError('listDaLuuTru', error) };
+  return { rows: (data ?? []) as Array<{ id: string; nhan: string; deleted_at: string }>, error: null };
 }
