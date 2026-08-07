@@ -59,7 +59,14 @@ export default function JourneyStageChart({ ds }: { ds: readonly HanhTrinh[] }) 
   }
 
   return (
-    <div className="h-52 w-full rounded-xl border border-slate-200 bg-white p-2">
+    // 🔴 Board *MD V5* §9 *"giảm chiều cao toàn trang thêm"*: `h-52` (208px)
+    // → `h-36` (144px).
+    //
+    // 🔑 Biểu đồ này có **sáu cột và một trục** — nó ⛔ không cần 208px để đọc
+    // được, và 64px tiết kiệm ở đây trả thẳng cho **bảng hành trình bên dưới**,
+    // nơi mỗi dòng là một đơn hàng thật. Ưu tiên **dòng dữ liệu** hơn **khoảng
+    // trống trong biểu đồ**.
+    <div className="h-36 w-full rounded-xl border border-slate-200 bg-white p-2">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={duLieu} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />

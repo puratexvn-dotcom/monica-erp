@@ -38,8 +38,14 @@ export default function MdOrderCenter({
   return (
     <>
       {/* ④ BUSINESS FLOW — sắc **Journey = xanh lá** (Board §12). */}
-      {/* Board §10 — mở sẵn ~4 dòng, còn lại sau nút "Xem thêm". */}
-      <KhoiThuGon caoToiDa={420} nhan={`Xem đủ ${pos.length} đơn`}>
+      {/* Board §10 — mở sẵn ~4 dòng, còn lại sau nút "Xem thêm".
+          🔴 *MD V5* §9 — chiều cao giảm bằng cách **thu biểu đồ** (`h-52` →
+          `h-36`, xem `journey-stage-chart.tsx`), ⛔ KHÔNG bằng cách hạ clamp.
+          ⚠️ Tôi đã thử hạ 420 → 340 và ảnh chụp cho thấy nó **cắt sạch các
+          dòng đơn hàng**, để lại biểu đồ + mỗi hàng tiêu đề — khối đọc thành
+          *"⛔ không có đơn nào"*. Cắt mất **dữ liệu** để lấy chỗ là đổi sai
+          thứ; cắt **khoảng trống trong biểu đồ** mới đúng. */}
+      <KhoiThuGon caoToiDa={400} nhan={`Xem đủ ${pos.length} đơn`}>
       <MdOrderJourney
         pos={pos}
         materials={materials}
@@ -70,7 +76,10 @@ export default function MdOrderCenter({
         </div>
         <div className="p-1">
           <KhoiThuGon caoToiDa={236} nhan={`Xem đủ ${pos.length} PO`}>
-            <PoList rows={pos} error={poError} onRefresh={onRefresh} />
+            {/* `gonChiSo` — Board *MD V5* §2·§5·§13: bốn thẻ chỉ số ở đây lặp
+                bộ KPI cột giữa, và *"Dòng chảy"* lặp *"Đơn hàng đang ở đâu?"*
+                ngay trên. Xem chú thích đầy đủ ở `po-list.tsx`. */}
+            <PoList rows={pos} error={poError} onRefresh={onRefresh} gonChiSo />
           </KhoiThuGon>
         </div>
       </div>

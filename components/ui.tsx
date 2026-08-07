@@ -65,6 +65,53 @@ export const theBamDuoc =
  *  được**, ⛔ không phải **mò ra**. */
 export const loiDiChu = 'text-blue-700 transition hover:bg-blue-50 rounded-lg';
 
+// 🔴 THÊM 07/08/2026 — Board Directive *MD V5* §11: *"Các nút `Xem tất cả` ·
+// `Mở` · `Xử lý` · `Mở đơn` · `Tạo PO` phải nổi bật hơn."*
+//
+// ─── 🔑 VÌ SAO NÚT PHẢI MANG SẮC CỦA KHỐI CHỨA NÓ ───────────────────────
+// Board §10 nói màu **dùng để phân biệt chức năng, ⛔ không để trang trí**. Một
+// nút xanh dương nằm trong khối rủi ro đỏ là nút **nói sai chỗ nó dẫn tới**.
+// Nút *"Xử lý"* trong khối đỏ phải đỏ; nút *"Mở"* trong khối hôm nay phải vàng
+// hổ phách. Cùng một hình dạng, khác sắc — mắt đọc được chức năng trước khi đọc
+// được chữ.
+//
+// ⚠️ Chuỗi NGUYÊN VẸN theo từng nhóm, ⛔ không ghép động từ `SAC_NHOM`:
+// Tailwind quét mã theo **văn bản**, nên `bg-${n}-600` bị cắt mất lúc dựng và
+// nút ra **trong suốt**. Đây đúng là cái bẫy §5 của quy trình nghiệm thu.
+const NUT_NOI = {
+  action: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-200',
+  risk: 'bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-200',
+  today: 'bg-amber-600 text-white hover:bg-amber-700 focus-visible:ring-amber-200',
+  journey: 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-200',
+  dashboard: 'bg-violet-600 text-white hover:bg-violet-700 focus-visible:ring-violet-200',
+} as const;
+
+/** Nút đặc, nổi bật, mang sắc của nhóm chức năng. */
+export function nutNoi(n: SacNhom): string {
+  return (
+    'inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold shadow-sm ' +
+    'transition active:scale-95 focus-visible:outline-none focus-visible:ring-4 ' +
+    NUT_NOI[n]
+  );
+}
+
+// 🔴 THẺ HÀNH ĐỘNG CHÍNH — Board *MD V5* §6: *"`+ Tạo PO` phải LỚN NHẤT. Màu
+// nổi bật nhất. Các nút còn lại nhỏ hơn."*
+//
+// ⚠️ Ba lớp này ĐẶT Ở ĐÂY chứ ⛔ không ở `md-action-cards.tsx`: bánh cóc màu
+// `TD-07` đã bắt đúng lần đầu tôi viết `bg-blue-600` thẳng trong tệp phân hệ
+// *(nợ phình 106 → 107)*. Bánh cóc **đúng** — và cách sửa là **dời chuỗi về
+// thẻ màu**, ⛔ không phải nới trần nợ.
+export const theHanhDongChinh =
+  'group col-span-2 flex items-center gap-3 rounded-2xl bg-blue-600 p-4 text-left shadow-md transition ' +
+  'hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl ' +
+  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200';
+/** Huy hiệu biểu tượng NẰM TRONG thẻ hành động chính — nền trong suốt trên nền đặc. */
+export const huyHieuTheChinh =
+  'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white transition group-hover:scale-105';
+/** Dòng mô tả dưới nhãn của thẻ hành động chính. */
+export const chuPhuTheChinh = 'text-blue-100';
+
 // ============================================================================
 // 🎨 SẮC THEO NHÓM CHỨC NĂNG — Board Directive 07/08/2026 §12
 //

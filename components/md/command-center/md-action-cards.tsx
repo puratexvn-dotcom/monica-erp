@@ -25,7 +25,7 @@ import type { LucideIcon } from 'lucide-react';
 import { FilePlus2, UserPlus, Calculator, Shirt, FileText, Boxes } from 'lucide-react';
 
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
-import { SAC_NHOM } from '@/components/ui';
+import { SAC_NHOM, theHanhDongChinh, huyHieuTheChinh, chuPhuTheChinh } from '@/components/ui';
 
 export interface HanhDongMd {
   taoPo: () => void;
@@ -77,19 +77,23 @@ export default function MdActionCards({ hd }: { hd: HanhDongMd }) {
         <button
           type="button"
           onClick={hd.taoPo}
-          className={
-            'group col-span-2 flex items-center gap-3 rounded-2xl border p-4 text-left transition ' +
-            `${SAC_NHOM.action.vien} ${SAC_NHOM.action.nen} ` +
-            'hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 ' +
-            SAC_NHOM.action.tuongTac
-          }
+          // 🔴 Board *MD V5* §6: *"+ Tạo PO phải LỚN NHẤT. Màu nổi bật nhất."*
+          //
+          // ⚠️ ĐỔI TỪ NỀN NHẠT SANG **NỀN ĐẶC**. Bản trước dùng `bg-blue-50` —
+          // trên ảnh chụp Board gửi, thẻ chính nhạt gần bằng năm thẻ trắng bên
+          // cạnh, nên *"nổi bật nhất"* chỉ đúng trên giấy. Nền đặc + chữ trắng
+          // là thứ duy nhất trên màn hình này, nên ⛔ không thể nhầm.
+          //
+          // ⚠️ Lớp lấy từ `components/ui`, ⛔ không viết màu thẳng — bánh cóc
+          // `TD-07` đã bắt đúng lần đầu tôi viết `bg-blue-600` ở đây.
+          className={theHanhDongChinh}
         >
-          <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
+          <span className={huyHieuTheChinh}>
             <FilePlus2 className="h-6 w-6" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className={`block ${SAC_NHOM.action.chu} ${TYPE.body} ${FONT_WEIGHT.bold}`}>+ Tạo PO</span>
-            <span className={`block text-slate-500 ${TYPE.caption}`}>đơn hàng mới — việc chính của MD</span>
+            <span className={`block text-white ${TYPE.cardTitle} ${FONT_WEIGHT.bold}`}>+ Tạo PO</span>
+            <span className={`block ${chuPhuTheChinh} ${TYPE.caption}`}>đơn hàng mới — việc chính của MD</span>
           </span>
         </button>
 

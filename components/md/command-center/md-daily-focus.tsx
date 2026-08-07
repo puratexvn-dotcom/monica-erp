@@ -27,7 +27,7 @@ import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import type { BaoCaoNgay, DichCanhBao } from '@/lib/mos/md/daily-digest';
 import { tieuDiemHomNay, tienDoNgay } from '@/lib/mos/md/daily-focus';
 // ⚠️ Lớp lối-đi lấy từ `components/ui`, ⛔ không viết màu thẳng — bánh cóc TD-07.
-import { loiDiChu } from '@/components/ui';
+import { hopNhom, dauHopNhom, nutNoi, SAC_NHOM } from '@/components/ui';
 
 const SO_THU_TU = ['①', '②', '③', '④', '⑤'];
 
@@ -49,11 +49,22 @@ export default function MdDailyFocus({
     // nó là câu chuyện **17 giờ**, ⛔ không phải câu chuyện 8 giờ sáng.
     <section aria-label="Tiêu điểm hôm nay" className="grid grid-cols-1 gap-4">
       {/* ─── ⑦ TODAY ────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className={`mb-3 flex items-center gap-2 text-slate-900 ${TYPE.body} ${FONT_WEIGHT.semibold}`}>
-          <Target className="h-4 w-4" aria-hidden="true" />
-          Hôm nay cần chốt
-        </h2>
+      {/* 🔴 Board *MD V5* §10: bốn khu **Action · Risk · Today · Journey** phải
+          khác màu rõ ràng — màu để **phân biệt chức năng**, ⛔ không trang trí.
+          Today = **hổ phách**. Bản trước cả bốn khu đều nền trắng viền xám, nên
+          mắt ⛔ không tách được chúng ra nếu ⛔ không đọc tiêu đề. */}
+      <div className={hopNhom('today')}>
+        <div className={dauHopNhom('today')}>
+          {/* 🔴 Board §3: đổi tên *"Hôm nay cần chốt"* ⇒ *"Việc cần làm hôm nay"*. */}
+          <h2 className={`flex items-center gap-2 ${SAC_NHOM.today.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>
+            <Target className="h-4 w-4" aria-hidden="true" />
+            Việc cần làm hôm nay
+          </h2>
+          {tieuDiem.length > 0 && (
+            <span className={`tabular-nums text-slate-500 ${TYPE.caption}`}>{tieuDiem.length} việc</span>
+          )}
+        </div>
+        <div className="p-4">
 
         {tieuDiem.length === 0 ? (
           <p className={`text-slate-500 ${TYPE.bodySm}`}>
@@ -78,10 +89,12 @@ export default function MdDailyFocus({
                     tổ trưởng). Một nút bấm vào ⛔ không xảy ra gì còn tệ hơn ⛔
                     không có nút. */}
                 {v.dich && (
+                  // Board §11: nút `Mở` phải **nổi bật**, và mang sắc của khối
+                  // chứa nó — xem chú thích `nutNoi` ở `components/ui.tsx`.
                   <button
                     type="button"
                     onClick={() => onDi(v.dich as DichCanhBao)}
-                    className={`inline-flex shrink-0 items-center gap-1 px-2 py-1 ${loiDiChu} ${TYPE.caption} ${FONT_WEIGHT.semibold}`}
+                    className={nutNoi('today')}
                   >
                     Mở <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
                   </button>
@@ -91,17 +104,13 @@ export default function MdDailyFocus({
           </ol>
         )}
 
-        {onXemTatCa && (
-          <button
-            type="button"
-            onClick={onXemTatCa}
-            className={`mt-3 inline-flex items-center gap-1 px-2 py-1 ${loiDiChu} ${TYPE.caption} ${FONT_WEIGHT.semibold}`}
-          >
-            Xem tất cả <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
-          </button>
-        )}
+          {onXemTatCa && (
+            <button type="button" onClick={onXemTatCa} className={`mt-3 ${nutNoi('today')}`}>
+              Xem tất cả <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
-
     </section>
   );
 }

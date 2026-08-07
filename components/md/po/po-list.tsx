@@ -29,10 +29,25 @@ function PoList({
   rows,
   error,
   onRefresh,
+  gonChiSo = false,
 }: {
   rows: PoRow[];
   error: string | null;
   onRefresh: () => void | Promise<void>;
+  /** 🔴 Board *MD V5* §2 · §5 · §13 — giấu **bốn thẻ chỉ số** và **nút chuyển
+   *  Danh sách ⟷ Dòng chảy** khi bảng này nằm trong Workspace.
+   *
+   *  ─── 🔑 VÌ SAO ────────────────────────────────────────────────────────
+   *  Đo trên ảnh Board gửi: *"TỔNG ĐƠN HÀNG **17**"* ở đây **lặp nguyên**
+   *  *"ĐƠN ĐANG QUẢN LÝ **17**"* ở cột KPI ngay trên. §5 khai *"giữ **đúng 5
+   *  KPI**, ⛔ không lặp"* — bốn thẻ này là **bộ KPI thứ hai**.
+   *  Và *"Dòng chảy"* vẽ lại đúng câu hỏi mà *"Đơn hàng đang ở đâu?"* vừa trả
+   *  lời cách đó vài trăm điểm ảnh.
+   *
+   *  ⚠️ **Cờ, ⛔ không phải xoá** — ràng buộc ② cấm bỏ logic cũ. `Metric` ·
+   *  `PoPipeline` · bộ lọc dòng chảy vẫn nguyên vẹn cho nơi gọi khác; chỉ
+   *  Workspace thôi bày chúng. Mặc định `false` ⇒ nơi gọi cũ ⛔ không đổi. */
+  gonChiSo?: boolean;
 }) {
   const { t } = useLanguage();
   const [q, setQ] = useState('');
@@ -82,7 +97,7 @@ function PoList({
 
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className={`mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4 ${gonChiSo ? 'hidden' : ''}`}>
         <Metric label="Tổng đơn hàng" value={fmtNum(stats.total)} />
         <Metric label="Tổng sản lượng" value={fmtNum(stats.qty)} sub="sản phẩm" />
         {/* 🔴 ĐỔI NHÃN — Board Decision 06/08/2026, phương án 3.
@@ -114,7 +129,7 @@ function PoList({
 
       {/* Nút chuyển chế độ xem. Bảng cũ và bộ lọc cũ KHÔNG bị đụng tới —
           "Dòng chảy" chỉ thêm một lớp bày biện ở phía trên. */}
-      <div className="mb-3 flex gap-1 rounded-lg bg-slate-100 p-0.5" role="group">
+      <div className={`mb-3 flex gap-1 rounded-lg bg-slate-100 p-0.5 ${gonChiSo ? 'hidden' : ''}`} role="group">
         {(['list', 'flow'] as const).map((v) => (
           <button
             key={v}
@@ -130,7 +145,7 @@ function PoList({
         ))}
       </div>
 
-      {view === 'flow' && (
+      {view === 'flow' && !gonChiSo && (
         <PoPipeline rows={rows} filter={flowFilter} onFilter={setFlowFilter} />
       )}
 

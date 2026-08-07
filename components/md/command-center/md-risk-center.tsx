@@ -26,6 +26,7 @@ import { AlertTriangle, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 import { STATUS } from '@/lib/design/tokens';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
+import { hopNhom, dauHopNhom, nutNoi, SAC_NHOM } from '@/components/ui';
 import type { CanhBao, DichCanhBao } from '@/lib/mos/md/daily-digest';
 import type { MosAlert } from '@/lib/mos/command-center.contract';
 
@@ -38,12 +39,14 @@ const NHAN_DICH: Record<DichCanhBao, string> = {
 };
 
 export default function MdRiskCenter({
-  canhBao: canhBaoGoc, alerts, loi, onDi, boQua,
+  canhBao: canhBaoGoc, alerts, loi, onDi, boQua, onXemTatCa,
 }: {
   canhBao: readonly CanhBao[];
   alerts: readonly MosAlert[];
   loi?: string | null;
   onDi: (dich: DichCanhBao) => void;
+  /** Board *MD V5* §4 — mở tab **Rủi ro** với danh sách đầy đủ. */
+  onXemTatCa?: () => void;
   /** Tiêu đề ĐÃ hiện ở khối *Hôm nay* — Board §5: *"Risk ⛔ không lặp dữ liệu
    *  Today."* Bỏ chúng ra khỏi đây thay vì bày lần thứ hai. */
   boQua?: readonly string[];
@@ -69,8 +72,8 @@ export default function MdRiskCenter({
   //
   // ⚠️ **⛔ KHÔNG giấu số bị cắt.** Nói thẳng còn bao nhiêu và chỉ chỗ xem —
   // cắt im lặng thì màn hình đọc thành *"chỉ có 8 vấn đề"*.
-  // Board §10: mở sẵn **4 dòng**, phần còn lại sau nút mở rộng.
-  const TOI_DA = 4;
+  // 🔴 Board *MD V5* §4: *"chỉ giữ **5 rủi ro cao nhất**. Có `Xem tất cả`."*
+  const TOI_DA = 5;
   const bay = [
     ...canhBao.map((c, i) => ({ loai: 'd' as const, key: `d-${i}-${c.tieuDe}`, c })),
     ...alerts.map((a) => ({ loai: 'a' as const, key: a.id, a })),
@@ -79,13 +82,16 @@ export default function MdRiskCenter({
   const conLai = bay.length - hien.length;
 
   return (
-    <section aria-label="Khu rủi ro" id="khu-rui-ro" className="scroll-mt-24">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className={`text-slate-700 ${TYPE.overline}`}>Cần xử lý ngay</h2>
+    // Board *MD V5* §10: Risk = sắc **đỏ hồng**, khác hẳn Action xanh dương và
+    // Today hổ phách. Khối có đầu màu, ⛔ không còn là tiêu đề trần trên nền trắng.
+    <section aria-label="Khu rủi ro" id="khu-rui-ro" className={`scroll-mt-24 ${hopNhom('risk')}`}>
+      <div className={dauHopNhom('risk')}>
+        <h2 className={`${SAC_NHOM.risk.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>Cần xử lý ngay</h2>
         {tong > 0 && (
           <span className={`tabular-nums text-slate-500 ${TYPE.caption}`}>{tong} mục</span>
         )}
       </div>
+      <div className="p-4">
 
       {/* 🔴 LỖI ĐỌC PHẢI HIỆN RA, ⛔ KHÔNG ĐƯỢC NUỐT.
           *"⛔ Không có rủi ro nào"* và *"⛔ không đọc được CSDL"* trông y hệt
@@ -122,11 +128,8 @@ export default function MdRiskCenter({
                 {/* 🔑 ĐÂY là chỗ Board đòi: cảnh báo **dẫn tới hành động**.
                     Đích khai tại nguồn ở `daily-digest.ts`, ⛔ không đoán bằng
                     cách bóc chuỗi tiêu đề. */}
-                <button
-                  type="button"
-                  onClick={() => onDi(c.dich)}
-                  className={`inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/70 px-2 py-1 ${TYPE.caption} ${FONT_WEIGHT.semibold} transition hover:bg-white`}
-                >
+                {/* Board §11: nút đặc, ⛔ không còn là nút trắng mờ trên nền đỏ. */}
+                <button type="button" onClick={() => onDi(c.dich)} className={nutNoi('risk')}>
                   {NHAN_DICH[c.dich]} <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
                 </button>
               </li>
@@ -149,11 +152,7 @@ export default function MdRiskCenter({
               {/* ⚠️ Chỉ vẽ nút khi cảnh báo THẬT SỰ có nơi để tới. Một nút bấm
                   vào ⛔ không xảy ra gì còn tệ hơn ⛔ không có nút. */}
               {a.onOpen && (
-                <button
-                  type="button"
-                  onClick={a.onOpen}
-                  className={`inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/70 px-2 py-1 ${TYPE.caption} ${FONT_WEIGHT.semibold} transition hover:bg-white`}
-                >
+                <button type="button" onClick={a.onOpen} className={nutNoi('risk')}>
                   Xử lý <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
                 </button>
               )}
@@ -162,12 +161,26 @@ export default function MdRiskCenter({
         </ul>
       )}
 
-      {conLai > 0 && (
-        <p className={`mt-3 text-slate-500 ${TYPE.caption}`}>
-          …và <strong>{conLai} mục nữa</strong>. Danh sách đầy đủ ở{' '}
-          <strong>Hộp thư việc</strong> (cột trái) — nơi có sắp xếp theo mức khẩn.
-        </p>
+      {/* 🔴 Board *MD V5* §4: *"Có `Xem tất cả`. ⛔ Không render toàn bộ."*
+          ⚠️ **⛔ KHÔNG giấu số bị cắt** — nói thẳng còn bao nhiêu rồi mới mời
+          bấm. Cắt im lặng thì màn hình đọc thành *"chỉ có 5 vấn đề"*.
+          ⚠️ Câu cũ chỉ sang *"Hộp thư việc (cột trái)"* — khối đó **đã bị xoá**
+          theo §1, nên chỉ đường tới nó là chỉ tới chỗ ⛔ không còn tồn tại. */}
+      {(conLai > 0 || onXemTatCa) && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {conLai > 0 && (
+            <span className={`text-slate-500 ${TYPE.caption}`}>
+              …và <strong>{conLai} mục nữa</strong>.
+            </span>
+          )}
+          {onXemTatCa && (
+            <button type="button" onClick={onXemTatCa} className={nutNoi('risk')}>
+              Xem tất cả <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       )}
+      </div>
     </section>
   );
 }

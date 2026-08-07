@@ -32,7 +32,9 @@ import { fmtDate } from './md-tabs';
 // sáng; gói tải lần đầu ⛔ không được phình vì một biểu đồ nằm dưới nếp gấp.
 const JourneyStageChart = napDong(() => import('@/components/md/journey-stage-chart'), {
   ssr: false,
-  loading: () => <div className="h-52 w-full animate-pulse rounded-xl bg-slate-100" />,
+  // Khung chờ phải CAO ĐÚNG BẰNG biểu đồ thật (`h-36`) — lệch nhau thì trang
+  // giật một nhát khi biểu đồ nạp xong, đúng thứ `CLS` đo được.
+  loading: () => <div className="h-36 w-full animate-pulse rounded-xl bg-slate-100" />,
 });
 
 const TONE: Record<TrangThaiChang, string> = {

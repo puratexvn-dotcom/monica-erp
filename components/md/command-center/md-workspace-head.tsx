@@ -53,7 +53,7 @@ export interface DonChoHanhTrinh {
 export default function MdWorkspaceHead({
   pos, materials, productions, shipments, inspections, today,
   baoCao, tasks, alerts, loi, onDi, hanhDong, oLauncher, onMoTab,
-  orderCenter, hopThuViec, hoatDong, dashboard,
+  orderCenter,
 }: {
   pos: readonly DonChoHanhTrinh[];
   materials: ChungTuCon[];
@@ -70,14 +70,16 @@ export default function MdWorkspaceHead({
   /** ① Business Identity — 10 ô, luôn trên cùng. */
   oLauncher: readonly OLauncher[];
   onMoTab: (tab: string) => void;
-  /** Cột giữa — hành trình đơn + bảng PO. */
+  /** Hành trình đơn + bảng PO — **khối cuối cùng của màn hình**.
+   *
+   *  🔴 Board *MD V5* §1 đã **xoá** ba khối từng đứng dưới đây — *Hộp thư việc*
+   *  · *Nhật ký thao tác* · *Báo cáo ngày*: *"⛔ Không thu gọn. ⛔ Không
+   *  collapse. ⛔ Không giữ khoảng trắng."*
+   *
+   *  ⚠️ Ba **component** ấy vẫn nguyên trong kho *(`MdTaskSection` ·
+   *  `MdHoatDong` · `DailyDigestCard`)* — ràng buộc ② cấm xoá logic cũ. Chỉ
+   *  **thôi bày** chúng ở màn hình mặc định. */
   orderCenter: React.ReactNode;
-  /** Cột trái — hộp thư việc đầy đủ. */
-  hopThuViec: React.ReactNode;
-  /** Cột trái, đáy — nhật ký gần đây. Board §3: *"đưa xuống cuối cột"*. */
-  hoatDong?: React.ReactNode;
-  /** Dưới ba cột. */
-  dashboard: React.ReactNode;
 }) {
   const hanhTrinh: HanhTrinh[] = useMemo(
     () => pos.map((p) => tinhHanhTrinh({
@@ -133,7 +135,10 @@ export default function MdWorkspaceHead({
       {/* ③ TODAY | KPI | RISK — ba cột ngang nhau, ⛔ không cột nào gấp đôi:
           cả ba đều là khối ĐỌC NHANH, ⛔ không khối nào chứa bảng. */}
       <WorkspaceHomeGrid
-        deu
+        // 🔴 Board *MD V5* §9: `4/4/4` → **`3/4/5`**. Cột Rủi ro rộng ra nên
+        // tiêu đề bớt xuống dòng, cột thấp xuống, và mảng trắng ~340px ở đáy
+        // cột trái biến mất — xem chú thích bảng `CHIA`.
+        chia="3-4-5"
         myWork={
           <div id="viec-hom-nay" className="scroll-mt-24">
             <MdDailyFocus bc={baoCao} onDi={onDi} onXemTatCa={() => onMoTab('audit')} />
@@ -154,19 +159,14 @@ export default function MdWorkspaceHead({
             loi={loi}
             onDi={onDi}
             boQua={daBayOTieuDiem}
+            onXemTatCa={() => onMoTab('risks')}
           />
         }
       />
 
-      {/* ④ ORDER JOURNEY + ⑤ PO WORKSPACE — full chiều ngang */}
+      {/* ④ ORDER JOURNEY + ⑤ PO WORKSPACE — full chiều ngang.
+          🔴 Board *MD V5* §1: **màn hình kết thúc ngay sau `Danh sách PO`.** */}
       <div className="mt-5 space-y-5">{orderCenter}</div>
-
-      {/* ⑥ MANAGEMENT — mặc định thu gọn */}
-      <div className="mt-5 space-y-3">
-        {hopThuViec}
-        {hoatDong}
-        {dashboard}
-      </div>
     </>
   );
 }

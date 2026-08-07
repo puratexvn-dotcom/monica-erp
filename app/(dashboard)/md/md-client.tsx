@@ -520,17 +520,6 @@ export default function MdClient({
             techPack: () => goTab('documents'),
             yeuCauNpl: () => { goTab('materials'); setAutoDialog('material'); },
           }}
-          hopThuViec={
-            <KhoiGap tieuDe="Hộp thư việc" so={`${ccFeed?.tasks.length ?? 0} việc`}>
-              <MdTaskSection
-                tasks={ccFeed?.tasks ?? []}
-                loi={cc?.errors.all ?? null}
-                wording={MD_URGENCY}
-                emptyHint={MD_TASK_EMPTY_HINT}
-                chaySinhLich={sinhLichTaChoDonCu}
-              />
-            </KhoiGap>
-          }
           orderCenter={
             <MdOrderCenter
               pos={poRows}
@@ -544,26 +533,30 @@ export default function MdClient({
               onRefresh={refresh}
             />
           }
-          // Board §3: *"Recent Activity — đưa xuống cuối cột."*
-          // ⚠️ Nạp KHI BẤM, ⛔ không nạp sẵn: nhật ký ⛔ không phải thứ MD mở
-          // máy để đọc, và một truy vấn thừa ở đây là đúng thứ vừa gỡ khỏi
-          // đường chặn của trang chủ (TTFB 901 → 74 ms).
-          hoatDong={
-            <KhoiGap tieuDe="Nhật ký thao tác">
-              <MdHoatDong nap={listActivityClient} moTab={() => goTab('audit')} />
-            </KhoiGap>
-          }
-          dashboard={
-            <KhoiGap
-              tieuDe="Báo cáo ngày"
-              so={baoCaoNgay.rong ? '⚪ chưa ai báo cáo' : `${baoCaoNgay.canhBao.length} cảnh báo`}
-            >
-              <DailyDigestCard bc={baoCaoNgay} gonGang />
-            </KhoiGap>
-          }
         />
       )}
 
+      {/* ══════════════════════════════════════════════════════════════════
+          🔴 KHU LÀM VIỆC — CHỈ HIỆN KHI ĐÃ RỜI MÀN HÌNH MẶC ĐỊNH
+          Board Directive *MD V5* §1:
+            > *"Phần kết thúc **ngay sau `Danh sách PO`**."*
+          §13: *"⛔ Không để cùng một chức năng xuất hiện lần thứ hai."*
+
+          ─── 🔑 VÌ SAO GẮN CỔNG CHỨ ⛔ KHÔNG XOÁ ────────────────────────
+          Trên ảnh Board gửi, mọi thứ dưới `Danh sách PO` đều là **bản thứ hai**
+          của thứ đã có ở trên: thanh tab lặp lại 10 ô Business Launcher; thẻ
+          *"ĐƠN HÀNG (PO)"* chỉ nói *"hành trình … nằm ở cột giữa phía trên"* —
+          một khối tồn tại chỉ để chỉ sang khối khác.
+
+          ⚠️ Nhưng 13 tab **⛔ không phải rác** — chúng là đường vào 13 khu
+          nghiệp vụ. Xoá hẳn là mất đường vào *(ràng buộc ②)*. Nên: **màn hình
+          mặc định `po` ⛔ không bày chúng**; chọn một ô ở Business Launcher là
+          đã tuyên bố *"tôi muốn làm việc đó"* ⇒ khu tab mở ra, kèm nút
+          *"Về bàn điều hành"* ở đầu trang để quay lại.
+
+          🔑 Cùng một mã, hai màn hình khác nhau — thay vì hai bản sao. */}
+      {tab !== 'po' && (
+      <>
       {/* ═══ KHU LÀM VIỆC — 13 TAB NGHIỆP VỤ ════════════════════════════
           Hiện thẳng, KHÔNG bọc trong khối gấp. Trước đây khối này gấp lại để
           nhường chỗ cho ba khu điều hành, nhưng cái giá là mỗi lần muốn mở
@@ -743,13 +736,12 @@ export default function MdClient({
           </div>
         )}
 
-        {/* Tab "PO" ⛔ không dựng lại gì: hành trình đơn và bảng PO nay ở
-            **cột giữa** phía trên (Board §11 — xoá card trùng dữ liệu). */}
-        {tab === 'po' && (
-          <p className="p-5 text-sm text-slate-500">
-            Hành trình đơn hàng và danh sách PO nằm ở <strong>cột giữa</strong> phía trên.
-          </p>
-        )}
+        {/* 🔴 XOÁ 07/08/2026 — Board *MD V5* §1 liệt kê thẻ *"ĐƠN HÀNG (PO)"*
+            trong danh sách phải xoá.
+            🔑 Nó là một khối tồn tại **chỉ để chỉ sang khối khác** — *"hành
+            trình … nằm ở cột giữa phía trên"*. `tsc` xác nhận nó nay ⛔ không
+            với tới được: cổng `tab !== 'po'` đã thu hẹp kiểu, nên nhánh
+            `tab === 'po'` là **mã chết**, ⛔ không phải lựa chọn thẩm mỹ. */}
 
         {/* 🔑 Ba bảng dời sang `md-flow-tables.tsx` — Board Directive 06/08/2026
             Step 1. Phép dời thuần; xem khối chú thích đầu tệp đó. */}
@@ -841,12 +833,16 @@ export default function MdClient({
           Nó **trùng TÊN** với khối chỉ số ở cột giữa nhưng **khác bộ số**
           *(4 ⟷ 5 ô)*. ⛔ Không phải thừa — **nguy hiểm**: người dùng ⛔ không
           biết bộ nào đúng, rồi thôi tin **mọi** con số khác.
-          `MdCharts` xuống khối GẤP — Board §10 *"Analytics thu gọn"*. */}
+          `MdCharts` xuống khối GẤP — Board §10 *"Analytics thu gọn"*.
+          🔴 *MD V5* §1: khối *Phân tích* nay nằm TRONG cổng `tab !== 'po'`,
+          nên màn hình mặc định ⛔ không còn nó. */}
       <div className="mt-6 border-t border-slate-200 pt-6">
         <KhoiGap tieuDe="Phân tích">
           <MdCharts data={dashboard.data} />
         </KhoiGap>
       </div>
+      </>
+      )}
 
       {/* Toàn bộ hộp thoại + panel PO 360 + bảng lệnh — tách sang
           `md-dialogs.tsx` vì trần 900 dòng. Sửa bằng **CẤU TRÚC**, ⛔ không
