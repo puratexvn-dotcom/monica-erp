@@ -22,14 +22,14 @@
 // Phép tính ở `lib/mos/md/command-center-kpi.ts`, ⛔ không ở đây.
 // ============================================================================
 import {
-  ClipboardList, ShieldCheck, AlertTriangle, CalendarClock, Sparkles,
+  ClipboardList, ShieldCheck, AlertTriangle, CalendarClock, Sparkles, ArrowRight,
 } from 'lucide-react';
 
 import { STATUS } from '@/lib/design/tokens';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import type { TongQuanMd } from '@/lib/mos/md/command-center-kpi';
 // ⚠️ Lớp thẻ bấm được lấy từ `components/ui`, ⛔ không viết màu thẳng ở đây.
-import { theBamDuoc } from '@/components/ui';
+import { theBamDuoc, loiDiChu } from '@/components/ui';
 
 type Nhan = 'trung' | 'tot' | 'canh' | 'nguy';
 
@@ -41,7 +41,7 @@ const TONE: Record<Nhan, { chip: string; text: string; dot: string }> = {
 };
 
 function O({
-  nhan, so, phu, icon: Icon, tone, onClick, nhanBam,
+  nhan, so, phu, icon: Icon, tone, onClick, nhanBam, loiDi,
 }: {
   nhan: string;
   so: string;
@@ -50,6 +50,8 @@ function O({
   tone: Nhan;
   onClick?: () => void;
   nhanBam: string;
+  /** Câu **hành động** hiện ngay trên ô — Board §1. */
+  loiDi?: string;
 }) {
   const t = TONE[tone];
   const noiDung = (
@@ -60,20 +62,30 @@ function O({
       </div>
       <p className={`mt-1.5 tabular-nums ${TYPE.display} ${FONT_WEIGHT.bold} ${t.text}`}>{so}</p>
       <p className={`mt-0.5 ${TYPE.caption} text-slate-500`}>{phu}</p>
+      {/* 🔴 Board §1: *"KPI ⛔ không được là ngõ cụt … Mỗi KPI phải trả lời:
+          tôi cần hành động gì?"*
+          🔑 Con trỏ đổi hình khi rê chuột là **⛔ không đủ**: trên điện thoại
+          ⛔ không có con trỏ, và người dùng máy bàn cũng phải rê tới mới biết.
+          Nên lối đi được **viết ra thành chữ**. */}
+      {onClick && (
+        <p className={`mt-2 inline-flex items-center gap-1 ${loiDiChu} ${TYPE.caption} ${FONT_WEIGHT.semibold}`}>
+          {loiDi} <ArrowRight className="h-3 w-3" aria-hidden="true" />
+        </p>
+      )}
     </>
   );
 
   // ⛔ KHÔNG bọc `<button>` quanh ô ⛔ không có nơi để tới — con trỏ đổi thành
   // bàn tay rồi bấm ⛔ không xảy ra gì là **lời hứa suông của giao diện**.
   if (!onClick) {
-    return <div className="rounded-2xl border border-slate-200 bg-white p-4">{noiDung}</div>;
+    return <div className="rounded-2xl border border-slate-200 bg-white p-5">{noiDung}</div>;
   }
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={nhanBam}
-      className={`p-4 ${theBamDuoc}`}
+      className={`p-5 ${theBamDuoc}`}
     >
       {noiDung}
     </button>
@@ -92,11 +104,12 @@ export default function MdCommandCenter({
   const treGiao = tq.theoSucKhoe.DELAYED;
 
   return (
-    <section aria-label="Tổng quan điều hành" className="mb-5">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <section aria-label="Tổng quan điều hành" className="mb-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <O
           nhan="Đơn đang quản lý" so={String(tq.tongPo)} phu="tổng PO còn chạy"
           icon={ClipboardList} tone="trung" onClick={onMoDon} nhanBam="Mở danh sách đơn hàng"
+          loiDi="Mở danh sách"
         />
         <O
           nhan="Đúng tiến độ"
@@ -105,22 +118,23 @@ export default function MdCommandCenter({
           so={tq.phanTramDungTienDo === null ? '⚪' : `${tq.phanTramDungTienDo}%`}
           phu={`${tq.theoSucKhoe.ON_TRACK} đơn đúng hạn giao`}
           icon={ShieldCheck} tone="tot" onClick={onMoDon} nhanBam="Xem hành trình đơn hàng"
+          loiDi="Xem hành trình"
         />
         <O
           nhan="Cần để mắt" so={String(canDeMat)} phu="sắp tới hạn giao"
           icon={AlertTriangle} tone={canDeMat > 0 ? 'canh' : 'trung'}
-          onClick={onMoRuiRo} nhanBam="Mở khu rủi ro"
+          onClick={onMoRuiRo} nhanBam="Mở khu rủi ro" loiDi="Xem vấn đề"
         />
         <O
           nhan="Trễ giao" so={String(treGiao)} phu="đã quá hạn"
           icon={AlertTriangle} tone={treGiao > 0 ? 'nguy' : 'trung'}
-          onClick={onMoRuiRo} nhanBam="Mở khu rủi ro"
+          onClick={onMoRuiRo} nhanBam="Mở khu rủi ro" loiDi="Xử lý ngay"
         />
         <O
           nhan="Việc hôm nay" so={String(tq.soViecHomNay)}
           phu={tq.khanNhat ? `khẩn nhất: ${tq.khanNhat.moTa}` : 'hộp thư việc trống'}
           icon={CalendarClock} tone={tq.soViecHomNay > 0 ? 'canh' : 'tot'}
-          onClick={onMoViec} nhanBam="Mở danh sách việc hôm nay"
+          onClick={onMoViec} nhanBam="Mở danh sách việc hôm nay" loiDi="Mở tiêu điểm"
         />
       </div>
 
@@ -135,7 +149,7 @@ export default function MdCommandCenter({
 
           ⚠️ ⛔ KHÔNG bịa lời khen khi ⛔ chưa ai báo cáo. Một dải chúc mừng
           trên nền dữ liệu rỗng là **nịnh**, và người dùng nhận ra ngay. */}
-      <div className={`mt-3 rounded-2xl border px-4 py-3 ${tq.chuaCoBaoCao ? 'border-slate-200 bg-white' : `${TONE.tot.chip} border`}`}>
+      <div className={`mt-4 rounded-2xl border px-5 py-3.5 ${tq.chuaCoBaoCao ? 'border-slate-200 bg-white' : `${TONE.tot.chip} border`}`}>
         {tq.chuaCoBaoCao ? (
           <p className={`${TYPE.bodySm} text-slate-500`}>
             ⚪ Hôm nay <strong>chưa nhận được báo cáo nào</strong> từ tổ trưởng, nhà thầu hay QA —

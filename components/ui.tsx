@@ -57,6 +57,14 @@ export const theBamDuoc =
   'hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md ' +
   'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100';
 
+/** Lối đi viết thành CHỮ trên một ô/dòng — *"Mở danh sách →"*.
+ *
+ *  🔴 Board Directive 07/08/2026 §1: *"KPI ⛔ không được là ngõ cụt."*
+ *  🔑 Con trỏ đổi hình khi rê chuột là **⛔ không đủ**: điện thoại ⛔ không có
+ *  con trỏ, và người dùng máy bàn cũng phải rê tới mới biết. Lối đi phải **đọc
+ *  được**, ⛔ không phải **mò ra**. */
+export const loiDiChu = 'text-blue-700 transition hover:bg-blue-50 rounded-lg';
+
 /** Huy hiệu biểu tượng của thẻ hành động. */
 export const huyHieuThe =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-100';

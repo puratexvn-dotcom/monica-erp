@@ -48,8 +48,8 @@ export default function MdRiskCenter({
   const tong = canhBao.length + alerts.length;
 
   return (
-    <section aria-label="Khu rủi ro" id="khu-rui-ro" className="mb-5 scroll-mt-24">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
+    <section aria-label="Khu rủi ro" id="khu-rui-ro" className="mb-6 scroll-mt-24">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
         <h2 className={`text-slate-700 ${TYPE.overline}`}>Vấn đề cần xử lý</h2>
         {tong > 0 && (
           <span className={`tabular-nums text-slate-500 ${TYPE.caption}`}>{tong} mục</span>
@@ -74,14 +74,14 @@ export default function MdRiskCenter({
           </p>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {/* Nguy cấp đứng trước — `canhBao` đã được `daily-digest` sắp theo mức độ. */}
           {canhBao.map((c, i) => {
             const nguy = c.mucDo === 'NGHIEM_TRONG';
             return (
               <li
                 key={`d-${i}-${c.tieuDe}`}
-                className={`flex items-start gap-3 rounded-2xl px-4 py-3 ring-1 ${nguy ? STATUS.critical.chip : STATUS.warning.chip}`}
+                className={`flex items-start gap-3 rounded-2xl px-4 py-3.5 ring-1 ${nguy ? STATUS.critical.chip : STATUS.warning.chip}`}
               >
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">

@@ -51,7 +51,18 @@ const ICON_MUC_DO: Record<MucDo, string> = {
   NGHIEM_TRONG: '🔴', CANH_BAO: '🟡', BINH_THUONG: '🟢',
 };
 
-export default function DailyDigestCard({ bc }: { bc: BaoCaoNgay }) {
+export default function DailyDigestCard({ bc, gonGang = false }: { bc: BaoCaoNgay; gonGang?: boolean }) {
+  // 🔴 THÊM 07/08/2026 — Board §6: *"Phần Report cuối trang đang mang cảm giác
+  // ERP Dashboard. Ẩn hoặc giảm: chart ít giá trị, **báo cáo trùng**, widget ⛔
+  // không phục vụ hành động."*
+  //
+  // Ở `/md`, hai khối **Cảnh báo** và **Việc cần làm** của thẻ này đã được đưa
+  // lên thành khu **Vấn đề cần xử lý** (③) và **Hôm nay cần chốt** (⑦) — nơi
+  // mỗi dòng **bấm được**. Giữ lại ở đây là bày **cùng một nội dung hai lần**,
+  // và bản dưới còn **⛔ không bấm được** — tức bản kém hơn đứng sau bản tốt hơn.
+  //
+  // ⚠️ `gonGang` mặc định `false`: `/giam-doc` vẫn dùng thẻ ĐẦY ĐỦ, vì bàn giám
+  // đốc ⛔ không có hai khu kia. Đổi mặc định là làm hỏng màn hình khác.
   return (
     <Card title={`Báo cáo ngày ${moc(bc.ngay)}`}>
       {bc.rong && (
@@ -88,7 +99,7 @@ export default function DailyDigestCard({ bc }: { bc: BaoCaoNgay }) {
       </div>
 
       {/* ③ Cảnh báo — đã xếp NGHIÊM TRỌNG lên trước ở tầng logic. */}
-      {bc.canhBao.length > 0 && (
+      {!gonGang && bc.canhBao.length > 0 && (
         <div className="mt-4">
           <h4 className={`mb-2 flex items-center gap-1.5 text-slate-800 ${TYPE.cardTitle}`}>
             <TriangleAlert className="h-4 w-4" aria-hidden="true" />
@@ -109,7 +120,7 @@ export default function DailyDigestCard({ bc }: { bc: BaoCaoNgay }) {
       )}
 
       {/* ④ Nhắc việc — suy từ chính chỗ dữ liệu còn thiếu. */}
-      {bc.nhacViec.length > 0 && (
+      {!gonGang && bc.nhacViec.length > 0 && (
         <div className="mt-4">
           <h4 className={`mb-2 flex items-center gap-1.5 text-slate-800 ${TYPE.cardTitle}`}>
             <ListChecks className="h-4 w-4" aria-hidden="true" />

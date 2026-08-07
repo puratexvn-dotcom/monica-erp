@@ -42,6 +42,7 @@ import {
 } from '@/components/md/command-center/md-feed';
 import ActionablePoList from '@/components/md/command-center/actionable-po';
 import MdWorkspaceHead from '@/components/md/command-center/md-workspace-head';
+import MdDailyFocus from '@/components/md/command-center/md-daily-focus';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
 import type { CommandCenterData } from './_services/command-center.service';
@@ -641,7 +642,7 @@ export default function MdClient({
         )}
 
         {tab === 'po' && (
-          <div className="space-y-4 p-4">
+          <div className="space-y-6 p-5">
             {/* ④ BUSINESS FLOW — "Đơn hàng đang ở đâu?"
                 Board gọi đây là **điểm khác biệt của MONICA ONE**. Đứng trên
                 mọi bảng dữ liệu: merchandiser hỏi *"đơn tôi đang ở đâu"* TRƯỚC
@@ -659,32 +660,45 @@ export default function MdClient({
               onOpenTab={(t) => goTab(t as TabKey)}
             />
 
-            {/* ⑤ TASK — Board §5: *"Tách rõ: **Risk** = hệ thống phát hiện vấn
-                đề; **Task** = MD cần hành động."* Rủi ro nằm ở khối ③ phía
-                trên; đây CHỈ còn việc phải làm. */}
+            {/* ⑤ TODAY'S FOCUS + DAILY ACHIEVEMENT — Board §7–§8.
+                🔑 Đặt NGAY SAU hành trình đơn: MD vừa thấy *"đơn đang ở đâu"*,
+                câu kế tiếp trong đầu là *"vậy hôm nay tôi phải chốt cái gì"*.
+                Đẩy nó xuống dưới bảng PO là bắt người ta cuộn qua 14 dòng dữ
+                liệu mới tới được câu trả lời. */}
             <div id="viec-hom-nay" className="scroll-mt-24">
-              <MosTaskInbox
-                title="Việc cần làm hôm nay"
-                tasks={ccFeed?.tasks ?? []}
-                error={cc?.errors.all ?? null}
-                wording={MD_URGENCY}
-                emptyTitle="Không có việc nào tới hạn"
-                emptyHint={MD_TASK_EMPTY_HINT}
-              />
+              <MdDailyFocus bc={baoCaoNgay} onDi={(d) => goTab(d as TabKey)} />
             </div>
 
-            {/* ⑥ DATA — danh sách PO. Board: *"PO là dữ liệu chi tiết. ⛔ Không
-                phải thứ MD cần thấy đầu tiên."* */}
+            {/* ⑥ DATA — danh sách PO. Board §5: *"Giảm chiều cao. ⛔ Không để PO
+                List chiếm phần lớn màn hình. MD ⛔ không đọc PO từ trên xuống —
+                MD **tìm · lọc · mở**."*
+                ⇒ Bọc trong khung cuộn riêng: bảng dài bao nhiêu cũng ⛔ không
+                đẩy được khu Report ra khỏi tầm mắt. */}
             {cc && <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />}
-            <PoList rows={poRows} error={poError} onRefresh={refresh} />
+            <div className="max-h-[28rem] overflow-y-auto rounded-2xl border border-slate-200">
+              <PoList rows={poRows} error={poError} onRefresh={refresh} />
+            </div>
 
-            {/* ⑦ REPORT — báo cáo ngày lùi xuống CUỐI.
-                🔑 Nó ⛔ không mất đi và ⛔ không kém quan trọng — nó chỉ **thôi
-                đứng chắn** giữa MD và việc phải làm. Board: *"loại bỏ cảm giác
-                dashboard ERP"*. Các con số của nó đã được chưng ở dải **Thành
-                quả trong ngày** ngay khối ① — chỗ này là bản đầy đủ để đọc kỹ
-                và gửi giám đốc. */}
-            <DailyDigestCard bc={baoCaoNgay} />
+            {/* ⑦ TASK — hộp thư việc.
+                ⚠️ Đứng SAU dữ liệu, đúng thứ tự Board §9 khai
+                *(… → PO → Task → Report)*. Phần **khẩn** của nó đã được rút lên
+                khối ⑤; đây là bản đầy đủ. */}
+            <MosTaskInbox
+              title="Hộp thư việc"
+              tasks={ccFeed?.tasks ?? []}
+              error={cc?.errors.all ?? null}
+              wording={MD_URGENCY}
+              emptyTitle="Không có việc nào tới hạn"
+              emptyHint={MD_TASK_EMPTY_HINT}
+            />
+
+            {/* ⑧ REPORT — báo cáo ngày, bản GỌN.
+                🔑 `gonGang` bỏ hai khối **Cảnh báo** và **Việc cần làm** — cả
+                hai đã lên khu ③ và ⑦ ở trên, nơi mỗi dòng **bấm được**. Giữ lại
+                ở đây là bày cùng một nội dung hai lần, mà bản dưới còn ⛔ không
+                bấm được — tức bản kém hơn đứng sau bản tốt hơn.
+                Board §6: *"ẩn hoặc giảm … báo cáo trùng"*. */}
+            <DailyDigestCard bc={baoCaoNgay} gonGang />
           </div>
         )}
 

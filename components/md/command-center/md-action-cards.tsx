@@ -39,17 +39,25 @@ export interface TheHanhDong {
   href?: string;
 }
 
-const the = `group flex items-start gap-3 p-4 ${theBamDuoc}`;
+// 🔴 Board §2: *"Thiết kế **giống Business Launcher**. Icon lớn hơn. Card nổi
+// bật hơn. Khoảng cách rộng hơn. **⛔ Không giống toolbar**."*
+//
+// 🔑 Đổi từ **hàng ngang** *(biểu tượng nhỏ bên trái, chữ bên phải)* sang **ô
+// dọc** *(biểu tượng lớn ở trên, chữ ở dưới)* — đúng hình dạng của Trang chủ
+// Business App. Cùng một hình dạng cho cùng một ý nghĩa *"đây là nơi bắt đầu
+// một việc"*: người dùng học **một lần**, dùng được cả hệ thống.
+const the = `group flex flex-col items-start gap-3 p-5 ${theBamDuoc}`;
 
 function NoiDung({ nhan, phu, icon: Icon }: { nhan: string; phu: string; icon: LucideIcon }) {
   return (
     <>
-      <span className={`mt-0.5 ${huyHieuThe}`}>
-        <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+      {/* Biểu tượng LỚN — `h-12 w-12` thay cho `h-9 w-9`. */}
+      <span className={`${huyHieuThe} h-12 w-12`}>
+        <Icon className="h-6 w-6" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className={`block text-slate-900 ${TYPE.bodySm} ${FONT_WEIGHT.semibold}`}>{nhan}</span>
-        <span className={`block text-slate-500 ${TYPE.caption}`}>{phu}</span>
+        <span className={`block text-slate-900 ${TYPE.body} ${FONT_WEIGHT.semibold}`}>{nhan}</span>
+        <span className={`mt-0.5 block text-slate-500 ${TYPE.caption}`}>{phu}</span>
       </span>
     </>
   );
@@ -79,9 +87,9 @@ export default function MdActionCards({
   ];
 
   return (
-    <section aria-label="Việc làm nhanh" className="mb-5">
-      <h2 className={`mb-2 text-slate-700 ${TYPE.overline}`}>Bắt đầu việc gì?</h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+    <section aria-label="Việc làm nhanh" className="mb-6">
+      <h2 className={`mb-3 text-slate-700 ${TYPE.overline}`}>Bắt đầu việc gì?</h2>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {dsThe.map((c) =>
           c.href ? (
             <Link key={c.id} href={c.href} className={the}>
