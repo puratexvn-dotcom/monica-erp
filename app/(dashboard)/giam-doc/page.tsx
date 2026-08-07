@@ -20,6 +20,8 @@ import { guard } from './_services/guard'
 import { ngayVN } from '@/lib/time'
 import { tongHopNgay } from '@/lib/mos/md/daily-digest'
 import DailyDigestCard from '@/components/md/dashboard/daily-digest-card'
+import WorkspaceHomeGrid from '@/components/workspace/workspace-home-grid'
+import GiamDocRisk from '@/components/giam-doc/giam-doc-risk'
 
 // 🔴 BIỂU ĐỒ TRƯỚC BẢNG — Board 06/08/2026. Nạp ĐỘNG: `recharts` ~100 kB, ⛔
 // không được nằm trong gói tải lần đầu của bàn giám đốc.
@@ -89,19 +91,29 @@ export default async function ExecutiveDashboardPage({
         </div>
       </div>
 
-      {/* 🔴 BÁO CÁO NGÀY CỦA MD — cùng một hàm tổng hợp, cùng một con số.
-          Đặt NGAY DƯỚI tiêu đề: giám đốc mở trang là thấy hôm nay xưởng thế
-          nào, trước cả các chỉ số tài chính. */}
-      <DailyDigestCard bc={baoCaoNgay} />
+      {/* 🔴 BÁO CÁO NGÀY DỜI XUỐNG ĐÁY — ADR-026 tầng ⑧.
+          Nó ⛔ không kém quan trọng; nó thôi **đứng chắn** giữa giám đốc và
+          những gì đang cháy. Con số của nó đã có ở cột trái. */}
 
+      {/* ═══ DNA WORKSPACE — ADR-026 · khung ba cột DÙNG CHUNG ═══════════
+          Cùng `WorkspaceHomeGrid` mà `/md` dùng. ⛔ KHÔNG chép tay lớp
+          `grid-cols-12 order-*` sang đây — chép tay là cách bố cục bắt đầu
+          trôi khỏi chuẩn, đúng cơ chế ADR-026 §1.2 đo được. */}
+      {/* ⑧ REPORT ở `dashboard`: bản ĐẦY ĐỦ.
+          ⚠️ `gonGang` **⛔ KHÔNG** bật ở đây — bàn giám đốc ⛔ không có khu
+          Risk/Focus riêng như `/md`, nên hai khối cảnh báo + nhắc việc của thẻ
+          đó là **bản duy nhất**. Bật `gonGang` sẽ **xoá mất** chúng. */}
+      <WorkspaceHomeGrid
+        myWork={
+          <>
       {/* TOP METRICS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         
         {/* KPI 1: WIP (Điểm nghẽn Dòng tiền) */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">📦</div>
           <p className="text-xs font-semibold uppercase text-slate-500">Bán Thành Phẩm WIP</p>
-          <p className="text-3xl font-extrabold text-amber-600 mt-2">
+          <p className="text-2xl font-extrabold text-amber-600 mt-2">
             {metrics.wipPcs.toLocaleString()} <span className="text-base font-normal text-slate-500">pcs</span>
           </p>
           <p className="text-xs text-slate-500 mt-2 font-medium">
@@ -110,43 +122,43 @@ export default async function ExecutiveDashboardPage({
         </div>
 
         {/* KPI 2: HIỆU SUẤT MAY OEE */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">⚡</div>
           <p className="text-xs font-semibold uppercase text-slate-500">Hiệu Suất Chuyền (OEE)</p>
-          <p className={`text-3xl font-extrabold mt-2 ${Number(metrics.sewingOEE) >= 90 ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <p className={`text-2xl font-extrabold mt-2 ${Number(metrics.sewingOEE) >= 90 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {metrics.sewingOEE}%
           </p>
           <p className="text-xs text-slate-500 mt-2 font-medium">Tổng đạt: {metrics.totalSewnPcs.toLocaleString()} pcs</p>
         </div>
 
         {/* KPI 3: CHẤT LƯỢNG TOÀN NHÀ MÁY */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">🔍</div>
           <p className="text-xs font-semibold uppercase text-slate-500">Tỷ Lệ Lỗi Hệ Thống</p>
-          <p className={`text-3xl font-extrabold mt-2 ${parseFloat(metrics.qaDefectRate) > 3 ? 'text-rose-600' : 'text-emerald-600'}`}>
+          <p className={`text-2xl font-extrabold mt-2 ${parseFloat(metrics.qaDefectRate) > 3 ? 'text-rose-600' : 'text-emerald-600'}`}>
             {metrics.qaDefectRate}%
           </p>
           <p className="text-xs text-slate-500 mt-2 font-medium">Lỗi: {metrics.totalQaDefects} / Kiểm: {metrics.totalQaInspected}</p>
         </div>
 
         {/* KPI 4: HÀNG CHỜ XUẤT */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">🚢</div>
           <p className="text-xs font-semibold uppercase text-slate-500">Hàng Chờ Đóng Thùng</p>
-          <p className="text-3xl font-extrabold text-blue-600 mt-2">
+          <p className="text-2xl font-extrabold text-blue-600 mt-2">
             {metrics.readyToShipPcs.toLocaleString()} <span className="text-base font-normal text-slate-500">pcs</span>
           </p>
           <p className="text-xs text-slate-500 mt-2 font-medium">Sẵn sàng xuất khẩu / Packing</p>
         </div>
       </div>
-
-      {/* DRILL-DOWN SECTIONS (KHOAN SÂU DỮ LIỆU) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+          </>
+        }
+        workCenter={
+          <>
       {/* 🔴 HAI BIỂU ĐỒ ĐIỀU HÀNH — Board 06/08/2026: *"luôn luôn ưu tiên
           trực quan, biểu đồ"*. Đặt TRƯỚC hai bảng bên dưới; bảng **giữ nguyên**
           làm chỗ tra chi tiết, ⛔ không xoá. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-5">
         <div>
           <h2 className="mb-2 text-sm font-bold text-slate-800">🔥 Hàng đang kẹt ở PO nào</h2>
           <BieuDoNutThat rows={metrics.wipBottleneckPOs} />
@@ -162,7 +174,6 @@ export default async function ExecutiveDashboardPage({
           </p>
         </div>
       </div>
-
         {/* DRILL-DOWN 1: BOTTLENECK WIP */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -260,7 +271,17 @@ export default async function ExecutiveDashboardPage({
           )}
 
         </div>
-      </div>
+          </>
+        }
+        risk={
+          <GiamDocRisk
+            canhBao={baoCaoNgay.canhBao}
+            chuyenLoi={metrics.qaAlertLines}
+            gayKim={metrics.activeNeedleAlerts}
+          />
+        }
+        dashboard={<DailyDigestCard bc={baoCaoNgay} />}
+      />
     </div>
   )
 }

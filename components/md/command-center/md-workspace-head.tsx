@@ -34,6 +34,7 @@ import MdCommandCenter from './md-command-center';
 import MdActionCards, { type HanhDongMd } from './md-action-cards';
 import MdRiskCenter from './md-risk-center';
 import MdDailyFocus from './md-daily-focus';
+import WorkspaceHomeGrid from '@/components/workspace/workspace-home-grid';
 import { tinhHanhTrinh, type ChungTuCon, type BienBanKiem, type HanhTrinh } from '@/lib/mos/md/order-journey';
 import { tongQuanMd } from '@/lib/mos/md/command-center-kpi';
 import type { BaoCaoNgay, DichCanhBao } from '@/lib/mos/md/daily-digest';
@@ -101,18 +102,14 @@ export default function MdWorkspaceHead({
   };
 
   return (
-    <>
-      {/* ═══ ACTION CENTER — trên cùng, full chiều ngang ═══════════════════ */}
-      <MdActionCards hd={hanhDong} />
-
-      {/* ═══ BA CỘT ═══════════════════════════════════════════════════════
-          `lg:grid-cols-12` chia 3 / 6 / 3: cột giữa **gấp đôi** hai cột bên
-          vì nó chứa bảng dữ liệu — chia đều thì bảng PO bị bóp còn một nửa
-          chiều ngang và phải cuộn ngang, thứ Board vừa yêu cầu tránh. */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-        {/* ─── CỘT TRÁI · MY WORK ────────────────────────────────────────
-            Điện thoại: `order-2` — sau Risk. Máy bàn: cột đầu. */}
-        <section aria-label="Công việc của tôi" className="order-2 space-y-5 lg:order-1 lg:col-span-3">
+    // 🔑 Khung ba cột nay là **mã dùng chung** — `WorkspaceHomeGrid`. `/md` là
+    // phân hệ đầu dùng nó; `/giam-doc` và `/kho` dùng **đúng component đó**.
+    // Chép tay lớp `grid-cols-12 order-*` sang từng phân hệ là cách bố cục
+    // bắt đầu trôi khỏi chuẩn — xem ADR-026 §1.2.
+    <WorkspaceHomeGrid
+      actionCenter={<MdActionCards hd={hanhDong} />}
+      myWork={
+        <>
           <MdCommandCenter
             tq={tq}
             onMoDon={() => onDi('po')}
@@ -125,24 +122,11 @@ export default function MdWorkspaceHead({
           </div>
           {/* Board §3: *"Recent Activity — đưa xuống cuối cột."* */}
           {hoatDong}
-        </section>
-
-        {/* ─── CỘT GIỮA · ORDER CENTER ───────────────────────────────────
-            Điện thoại: `order-3`. Board xếp Orders sau Today Work. */}
-        <section aria-label="Order Center" className="order-3 space-y-5 lg:order-2 lg:col-span-6">
-          {orderCenter}
-        </section>
-
-        {/* ─── CỘT PHẢI · RISK ───────────────────────────────────────────
-            🔴 Điện thoại: `order-1` — LÊN ĐẦU, trước cả My Work. Cái đang
-            cháy phải đọc trước khi cuộn tay mỏi. */}
-        <section aria-label="Cần xử lý ngay" className="order-1 lg:order-3 lg:col-span-3">
-          <MdRiskCenter canhBao={baoCao.canhBao} alerts={alerts} loi={loi} onDi={onDi} />
-        </section>
-      </div>
-
-      {/* ═══ DASHBOARD — DƯỚI ba cột, Board §6 ════════════════════════════ */}
-      <div className="mt-5">{dashboard}</div>
-    </>
+        </>
+      }
+      workCenter={orderCenter}
+      risk={<MdRiskCenter canhBao={baoCao.canhBao} alerts={alerts} loi={loi} onDi={onDi} />}
+      dashboard={dashboard}
+    />
   );
 }

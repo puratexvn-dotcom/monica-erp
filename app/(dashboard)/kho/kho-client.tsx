@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import { Card, StatCard, Badge, ProgressBar, btnPrimary, btnGhost, thCls, tdCls } from '@/components/ui';
+import WorkspaceHomeGrid from '@/components/workspace/workspace-home-grid';
 import { NoData, ErrorState } from '@/components/data-state';
 import { listMaterials, listTransactions } from './wh-actions';
 import { CATEGORY_LABEL, type MaterialCategory, type MaterialRow, type PoOption, type TxRow } from './wh-schema';
@@ -125,8 +126,21 @@ export default function KhoClient({
       {/* Dải chỉ số và bảng tồn kho CŨ chỉ hiện ở màn hình đầy đủ. Khi nhúng
           vào tab của trung tâm điều hành thì ba cột phía trên đã trả lời đúng
           những câu đó rồi — hiện lại vừa lặp vừa dễ lệch số. */}
+      {/* ═══ DNA WORKSPACE — ADR-026 · khung ba cột DÙNG CHUNG ═══════════
+          Cùng `WorkspaceHomeGrid` mà `/md` và `/giam-doc` dùng. ⛔ KHÔNG chép
+          tay lớp lưới sang đây — chép tay là cách bố cục trôi khỏi chuẩn.
+
+          ⚠️ CHỈ ở màn hình ĐẦY ĐỦ (`mode === undefined`). Khi `/kho` nhúng làm
+          tab của trung tâm điều hành thì khung ngoài đã lo bố cục — dựng ba cột
+          bên trong ba cột là **lồng lưới**, và nó vỡ ở khổ hẹp.
+
+          ⚠️ `/kho` ⛔ CHƯA có Action Center: thao tác nhập–xuất nằm trong hộp
+          thoại của bảng tồn kho. Bỏ trống **có khai báo** còn hơn dựng dải nút
+          dẫn tới chỗ ⛔ không tồn tại (`DNA-1`). */}
       {mode === undefined && (
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <WorkspaceHomeGrid
+          myWork={
+      <div className="grid grid-cols-2 gap-3">
         <StatCard icon={Boxes} label="Danh mục vật tư" value={nf.format(stats.codes)} sub="mã NPL đang quản lý" />
         <StatCard
           icon={TriangleAlert}
@@ -151,48 +165,9 @@ export default function KhoClient({
           tone="amber"
         />
       </div>
-      )}
-
-      {/* ── Cảnh báo tồn thấp: đưa lên trên vì đây là việc cần xử lý ngay ── */}
-
-      {mode === undefined && stats.lowStock.length > 0 && (
-        <Card className="mt-6" title={`Cần nhập bổ sung (${stats.lowStock.length})`} icon={TriangleAlert}>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className={thCls}>Mã NPL</th>
-                  <th className={thCls}>Tên</th>
-                  <th className={thCls}>Tồn / Ngưỡng</th>
-                  <th className={thCls}>Mức tồn</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {stats.lowStock.map((m) => {
-                  const min = Number(m.min_stock_qty) || 1;
-                  return (
-                    <tr key={m.id} className="transition hover:bg-slate-50/70">
-                      <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{m.material_code}</td>
-                      <td className={tdCls}>{m.name}</td>
-                      <td className={`${tdCls} tabular-nums`}>
-                        <span className="font-semibold text-rose-600">{nf.format(Number(m.stock_qty))}</span>
-                        <span className="text-slate-400"> / {nf.format(Number(m.min_stock_qty))} {m.unit}</span>
-                      </td>
-                      <td className={tdCls}>
-                        <ProgressBar pct={(Number(m.stock_qty) / min) * 100} tone="rose" />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      {/* ── Tồn kho theo mã ─────────────────────────────────────────────── */}
-      {mode === undefined && (
-      <Card className="mt-6" title={`Tồn kho hiện tại (${materials.length})`} icon={Layers}>
+          }
+          workCenter={
+      <Card title={`Tồn kho hiện tại (${materials.length})`} icon={Layers}>
         {matError ? (
           <ErrorState message={matError} onRetry={() => void refresh()} />
         ) : materials.length === 0 ? (
@@ -237,7 +212,57 @@ export default function KhoClient({
           </div>
         )}
       </Card>
+          }
+          risk={
+            stats.lowStock.length > 0 ? (
+        <Card title={`Cần nhập bổ sung (${stats.lowStock.length})`} icon={TriangleAlert}>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className={thCls}>Mã NPL</th>
+                  <th className={thCls}>Tên</th>
+                  <th className={thCls}>Tồn / Ngưỡng</th>
+                  <th className={thCls}>Mức tồn</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {stats.lowStock.map((m) => {
+                  const min = Number(m.min_stock_qty) || 1;
+                  return (
+                    <tr key={m.id} className="transition hover:bg-slate-50/70">
+                      <td className={`${tdCls} font-mono font-semibold text-slate-800`}>{m.material_code}</td>
+                      <td className={tdCls}>{m.name}</td>
+                      <td className={`${tdCls} tabular-nums`}>
+                        <span className="font-semibold text-rose-600">{nf.format(Number(m.stock_qty))}</span>
+                        <span className="text-slate-400"> / {nf.format(Number(m.min_stock_qty))} {m.unit}</span>
+                      </td>
+                      <td className={tdCls}>
+                        <ProgressBar pct={(Number(m.stock_qty) / min) * 100} tone="rose" />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+            ) : (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
+                <p className="text-sm text-emerald-900">
+                  <strong>⛔ Không mã nào dưới định mức tồn.</strong>{' '}
+                  <span className="opacity-80">Đã đối chiếu toàn bộ danh mục vật tư.</span>
+                </p>
+              </div>
+            )
+          }
+        />
       )}
+
+      {/* ── Cảnh báo tồn thấp: đưa lên trên vì đây là việc cần xử lý ngay ── */}
+
+
+      {/* ── Tồn kho theo mã ─────────────────────────────────────────────── */}
 
       {/* ── Lịch sử xuất/nhập ───────────────────────────────────────────── */}
 

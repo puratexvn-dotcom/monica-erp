@@ -44,6 +44,7 @@ import ActionablePoList from '@/components/md/command-center/actionable-po';
 import MdWorkspaceHead from '@/components/md/command-center/md-workspace-head';
 import MdDailyFocus from '@/components/md/command-center/md-daily-focus';
 import MdTaskSection from '@/components/md/command-center/md-task-section';
+import MdHoatDong from '@/components/md/command-center/md-hoat-dong';
 import { sinhLichTaChoDonCu } from './_actions/po.actions';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
@@ -508,6 +509,11 @@ export default function MdClient({
               </div>
             </>
           }
+          // Board §3: *"Recent Activity — đưa xuống cuối cột."*
+          // ⚠️ Nạp KHI BẤM, ⛔ không nạp sẵn: nhật ký ⛔ không phải thứ MD mở
+          // máy để đọc, và một truy vấn thừa ở đây là đúng thứ vừa gỡ khỏi
+          // đường chặn của trang chủ (TTFB 901 → 74 ms).
+          hoatDong={<MdHoatDong nap={listActivityClient} moTab={() => goTab('audit')} />}
           dashboard={<DailyDigestCard bc={baoCaoNgay} gonGang />}
         />
       )}
