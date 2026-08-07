@@ -78,6 +78,9 @@ export default async function MerchandiserPage() {
   // Vai chỉ để giao diện ⛔ không mời bấm thứ chắc chắn bị từ chối. `guard()`
   // hỏng ⇒ `null` ⇒ giao diện khoá chặt hơn, ⛔ không mở rộng hơn.
   const role = roleRes.status === 'fulfilled' ? roleRes.value.role : null;
+  // 🔴 Board *MD Final Input Experience* §B — Order Master hiện **Merchandiser
+  // phụ trách**. Lấy từ `guard()` đã chạy sẵn ở trên, ⛔ không thêm truy vấn.
+  const tenNguoiLap = roleRes.status === 'fulfilled' ? (roleRes.value.hoTen ?? '—') : '—';
 
   // Command Center hỏng ⇒ trả cấu trúc RỖNG kèm lời khai, ⛔ không ném lỗi:
   // ba cột vẫn phải dựng được để người dùng thấy phần còn lại.
@@ -160,6 +163,7 @@ export default async function MerchandiserPage() {
         initialStyles={styles.rows}
         initialStyleError={styles.error}
         poOptions={poOptions}
+        tenNguoiLap={tenNguoiLap}
       />
     </>
   );

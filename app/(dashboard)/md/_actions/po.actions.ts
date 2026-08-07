@@ -44,11 +44,42 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
     customerName = (data as { name: string } | null)?.name ?? '';
   }
 
+  // 🔴 **LỖI THẬT, UAT 08/08/2026 TÌM RA — `createPo` CHƯA TỪNG CHẠY ĐƯỢC.**
+  //
+  // `orders.style_code VARCHAR(100) **NOT NULL**` là cột từ migration `002`,
+  // có trước khi `style_id` ra đời. Hàm này ⛔ **không hề** ghi nó ⇒ mọi lời
+  // gọi đều đổ:
+  //     null value in column "style_code" of relation "orders"
+  //     violates not-null constraint
+  //
+  // 🔑 Nó ⛔ không lộ ra suốt thời gian dài vì **⛔ không màn hình nào gọi tới
+  // hàm này** — nút *"+ Tạo PO"* vẫn dùng biểu mẫu đời đầu ở `/orders`. Mã
+  // chết thì ⛔ không ai phát hiện nó hỏng. Đúng lúc Order Master đấu vào, lỗi
+  // nổ ngay lần chạy đầu.
+  //
+  // ⚠️ Ghi **cả hai** cột, y hệt cách `customer_name` được xử lý ngay trên:
+  // cột chuỗi cũ giữ lại cho dữ liệu lịch sử, cột khoá ngoại mới là nguồn thật.
+  // Hai chỗ lệch nhau thì báo cáo theo tên và theo id ra hai kết quả khác nhau.
+  let styleCode = '';
+  {
+    const { data } = await g.supabase.from('styles').select('style_no').eq('id', v.style_id).maybeSingle();
+    styleCode = (data as { style_no: string } | null)?.style_no ?? '';
+  }
+  if (!styleCode) {
+    return {
+      ok: false,
+      message: 'Không tìm thấy mã hàng đã chọn, hoặc bạn ⛔ không có quyền xem nó.',
+      fieldErrors: { style_id: 'Mã hàng ⛔ không hợp lệ' },
+    };
+  }
+
   const { data, error } = await g.supabase
     .from('orders')
     .insert({
       po_number: v.po_number,
       style_id: v.style_id,
+      // ⚠️ Cột `NOT NULL` từ migration `002` — xem khối chú thích ở trên.
+      style_code: styleCode,
       customer_id: nz(v.customer_id),
       customer_name: customerName || 'Chưa gán khách hàng',
       season_id: nz(v.season_id),
@@ -68,7 +99,7 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
       evidence_path: nz(v.evidence_path),
       created_by: g.userId,
     })
-    .select('id')
+    .select('*')
     .single();
 
   if (error) {
@@ -80,11 +111,27 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
     };
   }
 
-  const orderId = (data as { id: string }).id;
+  const dong = data as Record<string, unknown> & { id: string };
+  const orderId = dong.id;
 
   // Sinh lịch T&A ngay khi tạo PO. Làm tự động vì lịch trống thì cảnh báo trễ
   // không có gì để so, mà lập tay 15 mốc cho mỗi PO là việc không ai làm nổi.
   await seedMilestones(orderId, v.delivery_date, v.order_type);
+
+  // 🔴 **LỖI THẬT, UAT 08/08/2026 TÌM RA — TẠO PO Ở ĐÂY ⛔ KHÔNG ĐỂ LẠI VẾT.**
+  //
+  // ⚠️ Đây là **`BUG-3` LẶP LẠI Ở ĐƯỜNG THỨ HAI**. Bản vá 07/08 đã gắn
+  // `writeAudit` vào `orders/actions.ts::createOrder` — biểu mẫu đời đầu — và
+  // báo cáo lúc đó kết luận *"chứng từ quan trọng nhất nay đã có vết"*.
+  //
+  // 🔑 Kết luận ấy **⛔ CHƯA đủ**: hệ thống có **HAI** đường tạo PO, và đường
+  // còn lại *(hàm này)* vẫn câm. Nó ⛔ không lộ ra vì ⛔ không màn hình nào gọi
+  // tới nó — cho tới khi Order Master đấu vào hôm nay.
+  //
+  // 🔑 Dùng `writeVersion`, ⛔ không `writeAudit`: Board 07/08 đòi *"chứng từ
+  // phải lưu Version"*, và bản ghi ĐẦU TIÊN là phiên bản 1. Thiếu nó thì lịch
+  // sử một PO bắt đầu từ lần sửa thứ nhất — ⛔ không ai biết nó sinh ra thế nào.
+  await writeVersion('ORDER', orderId, 'CREATE', null, dong);
 
   revalidatePath(PATH);
   return { ok: true, message: `Đã tạo PO ${v.po_number} và sinh lịch tiến độ.`, data: { id: orderId } };

@@ -1,6 +1,6 @@
 'use server';
 
-import { listCustomers, listInquiries, listCostings, getCustomer360, getCostingDetail, listCustomerOptions } from '../_services/commercial.service';
+import { listCustomers, listInquiries, listCostings, getCustomer360, getCostingDetail, listCustomerOptions, listSeasonOptions } from '../_services/commercial.service';
 import { listDocuments, listComments, listChangeRequests, listActivity, listRisks } from '../_services/collaboration.service';
 import { getMdDashboard } from '../_services/dashboard.service';
 import { getCommandCenter } from '../_services/command-center.service';
@@ -55,6 +55,10 @@ export async function getCostingDetailClient(
 }
 export async function listCustomerOptionsClient() {
   return listCustomerOptions();
+}
+/** 🔴 Board *MD Final Input Experience* §B — ô chọn Mùa vụ của Order Master. */
+export async function listSeasonOptionsClient() {
+  return listSeasonOptions();
 }
 
 // ─── Command Center (Giai đoạn 3) ──────────────────────────────────────────

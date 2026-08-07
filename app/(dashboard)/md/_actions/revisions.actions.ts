@@ -60,6 +60,49 @@ function nz(v: string | undefined | null): string | null {
   return v && v.trim() !== '' ? v : null;
 }
 
+/**
+ * 🔴 **CHỈ GIỮ LẠI Ô THỰC SỰ ĐỔI** — Board Directive *MD Final Input
+ * Experience* §A: *"chỉ update field người dùng sửa · ⛔ không ghi đè null
+ * vào dữ liệu cũ"*.
+ *
+ * ─── ⚠️ VÌ SAO CẦN, DÙ FORM ĐÃ ĐỌC LẠI NGUYÊN DÒNG ──────────────────────
+ * `docDeSua()` đã chặn kiểu mất dữ liệu **thô** *(form thiếu ô ⇒ ghi `null`
+ * đè)*. Nhưng nó ⛔ **không** chặn được kiểu **tinh vi hơn**: hai người mở
+ * cùng một hồ sơ, A sửa số điện thoại và lưu, B *(mở trước đó)* sửa địa chỉ
+ * rồi lưu ⇒ bản của B mang số điện thoại **CŨ** và **ghi đè** thay đổi của A.
+ * Ghi cả 15 ô là ghi đè 14 ô mình ⛔ không đụng tới.
+ *
+ * 🔑 Chỉ gửi ô đã đổi thì hai người sửa hai ô khác nhau **⛔ không giẫm lên
+ * nhau nữa** — mà ⛔ không cần thêm cột phiên bản hay khoá lạc quan.
+ *
+ * ⚠️ **`null` và `0` là HAI GIÁ TRỊ KHÁC NHAU**, và `undefined` là giá trị
+ * thứ ba. So bằng `JSON.stringify` để `0 ≠ null ≠ ""` — dùng `==` ở đây sẽ
+ * coi `0` bằng `null` và nuốt mất đúng thay đổi Board yêu cầu phân biệt.
+ */
+function chiGhiODaDoi(
+  truoc: Record<string, unknown>,
+  patch: Record<string, unknown>,
+): Record<string, unknown> {
+  const con: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    // Cột ⛔ không có trong bản cũ ⇒ GIỮ LẠI: có thể là cột mới thêm, và bỏ
+    // qua nó sẽ âm thầm nuốt mất một thay đổi hợp lệ.
+    if (!(k in truoc)) { con[k] = v; continue; }
+    const a = truoc[k] ?? null;
+    const b = v ?? null;
+    // ⚠️ CSDL trả `NUMERIC` về dạng chuỗi ("0", "100.00") còn form gửi lên
+    // dạng số ⇒ so thẳng sẽ thấy "đổi" ở MỌI lượt lưu. So theo giá trị số khi
+    // cả hai bên đều là số hợp lệ.
+    const caiSo = a !== null && b !== null
+      && a !== '' && b !== ''
+      && Number.isFinite(Number(a)) && Number.isFinite(Number(b))
+      && typeof b === 'number';
+    if (caiSo ? Number(a) === Number(b) : JSON.stringify(a) === JSON.stringify(b)) continue;
+    con[k] = v;
+  }
+  return con;
+}
+
 /** Bảng CSDL của từng loại chứng từ. Một chỗ khai, để tên bảng ⛔ không rải
  *  rác thành tám chuỗi literal rồi lệch nhau khi đổi. */
 const BANG: Record<LoaiChungTu, string> = {
@@ -154,9 +197,18 @@ async function ghiSua(
     return { ok: false, message: pq.loiRa ? `${pq.vi} ${pq.loiRa}` : pq.vi };
   }
 
-  // ③ Ghi, và LẤY LẠI dòng mới — vừa là phép đếm, vừa là ảnh chụp SAU.
+  // ③ 🔴 CHỈ GHI Ô ĐÃ ĐỔI — Board *MD Final Input Experience* §A.
+  const patchThuc = chiGhiODaDoi(truoc, patch);
+  if (Object.keys(patchThuc).length === 0) {
+    // ⛔ Không có gì đổi ⇒ ⛔ KHÔNG chạm CSDL và ⛔ KHÔNG ghi phiên bản. Một
+    // dòng nhật ký "đã sửa" mà ⛔ không ô nào đổi là **nhiễu sổ kiểm toán** —
+    // nó làm loãng đúng thứ người ta mở sổ ra để tìm.
+    return { ok: true, message: `⛔ Không có gì thay đổi ở ${moTa}.` };
+  }
+
+  // Lấy LẠI dòng mới — vừa là phép đếm, vừa là ảnh chụp SAU.
   const { data: sau, error } = await g.supabase
-    .from(bang).update(patch).eq('id', id).select('*');
+    .from(bang).update(patchThuc).eq('id', id).select('*');
   if (error) return { ok: false, message: friendlyDbError(`ghiSua:${bang}`, error) };
   if (!sau?.length) {
     return {

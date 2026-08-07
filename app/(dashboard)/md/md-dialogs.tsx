@@ -16,7 +16,8 @@
 // ============================================================================
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
-import PoFormDialog from '../orders/po-form-dialog';
+import PoMasterDialog from './po-master-dialog';
+import type { OChonKhachHang } from './_services/commercial.service';
 import StyleFormDialog from '@/components/md/style/style-form-dialog';
 import CustomerFormDialog from '@/components/md/crm/customer-form-dialog';
 import InquiryFormDialog from '@/components/md/rfq/inquiry-form-dialog';
@@ -37,12 +38,20 @@ export default function MdDialogs(p: {
   /** 🔴 `BUG-5` — dòng đang được **Sửa**. `null` ⇒ mọi hộp thoại ở chế độ Tạo. */
   suaId: { tab: TabKey; id: string } | null;
   setSuaId: (v: { tab: TabKey; id: string } | null) => void;
+  /** 🔴 Board *MD Final Input Experience* — Order Master + luồng §D. */
+  seasonOptions: ReadonlyArray<{ id: string; code: string; name: string | null }>;
+  khachMacDinh: string | null;
+  tenNguoiLap: string;
+  /** §D — *"⛔ Không quay Dashboard. Đi thẳng PO360."* */
+  onPoDaTao: (poId: string, poNumber: string) => void | Promise<void>;
+  /** §D — sau khi tạo khách hàng, đi tiếp sang RFQ hoặc PO ngay. */
+  onKhachDaTao: (dich: 'rfq' | 'po', khachId: string) => void;
   autoDialog: 'material' | 'production' | null;
   setAutoDialog: (v: 'material' | 'production' | null) => void;
   congDoanMo: boolean;
   setCongDoanMo: (v: boolean) => void;
-  customerOptions: { id: string; customer_code: string; name: string }[];
-  setCustomerOptions: (v: { id: string; customer_code: string; name: string }[]) => void;
+  customerOptions: OChonKhachHang[];
+  setCustomerOptions: (v: OChonKhachHang[]) => void;
   styles: StyleRow[];
   poRows: PoRow[];
   poOptions: PoOption[];
@@ -80,6 +89,7 @@ export default function MdDialogs(p: {
       <CustomerFormDialog
         open={p.dialog === 'customers'}
         suaId={idSua('customers')}
+        onTaoTiep={p.onKhachDaTao}
         onClose={dong}
         onCreated={async () => {
           await p.loadTab('customers', true);
@@ -110,7 +120,21 @@ export default function MdDialogs(p: {
         onClose={() => p.setCongDoanMo(false)}
         onDone={p.reloadCosting}
       />
-      <PoFormDialog open={p.dialog === 'po'} onClose={dong} onCreated={p.refresh} />
+      {/* 🔴 ORDER MASTER — Board *MD Final Input Experience* §B.
+          ⚠️ `PoFormDialog` đời đầu **⛔ KHÔNG bị xoá** (ràng buộc ②) — nó vẫn là
+          biểu mẫu của `/orders`. Chỉ MD Workspace thôi dùng nó, vì hai ô quan
+          trọng nhất ở đó là CHỮ GÕ TAY nên PO lập ra ⛔ không có `customer_id`
+          lẫn `style_id`. Xem khối chú thích đầu `po-master-dialog.tsx`. */}
+      <PoMasterDialog
+        open={p.dialog === 'po'}
+        customers={p.customerOptions}
+        styles={p.styles}
+        seasons={p.seasonOptions}
+        khachMacDinh={p.khachMacDinh}
+        tenNguoiLap={p.tenNguoiLap}
+        onClose={dong}
+        onCreated={p.onPoDaTao}
+      />
       <StyleFormDialog open={p.dialog === 'styles'} suaId={idSua('styles')} onClose={dong} onCreated={p.refresh} />
       <MaterialRequestDialog open={p.dialog === 'materials'} suaId={idSua('materials')} onClose={dong} onDone={p.refresh} pos={p.poOptions} />
       <ProductionOrderDialog open={p.dialog === 'production'} onClose={dong} onDone={p.refresh} pos={p.poOptions} />

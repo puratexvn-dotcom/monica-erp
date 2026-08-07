@@ -15,17 +15,27 @@ export interface GuardOk {
   supabase: Awaited<ReturnType<typeof createClient>>;
   userId: string;
   role: Role;
+  /** Tên hiển thị của người đang đăng nhập.
+   *
+   *  🔴 Board *MD Final Input Experience* §B — Order Master phải hiện
+   *  **Merchandiser phụ trách**. `guard()` đã gọi `getUser()` rồi, nên đọc
+   *  thêm trường này là **MIỄN PHÍ** — ⛔ không thêm một lượt truy vấn nào.
+   *  Đi hỏi bảng `profiles` để lấy đúng con chữ này là một lượt đi–về thừa
+   *  trên **mọi** lời gọi `guard()` trong hệ thống. */
+  hoTen: string;
   error: null;
 }
 export interface GuardFail {
   supabase: null;
   userId: null;
   role: null;
+  hoTen: null;
   error: string;
 }
 
 export async function guard(): Promise<GuardOk | GuardFail> {
-  const fail = (error: string): GuardFail => ({ supabase: null, userId: null, role: null, error });
+  const fail = (error: string): GuardFail =>
+    ({ supabase: null, userId: null, role: null, hoTen: null, error });
 
   let supabase: Awaited<ReturnType<typeof createClient>>;
   try {
@@ -45,7 +55,17 @@ export async function guard(): Promise<GuardOk | GuardFail> {
     return fail('Bạn không có quyền truy cập phân hệ Merchandiser.');
   }
 
-  return { supabase, userId: user.id, role: raw, error: null };
+  // ⚠️ `user_metadata` dùng được ở ĐÂY vì nó chỉ để **HIỂN THỊ TÊN**, ⛔ không
+  // quyết định quyền gì. Vai vẫn đọc từ `app_metadata` ở trên — người dùng tự
+  // sửa được `user_metadata`, nên nó ⛔ KHÔNG BAO GIỜ được chạm vào phân quyền.
+  const ten = user.user_metadata?.full_name;
+  return {
+    supabase,
+    userId: user.id,
+    role: raw,
+    hoTen: typeof ten === 'string' && ten.trim() !== '' ? ten : (user.email ?? 'Không rõ'),
+    error: null,
+  };
 }
 
 /** In đủ code/details/hint ra log máy chủ. PostgREST đặt nguyên nhân thật ở

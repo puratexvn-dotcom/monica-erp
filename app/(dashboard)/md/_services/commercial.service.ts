@@ -337,14 +337,63 @@ export async function getCostingDetail(
 }
 
 /** Ô chọn khách hàng dùng chung cho các form RFQ / chiết tính / mã hàng */
-export async function listCustomerOptions(): Promise<
-  Array<{ id: string; customer_code: string; name: string }>
+/**
+ * Ô chọn khách hàng — **kèm mặc định thương mại**.
+ *
+ * 🔴 Board Directive *MD Final Input Experience* §B: form PO phải có **Buyer ·
+ * Brand · Payment Term**. Ba thứ đó **ĐÃ nằm trên hồ sơ khách hàng**
+ * *(`buyer_group` · `brand` · `payment_term`)*.
+ *
+ * 🔑 **⛔ KHÔNG chép chúng sang bảng `orders`.** Chép là tạo **nguồn sự thật
+ * thứ hai**: khách đổi điều khoản thanh toán thì 200 PO cũ vẫn mang giá trị
+ * cũ, và ⛔ không ai biết cái nào đúng. `P-ZERODUP` cấm đúng chuyện này, và
+ * CLAUDE.md §2.5 nói *"⛔ không lưu dữ liệu tính toán được"*.
+ *
+ * ⇒ Form **đọc và hiển thị** chúng theo khách vừa chọn; CSDL giữ **một** bản.
+ *
+ * ⚠️ Trả về trong **một** truy vấn, ⛔ không gọi thêm một lượt khi người dùng
+ * chọn khách: 500 khách × một lượt đi–về là đúng cách dựng lại lỗi TTFB đã mất
+ * công gỡ.
+ */
+export interface OChonKhachHang {
+  id: string;
+  customer_code: string;
+  name: string;
+  /** Tập đoàn / nhóm mua — Board gọi là **Buyer**. */
+  buyer_group: string | null;
+  brand: string | null;
+  payment_term: string | null;
+  currency: string | null;
+  incoterm: string | null;
+}
+
+export async function listCustomerOptions(): Promise<OChonKhachHang[]> {
+  const g = await guard();
+  if (!g.supabase) return [];
+  const res = await safeQuery<OChonKhachHang>(
+    'ô chọn khách hàng',
+    () => g.supabase
+      .from('customers')
+      .select('id, customer_code, name, buyer_group, brand, payment_term, currency, incoterm')
+      // ⚠️ CHỈ khách **đang giao dịch**: khách đã lưu trữ *(`is_active = false`)*
+      // ⛔ không được hiện ở ô chọn lập đơn mới — đó là toàn bộ ý nghĩa của việc
+      // lưu trữ. Họ vẫn nguyên trong danh sách và trong mọi đơn cũ.
+      .eq('is_active', true)
+      .order('name')
+      .limit(500),
+  );
+  return res.rows;
+}
+
+/** Ô chọn mùa vụ cho form PO — Board §B *"Season"*. */
+export async function listSeasonOptions(): Promise<
+  Array<{ id: string; code: string; name: string | null }>
 > {
   const g = await guard();
   if (!g.supabase) return [];
-  const res = await safeQuery<{ id: string; customer_code: string; name: string }>(
-    'ô chọn khách hàng',
-    () => g.supabase.from('customers').select('id, customer_code, name').order('name').limit(500),
+  const res = await safeQuery<{ id: string; code: string; name: string | null }>(
+    'ô chọn mùa vụ',
+    () => g.supabase.from('seasons').select('id, code, name').order('code', { ascending: false }).limit(200),
   );
   return res.rows;
 }

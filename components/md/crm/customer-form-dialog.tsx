@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Loader2, Plus, Save } from 'lucide-react';
+import { Loader2, Plus, Save, FileQuestion, PackagePlus } from 'lucide-react';
 import type { z } from 'zod';
 
 import { Modal, Field, inputCls, btnGhost, btnPrimary } from '@/components/ui';
+import { TYPE } from '@/lib/design/typography';
 import { createCustomerFull } from '@/app/(dashboard)/md/_actions/commercial.actions';
 import { updateCustomer } from '@/app/(dashboard)/md/_actions/revisions.actions';
 import { useSuaChungTu, oChu, oSo } from '@/app/(dashboard)/md/use-sua-chung-tu';
@@ -51,20 +52,39 @@ function Err({ children }: { children?: string }) {
  * dòng)*, ⛔ **KHÔNG** từ dòng danh sách — xem chú thích ở hook đó.
  */
 export default function CustomerFormDialog({
-  open, onClose, onCreated, suaId,
+  open, onClose, onCreated, suaId, onTaoTiep,
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: () => void | Promise<void>;
   /** `null`/thiếu ⇒ Tạo mới. Có giá trị ⇒ Sửa đúng bản ghi đó. */
   suaId?: string | null;
+  /**
+   * 🔴 Board Directive *MD Final Input Experience* §D: *"Sau khi tạo Customer:
+   * **có thể quay lại tạo RFQ/PO ngay**."*
+   *
+   * 🔑 MD ⛔ không tạo khách hàng để có một dòng trong danh mục — họ tạo vì
+   * **sắp lập báo giá hoặc đơn hàng cho khách đó**. Đóng hộp thoại rồi bắt họ
+   * tự đi tìm nút kế tiếp là cắt đứt đúng giữa một ý định.
+   */
+  onTaoTiep?: (dich: 'rfq' | 'po', khachId: string) => void;
 }) {
+  /** Khách vừa tạo xong — giữ lại để hỏi *"làm gì tiếp?"*. */
+  const [vuaTao, setVuaTao] = useState<{ id: string; ten: string } | null>(null);
   const sua = useSuaChungTu('CUSTOMER', open, suaId);
 
-  const { register, formState, reset, setError, handleSubmit } = useForm<Input, unknown, CustomerFormValues>({
-    resolver: zodResolver(customerFormSchema),
-    defaultValues: DEFAULTS,
-  });
+  const { register, formState, reset, setError, handleSubmit, watch } =
+    useForm<Input, unknown, CustomerFormValues>({
+      resolver: zodResolver(customerFormSchema),
+      defaultValues: DEFAULTS,
+    });
+
+  // 🔴 Đọc NGAY giá trị đang gõ để câu chú thích dưới ô nói đúng ba trạng thái
+  // *(⛔ chưa khai · bằng 0 · có hạn mức)*. Board §A: *"0 = ⛔ không cho nợ ·
+  // NULL = ⛔ chưa khai báo · ⛔ Không được dùng chung."* Một quy tắc mà màn
+  // hình ⛔ không nói ra thì người nhập ⛔ không có cách nào biết.
+  const hanMucHienTai = watch('credit_limit');
+  const dongTien = watch('currency') ?? 'USD';
 
   useEffect(() => {
     if (!open) return;
@@ -107,9 +127,55 @@ export default function CustomerFormDialog({
     }
     toast.success(suaId ? 'Đã lưu thay đổi' : 'Đã tạo khách hàng', { description: res.message });
     reset(DEFAULTS);
+
+    // 🔴 Board §D — TẠO MỚI xong thì **⛔ chưa đóng**: hỏi *"làm gì tiếp?"*.
+    // Sửa xong thì đóng luôn — sửa là việc đã trọn vẹn, ⛔ không có bước kế.
+    if (!suaId && onTaoTiep && res.data?.id) {
+      setVuaTao({ id: res.data.id, ten: values.name });
+      await onCreated();
+      return;
+    }
     onClose();
     await onCreated();
   });
+
+  const dong = () => { setVuaTao(null); onClose(); };
+
+  // 🔴 Board §D — MÀN HÌNH "LÀM GÌ TIẾP?". ⛔ Không phải một `toast` rồi biến
+  // mất: MD vừa khai xong một khách hàng, và **99% lần** việc kế tiếp là lập
+  // báo giá hoặc đơn hàng cho chính khách đó.
+  if (vuaTao) {
+    return (
+      <Modal open={open} title="Đã tạo khách hàng — làm gì tiếp?" onClose={dong}>
+        <div className="space-y-3">
+          <p className={`${TYPE.body} text-slate-700`}>
+            Đã thêm <strong>{vuaTao.ten}</strong> vào danh mục.
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              className={btnPrimary}
+              onClick={() => { onTaoTiep?.('rfq', vuaTao.id); setVuaTao(null); }}
+            >
+              <FileQuestion className="h-4 w-4" aria-hidden="true" />
+              Nhận yêu cầu báo giá
+            </button>
+            <button
+              type="button"
+              className={btnPrimary}
+              onClick={() => { onTaoTiep?.('po', vuaTao.id); setVuaTao(null); }}
+            >
+              <PackagePlus className="h-4 w-4" aria-hidden="true" />
+              Tạo đơn hàng (PO)
+            </button>
+          </div>
+          <button type="button" className={`${btnGhost} w-full`} onClick={dong}>
+            Xong — quay lại danh sách khách hàng
+          </button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal open={open} title={suaId ? 'Sửa khách hàng' : 'Thêm khách hàng'} onClose={onClose} wide>
@@ -189,16 +255,44 @@ export default function CustomerFormDialog({
             <Err>{formState.errors.payment_term?.message}</Err>
           </Field>
 
-          <Field label="Hạn mức công nợ" hint="theo đồng tiền giao dịch ở trên">
+          {/* 🔴 **`0` VÀ ĐỂ TRỐNG LÀ HAI ĐIỀU KHÁC NHAU** — Board Directive
+              *MD Final Input Experience* §A:
+                `0`    = **⛔ không cho nợ** *(đã quyết, hạn mức bằng không)*
+                `NULL` = **⛔ chưa khai báo** *(chưa ai quyết)*
+              *"⛔ Không được dùng chung."*
+
+              ⚠️ Phân biệt này **⛔ không tự có** — nó phải đúng ở CẢ BA tầng:
+                · ô nhập  → `''` ⇒ `undefined`, ⛔ KHÔNG ⇒ `0`
+                · lược đồ → `nonNegativeDecimal` chấp nhận `0`
+                            *(bản cũ dùng `positiveDecimal` và **bác** `0` ⇒
+                             5/17 khách hàng ⛔ không lưu nổi — lỗi thật, UAT
+                             07/08 tìm ra)*
+                · action  → `v.credit_limit ?? null` giữ nguyên `0`
+              Sai một tầng là hai nghĩa nhập lại làm một. */}
+          <Field
+            label="Hạn mức công nợ"
+            hint="để TRỐNG = ⛔ chưa khai báo · nhập 0 = ⛔ không cho nợ"
+          >
             <input
               className={inputCls}
               type="number"
               min={0}
               step={0.01}
               inputMode="decimal"
+              placeholder="để trống nếu chưa khai"
+              // ⚠️ `''` ⇒ `undefined`, ⛔ KHÔNG ⇒ `Number('')` = `0`. Ép rỗng
+              // thành 0 là biến *"⛔ chưa khai"* thành *"⛔ không cho nợ"* —
+              // một quyết định tín dụng ⛔ chưa ai đưa ra.
               {...register('credit_limit', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
             />
             <Err>{formState.errors.credit_limit?.message}</Err>
+            <span className={`mt-1 block ${TYPE.caption} text-slate-500`}>
+              {hanMucHienTai === undefined
+                ? '⚪ Chưa khai báo hạn mức'
+                : hanMucHienTai === 0
+                  ? '🔒 Hạn mức 0 — khách này ⛔ không được nợ'
+                  : `Hạn mức ${hanMucHienTai.toLocaleString('vi-VN')} ${dongTien}`}
+            </span>
           </Field>
 
           <Field label="Mã số thuế">

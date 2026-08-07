@@ -21,6 +21,16 @@ import {
   phanQuyetSuaPo, phanQuyetMoLaiPo, phanQuyetSua, duocMoLai, luuTruDuoc,
   PO_SAU_KHI_MO_LAI,
 } from '../../lib/mos/md/document-lock.ts';
+// 🔴 Board Directive *MD Final Input Experience* 08/08/2026 §A — hạn mức công
+// nợ `0` ⟷ `NULL`.
+//
+// ⚠️ Nhập từ `common.ts`, ⛔ KHÔNG từ `commercial.schema.ts`: tệp đó viết
+// `from './common'` (⛔ không đuôi), mà bộ nạp ES module của Node ⛔ không phân
+// giải nổi đường dẫn thiếu đuôi ⇒ `ERR_MODULE_NOT_FOUND`. `common.ts` chỉ phụ
+// thuộc `zod` nên nạp thẳng được.
+//
+// 🔑 Và kiểm ở đây **đúng chỗ hơn**: `nonNegativeDecimal` là nơi quy tắc SỐNG.
+import { positiveDecimal, nonNegativeDecimal } from '../../schemas/md/common.ts';
 
 let dat = 0; const hong = [];
 const ok = (t, dk, g = '') => { if (dk) { dat++; console.log(`  ✅ ${t}`); return; } hong.push(t); console.log(`  ⛔ ${t}${g ? `\n       ${g}` : ''}`); };
@@ -274,6 +284,44 @@ console.log('\n⑨d 🔴 LƯU TRỮ — chỉ dùng trạng thái CÓ THẬT và
   try { phanQuyetSua('ORDER', 'DRAFT'); } catch { daNo = true; }
   ok('🔴 phanQuyetSua("ORDER") NỔ — PO buộc phải đi qua phanQuyetSuaPo()', daNo);
 }
+
+// ⑨e 🔴 HẠN MỨC CÔNG NỢ — `0` VÀ `NULL` LÀ HAI ĐIỀU KHÁC NHAU
+//
+// Board Directive *MD Final Input Experience* §A:
+//   > *"`0` = ⛔ không cho nợ · `NULL` = ⛔ chưa khai báo.
+//   >  **⛔ Không được dùng chung.**"*
+console.log('\n⑨e 🔴 HẠN MỨC CÔNG NỢ — 0 ⟷ NULL ⛔ KHÔNG được dùng chung');
+{
+  const han = nonNegativeDecimal('Hạn mức công nợ', 2, 999_999_999);
+  const tuyChon = han.optional();
+
+  // 🔴 Lỗi THẬT tìm ra trong UAT 07/08/2026: `customerFormSchema` dùng
+  // `positiveDecimal` nên bác `0`, mà **5/17 khách hàng trên CSDL đang chạy**
+  // mang `credit_limit = 0` ⇒ năm hồ sơ đó ⛔ KHÔNG lưu nổi từ hộp thoại Sửa.
+  ok('🔴 `positiveDecimal` BÁC số 0 — chính là gốc của lỗi',
+    positiveDecimal('x').safeParse(0).success === false);
+  ok('🔴 `nonNegativeDecimal` CHẤP NHẬN 0 ("⛔ không cho nợ")',
+    han.safeParse(0).success === true);
+  ok('Số 0 giữ nguyên là 0, ⛔ KHÔNG bị nuốt thành undefined',
+    han.safeParse(0).data === 0);
+  ok('⛔ Chưa khai (undefined) vẫn hợp lệ, và KHÁC 0',
+    tuyChon.safeParse(undefined).success === true
+      && tuyChon.safeParse(undefined).data === undefined);
+  ok('Số ÂM vẫn bị chặn — "⛔ không cho nợ" khác "nợ ngược"',
+    han.safeParse(-1).success === false);
+  ok('Số dương bình thường vẫn qua', han.safeParse(100000).data === 100000);
+  ok('Quá 2 chữ số thập phân vẫn bị chặn', han.safeParse(1.234).success === false);
+}
+
+// ⑨f ⚠️ ORDER MASTER — `poFormSchema` ⛔ KHÔNG kiểm được ở bài kiểm này.
+//
+// Nó viết `from './common'` (⛔ không đuôi) nên bộ nạp ES module của Node ⛔ không
+// phân giải nổi. Dựng thêm một bước biên dịch cho riêng một bài kiểm là đắt
+// hơn giá trị nó mang lại.
+//
+// 🔑 Phần đó được canh bằng **UAT qua HTTP**: gọi thẳng `createPo` bằng phiên
+// md001 thật rồi đọc lại dòng vừa ghi để xác nhận PO CÓ `customer_id` và
+// `style_id`. Ghi rõ ở đây để người sau ⛔ không tưởng là đã bỏ sót.
 
 console.log('\n⑩ 🔴 CẢNH BÁO GIẢM SỐ LƯỢNG THẤP HƠN SỐ ĐÃ SẢN XUẤT');
 {

@@ -7,14 +7,10 @@ import dynamic from 'next/dynamic';
 // ở đây những cái tệp này còn dựng thật — `AlertTriangle` vẫn dùng ở thanh tab.
 // `Users` **⛔ đã KHÔNG được dùng TỪ TRƯỚC** đợt tách — gỡ luôn, vì nó nằm đúng
 // dòng đang sửa và gỡ nó ⛔ không đổi hành vi.
-import {
-  Plus, RefreshCw, AlertTriangle, Sparkles, Loader2, Handshake, ArrowUpRight,
-  ChevronDown,
-} from 'lucide-react';
+import { Loader2, Handshake, ArrowUpRight, Sparkles } from 'lucide-react';
 
 import { Card, btnPrimary, btnGhost } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
-import PoFormDialog from '../orders/po-form-dialog';
 import StyleList from '@/components/md/style/style-list';
 import StyleFormDialog from '@/components/md/style/style-form-dialog';
 import CustomerList from '@/components/md/crm/customer-list';
@@ -47,6 +43,7 @@ import MdHoatDong from '@/components/md/command-center/md-hoat-dong';
 import MdOrderCenter from './md-order-center';
 import MdDialogs from './md-dialogs';
 import MdTabBar from './md-tab-bar';
+import MdTabToolbar from './md-tab-toolbar';
 import KhoiGap from '@/components/ui/khoi-gap';
 import { nhoTab, tabDaNho } from './md-tab-memory';
 import { O_LAUNCHER_MD } from './md-launcher-items';
@@ -54,6 +51,7 @@ import { sinhLichTaChoDonCu } from './_actions/po.actions';
 // 🔴 BUG-5 · Board 07/08/2026 — Lưu trữ. Nhập ở ĐÂY rồi truyền xuống bảng;
 // xem chú thích tại chỗ dùng, và ở `customer-list.tsx`.
 import { archiveCustomer, restoreCustomer, archiveStyle } from './_actions/revisions.actions';
+import type { OChonKhachHang } from './_services/commercial.service';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
 import type { CommandCenterData } from './_services/command-center.service';
@@ -63,13 +61,9 @@ import type {
 import type {
   DocumentCenterRow, CommentCenterRow, ChangeCenterRow, RiskCenterRow,
 } from './_services/collaboration.service';
-import { GROUP_TONE } from '@/components/md/semantic-tone';
 // 🔑 Siêu dữ liệu 13 tab dời sang `md-tabs.ts` — Board Directive 06/08/2026 ·
 // `KD-4` `TD-39`. Phép dời THUẦN: ⛔ không đổi nghiệp vụ, giao diện hay API.
-import {
-  TABS, GROUPS, CREATE_LABEL, TAB_HANG_NGAY,
-  type TabKey,
-} from './md-tabs';
+import { type TabKey } from './md-tabs';
 import {
   MaterialRequestTable, ProductionOrderTable, ShipmentTable,
 } from './md-flow-tables';
@@ -84,7 +78,7 @@ import {
   listCustomersClient, listInquiriesClient, listCostingsClient,
   listDocumentsClient, listCommentsClient, listChangeRequestsClient,
   listActivityClient, listRisksClient, listCustomerOptionsClient,
-  getCommandCenterClient,
+  listSeasonOptionsClient, getCommandCenterClient,
 } from './_actions/md4.client';
 import {
   CustomerFormDialog as LegacyCustomerFormDialog,
@@ -136,6 +130,7 @@ export default function MdClient({
   initialStyles,
   initialStyleError,
   poOptions,
+  tenNguoiLap,
 }: {
   baoCaoNgay: BaoCaoNgay;
   role: Role | null;
@@ -147,6 +142,9 @@ export default function MdClient({
   initialStyles: StyleRow[];
   initialStyleError: string | null;
   poOptions: PoOption[];
+  /** 🔴 Board §B — *"Merchandiser Owner"* của Order Master. Đọc ở máy chủ từ
+   *  `guard()`; ⛔ không hỏi lại ở trình duyệt. */
+  tenNguoiLap: string;
 }) {
   // Tab đang mở phải sống sót qua lần React dựng lại — lý do đầy đủ và ba
   // phép đo ở `./md-tab-memory.ts` (UAT `BUG-2`).
@@ -167,6 +165,12 @@ export default function MdClient({
   const moSua = useCallback((tab: TabKey, id: string) => {
     setSuaId({ tab, id });
     setDialog(tab);
+  }, []);
+  /** Mở hộp thoại TẠO MỚI — dọn `suaId` để nó ⛔ không mở nhầm chế độ Sửa của
+   *  dòng vừa thao tác trước đó. */
+  const moDialog = useCallback((t: TabKey) => {
+    setSuaId(null);
+    setDialog(t);
   }, []);
   const [autoDialog, setAutoDialog] = useState<'material' | 'production' | null>(null);
   const [pending, startTransition] = useTransition();
@@ -270,10 +274,15 @@ export default function MdClient({
   const [activity, setActivity] = useState<{ rows: ActivityRow[]; error: string | null } | null>(null);
   const [loadingTab, setLoadingTab] = useState(false);
 
-  // Danh sách khách hàng cho các ô chọn trong form báo giá / chiết tính
-  const [customerOptions, setCustomerOptions] = useState<
-    Array<{ id: string; customer_code: string; name: string }>
+  // Ô chọn khách hàng — nay mang theo **mặc định thương mại** để Order Master
+  // hiện Buyer · Brand · Payment Term mà ⛔ không lưu trùng sang `orders`.
+  // Lý lẽ đầy đủ ở `commercial.service.ts::listCustomerOptions`.
+  const [customerOptions, setCustomerOptions] = useState<OChonKhachHang[]>([]);
+  const [seasonOptions, setSeasonOptions] = useState<
+    Array<{ id: string; code: string; name: string | null }>
   >([]);
+  /** §D — khách chọn sẵn khi đi thẳng từ *"vừa tạo khách hàng"* sang lập PO. */
+  const [khachMacDinh, setKhachMacDinh] = useState<string | null>(null);
 
   // ─── VÌ SAO SOI TRẠNG THÁI QUA REF ───────────────────────────────────────
   // loadTab cần biết tab nào đã nạp rồi. Nếu đọc thẳng tám biến trạng thái thì
@@ -338,12 +347,20 @@ export default function MdClient({
     if (paletteOpen && customers === null) void listCustomersClient().then(setCustomers);
   }, [paletteOpen, customers]);
 
-  // Ô chọn khách hàng cần cho form ở tab Báo giá và Chiết tính
+  // 🔴 Thêm `po`: nút *"+ Tạo PO"* mở thẳng từ màn hình mặc định, ⛔ không đi
+  // qua tab nào — ⛔ không nạp ở đây thì ô chọn khách của Order Master rỗng.
   useEffect(() => {
-    if ((tab === 'rfq' || tab === 'costing') && customerOptions.length === 0) {
+    if ((tab === 'rfq' || tab === 'costing' || tab === 'po') && customerOptions.length === 0) {
       void listCustomerOptionsClient().then(setCustomerOptions);
     }
   }, [tab, customerOptions.length]);
+
+  // Mùa vụ — chỉ Order Master cần ⇒ nạp khi hộp thoại PO mở.
+  useEffect(() => {
+    if (dialog === 'po' && seasonOptions.length === 0) {
+      void listSeasonOptionsClient().then(setSeasonOptions);
+    }
+  }, [dialog, seasonOptions.length]);
 
   /** Tải lại phần lõi (ảnh chụp + PO + mã hàng) và tab đang mở */
   const refresh = useCallback(async () => {
@@ -441,9 +458,6 @@ export default function MdClient({
     },
     [q],
   );
-
-  const active = TABS.find((t) => t.key === tab) ?? TABS[0];
-  const createLabel = CREATE_LABEL[tab];
 
   // Bảng tra SAM theo đơn hàng, để hộp thoại sinh lệnh sản xuất xem trước được
   // số ngày ngay khi người dùng còn đang gõ.
@@ -632,39 +646,13 @@ export default function MdClient({
       </div>
 
       <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
-          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-            <active.icon className="h-4 w-4 text-blue-500" aria-hidden="true" />
-            {active.label}
-          </h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" className={btnGhost} onClick={doRefresh} disabled={pending}>
-              <RefreshCw className={`h-4 w-4 ${pending ? 'animate-spin' : ''}`} /> Tải lại
-            </button>
-
-            {/* Hai lối ở tab Vật tư và Sản xuất: sinh tự động hoặc tạo tay */}
-            {tab === 'materials' && (
-              <button type="button" className={btnPrimary} onClick={() => setAutoDialog('material')}>
-                <Sparkles className="h-4 w-4" /> Sinh từ định mức
-              </button>
-            )}
-            {tab === 'production' && (
-              <button type="button" className={btnPrimary} onClick={() => setAutoDialog('production')}>
-                <Sparkles className="h-4 w-4" /> Sinh từ SAM
-              </button>
-            )}
-
-            {createLabel && (
-              <button
-                type="button"
-                className={tab === 'materials' || tab === 'production' ? btnGhost : btnPrimary}
-                onClick={() => setDialog(tab)}
-              >
-                <Plus className="h-4 w-4" /> {createLabel}
-              </button>
-            )}
-          </div>
-        </div>
+        <MdTabToolbar
+          tab={tab}
+          dangTai={pending}
+          onTaiLai={doRefresh}
+          onTaoMoi={moDialog}
+          onSinhTuDong={setAutoDialog}
+        />
 
         {/* ── NHÓM THƯƠNG MẠI ────────────────────────────────────────── */}
         {tab === 'customers' && (
@@ -848,6 +836,21 @@ export default function MdClient({
         setDialog={setDialog}
         suaId={suaId}
         setSuaId={setSuaId}
+        seasonOptions={seasonOptions}
+        khachMacDinh={khachMacDinh}
+        tenNguoiLap={tenNguoiLap}
+        // 🔴 §D — lý lẽ ghi ở khai báo prop trong `md-dialogs.tsx`.
+        onPoDaTao={async (poId, poNumber) => {
+          setKhachMacDinh(null);
+          await refresh();
+          openPo(poId, poNumber);
+        }}
+        // 🔴 §D — *"Sau khi tạo Customer: có thể quay lại tạo RFQ/PO ngay."*
+        onKhachDaTao={(dich, khachId) => {
+          setKhachMacDinh(khachId);
+          void listCustomerOptionsClient().then(setCustomerOptions);
+          moDialog(dich === 'rfq' ? 'rfq' : 'po');
+        }}
         autoDialog={autoDialog}
         setAutoDialog={setAutoDialog}
         congDoanMo={congDoanMo}
