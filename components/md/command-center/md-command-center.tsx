@@ -60,7 +60,7 @@ function O({
         <p className={`${TYPE.overline} text-slate-500`}>{nhan}</p>
         <Icon className={`h-4 w-4 shrink-0 ${t.text}`} aria-hidden="true" />
       </div>
-      <p className={`mt-1.5 tabular-nums ${TYPE.display} ${FONT_WEIGHT.bold} ${t.text}`}>{so}</p>
+      <p className={`mt-1.5 tabular-nums ${TYPE.pageTitle} ${FONT_WEIGHT.bold} ${t.text}`}>{so}</p>
       <p className={`mt-0.5 ${TYPE.caption} text-slate-500`}>{phu}</p>
       {/* 🔴 Board §1: *"KPI ⛔ không được là ngõ cụt … Mỗi KPI phải trả lời:
           tôi cần hành động gì?"*
@@ -78,14 +78,14 @@ function O({
   // ⛔ KHÔNG bọc `<button>` quanh ô ⛔ không có nơi để tới — con trỏ đổi thành
   // bàn tay rồi bấm ⛔ không xảy ra gì là **lời hứa suông của giao diện**.
   if (!onClick) {
-    return <div className="rounded-2xl border border-slate-200 bg-white p-5">{noiDung}</div>;
+    return <div className="rounded-2xl border border-slate-200 bg-white p-4">{noiDung}</div>;
   }
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={nhanBam}
-      className={`p-5 ${theBamDuoc}`}
+      className={`p-4 ${theBamDuoc}`}
     >
       {noiDung}
     </button>
@@ -104,8 +104,10 @@ export default function MdCommandCenter({
   const treGiao = tq.theoSucKhoe.DELAYED;
 
   return (
-    <section aria-label="Tổng quan điều hành" className="mb-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <section aria-label="Tổng quan điều hành">
+      {/* ⚠️ 2 CỘT, ⛔ KHÔNG 5. Từ 07/08/2026 khối này nằm trong **cột trái** rộng
+          3/12 — dàn 5 ô ngang ở đó thì mỗi ô chỉ còn ~60px và con số bị cắt. */}
+      <div className="grid grid-cols-2 gap-3">
         <O
           nhan="Đơn đang quản lý" so={String(tq.tongPo)} phu="tổng PO còn chạy"
           icon={ClipboardList} tone="trung" onClick={onMoDon} nhanBam="Mở danh sách đơn hàng"
@@ -149,7 +151,7 @@ export default function MdCommandCenter({
 
           ⚠️ ⛔ KHÔNG bịa lời khen khi ⛔ chưa ai báo cáo. Một dải chúc mừng
           trên nền dữ liệu rỗng là **nịnh**, và người dùng nhận ra ngay. */}
-      <div className={`mt-4 rounded-2xl border px-5 py-3.5 ${tq.chuaCoBaoCao ? 'border-slate-200 bg-white' : `${TONE.tot.chip} border`}`}>
+      <div className={`mt-3 rounded-2xl border px-4 py-3 ${tq.chuaCoBaoCao ? 'border-slate-200 bg-white' : `${TONE.tot.chip} border`}`}>
         {tq.chuaCoBaoCao ? (
           <p className={`${TYPE.bodySm} text-slate-500`}>
             ⚪ Hôm nay <strong>chưa nhận được báo cáo nào</strong> từ tổ trưởng, nhà thầu hay QA —

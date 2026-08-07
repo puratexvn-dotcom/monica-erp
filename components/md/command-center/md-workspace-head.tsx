@@ -1,28 +1,39 @@
 'use client';
 
 // ============================================================================
-// ĐẦU WORKSPACE CỦA MD — ba khối ①②③ theo DNA Board Directive 07/08/2026
+// MD HOME V2 — BỐ CỤC BA CỘT
 //
-//   ① Command Center  →  ② Quick Actions  →  ③ Risk Center
+// Board Directive 07/08/2026 *(MD Home V2)*:
 //
-// ─── 🔑 VÌ SAO GOM VÀO MỘT COMPONENT ────────────────────────────────────
-// `md-client.tsx` đang ở **849/900 dòng** — phép kiểm kiến trúc chặn ở 900.
-// Nhét ba khối vào đó là **vượt trần ngay**, và cách sửa sai là nới trần.
+//   > *"⛔ Không làm Dashboard dài phải cuộn … Desktop: **bố cục 3 cột**. ⛔
+//   > Không dùng 1 cột dài."*
 //
-// 🔑 Gom ở đây còn **đúng hơn về cấu trúc**: ba khối này cùng đọc **một tập
-// dữ liệu điều hành**, và chúng phải đổi cùng nhau. Tách rời ra ba chỗ trong
-// thân `md-client` thì lần sau ai sửa thứ tự sẽ phải nhớ cả ba.
+//   ┌───────────────────────────────────────┐
+//   │ Action Center                         │
+//   ├──────────────┬────────────────┬───────┤
+//   │ MY WORK      │ ORDER CENTER   │ RISK  │
+//   └──────────────┴────────────────┴───────┘
+//   Dashboard  ← đặt DƯỚI ba cột
 //
-// ⚠️ Component này **tính hành trình MỘT LẦN** rồi chia cho cả Command Center
-// lẫn *"Đơn hàng đang ở đâu?"*. Trước đây `MdOrderJourney` tự tính bên trong —
-// nay hai chỗ cùng cần, mà tính hai lần là mở cửa cho **hai con số khác nhau
-// trên cùng một màn hình**.
+// ─── 🔑 BA CỘT ĐỔI **HÌNH DẠNG**, ⛔ KHÔNG ĐỔI **THỨ TỰ ƯU TIÊN** ────────
+// `WORKSPACE_DESIGN_DNA.md` khoá **trình tự câu hỏi trong đầu người dùng**, ⛔
+// không khoá *"phải xếp dọc"*. Ba cột giữ nguyên trình tự đó bằng **vị trí
+// ngang**: mắt đọc trái→phải, và cột phải là chỗ **duy nhất** có màu đỏ nên nó
+// hút mắt trước dù nằm cuối hàng.
+//
+// ⚠️ ĐIỆN THOẠI XẾP DỌC THEO ĐÚNG THỨ TỰ BOARD KHAI:
+//     Action → Risk → Today Work → Orders → Dashboard
+// 🔑 Trên điện thoại **Risk lên TRƯỚC My Work** — ngược với máy bàn. Có lý do:
+// máy bàn thấy cả ba cột cùng lúc nên vị trí ⛔ không quyết định thứ tự đọc;
+// điện thoại thì thứ tự **là** tất cả, và cái đang cháy phải lên trước.
+// Thực hiện bằng `order-*` của Tailwind, ⛔ không nhân đôi JSX.
 // ============================================================================
 import { useMemo } from 'react';
 
 import MdCommandCenter from './md-command-center';
-import MdActionCards from './md-action-cards';
+import MdActionCards, { type HanhDongMd } from './md-action-cards';
 import MdRiskCenter from './md-risk-center';
+import MdDailyFocus from './md-daily-focus';
 import { tinhHanhTrinh, type ChungTuCon, type BienBanKiem, type HanhTrinh } from '@/lib/mos/md/order-journey';
 import { tongQuanMd } from '@/lib/mos/md/command-center-kpi';
 import type { BaoCaoNgay, DichCanhBao } from '@/lib/mos/md/daily-digest';
@@ -38,7 +49,8 @@ export interface DonChoHanhTrinh {
 
 export default function MdWorkspaceHead({
   pos, materials, productions, shipments, inspections, today,
-  baoCao, tasks, alerts, loi, onDi, onTaoPo, onTaoKhach, onChietTinh,
+  baoCao, tasks, alerts, loi, onDi, hanhDong,
+  orderCenter, hopThuViec, hoatDong, dashboard,
 }: {
   pos: readonly DonChoHanhTrinh[];
   materials: ChungTuCon[];
@@ -51,9 +63,15 @@ export default function MdWorkspaceHead({
   alerts: readonly MosAlert[];
   loi?: string | null;
   onDi: (dich: DichCanhBao) => void;
-  onTaoPo: () => void;
-  onTaoKhach: () => void;
-  onChietTinh: () => void;
+  hanhDong: HanhDongMd;
+  /** Cột giữa — hành trình đơn + bảng PO. */
+  orderCenter: React.ReactNode;
+  /** Cột trái — hộp thư việc đầy đủ. */
+  hopThuViec: React.ReactNode;
+  /** Cột trái, đáy — nhật ký gần đây. Board §3: *"đưa xuống cuối cột"*. */
+  hoatDong?: React.ReactNode;
+  /** Dưới ba cột. */
+  dashboard: React.ReactNode;
 }) {
   const hanhTrinh: HanhTrinh[] = useMemo(
     () => pos.map((p) => tinhHanhTrinh({
@@ -84,38 +102,47 @@ export default function MdWorkspaceHead({
 
   return (
     <>
-      <MdCommandCenter
-        tq={tq}
-        onMoDon={() => onDi('po')}
-        onMoViec={veViec}
-        onMoRuiRo={veKhuRuiRo}
-      />
-      <MdActionCards
-        onTaoPo={onTaoPo}
-        onTaoKhach={onTaoKhach}
-        onChietTinh={onChietTinh}
-        onShipment={() => onDi('shipments')}
-      />
-      <MdRiskCenter canhBao={baoCao.canhBao} alerts={alerts} loi={loi} onDi={onDi} />
+      {/* ═══ ACTION CENTER — trên cùng, full chiều ngang ═══════════════════ */}
+      <MdActionCards hd={hanhDong} />
+
+      {/* ═══ BA CỘT ═══════════════════════════════════════════════════════
+          `lg:grid-cols-12` chia 3 / 6 / 3: cột giữa **gấp đôi** hai cột bên
+          vì nó chứa bảng dữ liệu — chia đều thì bảng PO bị bóp còn một nửa
+          chiều ngang và phải cuộn ngang, thứ Board vừa yêu cầu tránh. */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        {/* ─── CỘT TRÁI · MY WORK ────────────────────────────────────────
+            Điện thoại: `order-2` — sau Risk. Máy bàn: cột đầu. */}
+        <section aria-label="Công việc của tôi" className="order-2 space-y-5 lg:order-1 lg:col-span-3">
+          <MdCommandCenter
+            tq={tq}
+            onMoDon={() => onDi('po')}
+            onMoViec={veViec}
+            onMoRuiRo={veKhuRuiRo}
+          />
+          <div id="viec-hom-nay" className="scroll-mt-24 space-y-5">
+            <MdDailyFocus bc={baoCao} onDi={onDi} />
+            {hopThuViec}
+          </div>
+          {/* Board §3: *"Recent Activity — đưa xuống cuối cột."* */}
+          {hoatDong}
+        </section>
+
+        {/* ─── CỘT GIỮA · ORDER CENTER ───────────────────────────────────
+            Điện thoại: `order-3`. Board xếp Orders sau Today Work. */}
+        <section aria-label="Order Center" className="order-3 space-y-5 lg:order-2 lg:col-span-6">
+          {orderCenter}
+        </section>
+
+        {/* ─── CỘT PHẢI · RISK ───────────────────────────────────────────
+            🔴 Điện thoại: `order-1` — LÊN ĐẦU, trước cả My Work. Cái đang
+            cháy phải đọc trước khi cuộn tay mỏi. */}
+        <section aria-label="Cần xử lý ngay" className="order-1 lg:order-3 lg:col-span-3">
+          <MdRiskCenter canhBao={baoCao.canhBao} alerts={alerts} loi={loi} onDi={onDi} />
+        </section>
+      </div>
+
+      {/* ═══ DASHBOARD — DƯỚI ba cột, Board §6 ════════════════════════════ */}
+      <div className="mt-5">{dashboard}</div>
     </>
   );
-}
-
-/** Hành trình đã tính — để `md-client` chuyển thẳng cho *"Đơn hàng đang ở đâu?"*
- *  mà ⛔ không phải tính lần thứ hai. */
-export function tinhHanhTrinhChoMd(
-  pos: readonly DonChoHanhTrinh[],
-  materials: ChungTuCon[],
-  productions: ChungTuCon[],
-  shipments: ChungTuCon[],
-  inspections: BienBanKiem[],
-  today: string,
-): HanhTrinh[] {
-  return pos.map((p) => tinhHanhTrinh({
-    poNumber: p.po_number,
-    poStatus: p.status,
-    materials, productions, shipments, inspections,
-    deliveryDate: p.delivery_date,
-    today,
-  }));
 }

@@ -47,10 +47,32 @@ export default function MdRiskCenter({
 }) {
   const tong = canhBao.length + alerts.length;
 
+  // 🔴 CHẶN NGƯỠNG — Board Directive 07/08/2026 §5: *"Chỉ hiển thị vấn đề. ⛔
+  // Không hiển thị toàn bộ đơn."*
+  //
+  // Sau khi sinh lịch T&A cho 14 đơn cũ, hộp thư có **167 việc quá hạn** và
+  // khu này đổ ra **170 mục** ⇒ trang cao **37.850 px**. Đó ⛔ không còn là
+  // *"cần xử lý ngay"* — đó là một **bảng dữ liệu đội lốt cảnh báo**.
+  //
+  // 🔑 Một danh sách 170 dòng đỏ ⛔ không giúp ai chọn việc nào làm trước; nó
+  // chỉ dạy người dùng **cuộn qua màu đỏ mà ⛔ không đọc**. Khu này giữ đúng
+  // **phần đỉnh**; phần còn lại đã có **Hộp thư việc** ở cột trái lo — nơi có
+  // sắp xếp, có phân trang, và đúng nghĩa *"Task"* chứ ⛔ không phải *"Risk"*.
+  //
+  // ⚠️ **⛔ KHÔNG giấu số bị cắt.** Nói thẳng còn bao nhiêu và chỉ chỗ xem —
+  // cắt im lặng thì màn hình đọc thành *"chỉ có 8 vấn đề"*.
+  const TOI_DA = 8;
+  const bay = [
+    ...canhBao.map((c, i) => ({ loai: 'd' as const, key: `d-${i}-${c.tieuDe}`, c })),
+    ...alerts.map((a) => ({ loai: 'a' as const, key: a.id, a })),
+  ];
+  const hien = bay.slice(0, TOI_DA);
+  const conLai = bay.length - hien.length;
+
   return (
-    <section aria-label="Khu rủi ro" id="khu-rui-ro" className="mb-6 scroll-mt-24">
+    <section aria-label="Khu rủi ro" id="khu-rui-ro" className="scroll-mt-24">
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className={`text-slate-700 ${TYPE.overline}`}>Vấn đề cần xử lý</h2>
+        <h2 className={`text-slate-700 ${TYPE.overline}`}>Cần xử lý ngay</h2>
         {tong > 0 && (
           <span className={`tabular-nums text-slate-500 ${TYPE.caption}`}>{tong} mục</span>
         )}
@@ -74,13 +96,13 @@ export default function MdRiskCenter({
           </p>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3">
           {/* Nguy cấp đứng trước — `canhBao` đã được `daily-digest` sắp theo mức độ. */}
-          {canhBao.map((c, i) => {
+          {hien.filter((x) => x.loai === 'd').map(({ key, c }, i) => {
             const nguy = c.mucDo === 'NGHIEM_TRONG';
             return (
               <li
-                key={`d-${i}-${c.tieuDe}`}
+                key={key}
                 className={`flex items-start gap-3 rounded-2xl px-4 py-3.5 ring-1 ${nguy ? STATUS.critical.chip : STATUS.warning.chip}`}
               >
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
@@ -102,7 +124,7 @@ export default function MdRiskCenter({
             );
           })}
 
-          {alerts.map((a) => (
+          {hien.filter((x) => x.loai === 'a').map(({ a }) => (
             <li
               key={a.id}
               className={`flex items-start gap-3 rounded-2xl px-4 py-3 ring-1 ${STATUS.critical.chip}`}
@@ -129,6 +151,13 @@ export default function MdRiskCenter({
             </li>
           ))}
         </ul>
+      )}
+
+      {conLai > 0 && (
+        <p className={`mt-3 text-slate-500 ${TYPE.caption}`}>
+          …và <strong>{conLai} mục nữa</strong>. Danh sách đầy đủ ở{' '}
+          <strong>Hộp thư việc</strong> (cột trái) — nơi có sắp xếp theo mức khẩn.
+        </p>
       )}
     </section>
   );

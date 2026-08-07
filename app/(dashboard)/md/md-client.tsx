@@ -470,9 +470,45 @@ export default function MdClient({
           alerts={ccFeed?.alerts ?? []}
           loi={cc.errors.all}
           onDi={(d) => goTab(d as TabKey)}
-          onTaoPo={() => setDialog('po')}
-          onTaoKhach={() => { goTab('customers'); setDialog('customers'); }}
-          onChietTinh={() => goTab('costing')}
+          // ⚠️ Sáu hành động ĐÚNG thứ tự Board §2. Mỗi cái mở **đúng chỗ làm
+          // việc đó**, ⛔ không chỉ chuyển tab rồi để người dùng tự tìm nút.
+          hanhDong={{
+            taoPo: () => setDialog('po'),
+            khachHang: () => { goTab('customers'); setDialog('customers'); },
+            chietTinh: () => goTab('costing'),
+            dinhMuc: () => goTab('styles'),
+            techPack: () => goTab('documents'),
+            yeuCauNpl: () => { goTab('materials'); setAutoDialog('material'); },
+          }}
+          hopThuViec={
+            <MdTaskSection
+              tasks={ccFeed?.tasks ?? []}
+              loi={cc?.errors.all ?? null}
+              wording={MD_URGENCY}
+              emptyHint={MD_TASK_EMPTY_HINT}
+              chaySinhLich={sinhLichTaChoDonCu}
+            />
+          }
+          orderCenter={
+            <>
+              {/* ④ BUSINESS FLOW — *"Đơn hàng đang ở đâu?"*, chữ ký sản phẩm. */}
+              <MdOrderJourney
+                pos={poRows}
+                materials={ctMaterials}
+                productions={ctProductions}
+                shipments={ctShipments}
+                inspections={snap.qaReports}
+                today={vnTodayISO()}
+                onOpenTab={(t) => goTab(t as TabKey)}
+              />
+              {/* ⑥ DATA — bảng PO, cuộn trong khung của nó (`DNA-6`). */}
+              {cc && <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />}
+              <div className="max-h-[30rem] overflow-y-auto rounded-2xl border border-slate-200">
+                <PoList rows={poRows} error={poError} onRefresh={refresh} />
+              </div>
+            </>
+          }
+          dashboard={<DailyDigestCard bc={baoCaoNgay} gonGang />}
         />
       )}
 
@@ -644,62 +680,17 @@ export default function MdClient({
           </div>
         )}
 
+        {/* 🔴 TAB "PO" ⛔ KHÔNG DỰNG LẠI GÌ — Board Directive 07/08/2026 (MD
+            Home V2): hành trình đơn và bảng PO nay nằm ở **cột giữa** phía
+            trên. Dựng lại ở đây là **đúng thứ trùng lặp Board yêu cầu xoá**
+            (§7: *"card trùng dữ liệu · bảng ⛔ không có hành động"*).
+            ⚠️ Thanh 13 tab **giữ nguyên** — nó vẫn là đường vào 12 khu còn lại. */}
         {tab === 'po' && (
-          <div className="space-y-6 p-5">
-            {/* ④ BUSINESS FLOW — "Đơn hàng đang ở đâu?"
-                Board gọi đây là **điểm khác biệt của MONICA ONE**. Đứng trên
-                mọi bảng dữ liệu: merchandiser hỏi *"đơn tôi đang ở đâu"* TRƯỚC
-                khi hỏi *"có những đơn nào"*. */}
-            <MdOrderJourney
-              pos={poRows}
-              // 🔑 `so` · `moc` · `evidence_path` cho cột BẰNG CHỨNG và MỐC —
-              // ⛔ không bịa. Ba mảng này dựng MỘT LẦN ở trên và dùng chung với
-              // Command Center, ⛔ không map lại lần hai.
-              materials={ctMaterials}
-              productions={ctProductions}
-              shipments={ctShipments}
-              inspections={snap.qaReports}
-              today={vnTodayISO()}
-              onOpenTab={(t) => goTab(t as TabKey)}
-            />
-
-            {/* ⑤ TODAY'S FOCUS + DAILY ACHIEVEMENT — Board §7–§8.
-                🔑 Đặt NGAY SAU hành trình đơn: MD vừa thấy *"đơn đang ở đâu"*,
-                câu kế tiếp trong đầu là *"vậy hôm nay tôi phải chốt cái gì"*.
-                Đẩy nó xuống dưới bảng PO là bắt người ta cuộn qua 14 dòng dữ
-                liệu mới tới được câu trả lời. */}
-            <div id="viec-hom-nay" className="scroll-mt-24">
-              <MdDailyFocus bc={baoCaoNgay} onDi={(d) => goTab(d as TabKey)} />
-            </div>
-
-            {/* ⑥ DATA — danh sách PO. Board §5: *"Giảm chiều cao. ⛔ Không để PO
-                List chiếm phần lớn màn hình. MD ⛔ không đọc PO từ trên xuống —
-                MD **tìm · lọc · mở**."*
-                ⇒ Bọc trong khung cuộn riêng: bảng dài bao nhiêu cũng ⛔ không
-                đẩy được khu Report ra khỏi tầm mắt. */}
-            {cc && <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />}
-            <div className="max-h-[28rem] overflow-y-auto rounded-2xl border border-slate-200">
-              <PoList rows={poRows} error={poError} onRefresh={refresh} />
-            </div>
-
-            {/* ⑦ TASK — hộp thư việc + lối sửa khi rỗng.
-                Gom trong `md-task-section.tsx`: hai thứ đó là **hai mặt của
-                một câu** và phải đổi cùng nhau. */}
-            <MdTaskSection
-              tasks={ccFeed?.tasks ?? []}
-              loi={cc?.errors.all ?? null}
-              wording={MD_URGENCY}
-              emptyHint={MD_TASK_EMPTY_HINT}
-              chaySinhLich={sinhLichTaChoDonCu}
-            />
-
-            {/* ⑧ REPORT — báo cáo ngày, bản GỌN.
-                🔑 `gonGang` bỏ hai khối **Cảnh báo** và **Việc cần làm** — cả
-                hai đã lên khu ③ và ⑦ ở trên, nơi mỗi dòng **bấm được**. Giữ lại
-                ở đây là bày cùng một nội dung hai lần, mà bản dưới còn ⛔ không
-                bấm được — tức bản kém hơn đứng sau bản tốt hơn.
-                Board §6: *"ẩn hoặc giảm … báo cáo trùng"*. */}
-            <DailyDigestCard bc={baoCaoNgay} gonGang />
+          <div className="p-5">
+            <p className="text-sm text-slate-500">
+              Hành trình đơn hàng và danh sách PO nằm ở <strong>cột giữa</strong> phía trên —
+              ⛔ <strong>không</strong> bày lại ở đây để tránh trùng lặp.
+            </p>
           </div>
         )}
 

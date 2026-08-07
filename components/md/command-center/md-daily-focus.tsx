@@ -42,9 +42,9 @@ export default function MdDailyFocus({
   const xong = td.daNhan === td.tong;
 
   return (
-    <section aria-label="Tiêu điểm hôm nay" className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <section aria-label="Tiêu điểm hôm nay" className="grid grid-cols-1 gap-4">
       {/* ─── ⑦ TODAY ────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 lg:col-span-2">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className={`mb-3 flex items-center gap-2 text-slate-900 ${TYPE.body} ${FONT_WEIGHT.semibold}`}>
           <Target className="h-4 w-4" aria-hidden="true" />
           Hôm nay cần chốt
@@ -96,7 +96,7 @@ export default function MdDailyFocus({
           Báo cáo hôm nay
         </h2>
 
-        <p className={`tabular-nums ${TYPE.display} ${FONT_WEIGHT.bold} ${xong ? STATUS.healthy.text : 'text-slate-900'}`}>
+        <p className={`tabular-nums ${TYPE.pageTitle} ${FONT_WEIGHT.bold} ${xong ? STATUS.healthy.text : 'text-slate-900'}`}>
           {td.daNhan}
           <span className={`text-slate-400 ${TYPE.sectionTitle}`}> / {td.tong}</span>
         </p>

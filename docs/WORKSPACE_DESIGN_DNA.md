@@ -27,21 +27,62 @@ Board Directive 07/08/2026:
 
 ---
 
-## 1. TÁM TẦNG — thứ tự là toàn bộ nội dung của chuẩn
+## 1. BỐ CỤC — BA CỘT trên máy bàn, MỘT CỘT trên điện thoại
+
+> 🔴 **Sửa 07/08/2026 · Board Directive *MD Home V2*.** Bản đầu của tài liệu này
+> khoá **một cột dọc tám tầng**. Board bác: *"⛔ Không làm Dashboard dài phải
+> cuộn … Desktop: **bố cục 3 cột**. ⛔ Không dùng 1 cột dài."*
+>
+> ⚠️ Ghi lại **cả bản cũ lẫn lý do đổi**, ⛔ không im lặng viết đè — người đọc
+> sau cần biết chuẩn này **đã từng nói khác** và vì sao.
 
 ```
-① Command Center      →  tôi đang đứng ở đâu
-② Quick Actions       →  tôi bắt đầu việc gì
-③ Risk Center         →  cái gì đang cháy
-④ Business Flow       →  đối tượng của tôi đang ở đâu
-⑤ Today's Focus       →  hôm nay tôi phải chốt gì
-⑥ Data                →  chi tiết, khi tôi cần tra
-⑦ Task                →  hộp thư việc đầy đủ
-⑧ Report              →  bằng chứng để báo cáo lên
+┌───────────────────────────────────────┐
+│ Header                                │
+├───────────────────────────────────────┤
+│ ACTION CENTER            (full ngang) │
+├──────────────┬────────────────┬───────┤
+│ MY WORK      │ ORDER CENTER   │ RISK  │
+│  3/12        │      6/12      │ 3/12  │
+└──────────────┴────────────────┴───────┘
+│ DASHBOARD                (full ngang) │
 ```
 
-⚠️ **Xếp `Data` lên trên là ⛔ KHÔNG thi hành chuẩn này** — kể cả khi đã có đủ
-tám khối. Thứ tự **là** chuẩn; đảo thứ tự là đảo sản phẩm.
+⚠️ **Cột giữa GẤP ĐÔI hai cột bên** *(6/12 ⟷ 3/12)*: nó chứa bảng dữ liệu.
+Chia đều thì bảng bị bóp còn một nửa chiều ngang và phải **cuộn ngang** — đúng
+thứ Board yêu cầu tránh.
+
+### Điện thoại — MỘT cột, và thứ tự **KHÁC máy bàn**
+
+```
+Action → Risk → My Work → Today Work → Orders → Dashboard
+```
+
+🔑 **Risk lên TRƯỚC My Work trên điện thoại**, ngược với máy bàn. Có lý do: máy
+bàn thấy cả ba cột **cùng lúc** nên vị trí ⛔ không quyết định thứ tự đọc; điện
+thoại thì thứ tự **là tất cả**, và cái đang cháy phải lên đầu.
+
+Thực hiện bằng `order-*` của Tailwind — ⛔ **KHÔNG nhân đôi JSX**. Hai bản JSX
+cho hai khổ máy là hai chỗ để quên sửa.
+
+---
+
+## 1b. TÁM TẦNG — thứ tự ưu tiên, nay phân bổ vào ba cột
+
+| Tầng | Câu hỏi | Nằm ở |
+|---|---|---|
+| ② Quick Actions | *tôi bắt đầu việc gì* | **Action Center**, full ngang, trên cùng |
+| ① Command Center | *tôi đang đứng ở đâu* | cột **TRÁI**, trên |
+| ⑤ Today's Focus | *hôm nay chốt gì* | cột **TRÁI**, giữa |
+| ⑦ Task | *còn việc gì nữa* | cột **TRÁI**, dưới |
+| — Recent Activity | *vừa xảy ra gì* | cột **TRÁI**, **đáy** |
+| ④ Business Flow | *đối tượng đang ở đâu* | cột **GIỮA**, trên |
+| ⑥ Data | *chi tiết dòng nào* | cột **GIỮA**, dưới |
+| ③ Risk Center | *cái gì đang cháy* | cột **PHẢI** |
+| ⑧ Report | *báo cáo bằng gì* | **DƯỚI** ba cột |
+
+⚠️ **Xếp `Data` lên trên Action/Risk là ⛔ KHÔNG thi hành chuẩn này** — kể cả
+khi đã có đủ tám khối. Vị trí ưu tiên **là** chuẩn; đảo nó là đảo sản phẩm.
 
 ### Vì sao đúng thứ tự đó
 
@@ -109,6 +150,20 @@ bị hiểu sai**, màn hình phải **nói trước điều đó**.
 
 Bảng dữ liệu bọc `max-h-*` + `overflow-y-auto`. Bảng dài bao nhiêu cũng ⛔ không
 được đẩy Report ra khỏi tầm mắt.
+
+### `DNA-6b` · Risk Center **CÓ TRẦN**, và ⛔ không giấu phần bị cắt
+
+Tối đa ~8 mục, kèm dòng *"…và N mục nữa — xem ở Hộp thư việc"*.
+
+🔴 Đo được 07/08/2026: sau khi sinh lịch T&A cho 14 đơn, khu này đổ **170 mục**
+⇒ trang cao **37.850 px**. Đó ⛔ không còn là *"cần xử lý ngay"* — đó là **một
+bảng dữ liệu đội lốt cảnh báo**. Sau khi chặn trần: **4.966 px**.
+
+🔑 Một danh sách 170 dòng đỏ ⛔ không giúp ai chọn việc nào làm trước; nó chỉ
+**dạy người dùng cuộn qua màu đỏ mà ⛔ không đọc**.
+
+⚠️ **⛔ KHÔNG cắt im lặng** — cắt mà ⛔ không nói thì màn hình đọc thành *"chỉ
+có 8 vấn đề"*.
 
 ### `DNA-7` · Report ⛔ **không được lặp** khối phía trên
 
