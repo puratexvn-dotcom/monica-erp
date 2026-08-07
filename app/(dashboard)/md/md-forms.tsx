@@ -29,6 +29,9 @@ import {
   createShipmentOrder,
   type ActionResult,
 } from './md-actions';
+// 🔴 BUG-5 · Board 07/08/2026 — chế độ Sửa. Xem `use-sua-chung-tu.ts`.
+import { updateMaterialRequest } from './_actions/revisions.actions';
+import { useSuaChungTu, oChu, oSo, oNgay } from './use-sua-chung-tu';
 
 // ============================================================================
 // BỐN FORM TẠO MỚI CỦA PHÂN HỆ MERCHANDISER
@@ -222,17 +225,26 @@ export function CustomerFormDialog({
 }
 
 // ── 2. ĐỀ NGHỊ MUA NPL ──────────────────────────────────────────────────────
+/** 🔴 Hai chế độ — `suaId` khác `null` ⇒ **Sửa** *(Board `BUG-5`, 07/08/2026)*.
+ *
+ *  ⚠️ Phiếu ở trạng thái `ORDERED` *(đã đặt nhà cung cấp)* hoặc `RECEIVED`
+ *  *(đã nhập kho)* bị `document-lock.ts` khoá lại — sửa số lượng một phiếu đã
+ *  nhập kho làm lệch tồn kho mà ⛔ không lỗi nào nổ ra. */
 export function MaterialRequestDialog({
   open,
   onClose,
   onDone,
   pos,
+  suaId,
 }: {
   open: boolean;
   onClose: () => void;
   onDone: () => void | Promise<void>;
   pos: PoOption[];
+  suaId?: string | null;
 }) {
+  const sua = useSuaChungTu('MATERIAL_REQUEST', open, suaId);
+
   const defaults: MaterialRequestValues = {
     request_no: '',
     order_id: '',
@@ -249,20 +261,51 @@ export function MaterialRequestDialog({
     defaultValues: defaults,
   });
 
-  // Mở lại hộp thoại phải là tờ giấy trắng, không giữ dữ liệu lần nhập trước
+  // Mở lại hộp thoại phải là tờ giấy trắng, không giữ dữ liệu lần nhập trước —
+  // TRỪ chế độ Sửa, khi đó đổ bản ghi ĐẦY ĐỦ vừa đọc về (⛔ không đổ từ dòng
+  // trong bảng: `MaterialRequestRow` là phép chiếu, thiếu `evidence_path`).
   useEffect(() => {
-    if (open) form.reset(defaults);
+    if (!open) return;
+    if (sua.laSua) {
+      if (!sua.row) return;
+      form.reset({
+        request_no: oChu(sua.row, 'request_no'),
+        order_id: oChu(sua.row, 'order_id'),
+        material_name: oChu(sua.row, 'material_name'),
+        category: (oChu(sua.row, 'category') || 'FABRIC') as MaterialRequestValues['category'],
+        quantity: oSo(sua.row, 'quantity') ?? 0,
+        unit: oChu(sua.row, 'unit'),
+        needed_date: oNgay(sua.row, 'needed_date') || vnToday(),
+        notes: oChu(sua.row, 'notes'),
+        evidence_path: oChu(sua.row, 'evidence_path'),
+      });
+      return;
+    }
+    form.reset(defaults);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, sua.laSua, sua.row]);
 
   const onSubmit = form.handleSubmit(async (values) => {
-    await applyResult(form, await createMaterialRequest(values), onClose, onDone);
+    const res = suaId
+      ? await updateMaterialRequest(suaId, values)
+      : await createMaterialRequest(values);
+    await applyResult(form, res, onClose, onDone);
   });
   const { register, formState, setValue } = form;
 
   return (
-    <Modal open={open} title="Tạo đề nghị mua nguyên phụ liệu" onClose={onClose} wide>
+    <Modal
+      open={open}
+      title={suaId ? 'Sửa đề nghị mua nguyên phụ liệu' : 'Tạo đề nghị mua nguyên phụ liệu'}
+      onClose={onClose}
+      wide
+    >
       <form onSubmit={onSubmit} noValidate>
+        {sua.loi && (
+          <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+            {sua.loi}
+          </p>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Số phiếu đề nghị">
             <input className={inputCls} placeholder="DN-2026-0042" {...register('request_no')} />
@@ -327,7 +370,11 @@ export function MaterialRequestDialog({
           />
         </div>
 
-        <Actions onClose={onClose} busy={formState.isSubmitting} label="Tạo đề nghị" />
+        <Actions
+          onClose={onClose}
+          busy={formState.isSubmitting || sua.dangNap}
+          label={suaId ? 'Lưu thay đổi' : 'Tạo đề nghị'}
+        />
       </form>
     </Modal>
   );

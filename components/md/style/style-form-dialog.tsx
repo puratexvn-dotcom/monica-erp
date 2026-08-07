@@ -4,12 +4,14 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Save } from 'lucide-react';
 
 import type { z } from 'zod';
 
 import { Modal, Field, inputCls, btnGhost, btnPrimary } from '@/components/ui';
 import { createStyle } from '@/app/(dashboard)/md/_actions/style.actions';
+import { updateStyle } from '@/app/(dashboard)/md/_actions/revisions.actions';
+import { useSuaChungTu, oChu, oSo } from '@/app/(dashboard)/md/use-sua-chung-tu';
 import {
   styleFormSchema,
   STYLE_STATUSES, STYLE_STATUS_LABEL,
@@ -55,28 +57,63 @@ const DEFAULTS: StyleFormInput = {
   notes: '',
 };
 
+/** 🔴 Hai chế độ — `suaId` khác `null` ⇒ **Sửa** *(Board `BUG-5`, 07/08/2026)*.
+ *
+ *  ⚠️ `StyleRow` của bảng danh sách **⛔ không mang** `hs_code` · `marker_code`
+ *  · `marker_length_m` · `needle_type` · `tech_pack_url`. Đổ form từ nó rồi
+ *  lưu sẽ **xoá sạch** năm ô đó. Vì vậy chế độ Sửa **bắt buộc** đi qua
+ *  `useSuaChungTu` — đọc nguyên dòng từ CSDL. */
 export default function StyleFormDialog({
   open,
   onClose,
   onCreated,
+  suaId,
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: () => void | Promise<void>;
+  suaId?: string | null;
 }) {
+  const sua = useSuaChungTu('STYLE', open, suaId);
+
   const form = useForm<StyleFormInput, unknown, StyleFormValues>({
     resolver: zodResolver(styleFormSchema),
     defaultValues: DEFAULTS,
   });
   const { register, formState, reset, setError, handleSubmit } = form;
 
-  // Mở lại phải là tờ giấy trắng, không giữ dữ liệu lần nhập trước
+  // Mở lại phải là tờ giấy trắng, không giữ dữ liệu lần nhập trước —
+  // TRỪ chế độ Sửa, khi đó đổ đúng bản ghi đầy đủ vừa đọc về.
   useEffect(() => {
-    if (open) reset(DEFAULTS);
-  }, [open, reset]);
+    if (!open) return;
+    if (sua.laSua) {
+      if (!sua.row) return;
+      reset({
+        style_no: oChu(sua.row, 'style_no'),
+        style_name: oChu(sua.row, 'style_name'),
+        customer_id: oChu(sua.row, 'customer_id'),
+        season_id: oChu(sua.row, 'season_id'),
+        product_group: oChu(sua.row, 'product_group'),
+        gender: oChu(sua.row, 'gender') as StyleFormInput['gender'],
+        hs_code: oChu(sua.row, 'hs_code'),
+        fabric_type: oChu(sua.row, 'fabric_type'),
+        sam_minutes: oSo(sua.row, 'sam_minutes'),
+        needle_type: oChu(sua.row, 'needle_type'),
+        machine_types: oChu(sua.row, 'machine_types'),
+        marker_code: oChu(sua.row, 'marker_code'),
+        marker_length_m: oSo(sua.row, 'marker_length_m'),
+        marker_efficiency: oSo(sua.row, 'marker_efficiency'),
+        tech_pack_url: oChu(sua.row, 'tech_pack_url'),
+        status: (oChu(sua.row, 'status') || 'DEVELOPMENT') as StyleFormInput['status'],
+        notes: oChu(sua.row, 'notes'),
+      });
+      return;
+    }
+    reset(DEFAULTS);
+  }, [open, sua.laSua, sua.row, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
-    const res = await createStyle(values);
+    const res = suaId ? await updateStyle(suaId, values) : await createStyle(values);
 
     if (!res.ok) {
       if (res.fieldErrors) {
@@ -84,19 +121,30 @@ export default function StyleFormDialog({
           setError(name as keyof StyleFormInput, { type: 'server', message });
         }
       }
-      toast.error('Không tạo được mã hàng', { description: res.message });
+      toast.error(suaId ? 'Không lưu được thay đổi' : 'Không tạo được mã hàng', { description: res.message });
       return;
     }
 
-    toast.success('Đã tạo mã hàng', { description: res.message });
+    toast.success(suaId ? 'Đã lưu thay đổi' : 'Đã tạo mã hàng', { description: res.message });
     reset(DEFAULTS);
     onClose();
     await onCreated();
   });
 
   return (
-    <Modal open={open} title="Tạo mã hàng mới" onClose={onClose} wide>
+    <Modal open={open} title={suaId ? 'Sửa mã hàng' : 'Tạo mã hàng mới'} onClose={onClose} wide>
       <form onSubmit={onSubmit} noValidate>
+        {sua.loi && (
+          <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+            {sua.loi}
+          </p>
+        )}
+        {sua.dangNap && (
+          <p className="mb-3 flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            Đang nạp mã hàng...
+          </p>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Mã hàng (Style No)" hint="chữ, số, gạch ngang — tự chuyển in hoa">
             <input className={inputCls} placeholder="JK-W26-001" {...register('style_no')} />
@@ -204,10 +252,14 @@ export default function StyleFormDialog({
           <button type="button" className={btnGhost} onClick={onClose} disabled={formState.isSubmitting}>
             Hủy
           </button>
-          <button type="submit" className={btnPrimary} disabled={formState.isSubmitting}>
+          <button type="submit" className={btnPrimary} disabled={formState.isSubmitting || sua.dangNap}>
             {formState.isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Đang tạo...
+                <Loader2 className="h-4 w-4 animate-spin" /> Đang lưu...
+              </>
+            ) : suaId ? (
+              <>
+                <Save className="h-4 w-4" /> Lưu thay đổi
               </>
             ) : (
               <>

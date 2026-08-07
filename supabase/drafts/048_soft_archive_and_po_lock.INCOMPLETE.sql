@@ -1,0 +1,141 @@
+-- ============================================================================
+-- 🔴 BẢN NHÁP — ⛔ CHƯA HOÀN CHỈNH · ⛔ CHƯA ĐƯỢC PHÉP CHẠY
+--
+-- 048 · LƯU TRỮ MỀM cho ba bảng MD  +  KHOÁ PO ở tầng CSDL
+--
+-- 📐 ADR-027 — 🔴 **ĐỀ XUẤT, CHỜ BOARD**. ⛔ Chưa duyệt ⇒ ⛔ chưa được viết
+--    migration thật (Hiến pháp Điều 4 · CLAUDE.md §3 "không ngoại lệ").
+-- 📐 Board Decision 07/08/2026 — `BUG-5` · *"Khóa theo Workflow"*.
+--
+-- ⚠️ **VÌ SAO TỆP NÀY Ở `supabase/drafts/`, ⛔ KHÔNG Ở `migrations/`**
+--    `arch.test.mjs` cấm để bản nháp trong `migrations/`, và hàng rào đó ĐÚNG:
+--    một tệp trong `migrations/` là một tệp **ai đó sẽ chạy**. Tên tệp mang
+--    `.INCOMPLETE.sql` theo đúng khuôn `031_assignment_rls.INCOMPLETE.sql`.
+--
+-- 🔴 **BỐN RÀO ĐANG CHẶN — ⛔ KHÔNG rào nào đã gỡ:**
+--    ① `SECURITY FREEZE` (MOS §XI.1) — "⛔ Không migration mới nào được khởi tạo"
+--    ② ADR-027 ⛔ CHƯA được Board phê duyệt
+--    ③ ⛔ CHƯA có phản biện độc lập (ADR-011 §2.2 — bắt buộc khi chạm RLS)
+--    ④ Mục 4 dưới đây ⛔ CHƯA viết xong (xem lý do tại chỗ)
+--
+-- ⚠️ ⛔ KHÔNG có staging. `.env.local` trỏ **MỘT** CSDL và đó là **CSDL THẬT**.
+--    Người dùng tự chạy ở Supabase SQL Editor — ⛔ không RPC nào chạy DDL từ mã.
+-- ============================================================================
+
+-- ⛔ CỐ Ý ⛔ KHÔNG có `BEGIN;` ở bản nháp: một tệp chưa hoàn chỉnh mà mở giao
+--    dịch sẵn là mời người ta dán cả khối vào SQL Editor rồi bấm Run.
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ① IMPACT ANALYSIS  (§8.2 khối ①)
+-- ════════════════════════════════════════════════════════════════════════════
+-- BẢNG CHẠM   md_documents · style_bom · material_requests · orders
+--             mos_aggregate_immutability (thêm 1 dòng dữ liệu)
+-- POLICY      <bảng>_read  ⇒ thêm  AND deleted_at IS NULL
+--             <bảng>_update ⇒ CỐ Ý ⛔ KHÔNG lọc (giữ đường khôi phục — 036 §3.3)
+-- HÀM MỚI     mos_po_da_sinh_lenh_san_xuat()  ⇒ SECURITY DEFINER
+--             🔴 phải ghi vào docs/SECURITY_DEFINER_REGISTRY.md TRƯỚC khi chạy
+-- AI MẤT QUYỀN GÌ
+--   · ⛔ không ai mất quyền ĐỌC.
+--   · vai `md` mất `UPDATE` lên `orders` đã COMPLETED/SHIPPED/CANCELLED
+--     — ĐÚNG ý Board.
+--   · vai `md` mất `UPDATE` lên PO đã có `production_orders` chưa huỷ
+--     — ĐÚNG ý Board ("chỉ được tạo Request Change").
+-- MÀN HÌNH ĐỔI HÀNH VI
+--   · po-360-sheet          — đã sẵn sàng, nó hỏi `docKhoaPo()`
+--   · document-center       — nút Lưu trữ đang TỪ CHỐI sẽ chạy được
+--   · style-detail-sheet · md-flow-tables — mở được nút Lưu trữ
+-- MÃ ỨNG DỤNG PHẢI SỬA THEO (⛔ không tự động)
+--   · lib/mos/md/document-lock.ts — điền `trangThaiLuuTru` cho 3 loại
+--   · _actions/revisions.actions.ts — gỡ 3 lời từ chối
+--   · tests/business/md-costing-operations.test.mjs ⑨d sẽ ĐỎ — ĐÚNG THIẾT KẾ,
+--     nó là lời nhắc phải quay lại mở khoá.
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ② TÍNH ĐẢO NGƯỢC  (§8.2 khối ② — thay cho `_down.sql`)
+-- ════════════════════════════════════════════════════════════════════════════
+--   Cột deleted_at/deleted_by ......... ĐẢO ĐƯỢC   (DROP COLUMN)
+--   Chỉ mục duy nhất MỘT PHẦN ......... ĐẢO ĐƯỢC   (DROP INDEX)
+--   Policy SELECT lọc deleted_at ...... ĐẢO ĐƯỢC   (khôi phục policy cũ)
+--   Dòng orders trong bảng bất biến ... ĐẢO ĐƯỢC   (DELETE 1 dòng + gỡ trigger)
+--   Trigger "đã sinh lệnh sản xuất" ... ĐẢO MỘT PHẦN
+--       ⛔ KHÔNG đảo được: các lượt UPDATE đã bị nó chặn trong thời gian sống.
+--       ⚠️ Đó là ĐẶC TÍNH, ⛔ không phải khuyết tật — nhưng phải khai thật.
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ③ LƯU TRỮ MỀM — khuôn ĐÃ CHẠY THẬT ở `036_act_soft_delete.sql`
+-- ════════════════════════════════════════════════════════════════════════════
+-- ⚠️ ⛔ KHÔNG phát minh khuôn mới. `036` đã chứng minh khuôn này trên CSDL
+--    thật, kèm khối tự kiểm. Chép ĐÚNG nó, chỉ đổi tên bảng.
+
+ALTER TABLE public.md_documents
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS deleted_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+ALTER TABLE public.style_bom
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS deleted_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+ALTER TABLE public.material_requests
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS deleted_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+-- 🔴 XOÁ MỀM XUNG KHẮC `UNIQUE` (CLAUDE.md §2.5). `material_requests.request_no`
+--    đang là `UNIQUE` thẳng ⇒ lưu trữ một phiếu rồi lập lại đúng số phiếu đó sẽ
+--    đụng khoá trùng. Phải chuyển sang chỉ mục duy nhất MỘT PHẦN.
+--
+-- ⚠️ ⛔ CHƯA VIẾT: gỡ ràng buộc `UNIQUE` cũ cần biết ĐÚNG TÊN ràng buộc trên
+--    CSDL ĐANG CHẠY — và CLAUDE.md §3 nói rõ *"luôn đối chiếu với CSDL đang
+--    chạy, ⛔ không tin nội dung file migration hay trí nhớ"*. Đoán tên rồi
+--    `DROP CONSTRAINT` sai là làm hỏng một ràng buộc đang bảo vệ dữ liệu.
+--
+--    Câu cần chạy TRƯỚC để lấy tên thật:
+--      SELECT conname FROM pg_constraint
+--       WHERE conrelid = 'public.material_requests'::regclass AND contype = 'u';
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ④ 🔴 KHOÁ PO THEO WORKFLOW — ⛔ CHƯA VIẾT XONG
+-- ════════════════════════════════════════════════════════════════════════════
+-- Phần (a) — trạng thái đóng: engine `045` làm được, chỉ cần MỘT DÒNG DỮ LIỆU.
+--
+--   INSERT INTO public.mos_aggregate_immutability
+--     (table_name, status_column, final_states, mutable_after_final, adr, note)
+--   VALUES ('orders', 'status',
+--           ARRAY['COMPLETED','SHIPPED','CANCELLED'],
+--           ARRAY['status'],     -- chừa ĐÚNG đường Re-open của Giám đốc
+--           'ADR-027', 'Board 07/08/2026 BUG-4. status mutable để reopenOrder
+--            chạy được — ranh giới W.1: Workflow Engine quyết PHÉP CHUYỂN.')
+--   ON CONFLICT (table_name) DO UPDATE SET …;
+--   SELECT public.mos_attach_immutability_guard('orders');
+--
+-- Phần (b) — 🔴 *"PO đã sinh Production Order thì phải khóa"*: engine `045`
+-- **⛔ KHÔNG làm được**. Nó chỉ so `to_jsonb(OLD)` với `to_jsonb(NEW)` **trong
+-- một dòng**; nó ⛔ không đọc bảng khác. Cần trigger riêng.
+--
+-- ⚠️ VÀ ĐÂY LÀ CHỖ DỄ SAI NHẤT — quy tắc `K-3` (CLAUDE.md §3):
+--   *"Policy ⛔ không được truy vấn bảng mà chính người gọi ⛔ không đọc được"*
+--   — subquery vẫn chịu RLS dưới quyền người gọi, biến phép KHOANH VÙNG thành
+--   phép CHẶN PHẲNG. Phải bắc cầu bằng hàm `SECURITY DEFINER` ⛔ không tham số
+--   rồi **so cột**.
+--
+-- 🔴 ⛔ **CỐ Ý ⛔ KHÔNG VIẾT SẴN Ở ĐÂY.** Mỗi hàm `SECURITY DEFINER` là **một
+--    lỗ khoét xuyên qua toàn bộ RLS**, phải có:
+--      · một mục trong docs/SECURITY_DEFINER_REGISTRY.md kèm lý do
+--      · một bài kiểm hồi quy
+--      · phản biện độc lập (ADR-011 §2.2)
+--    Viết sẵn một khối SQL trông "đã xong" ở đây là mời người ta dán chạy
+--    trước khi ba thứ trên tồn tại. Bản nháp phải TRÔNG như bản nháp.
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ⑤ KHỐI TỰ KIỂM  (§8.2 khối ③) — ⛔ CHƯA VIẾT
+-- ════════════════════════════════════════════════════════════════════════════
+-- Khuôn có sẵn ở `045` · `046` — in KỲ VỌNG ⟷ THỰC TẾ. Tối thiểu phải chứng minh:
+--   ⭐ ba bảng CÓ đủ deleted_at + deleted_by
+--   ⭐ chỉ mục mới là MỘT PHẦN (indexdef ILIKE '%deleted_at IS NULL%')
+--   ⭐ policy SELECT CÓ lọc deleted_at   (ẩn dòng đã lưu trữ)
+--   ⭐ policy UPDATE ⛔ KHÔNG lọc        (giữ đường khôi phục)
+--   ⭐ 🔴 vai `md` sửa được PO DRAFT ⛔ chưa có lệnh sản xuất  → CHỜ THẤY > 0
+--   ⭐ 🔴 vai `md` ⛔ KHÔNG sửa được PO DRAFT ĐÃ có lệnh sản xuất
+--        ⚠️ Hai dòng trên phải đi CẶP — `K-3` của tests/README:
+--           *"mỗi kịch bản phải có ít nhất MỘT vai CHỜ THẤY > 0"*. Bài kiểm
+--           toàn vai chờ-0 ⛔ không phân biệt được "khoá đúng" với "chặn hết".
+--   ⭐ 🔴 vai `giamdoc` đổi được `status` của PO COMPLETED (đường Re-open còn mở)

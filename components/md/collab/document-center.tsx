@@ -1,14 +1,16 @@
 'use client';
 
 import { memo, useMemo, useState, useTransition } from 'react';
-import { Download, FileText, Search, Trash2 } from 'lucide-react';
+import { Download, FileText, Search, Trash2, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Badge, inputCls } from '@/components/ui';
+import { Badge, inputCls, Modal, Field, btnGhost, btnPrimary } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
 import { DataTable, tdCls, Metric, fmtDate, fmtNum } from '../po/tab-kit';
 import { DOC_TYPE_LABEL, DOC_TYPES, ENTITY_TYPE_LABEL, labelOf } from '../po/labels';
 import { deleteDocument } from '@/app/(dashboard)/md/_actions/collaboration.actions';
+// 🔴 BUG-5 · Board 07/08/2026 — Update cho Tech Pack.
+import { updateTechPack } from '@/app/(dashboard)/md/_actions/revisions.actions';
 import { publicUrl } from '@/lib/storage';
 import type { DocumentCenterRow } from '@/app/(dashboard)/md/_services/collaboration.service';
 
@@ -42,6 +44,11 @@ function DocumentCenter({
   const [q, setQ] = useState('');
   const [type, setType] = useState('');
   const [pending, startTransition] = useTransition();
+  /** 🔴 `BUG-5` — tài liệu đang sửa. Giữ **bản nháp tại chỗ** thay vì gọi
+   *  `docDeSua`: hai ô duy nhất sửa được ở đây *(`title`, `doc_type`)* **đã có
+   *  đủ** trong dòng bảng, nên ⛔ không có nguy cơ ghi `null` đè lên ô ⛔ không
+   *  hiện — thứ khiến bốn hộp thoại kia buộc phải đọc lại nguyên dòng. */
+  const [sua, setSua] = useState<{ id: string; title: string; doc_type: string } | null>(null);
 
   const shown = useMemo(() => {
     const kw = q.trim().toLowerCase();
@@ -60,16 +67,42 @@ function DocumentCenter({
     return m;
   }, [rows]);
 
+  // 🔴 BUG-5 · Board 07/08/2026: *"⛔ Không Delete vật lý. Chỉ Archive."*
+  //
+  // ⚠️ `deleteDocument` nay **TỪ CHỐI** và trả về câu giải thích — `md_documents`
+  // ⛔ không có cột lưu trữ nào để thay thế xoá cứng *(cần migration, `ADR-027`,
+  // đang bị `SECURITY FREEZE` chặn)*. Nút giữ lại để câu trả lời đến được với
+  // người dùng thay vì biến mất cùng nút.
   const remove = (r: DocumentCenterRow) => {
-    if (!window.confirm(`Gỡ tài liệu "${r.title}" khỏi danh sách? Tệp gốc trong kho lưu trữ vẫn còn.`)) return;
+    if (!window.confirm(
+      `Gỡ tài liệu "${r.title}"?\n\n`
+      + '⚠️ Board đã CẤM xoá vật lý chứng từ (07/08/2026). Hệ thống sẽ từ chối '
+      + 'và giải thích lối đi thay thế.',
+    )) return;
     startTransition(async () => {
       const res = await deleteDocument(r.id);
       if (res.ok) {
         toast.success('Đã gỡ tài liệu', { description: res.message });
         await onRefresh();
       } else {
-        toast.error('Không gỡ được', { description: res.message });
+        toast.error('⛔ Không gỡ được', { description: res.message, duration: 12_000 });
       }
+    });
+  };
+
+  /** 🔴 `BUG-5` — sửa tên và phân loại tài liệu.
+   *
+   *  🔑 Đây là **lối đi thay cho xoá**: phần lớn lý do người ta xoá một tài
+   *  liệu là *"đặt sai tên"* hoặc *"chọn nhầm loại"* — hai thứ nay sửa được
+   *  tại chỗ, ⛔ không phải xoá rồi tải lên lại. */
+  const luu = () => {
+    if (!sua) return;
+    startTransition(async () => {
+      const res = await updateTechPack(sua.id, { title: sua.title, doc_type: sua.doc_type });
+      if (!res.ok) { toast.error('Không lưu được', { description: res.message }); return; }
+      toast.success('Đã lưu', { description: res.message });
+      setSua(null);
+      await onRefresh();
     });
   };
 
@@ -158,6 +191,16 @@ function DocumentCenter({
                         <Download className="h-4 w-4" />
                       </span>
                     )}
+                    {/* 🔴 BUG-5 — sửa tên / phân loại. Lối đi THAY CHO xoá. */}
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => setSua({ id: d.id, title: d.title, doc_type: d.doc_type })}
+                      aria-label={`Sửa tài liệu ${d.title}`}
+                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       type="button"
                       disabled={pending}
@@ -174,6 +217,46 @@ function DocumentCenter({
           </DataTable>
         </div>
       )}
+
+      {/* 🔴 BUG-5 — hộp thoại Sửa tài liệu. Hai ô, ⛔ không hơn: đổi **tệp** là
+          một lượt tải lên mới (`saveDocument` tăng `version`), ⛔ không phải
+          việc của một ô nhập trong bảng. */}
+      <Modal open={sua !== null} title="Sửa thông tin tài liệu" onClose={() => setSua(null)}>
+        {sua && (
+          <div className="space-y-3">
+            <Field label="Tên tài liệu">
+              <input
+                className={inputCls}
+                value={sua.title}
+                onChange={(e) => setSua({ ...sua, title: e.target.value })}
+              />
+            </Field>
+            <Field label="Loại tài liệu">
+              <select
+                className={inputCls}
+                value={sua.doc_type}
+                onChange={(e) => setSua({ ...sua, doc_type: e.target.value })}
+              >
+                {DOC_TYPES.map((t) => (
+                  <option key={t} value={t}>{DOC_TYPE_LABEL[t]}</option>
+                ))}
+              </select>
+            </Field>
+            <p className="rounded-lg bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-800">
+              Đổi <strong>tệp</strong> thì tải lên bản mới từ màn hình chi tiết mã hàng / đơn hàng —
+              hệ thống tự tăng số phiên bản và <strong>giữ nguyên</strong> bản cũ để tra lại.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" className={btnGhost} onClick={() => setSua(null)} disabled={pending}>
+                Hủy
+              </button>
+              <button type="button" className={btnPrimary} onClick={luu} disabled={pending}>
+                {pending ? 'Đang lưu…' : 'Lưu thay đổi'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </>
   );
 }

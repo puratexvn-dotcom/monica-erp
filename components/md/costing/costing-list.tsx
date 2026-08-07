@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
-import { Maximize2, Search } from 'lucide-react';
+import { Maximize2, Search, Pencil } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
@@ -22,6 +22,10 @@ import type { CostingRow } from '@/schemas/md';
 // phiên bản" ngay tại đây.
 // ============================================================================
 
+/** Trạng thái **⛔ không sửa được** — khai đúng như `LUAT.COSTING.khoa` ở
+ *  `lib/mos/md/document-lock.ts`. ⚠️ Đây chỉ để ẩn nút; luật thật ở máy chủ. */
+const KHOA_SUA: ReadonlySet<string> = new Set(['APPROVED', 'SUPERSEDED']);
+
 function toneOfStatus(s: string) {
   if (s === 'APPROVED') return 'emerald' as const;
   if (s === 'REJECTED') return 'rose' as const;
@@ -34,12 +38,15 @@ function CostingList({
   rows,
   error,
   onRefresh,
+  onSua,
 }: {
   /** Vai người đang xem — chỉ để ẨN nút, ⛔ không phải hàng rào. */
   role: Role | null;
   rows: CostingRow[];
   error: string | null;
   onRefresh: () => void | Promise<void>;
+  /** 🔴 `BUG-5` · Board 07/08/2026 — mở hộp thoại ở chế độ **Sửa**. */
+  onSua?: (id: string) => void;
 }) {
   const [q, setQ] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -203,14 +210,34 @@ function CostingList({
                 </td>
                 <td className={tdCls}>{fmtDate(c.created_at)}</td>
                 <td className={tdCls}>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(c)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
-                  >
-                    <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    Chi tiết
-                  </button>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(c)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Chi tiết
+                    </button>
+
+                    {/* 🔴 BUG-5 — nút **CHỈ hiện với bản ⛔ CHƯA duyệt**.
+                        🔑 Bản `APPROVED`/`SUPERSEDED` bị **ba tầng CSDL** khoá
+                        *(RLS `042` · trigger `045`/`045b` · con `046`)*. Bày
+                        nút Sửa ở đó là mời người dùng bấm vào thứ chắc chắn bị
+                        từ chối — đúng thứ `CLAUDE.md §2.1` nói ⛔ không được làm.
+                        ⚠️ Đây là **phép lịch sự với giao diện**, ⛔ không phải
+                        hàng rào: `updateCosting` vẫn tự kiểm ở máy chủ. */}
+                    {onSua && !KHOA_SUA.has(c.status) && (
+                      <button
+                        type="button"
+                        onClick={() => onSua(c.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                      >
+                        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                        Sửa
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

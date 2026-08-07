@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache';
 
 import { guard, friendlyDbError, safeQuery } from '../_services/guard';
-import { writeAudit } from './audit';
+import { writeAudit, writeVersion } from './audit';
 import { duocSuaPo, kiemSuaPo, canhBaoGiamSoLuong } from '@/lib/mos/md/po-edit';
+import { phanQuyetSuaPo, duocSua } from '@/lib/mos/md/document-lock';
 import {
   poFormSchema,
   sizeBreakdownSchema,
@@ -427,31 +428,159 @@ export async function updatePo(
   const kiem = kiemSuaPo(v);
   if (!kiem.ok) return { ok: false, message: kiem.vi, fieldErrors: { [kiem.truong]: kiem.vi } };
 
+  // 🔑 ĐỌC NGUYÊN DÒNG, ⛔ không chỉ bốn cột. Sổ phiên bản cần **ảnh chụp đầy
+  // đủ** — chụp bốn cột thì lúc tra lại vẫn ⛔ không dựng lại được chứng từ.
   const { data: truoc } = await g.supabase
-    .from('orders').select('total_quantity, status, delivery_date, po_number').eq('id', id).maybeSingle();
+    .from('orders').select('*').eq('id', id).maybeSingle();
   if (!truoc) return { ok: false, message: 'Không tìm thấy đơn hàng, hoặc bạn không có quyền xem nó.' };
-  const cu = truoc as { total_quantity: number; status: string; delivery_date: string; po_number: string };
+  const cu = truoc as Record<string, unknown> & {
+    total_quantity: number; status: string; delivery_date: string; po_number: string;
+  };
 
   // Số đã ghi nhận sản xuất — đọc từ lệnh sản xuất, ⛔ không đoán.
   const { data: sx } = await g.supabase
     .from('production_orders').select('planned_qty').eq('order_id', id).neq('status', 'CANCELLED');
-  const daLam = (sx ?? []).reduce((t, r) => t + Number((r as { planned_qty: number }).planned_qty || 0), 0);
+  const lenhSx = (sx ?? []) as Array<{ planned_qty: number }>;
+  const daLam = lenhSx.reduce((t, r) => t + Number(r.planned_qty || 0), 0);
+
+  // ═══ 🔴 BUG-4 · KHOÁ THEO **WORKFLOW** ═══════════════════════════════════
+  // Board 07/08/2026: *"⛔ Không khóa theo Status đơn thuần … PO đã sinh
+  // Production Order thì phải khóa."*
+  //
+  // ⚠️ Phép thử `daSinhLenhSanXuat` dùng **CHÍNH** truy vấn vừa chạy ở trên —
+  // ⛔ không thêm một lượt đi–về CSDL, và quan trọng hơn: hai phép thử đọc
+  // **cùng một** tập dòng, nên chúng ⛔ không thể bất đồng với nhau.
+  //
+  // ⚠️ Đặt SAU khi đọc `truoc` và TRƯỚC mọi lệnh ghi. Kiểm sau khi ghi là
+  // ⛔ không kiểm.
+  const pq = phanQuyetSuaPo({
+    status: cu.status,
+    daSinhLenhSanXuat: lenhSx.length > 0,
+  });
+  if (!duocSua(pq)) {
+    return { ok: false, message: pq.loiRa ? `${pq.vi} ${pq.loiRa}` : pq.vi };
+  }
+
   const canhBao = canhBaoGiamSoLuong(v.total_quantity, daLam);
   if (canhBao && !xacNhanGiam) return { ok: false, message: canhBao, data: { canhBao } };
 
-  const { error } = await g.supabase.from('orders').update({
+  // ⚠️ `.select('*')` ở cuối `UPDATE`: `error === null` MỘT MÌNH ⛔ không đủ —
+  // RLS lọc dòng thì lệnh trả về **thành công với 0 dòng**, ⛔ không ném lỗi.
+  // Đây cũng là nguồn của ảnh chụp SAU, nên ⛔ không tốn thêm truy vấn nào.
+  // Bài học đã trả giá ở `reviseCosting` (`ADR-018` §B-1).
+  const { data: sauKhiGhi, error } = await g.supabase.from('orders').update({
     total_quantity: v.total_quantity, status: v.status, delivery_date: v.delivery_date,
-  }).eq('id', id);
+  }).eq('id', id).select('*');
   if (error) return { ok: false, message: friendlyDbError('updatePo', error) };
+  if (!sauKhiGhi?.length) {
+    return {
+      ok: false,
+      message: 'Không có dòng nào được cập nhật — bạn ⛔ không có quyền sửa đơn này ở tầng CSDL. '
+        + 'Đơn hàng GIỮ NGUYÊN, ⛔ không mất dữ liệu.',
+    };
+  }
 
-  await writeAudit('ORDER', id, 'UPDATE', {
-    total_quantity: { from: cu.total_quantity, to: v.total_quantity },
-    status: { from: cu.status, to: v.status },
-    delivery_date: { from: cu.delivery_date, to: v.delivery_date },
-  });
+  // 🔴 Board: *"Mọi thao tác phải ghi Audit Log."* + *"Các chứng từ phải lưu
+  // Version. ⛔ Không overwrite dữ liệu."* ⇒ `writeVersion`, ⛔ không
+  // `writeAudit`: nó ghi **cả ảnh chụp trước lẫn sau**, nên bản cũ ⛔ không
+  // biến mất khi bản mới ghi đè.
+  await writeVersion('ORDER', id, 'UPDATE', cu, sauKhiGhi[0] as Record<string, unknown>);
 
   revalidatePath(PATH);
   return { ok: true, message: `Đã cập nhật đơn ${cu.po_number}.` };
+}
+
+/**
+ * **LƯU TRỮ một PO** — Board `BUG-5`: *"⛔ Không Delete vật lý. Chỉ Archive."*
+ *
+ * 🔑 `orders` ⛔ không có `deleted_at`, nhưng nó **có** `CANCELLED` trong
+ * `PO_STATUSES` — một trạng thái nghiệp vụ **thật**, mang đúng nghĩa *"đơn này
+ * thôi hiệu lực"*. Đây là lý do PO lưu trữ được trong khi Tech Pack · BOM ·
+ * Yêu cầu NPL thì ⛔ chưa: chúng ⛔ không có gì tương đương, và mượn một trạng
+ * thái mang nghĩa khác là ghi sai sự thật.
+ *
+ * ⚠️ **Đi qua ĐÚNG luật khoá của mọi lượt sửa.** Huỷ một PO mà xưởng đã có
+ * lệnh sản xuất là thao tác **nặng hơn** sửa số lượng, ⛔ không phải nhẹ hơn —
+ * cho nó một đường vòng né `phanQuyetSuaPo` là mở đúng cái cửa hậu Board vừa
+ * đóng.
+ */
+export async function archivePo(id: string, lyDo: string): Promise<ActionResult> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+
+  if (!duocSuaPo(g.role)) {
+    return { ok: false, message: 'Chỉ Merchandiser và Giám đốc sản xuất mới được huỷ đơn hàng.' };
+  }
+  const ly = lyDo.trim();
+  if (ly.length < 10) {
+    return {
+      ok: false,
+      message: 'Phải nêu LÝ DO huỷ đơn (ít nhất 10 ký tự).',
+      fieldErrors: { lyDo: 'Nêu rõ vì sao huỷ đơn này' },
+    };
+  }
+
+  const { data: cu } = await g.supabase.from('orders').select('*').eq('id', id).maybeSingle();
+  if (!cu) return { ok: false, message: 'Không tìm thấy đơn hàng, hoặc bạn không có quyền xem nó.' };
+  const truoc = cu as Record<string, unknown> & { status: string; po_number: string };
+
+  const { data: sx } = await g.supabase
+    .from('production_orders').select('id').eq('order_id', id).neq('status', 'CANCELLED');
+
+  const pq = phanQuyetSuaPo({ status: truoc.status, daSinhLenhSanXuat: (sx ?? []).length > 0 });
+  if (!duocSua(pq)) {
+    return { ok: false, message: pq.loiRa ? `${pq.vi} ${pq.loiRa}` : pq.vi };
+  }
+
+  const { data: sau, error } = await g.supabase
+    .from('orders').update({ status: 'CANCELLED' }).eq('id', id).select('*');
+  if (error) return { ok: false, message: friendlyDbError('archivePo', error) };
+  if (!sau?.length) {
+    return { ok: false, message: '⛔ Không có dòng nào được cập nhật — RLS đã chặn. Đơn GIỮ NGUYÊN.' };
+  }
+
+  await writeVersion('ORDER', id, 'DELETE', truoc, {
+    ...(sau[0] as Record<string, unknown>),
+    __ly_do_huy: ly,
+  });
+
+  revalidatePath(PATH);
+  return {
+    ok: true,
+    message: `Đã huỷ đơn ${truoc.po_number}. Dữ liệu GIỮ NGUYÊN — ⛔ không dòng nào bị xoá.`,
+  };
+}
+
+/**
+ * Đọc **phán quyết khoá** của một PO mà ⛔ KHÔNG ghi gì.
+ *
+ * 🔑 Giao diện cần biết *"đơn này có sửa được không"* **trước khi** bày ô nhập
+ * — bày ô nhập rồi mới báo *"đơn đã khoá"* lúc bấm Lưu là bắt người dùng gõ
+ * xong mới biết công cốc.
+ *
+ * ⚠️ Đây là **phép lịch sự với giao diện**, ⛔ KHÔNG phải chốt quyền. Chốt thật
+ * nằm trong `updatePo` — Server Action là endpoint gọi thẳng được
+ * *(CLAUDE.md §2.1)*.
+ */
+export async function docKhoaPo(id: string): Promise<{
+  muc: string; vi: string; loiRa: string | null; error: string | null;
+}> {
+  const g = await guard();
+  if (!g.supabase) return { muc: 'KHOA', vi: g.error, loiRa: null, error: g.error };
+
+  const { data: don, error: eDon } = await g.supabase
+    .from('orders').select('status').eq('id', id).maybeSingle();
+  if (eDon) return { muc: 'KHOA', vi: '', loiRa: null, error: friendlyDbError('docKhoaPo', eDon) };
+  if (!don) return { muc: 'KHOA', vi: 'Không tìm thấy đơn hàng.', loiRa: null, error: null };
+
+  const { data: sx } = await g.supabase
+    .from('production_orders').select('id').eq('order_id', id).neq('status', 'CANCELLED');
+
+  const pq = phanQuyetSuaPo({
+    status: (don as { status: string }).status,
+    daSinhLenhSanXuat: (sx ?? []).length > 0,
+  });
+  return { muc: pq.muc, vi: pq.vi, loiRa: pq.loiRa, error: null };
 }
 
 /**

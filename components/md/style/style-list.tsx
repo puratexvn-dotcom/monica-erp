@@ -1,7 +1,8 @@
 'use client';
 
-import { memo, useMemo, useState } from 'react';
-import { Search, Palette, Ruler, Layers, PackageSearch, Maximize2 } from 'lucide-react';
+import { memo, useMemo, useState, useTransition } from 'react';
+import { Search, Palette, Ruler, Layers, PackageSearch, Maximize2, Pencil, Archive } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Badge, inputCls } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
@@ -24,13 +25,49 @@ function StyleList({
   rows,
   error,
   onRefresh,
+  onSua,
+  onLuuTru,
 }: {
   rows: StyleRow[];
   error: string | null;
   onRefresh: () => void | Promise<void>;
+  /** 🔴 `BUG-5` · Board 07/08/2026 — mở hộp thoại ở chế độ **Sửa**. */
+  onSua?: (id: string) => void;
+  /** 🔴 `BUG-5` — lưu trữ *(`status = DISCONTINUED`)*.
+   *
+   *  ⚠️ **NHẬN QUA PROP, ⛔ KHÔNG `import` thẳng Server Action** — bài kiểm
+   *  kiến trúc ③ chặn `components/ → app/` ở 39 tệp *(`AD-01`)*. Cùng lý do đã
+   *  ghi ở `customer-list.tsx`. */
+  onLuuTru?: (id: string) => Promise<{ ok: boolean; message: string }>;
 }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState<StyleRow | null>(null);
+  const [dangChay, batDau] = useTransition();
+
+  /** 🔴 **LƯU TRỮ, ⛔ KHÔNG XOÁ** — Board: *"⛔ Không Delete vật lý. Chỉ
+   *  Archive."* `styles` ⛔ không có `deleted_at`, nhưng **có** `DISCONTINUED`
+   *  trong ràng buộc `CHECK` của migration `015` — một trạng thái nghiệp vụ
+   *  **thật**, mang đúng nghĩa *"ngừng sản xuất"*.
+   *
+   *  ⚠️ Hỏi lại và **nói rõ số PO đang dùng mã này**: ngừng một mã hàng còn 12
+   *  đơn đang chạy là quyết định khác hẳn ngừng một mã ⛔ chưa ai đặt. */
+  const luuTru = (r: StyleRow) => {
+    if (!onLuuTru) return;
+    if (!window.confirm(
+      `Ngừng sản xuất mã hàng "${r.style_no}"?\n\n`
+      + `· Đang có ${r.order_count} đơn hàng dùng mã này — chúng GIỮ NGUYÊN.\n`
+      + '· Bảng màu, size, công đoạn, định mức: GIỮ NGUYÊN — ⛔ không xoá gì.\n'
+      + '· Đổi lại trạng thái bất cứ lúc nào bằng nút Sửa.',
+    )) return;
+
+    batDau(() => {
+      void onLuuTru(r.id).then(async (res) => {
+        if (!res.ok) { toast.error('Không lưu trữ được', { description: res.message }); return; }
+        toast.success(res.message);
+        await onRefresh();
+      });
+    });
+  };
 
   const stats = useMemo(
     () => ({
@@ -146,14 +183,42 @@ function StyleList({
                   </Badge>
                 </td>
                 <td className={tdCls}>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(r)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
-                  >
-                    <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    Chi tiết
-                  </button>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(r)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-blue-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Chi tiết
+                    </button>
+
+                    {/* 🔴 BUG-5 — trước bản này, sai `hs_code` hay sai SAM là
+                        sai vĩnh viễn, mà SAM sai thì **mọi** lệnh sản xuất
+                        sinh từ mã đó đều sai theo. */}
+                    {onSua && (
+                      <button
+                        type="button"
+                        onClick={() => onSua(r.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                      >
+                        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                        Sửa
+                      </button>
+                    )}
+
+                    {onLuuTru && r.status !== 'DISCONTINUED' && (
+                      <button
+                        type="button"
+                        onClick={() => luuTru(r)}
+                        disabled={dangChay}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-amber-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Archive className="h-3.5 w-3.5" aria-hidden="true" />
+                        Lưu trữ
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

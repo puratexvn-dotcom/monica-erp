@@ -20,20 +20,18 @@
     "⛔ KHÔNG thêm mục mới để cho bài kiểm xanh. Mỗi mục ở đây là một chỗ dữ liệu",
     "   nghiệp vụ bị xoá VĨNH VIỄN, và Hiến pháp III đòi xoá mềm.",
     "",
-    "Sổ này RỖNG là đích: khi cả 4 lời gọi chuyển sang xoá mềm/RPC, TC-1 đóng và",
-    "`md-internal-scope` vào được CI (Board Decision CI-1)."
+    "Sổ này RỖNG là đích: khi mọi lời gọi chuyển sang xoá mềm/RPC, TC-1 đóng và",
+    "`md-internal-scope` vào được CI (Board Decision CI-1).",
+    "",
+    "🟢 07/08/2026 — 4 ⇒ 3 mục. `deleteDocument` (md_documents) đã GỠ khỏi sổ:",
+    "   Board Decision BUG-5 cấm xoá vật lý, và hàm nay TỪ CHỐI thay vì gọi",
+    "   `.delete()`. ⚠️ Đây là nợ GIẢM THẬT, ⛔ không phải nới ngưỡng — arch test",
+    "   mục ② tự bắt 'mục chết' và chính nó buộc phải gỡ dòng này.",
+    "   ⚠️ Lưu trữ THẬT cho md_documents vẫn CHƯA có (bảng thiếu `deleted_at`)",
+    "   ⇒ ADR-027, đang bị SECURITY FREEZE chặn."
   ],
 
   "mienTru": [
-    {
-      "tep": "app/(dashboard)/md/_actions/collaboration.actions.ts",
-      "ham": "deleteDocument",
-      "bang": ["md_documents"],
-      "soLuong": 1,
-      "dong": 60,
-      "no": "TD-25",
-      "lyDo": "Tài liệu đính kèm của chứng từ. Bảng chưa có cột `deleted_at`; thêm cột là ĐỔI LƯỢC ĐỒ ⇒ cần ADR riêng (ADR-018 §9.3 TD-25)."
-    },
     {
       "tep": "app/(dashboard)/md/_actions/commercial.actions.ts",
       "ham": "deleteCostingItem",

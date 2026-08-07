@@ -19,6 +19,7 @@
 // `components/ui` — tệp đó đã nằm sẵn trong cả hai sổ nợ.
 // ============================================================================
 import { useState, useTransition } from 'react';
+import { Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -98,7 +99,15 @@ function loc<T>(rows: T[], q: string, truong: (r: T) => (string | null)[]): T[] 
 }
 
 // ─── VẬT TƯ ────────────────────────────────────────────────────────────────
-export function MaterialRequestTable({ rows, error, onRetry, q, onQ, onDone }: Khung<MaterialRequestRow>) {
+/** 🔴 `BUG-5` · Board 07/08/2026 — trạng thái ⛔ không sửa được, khai đúng như
+ *  `LUAT.MATERIAL_REQUEST` ở `lib/mos/md/document-lock.ts`.
+ *  `ORDERED` = đã đặt nhà cung cấp · `RECEIVED` = đã nhập kho.
+ *  ⚠️ Chỉ để ẨN nút; luật thật chạy ở `updateMaterialRequest` trên máy chủ. */
+const MR_KHOA_SUA: ReadonlySet<string> = new Set(['ORDERED', 'RECEIVED']);
+
+export function MaterialRequestTable({
+  rows, error, onRetry, q, onQ, onDone, onSua,
+}: Khung<MaterialRequestRow> & { onSua?: (id: string) => void }) {
   const { dang, chay } = useDoiTrangThai(onDone);
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (rows.length === 0) {
@@ -146,11 +155,27 @@ export function MaterialRequestTable({ rows, error, onRetry, q, onQ, onDone }: K
                   </Badge>
                 </td>
                 <td className={tdMuted}>
-                  <NutBuoc
-                    buoc={buocKeTiepNPL(r.status)}
-                    dang={dang === r.id}
-                    onChay={(st) => chay(r.id, () => setMaterialRequestStatus(r.id, st as never))}
-                  />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <NutBuoc
+                      buoc={buocKeTiepNPL(r.status)}
+                      dang={dang === r.id}
+                      onChay={(st) => chay(r.id, () => setMaterialRequestStatus(r.id, st as never))}
+                    />
+                    {/* 🔴 BUG-5 — sửa NỘI DUNG phiếu, ⛔ không chỉ đẩy trạng
+                        thái. Nút "Bước kế tiếp" đã có từ lâu, nhưng gõ sai
+                        **số lượng vải** thì ⛔ không có đường nào sửa, mà số đó
+                        đi thẳng vào đơn mua hàng. */}
+                    {/* ⚠️ Lớp lấy từ `btnGhost` của `components/ui`, ⛔ KHÔNG
+                        viết màu/cỡ chữ thẳng — xem khối chú thích đầu tệp:
+                        tệp này cố ý ⛔ không chứa một literal nào, và bánh cóc
+                        `TD-07`/`TD-10` đọc literal MỚI ở đây là **nợ mới**. */}
+                    {onSua && !MR_KHOA_SUA.has(String(r.status ?? '').toUpperCase()) && (
+                      <button type="button" className={btnGhost} onClick={() => onSua(r.id)}>
+                        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                        Sửa
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

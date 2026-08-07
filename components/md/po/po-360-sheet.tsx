@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   LayoutDashboard, CalendarClock, Shirt, Layers, PackageSearch, Factory,
-  ShieldCheck, Ship, TriangleAlert, MessageSquare, X, Loader2, Paperclip, Pencil, type LucideIcon,
+  ShieldCheck, Ship, TriangleAlert, MessageSquare, X, Loader2, Paperclip, Pencil, Lock,
+  type LucideIcon,
 } from 'lucide-react';
 
 import { toast } from 'sonner';
 
 import { Badge, btnPrimary, btnGhost, inputCls } from '@/components/ui';
 import { uploadEvidence } from '@/app/actions/upload-action';
-import { updatePo, attachToPo, listPoAttachments } from '@/app/(dashboard)/md/_actions/po.actions';
+import { updatePo, attachToPo, listPoAttachments, docKhoaPo } from '@/app/(dashboard)/md/_actions/po.actions';
 import { PO_TIEN_DO, PO_TIEN_DO_LABEL } from '@/lib/mos/md/po-edit';
 import { getPo360Client } from '@/app/(dashboard)/md/_actions/po360.client';
 import type { Po360Data } from '@/app/(dashboard)/md/_services/po.service';
@@ -62,6 +63,24 @@ const TABS: Array<{ key: TabKey; label: string; short: string; icon: LucideIcon 
 // nợ là việc **cần Board duyệt**. Tệp này đã nằm sẵn trong cả hai sổ.
 // ════════════════════════════════════════════════════════════════════════════
 
+/**
+ * 🔴 **BUG-4 · KHOÁ THEO WORKFLOW** — Board Decision 07/08/2026.
+ *
+ * ─── ⚠️ LỖ HỔNG ĐANG VÁ, ĐO ĐƯỢC TRONG UAT ──────────────────────────────
+ * Trước bản này, form dưới đây bày ô nhập cho **mọi** PO — kể cả đơn đã
+ * `COMPLETED`. Người dùng sửa được số lượng của một đơn đã hoàn thành, và cả
+ * giao diện lẫn tầng luật đều ⛔ không nói gì.
+ *
+ * ─── 🔑 HỎI MÁY CHỦ, ⛔ KHÔNG TỰ SUY TỪ `status` ────────────────────────
+ * Board nói rõ: *"⛔ Không khóa theo Status đơn thuần … PO đã sinh Production
+ * Order thì phải khóa."* Phép thử ấy cần đếm bảng `production_orders` — thứ
+ * màn hình này **⛔ không có**. Nên nó gọi `docKhoaPo()` và **hiển thị đúng
+ * phán quyết của máy chủ**, thay vì dựng một bộ luật thứ hai ở client rồi để
+ * hai bên lệch nhau.
+ *
+ * ⚠️ Đây vẫn chỉ là **phép lịch sự với giao diện**. `updatePo` tự kiểm lại ở
+ * máy chủ — Server Action là endpoint gọi thẳng được *(CLAUDE.md §2.1)*.
+ */
 function SuaPoForm({ orderId, h, onXong }: {
   orderId: string;
   h: { total_quantity: number; status: string; delivery_date: string };
@@ -72,6 +91,19 @@ function SuaPoForm({ orderId, h, onXong }: {
   const [ngay, setNgay] = useState((h.delivery_date ?? '').slice(0, 10));
   const [dang, setDang] = useState(false);
   const [canhBao, setCanhBao] = useState<string | null>(null);
+  const [khoa, setKhoa] = useState<{ muc: string; vi: string; loiRa: string | null } | null>(null);
+  const [dangDoKhoa, setDangDoKhoa] = useState(true);
+
+  useEffect(() => {
+    let boQua = false;
+    setDangDoKhoa(true);
+    void docKhoaPo(orderId).then((r) => {
+      if (boQua) return;
+      setKhoa(r.muc === 'SUA' ? null : { muc: r.muc, vi: r.vi, loiRa: r.loiRa });
+      setDangDoKhoa(false);
+    });
+    return () => { boQua = true; };
+  }, [orderId]);
 
   const luu = (xacNhan: boolean) => {
     setDang(true);
@@ -86,6 +118,39 @@ function SuaPoForm({ orderId, h, onXong }: {
       })
       .finally(() => setDang(false));
   };
+
+  if (dangDoKhoa) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs font-semibold text-slate-500">
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        Đang kiểm tra chứng từ này có sửa được không...
+      </div>
+    );
+  }
+
+  // 🔴 KHOÁ ⇒ ⛔ **KHÔNG bày ô nhập nào**. Bày ô rồi để người dùng gõ xong mới
+  // báo *"đơn đã khoá"* là bắt họ làm việc vô ích — và tệ hơn, nó gợi ý rằng
+  // chứng từ **có thể** sửa được, trong khi luật nói ⛔ không.
+  if (khoa) {
+    const dam = khoa.muc === 'KHOA_TUYET_DOI';
+    return (
+      <div
+        className={`space-y-1.5 rounded-xl border p-3 ${
+          dam ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'
+        }`}
+      >
+        <p className={`flex items-start gap-1.5 text-xs font-bold ${dam ? 'text-rose-800' : 'text-amber-900'}`}>
+          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>{khoa.vi}</span>
+        </p>
+        {khoa.loiRa && (
+          <p className={`pl-5 text-xs font-semibold ${dam ? 'text-rose-700' : 'text-amber-800'}`}>
+            → {khoa.loiRa}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">

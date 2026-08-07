@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo, useState, useTransition } from 'react';
-import { Search, TriangleAlert } from 'lucide-react';
+import { Search, TriangleAlert, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge, inputCls } from '@/components/ui';
@@ -34,10 +34,13 @@ function InquiryList({
   rows,
   error,
   onRefresh,
+  onSua,
 }: {
   rows: InquiryRow[];
   error: string | null;
   onRefresh: () => void | Promise<void>;
+  /** 🔴 `BUG-5` · Board 07/08/2026 — mở hộp thoại ở chế độ **Sửa**. */
+  onSua?: (id: string) => void;
 }) {
   const [q, setQ] = useState('');
   const [pending, startTransition] = useTransition();
@@ -166,6 +169,24 @@ function InquiryList({
                           <option key={s} value={s}>{INQUIRY_STATUS_LABEL[s]}</option>
                         ))}
                       </select>
+
+                      {/* 🔴 BUG-5 — sửa NỘI DUNG yêu cầu, ⛔ không chỉ trạng
+                          thái. Ô chọn bên trái đổi được `status` từ lâu, nhưng
+                          gõ sai **tên sản phẩm · số lượng · giá mục tiêu** thì
+                          ⛔ không có đường nào sửa.
+                          ⚠️ `CANCELLED` là lối **LƯU TRỮ** của yêu cầu báo giá
+                          — nó đã có sẵn trong ô chọn bên trái, nên ⛔ không
+                          thêm nút "Lưu trữ" thứ hai làm cùng một việc. */}
+                      {onSua && (
+                        <button
+                          type="button"
+                          onClick={() => onSua(r.id)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                          Sửa
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

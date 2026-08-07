@@ -1,12 +1,13 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
-import { History, Search } from 'lucide-react';
+import { History, Search, FileClock } from 'lucide-react';
 
 import { Badge, inputCls } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
 import { Metric, fmtNum } from '../po/tab-kit';
 import { AUDIT_ACTION_LABEL, ENTITY_TYPE_LABEL, ROLE_LABEL_SAFE, labelOf } from '../po/labels';
+import { docPhienBan } from '@/lib/mos/md/version-log';
 import type { ActivityRow } from '@/schemas/md';
 
 // ============================================================================
@@ -51,6 +52,10 @@ function ActivityCenter({
   onRefresh: () => void | Promise<void>;
 }) {
   const [q, setQ] = useState('');
+  /** 🔴 Dòng nhật ký đang mở **ảnh chụp nguyên bản ghi**. Một ô nhớ cho cả
+   *  danh sách — mở dòng này là đóng dòng kia, ⛔ không để mười khối JSON cùng
+   *  bung ra. */
+  const [anhChup, setAnhChup] = useState<number | null>(null);
 
   const stats = useMemo(() => {
     const m = new Map<string, number>();
@@ -106,21 +111,30 @@ function ActivityCenter({
       ) : (
         <ol className="space-y-2">
           {shown.map((a) => {
-            const entries = Object.entries(a.changes);
+            // 🔴 Board 07/08/2026 *"Bổ sung thêm ①"* — **Version History**.
+            // `docPhienBan` tách khoá kỹ thuật (`__phien_ban` · `__anh_chup`)
+            // ra khỏi danh sách ô-đã-đổi, và **chịu được dòng nhật ký ĐỜI CŨ**
+            // (⛔ không có khoá nào). Nhật ký là sổ chỉ-ghi-thêm — ⛔ không có
+            // đường nâng cấp dòng cũ, nên phép đọc phải nhận cả hai đời.
+            const pb = docPhienBan(a.changes);
+            const moRong = anhChup === a.id;
             return (
               <li key={a.id} className="rounded-xl border border-slate-200 bg-white p-3.5">
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <History className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
                   <Badge tone={toneOf(a.action)}>{labelOf(AUDIT_ACTION_LABEL, a.action)}</Badge>
                   <Badge tone="slate">{labelOf(ENTITY_TYPE_LABEL, a.entity_type)}</Badge>
+                  {/* Số phiên bản chỉ hiện khi dòng THẬT SỰ có — ⛔ không bịa
+                      "v1" cho dòng đời cũ, vì phiên bản ấy ⛔ chưa từng được ghi. */}
+                  {pb.so !== null && <Badge tone="indigo">phiên bản {pb.so}</Badge>}
                   <span className="font-semibold text-slate-700">{a.actor_name ?? 'Không rõ người thao tác'}</span>
                   {a.actor_role && <span className="text-slate-500">({ROLE_LABEL_SAFE(a.actor_role)})</span>}
                   <span className="ml-auto tabular-nums text-slate-400">{fmtTime(a.created_at)}</span>
                 </div>
 
-                {entries.length > 0 ? (
+                {pb.o.length > 0 ? (
                   <ul className="mt-2 space-y-1">
-                    {entries.map(([field, ch]) => (
+                    {pb.o.map(([field, ch]) => (
                       <li key={field} className="flex flex-wrap items-center gap-1.5 text-xs">
                         <span className="font-mono font-semibold text-slate-600">{field}</span>
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-500 line-through">
@@ -135,6 +149,49 @@ function ActivityCenter({
                   </ul>
                 ) : (
                   <p className="mt-1.5 text-xs text-slate-400">Không ghi chi tiết thay đổi cho thao tác này.</p>
+                )}
+
+                {/* ═══ 🔴 ẢNH CHỤP NGUYÊN BẢN GHI — Board: *"⛔ Không overwrite
+                    dữ liệu."* ══════════════════════════════════════════════
+                    🔑 Danh sách ô-đã-đổi ở trên trả lời *"cái gì đổi"*. Chỉ
+                    **ảnh chụp** mới trả lời *"lúc 14:20 ngày 3/8, chứng từ này
+                    trông như thế nào?"* — câu người ta hỏi khi tranh chấp với
+                    khách.
+                    ⚠️ GẤP LẠI mặc định: mở sẵn thì mỗi dòng nhật ký cao vài
+                    trăm pixel và tab Nhật ký thành ⛔ không đọc được. */}
+                {(pb.truoc || pb.sau) && (
+                  <div className="mt-2 border-t border-slate-100 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAnhChup(moRong ? null : a.id)}
+                      aria-expanded={moRong}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 transition hover:text-blue-800"
+                    >
+                      <FileClock className="h-3.5 w-3.5" aria-hidden="true" />
+                      {moRong ? 'Ẩn bản ghi đầy đủ' : 'Xem bản ghi đầy đủ trước ⟷ sau'}
+                    </button>
+
+                    {moRong && (
+                      <div className="mt-2 grid grid-cols-1 gap-2 lg:grid-cols-2">
+                        <div>
+                          <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                            Trước
+                          </p>
+                          <pre className="max-h-64 overflow-auto rounded-lg bg-slate-50 p-2 text-[11px] leading-relaxed text-slate-600">
+                            {pb.truoc ? JSON.stringify(pb.truoc, null, 2) : '(chưa có — đây là bản ghi mới)'}
+                          </pre>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+                            Sau
+                          </p>
+                          <pre className="max-h-64 overflow-auto rounded-lg bg-emerald-50/60 p-2 text-[11px] leading-relaxed text-emerald-900">
+                            {pb.sau ? JSON.stringify(pb.sau, null, 2) : '(không còn bản mới)'}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </li>
             );

@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Loader2, Palette, Ruler, Settings2, Layers, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Loader2, Palette, Ruler, Settings2, Layers, Trash2, AlertTriangle, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui';
+import BomEditDialog from '@/app/(dashboard)/md/bom-edit-dialog';
 import { TabSection, DataTable, tdCls, Metric, fmtNum } from '../po/tab-kit';
 import { MATERIAL_CATEGORY_LABEL, STYLE_STATUS_LABEL, labelOf } from '../po/labels';
 import { getStyleDetailClient } from '@/app/(dashboard)/md/_actions/style360.client';
 import { deleteStyleChild } from '@/app/(dashboard)/md/_actions/style.actions';
 import type { StyleDetail } from '@/app/(dashboard)/md/_services/style.service';
-import { sumOperationSam, type StyleRow } from '@/schemas/md';
+import { sumOperationSam, type StyleRow, type StyleBomRow } from '@/schemas/md';
 
 // ============================================================================
 // CHI TIẾT MÃ HÀNG — bảng màu · size · công đoạn · định mức NPL
@@ -58,6 +59,8 @@ export default function StyleDetailSheet({
   const [data, setData] = useState<StyleDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  /** 🔴 `BUG-5` — dòng định mức đang sửa. `null` ⇒ hộp thoại đóng. */
+  const [suaBom, setSuaBom] = useState<StyleBomRow | null>(null);
 
   const load = async (id: string) => {
     setLoading(true);
@@ -337,10 +340,24 @@ export default function StyleDetailSheet({
                             `042` đã thu hồi quyền `DELETE` trên `style_bom`
                             (ADR-018 §6.2). Nút cũ vẫn hiện và bấm vào trả lỗi
                             phân quyền — tệ hơn không có nút, vì nó hứa một việc
-                            hệ thống không làm được. Giữ ô trống để bảng không
-                            lệch cột; `title` nói vì sao. */}
-                        <td className={`${tdCls} text-slate-300`} title="Định mức NPL không xoá được — sửa dòng hoặc khai lại mã hàng.">
-                          —
+                            hệ thống không làm được.
+
+                            🔴 **NAY CÓ NÚT SỬA** — Board `BUG-5` 07/08/2026.
+                            🔑 Chú thích cũ đã tự nói lối ra đúng: *"sửa dòng
+                            hoặc khai lại mã hàng"*. Nhưng **⛔ không có hàm sửa
+                            nào tồn tại**, nên lối ra ấy là lời hứa suông: định
+                            mức gõ sai chỉ còn cách khai lại **cả mã hàng**.
+                            Sai định mức vải 0,1 m/sp trên đơn 100.000 sp là
+                            **10.000 m vải** đặt thừa hoặc thiếu. */}
+                        <td className={tdCls}>
+                          <button
+                            type="button"
+                            onClick={() => setSuaBom(b)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                          >
+                            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                            Sửa
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -355,6 +372,18 @@ export default function StyleDetailSheet({
           )}
         </div>
       </div>
+
+      {/* 🔴 BUG-5 — sửa một dòng định mức. Tách tệp riêng vì `style-detail-sheet`
+          đã dài và hộp thoại này có luật riêng (dòng gắn màu ⛔ chưa sửa được). */}
+      <BomEditDialog
+        styleId={style.id}
+        row={suaBom}
+        onClose={() => setSuaBom(null)}
+        onSaved={async () => {
+          await load(style.id);
+          await onChanged();
+        }}
+      />
     </div>
   );
 }

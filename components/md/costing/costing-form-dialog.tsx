@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Save } from 'lucide-react';
 import type { z } from 'zod';
 
 import { Modal, Field, inputCls, btnGhost, btnPrimary } from '@/components/ui';
 import { createCosting } from '@/app/(dashboard)/md/_actions/commercial.actions';
+import { updateCosting } from '@/app/(dashboard)/md/_actions/revisions.actions';
+import { useSuaChungTu, oChu, oSo } from '@/app/(dashboard)/md/use-sua-chung-tu';
 import {
   costingFormSchema, costingItemSchema,
   CURRENCIES, CURRENCY_LABEL, ORDER_TYPES, ORDER_TYPE_LABEL,
@@ -38,15 +40,26 @@ function Err({ children }: { children?: string }) {
 
 type CostingInput = z.input<typeof costingFormSchema>;
 
+/**
+ * 🔴 Hai chế độ — `suaId` khác `null` ⇒ **Sửa** *(Board `BUG-5`, 07/08/2026)*.
+ *
+ * ⚠️ **Chỉ sửa được bản ⛔ CHƯA duyệt.** Bản `APPROVED` bị chặn ở **ba tầng
+ * CSDL** *(RLS `042` · trigger `045`/`045b` · con `046`)*, và `updateCosting`
+ * trả về câu tiếng Việt thay vì mã lỗi `23514`. Đường đúng cho bản đã duyệt là
+ * nút **"Làm bản mới"** *(`reviseCosting`)* — bản cũ giữ nguyên làm bằng chứng.
+ */
 export function CostingFormDialog({
-  open, customers, styles, onClose, onCreated,
+  open, customers, styles, onClose, onCreated, suaId,
 }: {
   open: boolean;
   customers: ReadonlyArray<{ id: string; customer_code: string; name: string }>;
   styles: ReadonlyArray<{ id: string; style_no: string; style_name: string }>;
   onClose: () => void;
   onCreated: () => void | Promise<void>;
+  suaId?: string | null;
 }) {
+  const sua = useSuaChungTu('COSTING', open, suaId);
+
   const defaults: CostingInput = {
     costing_no: '', inquiry_id: '', style_id: '', customer_id: '',
     order_type: 'FOB', currency: 'USD',
@@ -60,29 +73,62 @@ export function CostingFormDialog({
     });
 
   useEffect(() => {
-    if (open) reset(defaults);
+    if (!open) return;
+    if (sua.laSua) {
+      if (!sua.row) return;
+      reset({
+        costing_no: oChu(sua.row, 'costing_no'),
+        inquiry_id: oChu(sua.row, 'inquiry_id'),
+        style_id: oChu(sua.row, 'style_id'),
+        customer_id: oChu(sua.row, 'customer_id'),
+        order_type: (oChu(sua.row, 'order_type') || 'FOB') as CostingInput['order_type'],
+        currency: (oChu(sua.row, 'currency') || 'USD') as CostingInput['currency'],
+        quantity: oSo(sua.row, 'quantity'),
+        target_price: oSo(sua.row, 'target_price'),
+        quoted_price: oSo(sua.row, 'quoted_price'),
+        notes: oChu(sua.row, 'notes'),
+      });
+      return;
+    }
+    reset(defaults);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, reset]);
+  }, [open, sua.laSua, sua.row, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
-    const res = await createCosting(values);
+    const res = suaId ? await updateCosting(suaId, values) : await createCosting(values);
     if (!res.ok) {
       if (res.fieldErrors) {
         for (const [name, message] of Object.entries(res.fieldErrors)) {
           setError(name as keyof CostingInput, { type: 'server', message });
         }
       }
-      toast.error('Không tạo được bản chiết tính', { description: res.message });
+      toast.error(suaId ? 'Không lưu được thay đổi' : 'Không tạo được bản chiết tính', { description: res.message });
       return;
     }
-    toast.success('Đã tạo bản chiết tính', { description: res.message });
+    toast.success(suaId ? 'Đã lưu thay đổi' : 'Đã tạo bản chiết tính', { description: res.message });
     onClose();
     await onCreated();
   });
 
   return (
-    <Modal open={open} title="Tạo bản chiết tính giá" onClose={onClose} wide>
+    <Modal
+      open={open}
+      title={suaId ? 'Sửa bản chiết tính giá' : 'Tạo bản chiết tính giá'}
+      onClose={onClose}
+      wide
+    >
       <form onSubmit={onSubmit} noValidate>
+        {sua.loi && (
+          <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+            {sua.loi}
+          </p>
+        )}
+        {sua.dangNap && (
+          <p className="mb-3 flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            Đang nạp bản chiết tính...
+          </p>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Số chiết tính" hint="phiên bản 1 do máy chủ tự đặt">
             <input className={inputCls} placeholder="CT-2026-001" {...register('costing_no')} />
@@ -172,10 +218,12 @@ export function CostingFormDialog({
           <button type="button" className={btnGhost} onClick={onClose} disabled={formState.isSubmitting}>
             Hủy
           </button>
-          <button type="submit" className={btnPrimary} disabled={formState.isSubmitting}>
+          <button type="submit" className={btnPrimary} disabled={formState.isSubmitting || sua.dangNap}>
             {formState.isSubmitting
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Đang lưu...</>
-              : <><Plus className="h-4 w-4" /> Tạo bản chiết tính</>}
+              : suaId
+                ? <><Save className="h-4 w-4" /> Lưu thay đổi</>
+                : <><Plus className="h-4 w-4" /> Tạo bản chiết tính</>}
           </button>
         </div>
       </form>

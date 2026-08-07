@@ -15,6 +15,12 @@ import {
 } from '../../lib/mos/md/operations.ts';
 import { duocDuyet, duocTrinh, kiemQuyen } from '../../lib/mos/md/costing-approval.ts';
 import { duocSuaPo, kiemSuaPo, canhBaoGiamSoLuong, PO_TIEN_DO } from '../../lib/mos/md/po-edit.ts';
+// 🔴 Board Decision 07/08/2026 — `BUG-4` (khoá theo workflow · Re-open) và
+// `BUG-5` (lưu trữ ⛔ không mượn trạng thái mang nghĩa khác).
+import {
+  phanQuyetSuaPo, phanQuyetMoLaiPo, phanQuyetSua, duocMoLai, luuTruDuoc,
+  PO_SAU_KHI_MO_LAI,
+} from '../../lib/mos/md/document-lock.ts';
 
 let dat = 0; const hong = [];
 const ok = (t, dk, g = '') => { if (dk) { dat++; console.log(`  ✅ ${t}`); return; } hong.push(t); console.log(`  ⛔ ${t}${g ? `\n       ${g}` : ''}`); };
@@ -149,7 +155,124 @@ console.log('\n⑨ SỬA PO — ai được sửa, và chặn dữ liệu vô ng
   ok('Ngày sai khuôn bị chặn', kiemSuaPo({ ...hopLe, delivery_date: '30/09/2026' }).ok === false);
   ok('Lỗi có chỉ đúng TRƯỜNG nào sai',
     kiemSuaPo({ ...hopLe, total_quantity: 0 }).truong === 'total_quantity');
-  ok('Đủ 4 trạng thái tiến độ', PO_TIEN_DO.length === 4);
+  // 🔴 4 ⇒ 6 · Board Decision 07/08/2026 (`BUG-4`).
+  //
+  // ⚠️ **BÀI KIỂM NÀY TỪNG NEO SỐ `4` — VÀ SỐ ĐÓ LÀ MỘT LỖ HỔNG.**
+  // `PO_TIEN_DO` thiếu `SHIPPED` và `CANCELLED`, trong khi `PO_STATUSES` ở
+  // `schemas/md/order.schema.ts` đã khai đủ sáu từ lâu. Hậu quả: Board ra luật
+  // *"SHIPPED: Khóa"* nhưng `kiemSuaPo` **bác mọi lượt đặt `SHIPPED`** ⇒ trạng
+  // thái ấy ⛔ không tới được từ màn hình MD, và điều luật về nó là điều luật
+  // chết. `CANCELLED` cũng vậy — nó là **lối lưu trữ duy nhất** của PO.
+  //
+  // 🔑 Kiểm **DANH SÁCH**, ⛔ không kiểm **SỐ ĐẾM**. Một con số trần chỉ nói
+  // *"có sáu cái"*; nó ⛔ không phát hiện được ai đó đổi `SHIPPED` thành
+  // `SHIPED`. Đây đúng bài học "số viết cứng trong bài kiểm" đã hai lần gây
+  // báo động giả, ghi ở `arch.test.mjs` mục ③.
+  ok('Đủ 6 trạng thái tiến độ, ĐÚNG TÊN (Board BUG-4 · 07/08/2026)',
+    JSON.stringify([...PO_TIEN_DO].sort())
+      === JSON.stringify(['APPROVED', 'CANCELLED', 'COMPLETED', 'DRAFT', 'IN_PRODUCTION', 'SHIPPED']));
+  ok('SHIPPED đặt được — ⛔ không thì luật "SHIPPED: Khóa" là luật chết',
+    kiemSuaPo({ ...hopLe, status: 'SHIPPED' }).ok === true);
+  ok('CANCELLED đặt được — lối LƯU TRỮ duy nhất của PO',
+    kiemSuaPo({ ...hopLe, status: 'CANCELLED' }).ok === true);
+}
+
+// ⑨b 🔴 KHOÁ THEO **WORKFLOW**, ⛔ KHÔNG THEO **STATUS ĐƠN THUẦN**
+//
+// Board Decision 07/08/2026 · `BUG-4` + mục *"Khóa theo Workflow"*:
+//   > *"⛔ Không khóa theo Status đơn thuần. Ví dụ: **PO đã sinh Production
+//   > Order thì phải khóa.** ⛔ Không dựa duy nhất vào trạng thái APPROVED."*
+console.log('\n⑨b 🔴 KHOÁ THEO WORKFLOW — ⛔ KHÔNG theo status đơn thuần');
+{
+  const suaDuoc = (bc) => phanQuyetSuaPo(bc).muc === 'SUA';
+
+  ok('DRAFT · ⛔ chưa có lệnh sản xuất ⇒ SỬA ĐƯỢC',
+    suaDuoc({ status: 'DRAFT', daSinhLenhSanXuat: false }));
+  ok('APPROVED · ⛔ chưa có lệnh sản xuất ⇒ SỬA ĐƯỢC (Board: "Update + Audit Log")',
+    suaDuoc({ status: 'APPROVED', daSinhLenhSanXuat: true }) === false
+      && suaDuoc({ status: 'APPROVED', daSinhLenhSanXuat: false }));
+
+  // 🔑 PHÉP THỬ CỐT LÕI: **cùng một `status`**, hai kết quả khác nhau — chỉ vì
+  // dữ liệu hạ nguồn khác nhau. Đây là thứ một `switch (status)` ⛔ không làm
+  // được, và là toàn bộ nội dung của chỉ thị.
+  ok('🔴 CÙNG status DRAFT, có lệnh sản xuất ⇒ ⛔ KHÔNG sửa trực tiếp',
+    suaDuoc({ status: 'DRAFT', daSinhLenhSanXuat: false })
+      && !suaDuoc({ status: 'DRAFT', daSinhLenhSanXuat: true }));
+  ok('Đã sinh lệnh sản xuất ⇒ lối ra là YÊU CẦU THAY ĐỔI, ⛔ không phải ngõ cụt',
+    phanQuyetSuaPo({ status: 'DRAFT', daSinhLenhSanXuat: true }).muc === 'YEU_CAU_THAY_DOI');
+
+  ok('SHIPPED ⇒ KHOÁ', phanQuyetSuaPo({ status: 'SHIPPED', daSinhLenhSanXuat: false }).muc === 'KHOA');
+  ok('COMPLETED ⇒ KHOÁ TUYỆT ĐỐI',
+    phanQuyetSuaPo({ status: 'COMPLETED', daSinhLenhSanXuat: false }).muc === 'KHOA_TUYET_DOI');
+  ok('🔴 COMPLETED khoá KỂ CẢ khi ⛔ chưa sinh lệnh sản xuất',
+    !suaDuoc({ status: 'COMPLETED', daSinhLenhSanXuat: false }));
+  ok('Mọi phán quyết KHOÁ đều NÓI VÌ SAO',
+    ['SHIPPED', 'COMPLETED', 'CANCELLED']
+      .every((s) => phanQuyetSuaPo({ status: s, daSinhLenhSanXuat: false }).vi.length > 0));
+
+  // Chữ thường / hoa lẫn lộn trong dữ liệu cũ — `002` ⛔ không có CHECK trên cột.
+  ok('So trạng thái ⛔ KHÔNG phân biệt hoa thường (dữ liệu cũ lẫn "Completed")',
+    phanQuyetSuaPo({ status: 'completed', daSinhLenhSanXuat: false }).muc === 'KHOA_TUYET_DOI');
+}
+
+// ⑨c 🔴 RE-OPEN — *"Completed chỉ được Re-open bởi CEO hoặc Director"*
+console.log('\n⑨c 🔴 RE-OPEN — chỉ Giám đốc / Super Admin');
+{
+  ok('Giám đốc mở lại được', duocMoLai('giamdoc'));
+  ok('Super Admin mở lại được', duocMoLai('superadmin'));
+  // 🔴 Đây là TOÀN BỘ ý nghĩa của điều khoản: MD tự mở lại được thì "khoá
+  // tuyệt đối" chỉ là một hộp thoại xác nhận.
+  ok('🔴 MD ⛔ KHÔNG mở lại được', duocMoLai('md') === false);
+  ok('QA ⛔ không mở lại được', duocMoLai('qa') === false);
+  ok('⛔ Chưa đăng nhập ⇒ ⛔ không mở lại được', duocMoLai(null) === false);
+
+  ok('COMPLETED + giamdoc ⇒ CHO mở lại',
+    phanQuyetMoLaiPo('COMPLETED', 'giamdoc').muc === 'SUA');
+  ok('COMPLETED + md ⇒ CHẶN, và nói rõ phải trình ai',
+    phanQuyetMoLaiPo('COMPLETED', 'md').muc === 'KHOA_TUYET_DOI'
+      && phanQuyetMoLaiPo('COMPLETED', 'md').loiRa !== null);
+  // Mở lại một đơn ⛔ chưa đóng là thao tác vô nghĩa — cho qua sẽ sinh một dòng
+  // nhật ký "đã mở lại" trên đơn chưa từng đóng, làm nhiễu sổ kiểm toán.
+  ok('Đơn ⛔ CHƯA đóng ⇒ ⛔ không có gì để mở lại, kể cả với Giám đốc',
+    phanQuyetMoLaiPo('APPROVED', 'giamdoc').muc !== 'SUA');
+  ok('Mở lại đưa về APPROVED, ⛔ KHÔNG về DRAFT (⛔ không xoá bằng chứng phê duyệt)',
+    PO_SAU_KHI_MO_LAI === 'APPROVED');
+}
+
+// ⑨d 🔴 LƯU TRỮ ⛔ KHÔNG ĐƯỢC MƯỢN MỘT TRẠNG THÁI MANG NGHĨA KHÁC
+console.log('\n⑨d 🔴 LƯU TRỮ — chỉ dùng trạng thái CÓ THẬT và ĐÚNG NGHĨA');
+{
+  ok('Khách hàng lưu trữ được (cờ is_active có sẵn từ 014)', luuTruDuoc('CUSTOMER'));
+  ok('Mã hàng lưu trữ được (DISCONTINUED có trong CHECK của 015)', luuTruDuoc('STYLE'));
+  ok('Yêu cầu báo giá lưu trữ được (CANCELLED có trong CHECK của 015)', luuTruDuoc('INQUIRY'));
+  ok('Chiết tính lưu trữ được (SUPERSEDED — đúng đường reviseCosting)', luuTruDuoc('COSTING'));
+
+  // 🔴 Ba bảng dưới đây ⛔ KHÔNG có cột trạng thái lẫn `deleted_at`.
+  // ⚠️ Bài kiểm này khẳng định điều **⛔ CHƯA làm được** — đúng `V.1`: ghi
+  // *"⚪ chưa đo được"* thay vì ✅. Nó sẽ ĐỎ đúng lúc `ADR-027` được chạy, và
+  // đó là lời nhắc phải quay lại mở khoá ba hàm lưu trữ đang từ chối.
+  ok('🔴 Tech Pack ⛔ CHƯA lưu trữ được — md_documents thiếu deleted_at (ADR-027)',
+    luuTruDuoc('TECH_PACK') === false);
+  ok('🔴 BOM ⛔ CHƯA lưu trữ được — style_bom thiếu deleted_at (ADR-027)',
+    luuTruDuoc('BOM') === false);
+  ok('🔴 Yêu cầu NPL ⛔ CHƯA lưu trữ được — "REJECTED" ⛔ KHÔNG nghĩa là "đã lưu trữ"',
+    luuTruDuoc('MATERIAL_REQUEST') === false);
+
+  // Chiết tính ĐÃ DUYỆT bị ba tầng CSDL khoá (RLS 042 · trigger 045 · con 046).
+  // Tầng luật phải khai ĐÚNG như vậy, ⛔ không thì người dùng nhận mã 23514.
+  ok('Chiết tính APPROVED ⇒ KHOÁ, và chỉ đường sang "Làm bản mới"',
+    phanQuyetSua('COSTING', 'APPROVED').muc === 'KHOA'
+      && (phanQuyetSua('COSTING', 'APPROVED').loiRa ?? '').includes('bản mới'));
+  ok('Chiết tính DRAFT ⇒ sửa được', phanQuyetSua('COSTING', 'DRAFT').muc === 'SUA');
+  ok('Khách hàng ⛔ không có status ⇒ luôn sửa được', phanQuyetSua('CUSTOMER', null).muc === 'SUA');
+  ok('Yêu cầu NPL đã NHẬN KHO ⇒ KHOÁ TUYỆT ĐỐI (sửa là lệch tồn kho)',
+    phanQuyetSua('MATERIAL_REQUEST', 'RECEIVED').muc === 'KHOA_TUYET_DOI');
+
+  // 🔑 Gọi nhầm PO qua đường bảng ⇒ PHẢI NỔ, ⛔ không được trả phán quyết dễ
+  // dãi trong im lặng: bảng ⛔ không nhìn thấy lệnh sản xuất.
+  let daNo = false;
+  try { phanQuyetSua('ORDER', 'DRAFT'); } catch { daNo = true; }
+  ok('🔴 phanQuyetSua("ORDER") NỔ — PO buộc phải đi qua phanQuyetSuaPo()', daNo);
 }
 
 console.log('\n⑩ 🔴 CẢNH BÁO GIẢM SỐ LƯỢNG THẤP HƠN SỐ ĐÃ SẢN XUẤT');

@@ -8,6 +8,8 @@ import { listOrders } from './actions';
 import type { PoRow } from './po-schema';
 import PoTable from './po-table';
 import PoFormDialog from './po-form-dialog';
+import ReopenPanel from './reopen-panel';
+import type { Role } from '@/lib/rbac';
 
 /**
  * Cầu nối giữa dữ liệu nạp sẵn ở máy chủ và phần tương tác ở trình duyệt.
@@ -19,9 +21,13 @@ import PoFormDialog from './po-form-dialog';
 export default function OrdersClient({
   initialRows,
   initialError,
+  role,
 }: {
   initialRows: PoRow[];
   initialError: string | null;
+  /** 🔴 `BUG-4` — quyết định có bày khu **Mở lại chứng từ đã đóng** hay không.
+   *  Đọc ở máy chủ từ `app_metadata`; xem chú thích ở `page.tsx`. */
+  role: Role | null;
 }) {
   const [rows, setRows] = useState<PoRow[]>(initialRows);
   const [error, setError] = useState<string | null>(initialError);
@@ -70,6 +76,12 @@ export default function OrdersClient({
 
       <PoTable rows={rows} loading={false} error={error} onRefresh={refresh} />
       </Card>
+
+      {/* 🔴 BUG-4 · Re-open Workflow — Board 07/08/2026. Khu này **tự ẩn** khi
+          vai ⛔ không được mở lại, hoặc khi ⛔ không có đơn nào đã đóng.
+          🔑 Đặt ở `/orders` vì `giamdoc` ⛔ KHÔNG vào được `/md` — lý lẽ đầy đủ
+          ở đầu `reopen-panel.tsx`. */}
+      <ReopenPanel rows={rows} role={role} onDone={refresh} />
 
       <PoFormDialog open={showAdd} onClose={() => setShowAdd(false)} onCreated={refresh} />
     </>

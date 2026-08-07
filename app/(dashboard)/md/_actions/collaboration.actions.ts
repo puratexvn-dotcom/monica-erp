@@ -53,18 +53,55 @@ export async function saveDocument(input: unknown): Promise<ActionResult> {
   return { ok: true, message: `Đã lưu tài liệu ${v.title} (phiên bản ${v.version}).` };
 }
 
+/**
+ * 🔴 **ĐÃ CHẶN 07/08/2026 · BOARD DECISION `BUG-5`:**
+ *
+ *   > *"**⛔ Không Delete vật lý. Chỉ Archive.**"*
+ *
+ * ─── ⚠️ VÌ SAO HÀM VẪN CÒN Ở ĐÂY, ⛔ KHÔNG BỊ XOÁ ────────────────────────
+ * Ràng buộc ② *(CLAUDE.md §6)*: **⛔ không xoá logic hay file cũ**. Và quan
+ * trọng hơn — `document-center.tsx` đang **gọi hàm này**. Xoá hàm đi thì màn
+ * hình gãy lúc dựng; để nó **trả lời thẳng** thì người dùng nhận đúng một câu
+ * tiếng Việt nói rõ chuyện gì đang xảy ra.
+ *
+ * ─── 🔴 VÌ SAO ⛔ CHƯA THAY ĐƯỢC BẰNG "ARCHIVE" ─────────────────────────
+ * `md_documents` **⛔ không có** cột trạng thái, **⛔ không có** `deleted_at`
+ * *(migration `015` Mục 8 — đã đối chiếu, ⛔ không nhớ)*. ⛔ **Không** tồn tại
+ * một cột nào để đánh dấu *"đã lưu trữ"* mà ⛔ không nói dối về nghiệp vụ.
+ *
+ * Thêm cột = **migration** = ADR + phê duyệt Board, và `SECURITY FREEZE`
+ * *(`MOS §XI.1`)* đang chặn. Bản nháp + phân tích tác động: **`ADR-027`**.
+ *
+ * ⚠️ **TÔI ĐÃ CÂN NHẮC VÀ BÁC một phương án khác:** dựng "bia mộ" trong
+ * `activity_log` rồi lọc ở tầng đọc. Nó chạy được mà ⛔ không cần migration,
+ * nhưng có **BA** chỗ đọc `md_documents` *(`collaboration.service` ·
+ * `po.service` · `po-twin.service`)*. Sót một chỗ ⇒ **hai màn hình cùng một
+ * hệ thống trả lời khác nhau câu *"tài liệu này còn ⛔ không"*** — đúng loại
+ * lệch mà kho mã này đã trả giá nhiều lần *(hai bảng đếm · hai bộ KPI)*.
+ * Một cột `deleted_at` với chỉ mục MỘT PHẦN giải quyết dứt điểm; một mẹo ở
+ * tầng ứng dụng thì ⛔ không.
+ *
+ * 🔑 **Nói thẳng là ⛔ chưa làm được, tốt hơn một nút bấm vào báo thành công.**
+ */
 export async function deleteDocument(id: string): Promise<ActionResult> {
   const g = await guard();
   if (!g.supabase) return { ok: false, message: g.error };
 
-  const { error } = await g.supabase.from('md_documents').delete().eq('id', id);
-  if (error) return { ok: false, message: friendlyDbError('deleteDocument', error) };
+  // Vẫn ghi nhật ký: **ý định** gỡ tài liệu là dữ kiện có giá trị kiểm toán,
+  // kể cả khi hệ thống từ chối thực hiện.
+  await writeAudit('DOCUMENT', id, 'DELETE', {
+    ket_qua: { from: null, to: 'BỊ TỪ CHỐI — xoá vật lý đã bị Board cấm 07/08/2026' },
+  });
 
-  // Tệp trong Storage KHÔNG xoá theo: bản ghi có thể bị xoá nhầm, còn tệp gốc
-  // thì không lấy lại được. Dọn tệp mồ côi là việc của tác vụ chạy nền.
-  await writeAudit('DOCUMENT', id, 'DELETE');
-  revalidatePath(PATH);
-  return { ok: true, message: 'Đã gỡ tài liệu khỏi danh sách. Tệp gốc vẫn còn trong kho lưu trữ.' };
+  return {
+    ok: false,
+    message:
+      '⛔ Xoá vật lý tài liệu đã bị CẤM (Board Decision 07/08/2026: "⛔ Không Delete '
+      + 'vật lý. Chỉ Archive"). Bảng md_documents ⛔ CHƯA có cột lưu trữ, nên chức năng '
+      + 'Lưu trữ ⛔ chưa dùng được — cần migration, xem ADR-027. '
+      + 'Sai tên hay sai tệp thì dùng "Sửa tài liệu": nó thay tệp và TĂNG số phiên bản, '
+      + 'bản cũ vẫn tra lại được.',
+  };
 }
 
 // ─── 2. THẢO LUẬN ───────────────────────────────────────────────────────────

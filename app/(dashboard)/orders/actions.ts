@@ -3,13 +3,17 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/utils/supabase/server';
-import { canAccess, isRole } from '@/lib/rbac';
+import { canAccess, isRole, type Role } from '@/lib/rbac';
 import { poFormSchema, type PoRow } from './po-schema';
+// 🔴 BUG-4 · Board 07/08/2026. Bộ luật khoá **thuần** — xem chú thích đầu tệp.
+import {
+  phanQuyetSuaPo, phanQuyetMoLaiPo, duocSua, PO_SAU_KHI_MO_LAI,
+} from '@/lib/mos/md/document-lock';
 // 🔴 UAT `BUG-3` — xem chú thích tại chỗ gọi trong `createOrder`.
 // ⚠️ Dùng LẠI hàm ghi nhật ký đã có ở phân hệ MD, ⛔ không viết hàm thứ hai:
 // hai đường ghi nhật ký là hai khuôn bản ghi, và lúc tra cứu sẽ phải hợp nhất
 // hai định dạng — đúng thứ một sổ kiểm toán ⛔ không được phép có.
-import { writeAudit } from '../md/_actions/audit';
+import { writeAudit, writeVersion } from '../md/_actions/audit';
 
 // ============================================================================
 // SERVER ACTIONS — Quản lý đơn hàng (bảng `orders`)
@@ -36,7 +40,11 @@ export interface ListResult {
 
 const MODULE_PATH = '/orders';
 
-/** Xác thực người gọi và quyền vào phân hệ đơn hàng. */
+/** Xác thực người gọi và quyền vào phân hệ đơn hàng.
+ *
+ *  🔑 **TRẢ VỀ CẢ `role`.** Bản trước nuốt nó đi, nên mọi action ở tệp này đều
+ *  ⛔ không phân biệt được ai đang gọi — và `reopenOrder` bên dưới **⛔ không
+ *  thi hành được** điều khoản *"chỉ CEO hoặc Director"* nếu ⛔ không biết vai. */
 async function guard() {
   const supabase = await createClient();
   const {
@@ -44,15 +52,41 @@ async function guard() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { supabase: null, error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' } as const;
+    return {
+      supabase: null, role: null,
+      error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    } as const;
   }
 
+  // ⚠️ `app_metadata`, ⛔ KHÔNG `user_metadata` — người dùng tự sửa được
+  // `user_metadata` ⇒ tự leo thang lên `giamdoc` rồi tự mở lại đơn đã khoá.
   const role = user.app_metadata?.role;
   if (!isRole(role) || !canAccess(role, MODULE_PATH)) {
-    return { supabase: null, error: 'Bạn không có quyền thao tác trên đơn hàng.' } as const;
+    return {
+      supabase: null, role: null,
+      error: 'Bạn không có quyền thao tác trên đơn hàng.',
+    } as const;
   }
 
-  return { supabase, error: null } as const;
+  return { supabase, role: role as Role, error: null } as const;
+}
+
+/** Đọc trạng thái + số lệnh sản xuất của một PO — hai dữ kiện `phanQuyetSuaPo`
+ *  cần. Gom lại một chỗ để ba nơi gọi ⛔ không đo bằng ba cách khác nhau. */
+async function boiCanhPo(
+  supabase: NonNullable<Awaited<ReturnType<typeof guard>>['supabase']>,
+  id: string,
+): Promise<{ cu: Record<string, unknown> | null; daSinhLenhSanXuat: boolean }> {
+  const { data: cu } = await supabase.from('orders').select('*').eq('id', id).maybeSingle();
+  if (!cu) return { cu: null, daSinhLenhSanXuat: false };
+
+  const { data: sx } = await supabase
+    .from('production_orders').select('id').eq('order_id', id).neq('status', 'CANCELLED');
+
+  return {
+    cu: cu as Record<string, unknown>,
+    daSinhLenhSanXuat: (sx ?? []).length > 0,
+  };
 }
 
 // ── Đọc danh sách ───────────────────────────────────────────────────────────
@@ -141,6 +175,21 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
 }
 
 // ── Đổi trạng thái ──────────────────────────────────────────────────────────
+/**
+ * 🔴 **HAI LỖ HỔNG ĐÃ VÁ Ở ĐÂY · UAT 07/08/2026 · `BUG-4`.**
+ *
+ * ① **⛔ KHÔNG có Audit Log.** Board: *"Mọi thao tác phải ghi Audit Log."*
+ *    Hàm này đổi được **trạng thái** — dữ kiện quyết định cả việc khoá chứng
+ *    từ lẫn việc tính *"PO đang chạy"* — mà ⛔ không để lại một dòng nào. Nó
+ *    là **anh em sinh đôi của `BUG-3`**: `BUG-3` vá đường TẠO ở tệp này, còn
+ *    đường ĐỔI TRẠNG THÁI thì vẫn câm.
+ *
+ * ② **⛔ KHÔNG có phép khoá nào.** Một PO `COMPLETED` lật ngược về `DRAFT`
+ *    bằng đúng một lời gọi — *"khoá tuyệt đối"* của Board sẽ chỉ là chữ trên
+ *    giấy nếu cửa sau này còn mở. `/orders` là **cửa sau thật**: `giamdoc`
+ *    vào được `/orders` nhưng ⛔ không vào được `/md`, nên chốt đặt ở `/md`
+ *    ⛔ không che được lối này.
+ */
 export async function updateOrderStatus(id: string, status: string): Promise<ActionResult> {
   const { supabase, error } = await guard();
   if (!supabase) return { ok: false, message: error ?? 'Không có quyền' };
@@ -148,13 +197,100 @@ export async function updateOrderStatus(id: string, status: string): Promise<Act
   const parsed = poFormSchema.shape.status.safeParse(status);
   if (!parsed.success) return { ok: false, message: 'Trạng thái không hợp lệ.' };
 
-  const { error: dbError } = await supabase
+  const { cu, daSinhLenhSanXuat } = await boiCanhPo(supabase, id);
+  if (!cu) return { ok: false, message: 'Không tìm thấy đơn hàng, hoặc bạn không có quyền xem nó.' };
+
+  const pq = phanQuyetSuaPo({ status: String(cu.status ?? ''), daSinhLenhSanXuat });
+  if (!duocSua(pq)) {
+    return { ok: false, message: pq.loiRa ? `${pq.vi} ${pq.loiRa}` : pq.vi };
+  }
+
+  const { data: sau, error: dbError } = await supabase
     .from('orders')
     .update({ status: parsed.data, updated_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .select('*');
 
   if (dbError) return { ok: false, message: `Không cập nhật được trạng thái: ${dbError.message}` };
+  if (!sau?.length) {
+    return {
+      ok: false,
+      message: 'Không có dòng nào được cập nhật — RLS đã chặn. Trạng thái GIỮ NGUYÊN.',
+    };
+  }
+
+  await writeVersion('ORDER', id, 'UPDATE', cu, sau[0] as Record<string, unknown>);
 
   revalidatePath(MODULE_PATH);
   return { ok: true, message: 'Đã cập nhật trạng thái đơn hàng.' };
+}
+
+// ── Mở lại chứng từ đã đóng ─────────────────────────────────────────────────
+/**
+ * 🔴 **RE-OPEN WORKFLOW** — Board Decision 07/08/2026, mục *"Bổ sung thêm ②"*:
+ *
+ *   > *"Completed chỉ được Re-open bởi **CEO hoặc Director**."*
+ *
+ * ─── ⚠️ VÌ SAO HÀM NÀY NẰM Ở `/orders`, ⛔ KHÔNG Ở `/md` ─────────────────
+ * `MODULE_ACCESS.giamdoc = ['/giam-doc', '/orders', '/subcon']` — **⛔ KHÔNG
+ * có `/md`**. `guard()` của phân hệ MD kiểm `canAccess(role, '/md')` và sẽ
+ * **bác Giám đốc**. Đặt Re-open ở `/md` là viết một điều khoản mà **đúng người
+ * được trao quyền lại ⛔ không với tới được** — thứ trông như đã thi hành
+ * nhưng đo ra là chưa.
+ *
+ * 🔑 Cùng lý do, nút Re-open bày ở màn hình `/orders`, ⛔ không ở Workspace MD.
+ *
+ * ⚠️ **⛔ KHÔNG mở rộng `MODULE_ACCESS` để giải bài này.** Mở `/md` cho
+ * `giamdoc` là trao thêm **cả phân hệ**, ⛔ không chỉ một nút — đó là quyết
+ * định phân quyền, cần Board, ⛔ không phải hệ quả phụ của một lượt vá UAT.
+ */
+export async function reopenOrder(id: string, lyDo: string): Promise<ActionResult> {
+  const { supabase, role, error } = await guard();
+  if (!supabase) return { ok: false, message: error ?? 'Không có quyền' };
+
+  // Mở lại một chứng từ đã đóng mà ⛔ không nêu lý do thì dòng nhật ký sinh ra
+  // trả lời được *"ai · lúc nào"* nhưng ⛔ không trả lời được *"vì sao"* — mà
+  // đó mới là câu người kiểm toán hỏi.
+  const ly = lyDo.trim();
+  if (ly.length < 10) {
+    return {
+      ok: false,
+      message: 'Phải nêu LÝ DO mở lại (ít nhất 10 ký tự). Đây là chứng từ đã đóng.',
+      fieldErrors: { lyDo: 'Nêu rõ vì sao phải mở lại đơn này' },
+    };
+  }
+
+  const { cu } = await boiCanhPo(supabase, id);
+  if (!cu) return { ok: false, message: 'Không tìm thấy đơn hàng, hoặc bạn không có quyền xem nó.' };
+
+  const pq = phanQuyetMoLaiPo(String(cu.status ?? ''), role);
+  if (!duocSua(pq)) {
+    return { ok: false, message: pq.loiRa ? `${pq.vi} ${pq.loiRa}` : pq.vi };
+  }
+
+  const { data: sau, error: dbError } = await supabase
+    .from('orders')
+    .update({ status: PO_SAU_KHI_MO_LAI, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select('*');
+
+  if (dbError) return { ok: false, message: `Không mở lại được đơn hàng: ${dbError.message}` };
+  if (!sau?.length) {
+    return { ok: false, message: 'Không có dòng nào được cập nhật — RLS đã chặn. Đơn GIỮ NGUYÊN trạng thái đóng.' };
+  }
+
+  // ⚠️ `APPROVE`, ⛔ không `UPDATE`: mở lại một chứng từ đã đóng là **hành vi
+  // thẩm quyền**, và sổ kiểm toán phải phân biệt được nó với một lượt sửa
+  // thường. Lọc `action = 'APPROVE'` ra là thấy đủ mọi lần chứng từ bị mở lại.
+  await writeVersion('ORDER', id, 'APPROVE', cu, {
+    ...(sau[0] as Record<string, unknown>),
+    __ly_do_mo_lai: ly,
+  });
+
+  revalidatePath(MODULE_PATH);
+  revalidatePath('/md');
+  return {
+    ok: true,
+    message: `Đã mở lại đơn hàng về trạng thái "${PO_SAU_KHI_MO_LAI}". Lý do đã ghi vào nhật ký.`,
+  };
 }

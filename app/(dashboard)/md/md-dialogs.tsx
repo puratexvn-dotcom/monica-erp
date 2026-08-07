@@ -34,6 +34,9 @@ import type { PoOption } from './md-types';
 export default function MdDialogs(p: {
   dialog: TabKey | null;
   setDialog: (v: TabKey | null) => void;
+  /** 🔴 `BUG-5` — dòng đang được **Sửa**. `null` ⇒ mọi hộp thoại ở chế độ Tạo. */
+  suaId: { tab: TabKey; id: string } | null;
+  setSuaId: (v: { tab: TabKey; id: string } | null) => void;
   autoDialog: 'material' | 'production' | null;
   setAutoDialog: (v: 'material' | 'production' | null) => void;
   congDoanMo: boolean;
@@ -57,12 +60,27 @@ export default function MdDialogs(p: {
   openPo: (orderId: string, poNumber: string) => void;
   goTab: (t: TabKey) => void;
 }) {
+  /** Id đang sửa **của đúng hộp thoại này**. Trả `null` cho mọi hộp thoại khác
+   *  — thiếu phép so `tab` thì mở Sửa một khách hàng sẽ làm **cả bốn** hộp
+   *  thoại cùng nhận id đó. */
+  const idSua = (tab: TabKey): string | null =>
+    p.suaId?.tab === tab ? p.suaId.id : null;
+
+  /** Đóng hộp thoại: dọn **CẢ HAI** ô nhớ. Quên `setSuaId(null)` thì lần bấm
+   *  *"Tạo mới"* kế tiếp sẽ mở ra ở chế độ Sửa của dòng cũ — và lưu đè lên nó. */
+  const dong = () => {
+    p.setDialog(null);
+    p.setSuaId(null);
+  };
+
   return (
     <>
-      {/* ── Các hộp thoại tạo mới ──────────────────────────────────────── */}
+      {/* ── Hộp thoại Tạo mới **và** Sửa — cùng một component, hai chế độ.
+             🔴 `BUG-5` · Board 07/08/2026. Lý lẽ ở đầu mỗi form dialog. ── */}
       <CustomerFormDialog
         open={p.dialog === 'customers'}
-        onClose={() => p.setDialog(null)}
+        suaId={idSua('customers')}
+        onClose={dong}
         onCreated={async () => {
           await p.loadTab('customers', true);
           p.setCustomerOptions(await listCustomerOptionsClient());
@@ -70,15 +88,17 @@ export default function MdDialogs(p: {
       />
       <InquiryFormDialog
         open={p.dialog === 'rfq'}
+        suaId={idSua('rfq')}
         customers={p.customerOptions}
-        onClose={() => p.setDialog(null)}
+        onClose={dong}
         onCreated={p.reloadRfq}
       />
       <CostingFormDialog
         open={p.dialog === 'costing'}
+        suaId={idSua('costing')}
         customers={p.customerOptions}
         styles={p.styles}
-        onClose={() => p.setDialog(null)}
+        onClose={dong}
         onCreated={p.reloadCosting}
       />
       {/* 🔴 Tính giá theo công đoạn — Board 06/08/2026. Dùng chung state
@@ -90,11 +110,11 @@ export default function MdDialogs(p: {
         onClose={() => p.setCongDoanMo(false)}
         onDone={p.reloadCosting}
       />
-      <PoFormDialog open={p.dialog === 'po'} onClose={() => p.setDialog(null)} onCreated={p.refresh} />
-      <StyleFormDialog open={p.dialog === 'styles'} onClose={() => p.setDialog(null)} onCreated={p.refresh} />
-      <MaterialRequestDialog open={p.dialog === 'materials'} onClose={() => p.setDialog(null)} onDone={p.refresh} pos={p.poOptions} />
-      <ProductionOrderDialog open={p.dialog === 'production'} onClose={() => p.setDialog(null)} onDone={p.refresh} pos={p.poOptions} />
-      <ShipmentFormDialog open={p.dialog === 'shipments'} onClose={() => p.setDialog(null)} onDone={p.refresh} pos={p.poOptions} />
+      <PoFormDialog open={p.dialog === 'po'} onClose={dong} onCreated={p.refresh} />
+      <StyleFormDialog open={p.dialog === 'styles'} suaId={idSua('styles')} onClose={dong} onCreated={p.refresh} />
+      <MaterialRequestDialog open={p.dialog === 'materials'} suaId={idSua('materials')} onClose={dong} onDone={p.refresh} pos={p.poOptions} />
+      <ProductionOrderDialog open={p.dialog === 'production'} onClose={dong} onDone={p.refresh} pos={p.poOptions} />
+      <ShipmentFormDialog open={p.dialog === 'shipments'} onClose={dong} onDone={p.refresh} pos={p.poOptions} />
 
       {/* ── Sinh tự động ───────────────────────────────────────────────── */}
       <MaterialGenDialog

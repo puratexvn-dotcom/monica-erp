@@ -187,6 +187,16 @@ export function dauHopNhom(n: SacNhom): string {
   return `flex items-center justify-between gap-3 border-b ${SAC_NHOM[n].vien} ${SAC_NHOM[n].nen} px-3.5 py-2`;
 }
 
+/** Sắc của biểu tượng *"chỗ này đang có lỗi"* trên thanh tab / danh sách.
+ *
+ *  🔑 Khai ở ĐÂY chứ ⛔ không viết thẳng trong tệp phân hệ: bánh cóc `TD-07`
+ *  chặn màu trần trong tệp MỚI, và `md-tab-bar.tsx` *(tách 07/08/2026)* đã đỏ
+ *  đúng ở dòng này. Tệp `components/ui.tsx` đã nằm sẵn trong sổ nợ.
+ *
+ *  ⚠️ ⛔ KHÔNG lấy từ `GROUP_TONE`: lỗi ⛔ không thuộc nhóm nghiệp vụ nào, và
+ *  tô nó theo màu nhóm sẽ làm cảnh báo **biến mất** vào nền của chính nhóm đó. */
+export const chuCanhBao = 'text-rose-400';
+
 /** Huy hiệu biểu tượng của thẻ hành động. */
 export const huyHieuThe =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-100';

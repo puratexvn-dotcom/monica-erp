@@ -4,11 +4,13 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Save } from 'lucide-react';
 import type { z } from 'zod';
 
 import { Modal, Field, inputCls, btnGhost, btnPrimary } from '@/components/ui';
 import { createCustomerFull } from '@/app/(dashboard)/md/_actions/commercial.actions';
+import { updateCustomer } from '@/app/(dashboard)/md/_actions/revisions.actions';
+import { useSuaChungTu, oChu, oSo } from '@/app/(dashboard)/md/use-sua-chung-tu';
 import {
   customerFormSchema, CURRENCIES, CURRENCY_LABEL, INCOTERMS, INCOTERM_LABEL,
   type CustomerFormValues,
@@ -36,41 +38,92 @@ function Err({ children }: { children?: string }) {
   return <span className="mt-1 block text-xs font-semibold text-rose-600">{children}</span>;
 }
 
+/**
+ * 🔴 **HAI CHẾ ĐỘ TRONG MỘT HỘP THOẠI** — `suaId` khác `null` ⇒ chế độ **Sửa**
+ * *(Board `BUG-5`, 07/08/2026)*.
+ *
+ * 🔑 Dựng một `CustomerEditDialog` riêng sẽ là **bản sao 180 dòng** của tệp
+ * này, và hai bản sao ⛔ không bao giờ đứng yên cùng nhau: thêm một ô vào form
+ * Tạo mà quên form Sửa ⇒ ô đó **⛔ không sửa được vĩnh viễn**. Một tệp, hai
+ * chế độ — thêm ô một lần là xong cả hai.
+ *
+ * ⚠️ Ở chế độ Sửa, dữ liệu đổ vào form đến từ `useSuaChungTu` *(đọc nguyên
+ * dòng)*, ⛔ **KHÔNG** từ dòng danh sách — xem chú thích ở hook đó.
+ */
 export default function CustomerFormDialog({
-  open, onClose, onCreated,
+  open, onClose, onCreated, suaId,
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: () => void | Promise<void>;
+  /** `null`/thiếu ⇒ Tạo mới. Có giá trị ⇒ Sửa đúng bản ghi đó. */
+  suaId?: string | null;
 }) {
+  const sua = useSuaChungTu('CUSTOMER', open, suaId);
+
   const { register, formState, reset, setError, handleSubmit } = useForm<Input, unknown, CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: DEFAULTS,
   });
 
   useEffect(() => {
-    if (open) reset(DEFAULTS);
-  }, [open, reset]);
+    if (!open) return;
+    // ⚠️ Chờ dữ liệu về MỚI đổ. Đổ sớm thì form hiện rỗng một nhịp, và người
+    // gõ nhanh có thể bấm Lưu trước khi bản ghi thật kịp về.
+    if (sua.laSua) {
+      if (!sua.row) return;
+      reset({
+        customer_code: oChu(sua.row, 'customer_code'),
+        name: oChu(sua.row, 'name'),
+        brand: oChu(sua.row, 'brand'),
+        buyer_group: oChu(sua.row, 'buyer_group'),
+        contact_person: oChu(sua.row, 'contact_person'),
+        phone: oChu(sua.row, 'phone'),
+        email: oChu(sua.row, 'email'),
+        country: oChu(sua.row, 'country'),
+        address: oChu(sua.row, 'address'),
+        tax_code: oChu(sua.row, 'tax_code'),
+        currency: (oChu(sua.row, 'currency') || 'USD') as Input['currency'],
+        incoterm: (oChu(sua.row, 'incoterm') || 'FOB') as Input['incoterm'],
+        payment_term: oChu(sua.row, 'payment_term'),
+        credit_limit: oSo(sua.row, 'credit_limit'),
+        notes: oChu(sua.row, 'notes'),
+      });
+      return;
+    }
+    reset(DEFAULTS);
+  }, [open, sua.laSua, sua.row, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
-    const res = await createCustomerFull(values);
+    const res = suaId ? await updateCustomer(suaId, values) : await createCustomerFull(values);
     if (!res.ok) {
       if (res.fieldErrors) {
         for (const [name, message] of Object.entries(res.fieldErrors)) {
           setError(name as keyof Input, { type: 'server', message });
         }
       }
-      toast.error('Không tạo được khách hàng', { description: res.message });
+      toast.error(suaId ? 'Không lưu được thay đổi' : 'Không tạo được khách hàng', { description: res.message });
       return;
     }
-    toast.success('Đã tạo khách hàng', { description: res.message });
+    toast.success(suaId ? 'Đã lưu thay đổi' : 'Đã tạo khách hàng', { description: res.message });
     reset(DEFAULTS);
     onClose();
     await onCreated();
   });
 
   return (
-    <Modal open={open} title="Thêm khách hàng" onClose={onClose} wide>
+    <Modal open={open} title={suaId ? 'Sửa khách hàng' : 'Thêm khách hàng'} onClose={onClose} wide>
+      {sua.loi && (
+        <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+          {sua.loi}
+        </p>
+      )}
+      {sua.dangNap && (
+        <p className="mb-3 flex items-center gap-2 text-xs font-semibold text-slate-500">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+          Đang nạp hồ sơ đầy đủ...
+        </p>
+      )}
       <form onSubmit={onSubmit} noValidate>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Mã khách hàng" hint="tự chuyển in hoa">
@@ -170,10 +223,18 @@ export default function CustomerFormDialog({
           <button type="button" className={btnGhost} onClick={onClose} disabled={formState.isSubmitting}>
             Hủy
           </button>
-          <button type="submit" className={btnPrimary} disabled={formState.isSubmitting}>
+          <button
+            type="submit"
+            className={btnPrimary}
+            // ⚠️ Khoá luôn khi ĐANG NẠP ở chế độ Sửa: bấm Lưu lúc form còn
+            // rỗng sẽ ghi rỗng đè lên bản ghi thật.
+            disabled={formState.isSubmitting || sua.dangNap}
+          >
             {formState.isSubmitting
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Đang lưu...</>
-              : <><Plus className="h-4 w-4" /> Thêm khách hàng</>}
+              : suaId
+                ? <><Save className="h-4 w-4" /> Lưu thay đổi</>
+                : <><Plus className="h-4 w-4" /> Thêm khách hàng</>}
           </button>
         </div>
       </form>

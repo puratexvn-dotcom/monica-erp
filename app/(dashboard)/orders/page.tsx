@@ -1,3 +1,5 @@
+import { createClient } from '@/utils/supabase/server';
+import { isRole, type Role } from '@/lib/rbac';
 import { Card, PageHeader } from '@/components/ui';
 import { listOrders } from './actions';
 import OrdersClient from './orders-client';
@@ -19,6 +21,17 @@ export const dynamic = 'force-dynamic';
 export default async function OrdersPage() {
   const { rows, error } = await listOrders();
 
+  // 🔴 Vai đọc ở MÁY CHỦ, từ `app_metadata` — Board `BUG-4` mục *"Re-open"*.
+  //
+  // ⚠️ **⛔ KHÔNG** `user_metadata`: người dùng tự sửa được nó, và ở đây nó sẽ
+  // quyết định ai thấy nút mở lại chứng từ đã khoá. Chốt thật vẫn nằm trong
+  // `reopenOrder()`; dòng này chỉ để ⛔ không mời người dùng bấm vào thứ chắc
+  // chắn bị từ chối *(CLAUDE.md §2.1)*.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const raw = user?.app_metadata?.role;
+  const role: Role | null = isRole(raw) ? raw : null;
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <PageHeader
@@ -26,7 +39,7 @@ export default async function OrdersPage() {
         desc="Theo dõi tiến độ đơn hàng từ lúc duyệt tới khi xuất container."
       />
 
-      <OrdersClient initialRows={rows} initialError={error} />
+      <OrdersClient initialRows={rows} initialError={error} role={role} />
     </div>
   );
 }

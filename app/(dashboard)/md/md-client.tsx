@@ -46,10 +46,14 @@ import MdTaskSection from '@/components/md/command-center/md-task-section';
 import MdHoatDong from '@/components/md/command-center/md-hoat-dong';
 import MdOrderCenter from './md-order-center';
 import MdDialogs from './md-dialogs';
+import MdTabBar from './md-tab-bar';
 import KhoiGap from '@/components/ui/khoi-gap';
 import { nhoTab, tabDaNho } from './md-tab-memory';
 import { O_LAUNCHER_MD } from './md-launcher-items';
 import { sinhLichTaChoDonCu } from './_actions/po.actions';
+// 🔴 BUG-5 · Board 07/08/2026 — Lưu trữ. Nhập ở ĐÂY rồi truyền xuống bảng;
+// xem chú thích tại chỗ dùng, và ở `customer-list.tsx`.
+import { archiveCustomer, restoreCustomer, archiveStyle } from './_actions/revisions.actions';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
 import type { CommandCenterData } from './_services/command-center.service';
@@ -157,6 +161,13 @@ export default function MdClient({
   // người dùng bấm More, chọn một tab, rồi thấy chính tab đó biến mất.
   const [moTabPhu, setMoTabPhu] = useState(false);
   const [dialog, setDialog] = useState<TabKey | null>(null);
+  // 🔴 BUG-5 — chế độ **Sửa**. MỘT ô nhớ cho cả năm chứng từ, ⛔ không năm ô;
+  // lý lẽ và phép so `tab` ở `md-dialogs.tsx`.
+  const [suaId, setSuaId] = useState<{ tab: TabKey; id: string } | null>(null);
+  const moSua = useCallback((tab: TabKey, id: string) => {
+    setSuaId({ tab, id });
+    setDialog(tab);
+  }, []);
   const [autoDialog, setAutoDialog] = useState<'material' | 'production' | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -518,13 +529,20 @@ export default function MdClient({
           onMoTab={(t) => goTab(t as TabKey)}
           // ⚠️ Sáu hành động ĐÚNG thứ tự Board §2. Mỗi cái mở **đúng chỗ làm
           // việc đó**, ⛔ không chỉ chuyển tab rồi để người dùng tự tìm nút.
+          // ⚠️ Ba hành động MỚI (`BUG-1`) mở **đúng chỗ làm việc đó**, ⛔ không
+          // chỉ đổi tab. `yeuCauThayDoi` CỐ Ý ⛔ không mở `dialog`: nút tạo nằm
+          // bên trong màn hình đó (`CREATE_LABEL.changes === null`), và mở một
+          // hộp thoại ⛔ không tồn tại là *"lời nói dối của giao diện"*.
           hanhDong={{
             taoPo: () => setDialog('po'),
             khachHang: () => { goTab('customers'); setDialog('customers'); },
+            baoGia: () => { goTab('rfq'); setDialog('rfq'); },
             chietTinh: () => goTab('costing'),
             dinhMuc: () => goTab('styles'),
             techPack: () => goTab('documents'),
             yeuCauNpl: () => { goTab('materials'); setAutoDialog('material'); },
+            sanXuat: () => { goTab('production'); setAutoDialog('production'); },
+            yeuCauThayDoi: () => goTab('changes'),
           }}
           orderCenter={
             <MdOrderCenter
@@ -570,79 +588,21 @@ export default function MdClient({
           lần mỗi ngày thì đó là hàng chục cú bấm thừa.
           Ba khu điều hành ở trên vẫn giữ đúng thứ tự ưu tiên nhờ vị trí, không
           cần phải giấu phần còn lại đi mới nổi bật được. */}
-      {/* ⚠️ Thanh tab Ở LẠI đây: nó mang nợ màu/chữ `TD-07`·`TD-10` đã có, dời
-          sang tệp mới thì bánh cóc đọc ra là nợ MỚI — xem đầu `md-tabs.ts`. */}
-      <div ref={tabBarRef} className="-mx-1 mb-5 space-y-2 px-1 pt-1">
-        {GROUPS.map((g) => {
-          // Mỗi nhóm một sắc màu riêng — xem bảng GROUP_TONE và số đo tương phản
-          // ở components/md/semantic-tone.ts
-          const tone = GROUP_TONE[g];
-          return (
-          <div key={g} className="flex items-center gap-2">
-            <span
-              className={`hidden w-24 shrink-0 text-right text-[10px] font-bold uppercase tracking-wider lg:block ${tone.label}`}
-            >
-              {g}
-            </span>
-            <div
-              role="tablist"
-              aria-label={`Nhóm ${g}`}
-              className="flex flex-1 gap-1.5 overflow-x-auto pb-1"
-            >
-              {TABS.filter((t) => t.group === g && (moTabPhu || TAB_HANG_NGAY.includes(t.key) || t.key === tab)).map((t) => {
-                const on = t.key === tab;
-                const Icon = t.icon;
-                const n = counts[t.key];
-                return (
-                  <button
-                    key={t.key}
-                    role="tab"
-                    aria-selected={on}
-                    // Qua `goTab` chứ ⛔ không `setTab` thẳng — `goTab` mới là
-                    // chỗ ghi nhớ tab. Hai đường đổi tab mà chỉ một đường ghi
-                    // nhớ là đúng cách để `BUG-2` quay lại ở nửa số nút.
-                    onClick={() => goTab(t.key)}
-                    // ring-inset thay cho border: viền vẽ vào PHÍA TRONG nên nút
-                    // không đổi kích thước giữa hai trạng thái, hàng tab không
-                    // nhích qua lại mỗi lần bấm.
-                    className={`flex shrink-0 touch-manipulation select-none items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition active:scale-95 ${
-                      on ? tone.active : tone.idle
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    <span className="hidden sm:inline">{t.label}</span>
-                    <span className="sm:hidden">{t.short}</span>
-                    {n !== null && n > 0 && (
-                      <span
-                        className={`rounded-full px-1.5 text-[11px] font-bold tabular-nums ${
-                          on ? tone.countActive : tone.countIdle
-                        }`}
-                      >
-                        {n}
-                      </span>
-                    )}
-                    {errorOf[t.key] && (
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden="true" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          );
-        })}
-
-        {/* More ▼ — 8 tab theo chu kỳ. Board: *"⛔ Không xoá tab."* */}
-        <button
-          type="button"
-          onClick={() => setMoTabPhu((v) => !v)}
-          aria-expanded={moTabPhu}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition hover:bg-slate-100"
-        >
-          {moTabPhu ? 'Thu gọn' : `More (${TABS.length - TAB_HANG_NGAY.length})`}
-          <ChevronDown className={`h-4 w-4 transition ${moTabPhu ? 'rotate-180' : ''}`} aria-hidden="true" />
-        </button>
-      </div>
+      {/* 🔑 Thanh tab dời sang `md-tab-bar.tsx` ngày 07/08/2026 — bài kiểm ⑤
+          chặn cứng 900 dòng và tệp này chạm 933 sau `BUG-1`/`BUG-5`. Sửa bằng
+          CẤU TRÚC, ⛔ không bằng cách nới trần.
+          ⚠️ Chú thích cũ ở đây nói tab phải Ở LẠI vì nợ màu/chữ sẽ thành nợ MỚI
+          khi dời — điều đó đúng NẾU dời nguyên văn. Bản dời này thay mọi literal
+          bằng thẻ `TYPE`/`FONT_WEIGHT`, nên nợ GIẢM THẬT. Xem đầu tệp đó. */}
+      <MdTabBar
+        ref={tabBarRef}
+        tab={tab}
+        onDi={goTab}
+        counts={counts}
+        errorOf={errorOf}
+        moTabPhu={moTabPhu}
+        onMoTabPhu={setMoTabPhu}
+      />
 
       {/* ═══ LỐI VÀO MÀN HÌNH PHẦN VIỆC ═════════════════════════════════════
           ⚠️ Route `/md/assignments` tồn tại và có tiêu đề riêng trong
@@ -710,7 +670,16 @@ export default function MdClient({
         {tab === 'customers' && (
           <div className="p-4">
             {customers === null ? Waiting : (
-              <CustomerList rows={customers.rows} error={customers.error} onRefresh={reloaders.customers} />
+              <CustomerList
+                rows={customers.rows}
+                error={customers.error}
+                onRefresh={reloaders.customers}
+                onSua={(id) => moSua('customers', id)}
+                // 🔴 `BUG-5` — Server Action truyền XUỐNG, ⛔ không để bảng tự
+                // nhập từ `app/`: bài kiểm ③ chặn `components/ → app/` ở 39 tệp.
+                onDoiHieuLuc={(id, dangHieuLuc) =>
+                  (dangHieuLuc ? archiveCustomer(id) : restoreCustomer(id))}
+              />
             )}
           </div>
         )}
@@ -718,7 +687,12 @@ export default function MdClient({
         {tab === 'rfq' && (
           <div className="p-4">
             {inquiries === null ? Waiting : (
-              <InquiryList rows={inquiries.rows} error={inquiries.error} onRefresh={reloaders.rfq} />
+              <InquiryList
+                rows={inquiries.rows}
+                error={inquiries.error}
+                onRefresh={reloaders.rfq}
+                onSua={(id) => moSua('rfq', id)}
+              />
             )}
           </div>
         )}
@@ -733,7 +707,13 @@ export default function MdClient({
               Tính giá theo công đoạn
             </button>
             {costings === null ? Waiting : (
-              <CostingList role={role} rows={costings.rows} error={costings.error} onRefresh={reloaders.costing} />
+              <CostingList
+                role={role}
+                rows={costings.rows}
+                error={costings.error}
+                onRefresh={reloaders.costing}
+                onSua={(id) => moSua('costing', id)}
+              />
             )}
           </div>
         )}
@@ -741,7 +721,13 @@ export default function MdClient({
         {/* ── NHÓM TRIỂN KHAI ────────────────────────────────────────── */}
         {tab === 'styles' && (
           <div className="p-4">
-            <StyleList rows={styles} error={styleError} onRefresh={refresh} />
+            <StyleList
+              rows={styles}
+              error={styleError}
+              onRefresh={refresh}
+              onSua={(id) => moSua('styles', id)}
+              onLuuTru={archiveStyle}
+            />
           </div>
         )}
 
@@ -762,6 +748,7 @@ export default function MdClient({
             q={q}
             onQ={setQ}
             onDone={() => void refresh()}
+            onSua={(id) => moSua('materials', id)}
           />
         )}
 
@@ -859,6 +846,8 @@ export default function MdClient({
       <MdDialogs
         dialog={dialog}
         setDialog={setDialog}
+        suaId={suaId}
+        setSuaId={setSuaId}
         autoDialog={autoDialog}
         setAutoDialog={setAutoDialog}
         congDoanMo={congDoanMo}
