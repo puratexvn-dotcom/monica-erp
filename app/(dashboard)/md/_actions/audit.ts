@@ -1,23 +1,69 @@
-'use server';
+import 'server-only';
 
-import { guard, logDbError } from '../_services/guard';
+import { createClient } from '@/utils/supabase/server';
+import { isRole } from '@/lib/rbac';
+import { logDbError } from '../_services/guard';
 import { diffRecords } from '@/schemas/md';
-// ⚠️ Hằng nằm ở `lib/`, ⛔ không ở tệp này: Next.js chỉ cho export **hàm
-// async** từ một tệp `'use server'`. Xem khối chú thích đầu `version-log.ts`.
 import { KHOA_PHIEN_BAN, KHOA_ANH_CHUP, type HanhDongNhatKy } from '@/lib/mos/md/version-log';
 
 // ============================================================================
-// GHI NHẬT KÝ THAO TÁC
+// GHI NHẬT KÝ THAO TÁC — SỔ KIỂM TOÁN DÙNG CHUNG
 //
-// ─── VÌ SAO KHÔNG NÉM LỖI ───────────────────────────────────────────────────
-// Nhật ký hỏng KHÔNG được làm hỏng nghiệp vụ. Nếu bảng activity_log bị khoá
-// hay chưa tạo, việc tạo đơn hàng vẫn phải thành công — mất một dòng nhật ký
-// còn hơn mất một đơn hàng. Lỗi ghi ra log máy chủ để còn sửa được.
+// ─── 🔴 HAI LỖI NGHIÊM TRỌNG ĐÃ VÁ Ở ĐÂY · UAT 08/08/2026 ────────────────
 //
-// ─── VÌ SAO CHỈ GHI PHẦN THAY ĐỔI ───────────────────────────────────────────
-// Chép nguyên bản ghi mỗi lần sửa một ô sẽ khiến nhật ký của vài trăm đơn
-// phình rất nhanh, mà lúc tra lại vẫn phải tự so từng cột để tìm ra ô nào đổi.
+// ① **`'use server'` BIẾN SỔ KIỂM TOÁN THÀNH ENDPOINT CÔNG KHAI.**
+//    Tệp này từng mang `'use server'`, nên `writeAudit` và `writeVersion`
+//    được Next.js đăng ký thành **Server Action gọi thẳng được qua HTTP** —
+//    đo được: cả hai có mặt trong bảng 146 action của gói đã dựng.
+//
+//    🔴 Nghĩa là bất kỳ ai đăng nhập cũng **NGỤY TẠO được bản ghi kiểm toán**:
+//    dựng một dòng `APPROVE` trên chứng từ mình ⛔ không có quyền duyệt, hoặc
+//    một `__anh_chup` bịa cho một PO ⛔ chưa từng đổi. `041` đã làm sổ này
+//    **chỉ-ghi-thêm**, nhưng chỉ-ghi-thêm mà **ai cũng ghi thêm được nội dung
+//    tuỳ ý** thì nó ⛔ không còn là bằng chứng.
+//
+//    ⇒ `import 'server-only'`. Hàm vẫn gọi được từ mọi Server Action *(nhập
+//    module bình thường)*, nhưng **⛔ không còn cửa HTTP nào** trỏ tới nó.
+//
+// ② **GUARD CỦA PHÂN HỆ `/md` LÀM MẤT VẾT CỦA MỌI VAI KHÁC.**
+//    Hai hàm này từng gọi `guard()` của `md/_services` — hàm đó kiểm
+//    `canAccess(role, '/md')`. `MODULE_ACCESS.giamdoc` **⛔ không có `/md`**.
+//
+//    🔴 Hậu quả đo được trong UAT vòng đời: Giám đốc **mở lại thành công** một
+//    PO đã `COMPLETED` *(nghiệp vụ chạy đúng)*, nhưng `writeVersion` bên trong
+//    **im lặng trả về** ⇒ **⛔ KHÔNG một dòng nhật ký nào được ghi**. Thao tác
+//    thẩm quyền cao nhất của hệ thống là thao tác **duy nhất ⛔ không có vết**.
+//
+//    🔑 Sổ kiểm toán **⛔ không thuộc phân hệ nào**. Nó ghi vết cho *"ai đó đã
+//    làm gì"* — câu hỏi ⛔ không phụ thuộc người đó vào được màn hình nào.
+//    ⇒ Ở đây chỉ hỏi **"có đăng nhập ⛔ không"**, ⛔ không hỏi *"vào được `/md`
+//    ⛔ không"*. Quyền làm nghiệp vụ vẫn do chính Server Action gọi tới kiểm —
+//    đó là việc của nó, ⛔ không phải việc của sổ.
+//
+// ─── VÌ SAO ⛔ KHÔNG NÉM LỖI ─────────────────────────────────────────────
+// Nhật ký hỏng ⛔ KHÔNG được làm hỏng nghiệp vụ: mất một dòng nhật ký còn hơn
+// mất một đơn hàng. Lỗi ghi ra log máy chủ để còn sửa được.
+//
+// ⚠️ Đánh đổi đã biết: **hỏng im lặng**. Đúng cơ chế đã giấu lỗi ② suốt thời
+// gian dài. Nay bài kiểm vòng đời canh chuyện này bằng cách **đọc lại sổ** sau
+// mỗi thao tác thẩm quyền, ⛔ không tin vào việc hàm ⛔ không ném lỗi.
 // ============================================================================
+
+/** Người đang thao tác — CHỈ cần biết *ai*, ⛔ không cần biết họ vào được đâu. */
+async function nguoiThaoTac(): Promise<{
+  sb: Awaited<ReturnType<typeof createClient>>; userId: string; role: string | null;
+} | null> {
+  try {
+    const sb = await createClient();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return null;
+    const raw = user.app_metadata?.role;
+    return { sb, userId: user.id, role: isRole(raw) ? raw : null };
+  } catch (e) {
+    logDbError('nhatKy:auth', e);
+    return null;
+  }
+}
 
 export async function writeAudit(
   entityType: string,
@@ -26,10 +72,10 @@ export async function writeAudit(
   changes: Record<string, { from: unknown; to: unknown }> = {},
 ): Promise<void> {
   try {
-    const g = await guard();
-    if (!g.supabase) return;
+    const g = await nguoiThaoTac();
+    if (!g) return;
 
-    const { error } = await g.supabase.from('activity_log').insert({
+    const { error } = await g.sb.from('activity_log').insert({
       entity_type: entityType,
       entity_id: entityId,
       action,
@@ -49,45 +95,27 @@ export async function writeAudit(
 //   > *"Các chứng từ phải lưu Version. **⛔ Không overwrite dữ liệu.**"*
 //
 // ─── ⚠️ ĐIỀU KHOẢN NÀY LẬT NGƯỢC MỘT QUYẾT ĐỊNH THIẾT KẾ ĐANG CÓ ──────────
-// `015_md_order_lifecycle.sql` dòng 457 ghi thẳng vào lược đồ:
-//
-//   > *"Chỉ lưu phần THAY ĐỔI, ⛔ không lưu cả bản ghi: nhật ký của 500 chuyền
-//   > sẽ phình rất nhanh nếu chép nguyên dòng mỗi lần sửa một ô."*
-//
-// Board nay yêu cầu **ngược lại**. Tôi thi hành, và ghi rõ **cái giá** thay vì
-// im lặng: mỗi lượt sửa nay tốn thêm ~1–3 kB. Với ~50 lượt sửa/ngày là ~50 MB
-// sau bốn năm — chấp nhận được, nhưng nó **⛔ không miễn phí** và Board phải
-// biết mình đã mua gì.
+// `015_md_order_lifecycle.sql` dòng 457 ghi thẳng vào lược đồ: *"Chỉ lưu phần
+// THAY ĐỔI, ⛔ không lưu cả bản ghi."* Board nay yêu cầu **ngược lại**. Tôi thi
+// hành, và ghi rõ **cái giá**: mỗi lượt sửa tốn thêm ~1–3 kB.
 //
 // ─── 🔑 VÌ SAO ⛔ KHÔNG DỰNG BẢNG `*_versions` RIÊNG ─────────────────────
-// Bảng mới = **migration** = ADR + phê duyệt Board, và `SECURITY FREEZE`
-// *(`MOS §XI.1`)* đang chặn: *"⛔ Không migration mới nào được khởi tạo."*
+// Bảng mới = migration = ADR + phê duyệt Board, và `SECURITY FREEZE` đang
+// chặn. `activity_log` thì **đã có sẵn đúng ba thứ** một sổ phiên bản cần:
+// chỉ-ghi-thêm *(`041`)* · `changes JSONB` · ai/vai/lúc nào.
 //
-// `activity_log` thì **đã có sẵn đúng ba thứ** một sổ phiên bản cần:
-//   ① `041_activity_log_immutable.sql` — CHỈ-GHI-THÊM, ⛔ không `UPDATE`,
-//      ⛔ không `DELETE`, `TRUNCATE` đã thu hồi. Bản ghi phiên bản mà sửa được
-//      thì nó ⛔ không phải bằng chứng.
-//   ② `changes JSONB` — chứa được nguyên ảnh chụp, ⛔ không cần đổi lược đồ.
-//   ③ `actor_id` · `actor_role` · `created_at` — ai, vai gì, lúc nào.
-//
-// ⇒ Dùng nó là **⛔ không đụng lược đồ** mà vẫn có phiên bản **thật**, tra được
-// ngay hôm nay chứ ⛔ không chờ Board chạy SQL.
-//
-// ⚠️ **NÓI THẲNG GIỚI HẠN:** đây là **sổ phiên bản ở tầng ứng dụng**. Ai đó ghi
-// thẳng vào bảng qua SQL Editor hay `service_role` sẽ **⛔ không** để lại
-// phiên bản. Sổ phiên bản ⛔ **không thể** đầy đủ chừng nào nó ⛔ chưa nằm
-// trong trigger CSDL — đề xuất ở `ADR-027`, ⛔ CHƯA chạy.
+// ⚠️ **NÓI THẲNG GIỚI HẠN:** đây là sổ phiên bản ở **tầng ứng dụng**. Ai ghi
+// thẳng vào bảng bằng SQL Editor hay `service_role` sẽ **⛔ không** để lại
+// phiên bản. Đầy đủ chỉ có được khi nó nằm trong trigger CSDL — `ADR-027`.
 // ============================================================================
 
 /**
- * Ghi **một phiên bản** của chứng từ.
+ * Ghi **một phiên bản** của chứng từ: cả ảnh chụp TRƯỚC lẫn SAU.
  *
- * 🔑 Ghi **cả ảnh chụp TRƯỚC lẫn SAU**, ⛔ không chỉ phần khác nhau. Chỉ có ảnh
- * chụp mới trả lời được câu *"lúc 14:20 ngày 3 tháng 8, chứng từ này trông như
- * thế nào?"* — mà đó đúng là câu người ta hỏi khi có tranh chấp với khách.
- * Phần khác nhau vẫn được ghi song song vì nó là thứ đọc nhanh được.
+ * 🔑 Chỉ ảnh chụp mới trả lời được *"lúc 14:20 ngày 3/8, chứng từ này trông
+ * như thế nào?"* — câu người ta hỏi khi tranh chấp với khách.
  *
- * @param truoc `null` khi là bản ghi MỚI *(⛔ chưa từng có phiên bản nào)*.
+ * @param truoc `null` khi là bản ghi MỚI.
  * @param sau   `null` khi chứng từ bị LƯU TRỮ và ⛔ không còn bản mới.
  */
 export async function writeVersion(
@@ -98,19 +126,28 @@ export async function writeVersion(
   sau: Record<string, unknown> | null,
 ): Promise<void> {
   try {
-    const g = await guard();
-    if (!g.supabase) return;
+    const g = await nguoiThaoTac();
+    if (!g) return;
 
-    // ⚠️ ĐẾM ở đây thay vì nuôi một cột `version` trên bảng nghiệp vụ: cột ấy
-    // phải `UPDATE` mỗi lượt sửa, và hai người sửa cùng lúc sẽ nhận **cùng một
-    // số phiên bản**. Đếm trên sổ chỉ-ghi-thêm thì số ⛔ không bao giờ trùng
-    // theo cách làm mất bản ghi — cùng lắm là hai dòng cùng số, và cả hai vẫn
-    // còn nguyên ảnh chụp.
-    const { count } = await g.supabase
+    // 🔴 **CHỈ ĐẾM DÒNG CÓ MANG PHIÊN BẢN** — sửa 08/08/2026 sau UAT vòng đời.
+    //
+    // ⚠️ Bản trước đếm **MỌI** dòng `activity_log` của chứng từ. Nhưng sổ này
+    // dùng chung: `writeAudit` cũng ghi vào đây *(ví dụ `createChangeRequest`
+    // ghi một dòng trên chính `ORDER` đó)*. Hậu quả đo được: chuỗi phiên bản
+    // của một PO ra **1 → 2 → 4 → 5** — nhảy cóc.
+    //
+    // 🔑 Số phiên bản nhảy cóc ⛔ không mất dữ liệu, nhưng nó **phá niềm tin**:
+    // người mở sổ thấy thiếu *"phiên bản 3"* sẽ đi tìm thứ ⛔ chưa bao giờ tồn
+    // tại, rồi ngờ hệ thống giấu bớt lịch sử.
+    //
+    // ⚠️ `changes->__phien_ban` — lọc theo KHOÁ JSONB. Dòng kiểu cũ và dòng
+    // `writeAudit` đều ⛔ không có khoá này nên tự động nằm ngoài phép đếm.
+    const { count } = await g.sb
       .from('activity_log')
       .select('id', { count: 'exact', head: true })
       .eq('entity_type', entityType)
-      .eq('entity_id', entityId);
+      .eq('entity_id', entityId)
+      .not(`changes->${KHOA_PHIEN_BAN}`, 'is', null);
 
     const soCu = typeof count === 'number' ? count : 0;
 
@@ -120,7 +157,7 @@ export async function writeVersion(
       [KHOA_ANH_CHUP]: { from: truoc, to: sau },
     };
 
-    const { error } = await g.supabase.from('activity_log').insert({
+    const { error } = await g.sb.from('activity_log').insert({
       entity_type: entityType,
       entity_id: entityId,
       action,

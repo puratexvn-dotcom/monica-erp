@@ -22,6 +22,8 @@ import { tongHopNgay } from '@/lib/mos/md/daily-digest'
 import DailyDigestCard from '@/components/md/dashboard/daily-digest-card'
 import WorkspaceHomeGrid from '@/components/workspace/workspace-home-grid'
 import GiamDocRisk from '@/components/giam-doc/giam-doc-risk'
+import HopThuDuyetGia from './hop-thu-duyet-gia'
+import { listChoDuyet } from './_actions/costing-approval.actions'
 
 // 🔴 BIỂU ĐỒ TRƯỚC BẢNG — Board 06/08/2026. Nạp ĐỘNG: `recharts` ~100 kB, ⛔
 // không được nằm trong gói tải lần đầu của bàn giám đốc.
@@ -47,11 +49,17 @@ export default async function ExecutiveDashboardPage({
 }) {
   const currentRange = (searchParams.range as TimeRange) || 'month'
   const g = await guard()
-  const [metrics, nguon] = await Promise.all([
+  const [metrics, nguon, choDuyet] = await Promise.all([
     getExecutiveDashboardData(currentRange),
     g.supabase
       ? napNguonDigestVoi(g.supabase)
       : Promise.resolve({ ngay: ngayVN(), sanLuong: [], subcon: [], kiem: [], don: [], nplTre: [] }),
+    // 🔴 HỘP THƯ DUYỆT GIÁ — UAT vòng đời 08/08/2026 đo được: ⛔ KHÔNG bản
+    // chiết tính nào duyệt được, vì người DUY NHẤT có quyền duyệt là người
+    // DUY NHẤT ⛔ không vào được màn hình có nút. Xem
+    // `_actions/costing-approval.actions.ts`.
+    // ⚠️ Trong CÙNG `Promise.all` ⇒ chạy song song, ⛔ không cộng thời gian chờ.
+    listChoDuyet(),
   ])
   const baoCaoNgay = tongHopNgay(nguon)
 
@@ -103,6 +111,13 @@ export default async function ExecutiveDashboardPage({
           ⚠️ `gonGang` **⛔ KHÔNG** bật ở đây — bàn giám đốc ⛔ không có khu
           Risk/Focus riêng như `/md`, nên hai khối cảnh báo + nhắc việc của thẻ
           đó là **bản duy nhất**. Bật `gonGang` sẽ **xoá mất** chúng. */}
+      {/* 🔴 DUYỆT GIÁ đặt TRƯỚC lưới ba cột: đây là việc **chỉ Giám đốc làm
+          được**, và nó chặn cả chuỗi báo giá → đơn hàng. Mọi thứ dưới đây là
+          thông tin để ĐỌC; khối này là thứ để LÀM. */}
+      <div className="mb-4">
+        <HopThuDuyetGia rows={choDuyet.rows} loi={choDuyet.error} />
+      </div>
+
       <WorkspaceHomeGrid
         myWork={
           <>

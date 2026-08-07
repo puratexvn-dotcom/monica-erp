@@ -139,3 +139,86 @@ ALTER TABLE public.material_requests
 --           *"mỗi kịch bản phải có ít nhất MỘT vai CHỜ THẤY > 0"*. Bài kiểm
 --           toàn vai chờ-0 ⛔ không phân biệt được "khoá đúng" với "chặn hết".
 --   ⭐ 🔴 vai `giamdoc` đổi được `status` của PO COMPLETED (đường Re-open còn mở)
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ⑥ 🔴 BỔ SUNG 08/08/2026 — GIÁM ĐỐC ⛔ KHÔNG DUYỆT ĐƯỢC GIÁ
+-- ════════════════════════════════════════════════════════════════════════════
+-- ĐO ĐƯỢC bằng phiên gd001 thật, ⛔ không suy đoán:
+--     giamdoc ĐỌC   costings → 1 dòng        ✅
+--     giamdoc UPDATE costings → **0 dòng**   ⛔  (RLS lọc, ⛔ KHÔNG ném lỗi)
+--
+-- 🔴 HỆ QUẢ: **⛔ KHÔNG BẢN CHIẾT TÍNH NÀO TRONG HỆ THỐNG DUYỆT ĐƯỢC** bởi
+--    đúng người mà luật chỉ định.
+--
+-- NGUYÊN NHÂN: `042` cấp quyền GHI `costings` cho `superadmin,md` (`t1_ghi`),
+-- trong khi `lib/mos/md/costing-approval.ts` nói **chỉ `giamdoc` và
+-- `superadmin`** được DUYỆT, và MD **⛔ không được tự duyệt** (SoD).
+-- Giao của hai tập = **chỉ `superadmin`** — tức chỉ tài khoản quản trị hệ
+-- thống mới duyệt được giá. Đó ⛔ không phải ý Board.
+--
+-- ⚠️ ĐÃ VÁ ĐƯỢC PHẦN TẦNG ỨNG DỤNG: hành động `duyetChietTinh` nay nằm ở
+--    `/giam-doc` — module mà `giamdoc` VÀO ĐƯỢC. Nhưng RLS vẫn chặn ở CSDL,
+--    nên nút bấm vào sẽ báo *"⛔ không có dòng nào được cập nhật"*.
+--
+-- ⇒ CẦN (⛔ CHƯA CHẠY — SECURITY FREEZE):
+--
+--   -- Cấp quyền GHI `costings` cho `giamdoc`, GIỮ NGUYÊN quyền đọc hiện có.
+--   -- ⚠️ ⛔ KHÔNG mở cho vai khác. ⛔ KHÔNG đụng `costing_items`: Giám đốc
+--   --    DUYỆT giá, ⛔ không SỬA khoản mục — sửa khoản mục là việc của MD và
+--   --    `046` đã khoá nó sau khi duyệt.
+--   DROP POLICY IF EXISTS "costings_update" ON public.costings;
+--   CREATE POLICY "costings_update" ON public.costings
+--     FOR UPDATE TO authenticated
+--     USING      (public.mos_current_role() = ANY (ARRAY['superadmin','md','giamdoc']))
+--     WITH CHECK (public.mos_current_role() = ANY (ARRAY['superadmin','md','giamdoc']));
+--
+-- ⚠️ Policy RESTRICTIVE `costings_no_edit_after_approve` (042 Mục 3) VẪN ĐỨNG:
+--    nó nhân VÀO điều kiện trên, nên Giám đốc duyệt được bản `SUBMITTED`
+--    nhưng vẫn ⛔ KHÔNG sửa được bản đã `APPROVED`. Đó là hành vi ĐÚNG.
+--
+-- TÍNH ĐẢO NGƯỢC: **ĐẢO ĐƯỢC** — khôi phục policy cũ với hai vai.
+-- KHỐI TỰ KIỂM tối thiểu (K-3: mỗi kịch bản phải có ít nhất MỘT vai CHỜ > 0):
+--   ⭐ giamdoc UPDATE costings SUBMITTED  → CHỜ THẤY 1 dòng
+--   ⭐ giamdoc UPDATE costings APPROVED   → CHỜ THẤY 0 dòng (RESTRICTIVE chặn)
+--   ⭐ md      UPDATE costings SUBMITTED  → CHỜ THẤY 1 dòng (⛔ không mất quyền cũ)
+--   ⭐ qa      UPDATE costings            → CHỜ THẤY 0 dòng
+
+-- ─── ⑥b 🔴 LỖ HỔNG NGƯỢC LẠI, CÙNG MỘT DÒNG POLICY ────────────────────────
+-- ĐO ĐƯỢC bằng ba phiên thật, cùng một bản chiết tính `SUBMITTED`:
+--
+--     superadmin  UPDATE → APPROVED   1 dòng   ✅ duyệt được
+--     giamdoc     UPDATE → APPROVED   0 dòng   ⛔ BỊ CHẶN   (lẽ ra ĐƯỢC)
+--     md          UPDATE → APPROVED   1 dòng   ⛔ DUYỆT ĐƯỢC (lẽ ra KHÔNG)
+--
+-- 🔴 Vế thứ ba nặng hơn vế thứ nhất: **MD TỰ DUYỆT ĐƯỢC GIÁ CỦA CHÍNH MÌNH**
+--    ở tầng CSDL. Phân tách trách nhiệm (SoD) mà Board dựng 06/08/2026 hiện
+--    **CHỈ SỐNG TRONG MÃ ỨNG DỤNG** (`kiemQuyen()`), ⛔ KHÔNG có ở hàng rào
+--    thật. Ai gọi thẳng PostgREST bằng phiên `md` là đi vòng qua nó.
+--
+-- ⚠️ CLAUDE.md §2.1: *"Hai tầng đầu chỉ để giao diện ⛔ không mời người dùng
+--    bấm vào thứ chắc chắn bị từ chối. **Hàng rào thật luôn nằm ở CSDL.**"*
+--    Ở đây hàng rào thật **⛔ KHÔNG TỒN TẠI** cho điều khoản SoD.
+--
+-- ⚠️ VÌ SAO `042` Mục 3 ⛔ KHÔNG chặn: `costings_no_edit_after_approve` dùng
+--    `USING (status NOT IN ('APPROVED','SUPERSEDED'))` và **CỐ Ý ⛔ không có
+--    `WITH CHECK`** — để phép chuyển `SUBMITTED → APPROVED` chạy được. Đúng
+--    với ý đồ lúc đó, nhưng nó cũng để ngỏ *"AI được thực hiện phép chuyển ấy"*.
+--
+-- ⇒ CẦN THÊM (⛔ CHƯA CHẠY): policy RESTRICTIVE chỉ cho vai DUYỆT đặt APPROVED.
+--
+--   CREATE POLICY "costings_only_director_approves" ON public.costings
+--     AS RESTRICTIVE FOR UPDATE TO authenticated
+--     WITH CHECK (
+--       status <> 'APPROVED'
+--       OR public.mos_current_role() = ANY (ARRAY['superadmin','giamdoc'])
+--     );
+--
+--   🔑 `WITH CHECK` (⛔ không phải `USING`): điều kiện áp lên **DÒNG MỚI**, tức
+--      lên *kết quả* của phép chuyển. `USING` sẽ chặn cả việc ĐỌC-để-sửa dòng
+--      chưa duyệt và làm hỏng đường trình duyệt bình thường của MD.
+--
+--   KHỐI TỰ KIỂM (K-3 — phải có vai CHỜ THẤY > 0):
+--     ⭐ md      SUBMITTED → APPROVED   → CHỜ THẤY 0 dòng   (SoD)
+--     ⭐ md      DRAFT     → SUBMITTED  → CHỜ THẤY 1 dòng   (⛔ không mất quyền trình)
+--     ⭐ giamdoc SUBMITTED → APPROVED   → CHỜ THẤY 1 dòng
+--     ⭐ giamdoc SUBMITTED → REJECTED   → CHỜ THẤY 1 dòng
