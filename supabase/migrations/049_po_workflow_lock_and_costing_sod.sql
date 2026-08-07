@@ -388,8 +388,9 @@ END $$;
 --    First) mà Board **phải biết**, ⛔ không được để nó chìm đi.
 DO $$
 DECLARE
-  v_khac INT;
-  v_ten  TEXT;
+  v_khac    INT;
+  v_ten     TEXT;
+  v_trigger INT;
 BEGIN
   SELECT count(*), string_agg(policyname, ', ')
     INTO v_khac, v_ten
@@ -399,14 +400,41 @@ BEGIN
      AND cmd IN ('UPDATE', 'ALL')
      AND policyname <> 'costings_only_director_approves';
 
-  IF v_khac = 0 THEN
-    RAISE WARNING '🔴 CẢNH BÁO 6.5 — LỖ HỔNG CÒN MỞ, ⛔ KHÔNG PHẢI DO 049: '
-      'costings ⛔ KHÔNG có policy RESTRICTIVE nào chặn sửa bản ĐÃ DUYỆT. '
-      'Nghĩa là chiết tính APPROVED hiện SỬA GIÁ ĐƯỢC (Hiến pháp Điều 8). '
-      'Nguyên nhân: 043 đã chạy rồi bị xoá khỏi kho; 044 (bản khôi phục) ghi '
-      'rõ "CHƯA CHẠY". ⇒ PHẢI chạy 044 sau migration này.';
+  -- 🔴 SỬA 08/08/2026 — BẢN ĐẦU CHỈ NHÌN **POLICY** VÀ SUÝT GỬI BOARD ĐI CHẠY
+  --    MỘT MIGRATION ⛔ KHÔNG CẦN THIẾT.
+  --
+  -- Đo trên CSDL thật sau khi `049` chạy: `costings` thật sự ⛔ KHÔNG có policy
+  -- RESTRICTIVE nào ngoài policy của `049` (`043` đã chạy rồi bị xoá khỏi kho;
+  -- `044` ⛔ chưa chạy).
+  --
+  -- 🔑 NHƯNG ĐIỀU 8 **VẪN ĐƯỢC BẢO VỆ** — bởi **TRIGGER**, ⛔ không phải policy.
+  --    `045` khai `costings` với `final_states={APPROVED}` và
+  --    `mutable_after_final={status,approved_by,approved_at}`.
+  --    Đo bằng ba phiên thật, sửa `quoted_price` của bản APPROVED:
+  --        md · giamdoc · superadmin  →  **LỖI 23514**, giá giữ nguyên 10  ✅
+  --    Kể cả `superadmin` cũng bị chặn — trigger ⛔ không nể vai nào.
+  --
+  -- ⇒ Phép đo phải nhìn **CẢ HAI** hàng rào. Nhìn một nửa rồi hô "lỗ hổng" là
+  --    **báo động giả**, và báo động giả làm người ta thôi tin cảnh báo thật.
+  SELECT count(*) INTO v_trigger
+    FROM public.mos_aggregate_immutability
+   WHERE table_name = 'costings'
+     AND final_states @> ARRAY['APPROVED']
+     -- Nội dung PHẢI khoá ⇒ `quoted_price` ⛔ không được nằm trong danh sách
+     -- cho-đổi. Ai thêm nó vào là Điều 8 thủng mà ⛔ không ai biết.
+     AND NOT (mutable_after_final @> ARRAY['quoted_price']);
+
+  IF v_khac = 0 AND v_trigger = 0 THEN
+    RAISE WARNING '🔴 CẢNH BÁO 6.5 — LỖ HỔNG THẬT, ⛔ KHÔNG PHẢI DO 049: '
+      'chiết tính ĐÃ DUYỆT hiện SỬA GIÁ ĐƯỢC (Hiến pháp Điều 8). '
+      '⛔ Không policy RESTRICTIVE nào, VÀ ⛔ không khai báo bất biến nào. '
+      '⇒ PHẢI chạy 044, hoặc đăng ký costings vào engine 045.';
+  ELSIF v_trigger > 0 THEN
+    RAISE NOTICE '✅ 6.5: Điều 8 giữ bởi TRIGGER bất biến (045) — nội dung bản '
+      'APPROVED khoá, `status` vẫn chuyển được cho reviseCosting. '
+      'Policy RESTRICTIVE khác: %.', COALESCE(v_ten, '(⛔ không có — và ⛔ KHÔNG cần)');
   ELSE
-    RAISE NOTICE '✅ TỰ KIỂM 049 — 6.5: hàng rào "đã duyệt ⛔ không sửa" CÓ (%). ', v_ten;
+    RAISE NOTICE '✅ 6.5: Điều 8 giữ bởi POLICY: %.', v_ten;
   END IF;
 END $$;
 

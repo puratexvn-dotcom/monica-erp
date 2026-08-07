@@ -37,6 +37,19 @@ const VAI = [
   'subcon', 'buyer',
 ];
 const MD_GHI = ['superadmin', 'md'];
+
+// 🔴 THÊM 08/08/2026 · migration `049`. `costings` KHÁC các bảng T1 còn lại:
+// Giám đốc phải GHI được thì mới DUYỆT được giá.
+//
+// ⚠️ Trước `049`, `costings_update` chỉ cho `superadmin,md` ⇒ người DUY NHẤT
+// có quyền duyệt (`giamdoc`, theo `kiemQuyen`) là người DUY NHẤT ⛔ không ghi
+// được ⇒ **⛔ KHÔNG bản chiết tính nào trong hệ thống duyệt được**.
+//
+// 🔑 Mở quyền GHI ⛔ KHÔNG có nghĩa mở quyền DUYỆT: policy RESTRICTIVE
+// `costings_only_director_approves` chặn `md` đặt `APPROVED`, và trigger `045`
+// vẫn khoá NỘI DUNG bản đã duyệt với MỌI vai. Vế SoD đo ở
+// `costing-lifecycle.test.mjs`, ⛔ không đo ở ma trận này.
+const COSTING_GHI = ['superadmin', 'md', 'giamdoc'];
 const KHO_GHI = ['superadmin', 'md', 'kho', 'khotruong', 'ketoanvattu'];
 
 const rac = [];
@@ -72,7 +85,7 @@ try {
 
   const BANG = [
     { ten: 'costings', id: costingId, cot: 'quoted_price', cu: 10, moi: 11,
-      duoc: MD_GHI, nguon: 'T1 · ADR-018 §5.1' },
+      duoc: COSTING_GHI, nguon: 'T1 · ADR-018 §5.1 + migration 049 (duyệt giá)' },
     { ten: 'costing_items', cot: 'unit_price', cu: 2, moi: 5,
       id: await gieo('costing_items', { costing_id: costingId, category: 'FABRIC',
         item_name: 'ZZ', unit: 'M', consumption: 1, unit_price: 2 }),

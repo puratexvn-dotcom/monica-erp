@@ -85,9 +85,34 @@ try {
     (await thu(md, 'SUBMITTED', 'DRAFT')) === 1);
   ok('giamdoc TỪ CHỐI được (SUBMITTED → REJECTED)',
     (await thu(gd, 'REJECTED')) === 1);
-  // `042` Mục 3: chứng từ ĐÃ DUYỆT ⛔ không sửa được nữa — kể cả bởi Giám đốc.
-  ok('Bản ĐÃ DUYỆT ⛔ không sửa được nữa (policy 042 vẫn đứng)',
-    (await thu(gd, 'REJECTED', 'APPROVED')) === 0);
+
+  // ─── ĐIỀU 8 · EVIDENCE FIRST ────────────────────────────────────────────
+  //
+  // 🔴 SỬA 08/08/2026 — PHÉP KIỂM CŨ Ở ĐÂY ĐO SAI THỨ, VÀ NÓ TỪNG "ĐẠT" VÌ
+  //    LÝ DO SAI. Nó thử `giamdoc` đổi `status` của bản `APPROVED` và chờ **0
+  //    dòng**. Trước `049`, kết quả đúng là 0 — nhưng **⛔ không phải vì Điều 8
+  //    được bảo vệ**, mà vì `giamdoc` ⛔ KHÔNG có quyền ghi `costings` chút nào
+  //    (chính là ngõ cụt `049` vừa gỡ). Một phép kiểm xanh nhờ một lỗi khác.
+  //
+  // 🔑 Điều 8 nói *"bằng chứng phê duyệt phải giữ được"* — tức **NỘI DUNG**
+  //    (giá chào) ⛔ không đổi. Nó ⛔ KHÔNG nói *"status ⛔ không đổi"*: phép
+  //    chuyển `APPROVED → SUPERSEDED` là đường sống của `reviseCosting`, và
+  //    ranh giới `W.1` giao phép chuyển cho Workflow Engine.
+  //
+  // ⇒ Đo ĐÚNG hai vế: giá KHOÁ, phép chuyển CÒN SỐNG.
+  const doiGia = async (sb) => {
+    await admin.from('costings').update({ status: 'APPROVED', quoted_price: 10 }).eq('id', id);
+    await sb.from('costings').update({ quoted_price: 777 }).eq('id', id).select('id');
+    const { data } = await admin.from('costings').select('quoted_price').eq('id', id).maybeSingle();
+    return Number(data?.quoted_price);
+  };
+  ok('🔴 Điều 8 · md ⛔ KHÔNG sửa được GIÁ bản đã duyệt', (await doiGia(md)) === 10);
+  ok('🔴 Điều 8 · giamdoc ⛔ KHÔNG sửa được GIÁ bản đã duyệt', (await doiGia(gd)) === 10);
+  ok('🔴 Điều 8 · superadmin cũng ⛔ KHÔNG sửa được — trigger 045 ⛔ không nể vai nào',
+    (await doiGia(sa)) === 10);
+  ok('reviseCosting còn sống (APPROVED → SUPERSEDED)',
+    (await thu(md, 'SUPERSEDED', 'APPROVED')) === 1,
+    'chết ⇒ ⛔ không lập được phiên bản chiết tính mới');
 } finally {
   if (id) await admin.from('costings').delete().eq('id', id);
 }

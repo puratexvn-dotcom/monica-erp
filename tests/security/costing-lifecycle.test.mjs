@@ -61,6 +61,11 @@ try {
 
   const ma = randomUUID().slice(0, 8);
   const md = (await phien.tao('md', 'md')).client;
+  // 🔴 THÊM 08/08/2026 — migration `049` trả điều khoản SoD về đúng chỗ:
+  // **chỉ `giamdoc`/`superadmin` mới đặt được `APPROVED`**. Trước đó `md` tự
+  // duyệt được ở tầng CSDL, và chính bài kiểm này **mã hoá lỗ hổng ấy như thể
+  // nó đúng** — xem mục A.
+  const gd = (await phien.tao('giamdoc', 'gd')).client;
   // ⚠️ `costings_no_version_unique UNIQUE (costing_no, version)` — hai lời gọi
   // cùng trạng thái sẽ trùng khoá nếu chỉ lấy tên theo trạng thái. Đếm tăng dần.
   let dem = 0;
@@ -112,9 +117,27 @@ try {
   await md.from('costings').update({ status: 'SUBMITTED' }).eq('id', cDraft);
   s.ok('⭐ DRAFT → SUBMITTED', (await trangThai(cDraft)) === 'SUBMITTED');
 
-  await md.from('costings')
+  // 🔴 SỬA 08/08/2026 — DÒNG NÀY TỪNG DÙNG `md`, VÀ ĐÓ LÀ LỖ HỔNG SoD.
+  //
+  // Board 06/08/2026: *"MD **trình**, MD ⛔ **không duyệt**."* Bài kiểm cũ cho
+  // `md` tự đặt `APPROVED` rồi khẳng định "⭐ ĐẠT" — tức nó **ghi nhận lỗ hổng
+  // như một hành vi đúng**, và sẽ ĐỎ đúng vào ngày ai đó vá lỗ hổng.
+  // Đo được trước `049`: md → APPROVED = 1 dòng 🔴.
+  //
+  // 🔑 Một bài kiểm mô tả sai trạng thái ĐÍCH thì nó **bảo vệ khuyết tật**.
+  await gd.from('costings')
     .update({ status: 'APPROVED', approved_at: new Date().toISOString() }).eq('id', cDraft);
-  s.ok('⭐ SUBMITTED → APPROVED', (await trangThai(cDraft)) === 'APPROVED');
+  s.ok('⭐ SUBMITTED → APPROVED — bởi GIÁM ĐỐC (049)',
+    (await trangThai(cDraft)) === 'APPROVED',
+    'BỊ CHẶN — `giamdoc` chưa có quyền ghi `costings`, chạy migration 049');
+
+  // 🔴 VẾ CẤM ĐI KÈM — `K-3`: chỉ đo vế "cho phép" thì một policy mở toang
+  // cũng xanh. Đây đúng là phép đo bắt được lỗ hổng SoD.
+  const cSod = await moi('SUBMITTED');
+  await md.from('costings').update({ status: 'APPROVED' }).eq('id', cSod);
+  s.ok('⭐ md ⛔ KHÔNG tự duyệt được (SoD — Board 06/08)',
+    (await trangThai(cSod)) === 'SUBMITTED',
+    `MD TỰ DUYỆT ĐƯỢC — lỗ hổng SoD, chạy migration 049`);
 
   // 🔴 ĐÂY LÀ PHÉP ĐO BẮT ĐƯỢC `B-1`. `reviseCosting` cần đúng phép chuyển này.
   const cApp = await moi('APPROVED');

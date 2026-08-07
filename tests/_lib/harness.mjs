@@ -179,10 +179,44 @@ export function sessionFactory(admin, createClient, env, tienTo) {
     async tao(vaiTro, the) {
       const email = `zz-${tienTo}-${the}@monica.vn`;
       const password = `Zz-${tienTo}-${the}-tmp!`;
-      const { data, error } = await admin.auth.admin.createUser({
+      let { data, error } = await admin.auth.admin.createUser({
         email, password, email_confirm: true,
         app_metadata: { role: vaiTro }, user_metadata: { full_name: `ZZ ${tienTo} ${the}` },
       });
+
+      // ══ 🔴 DỌN TÀI KHOẢN MỒ CÔI RỒI THỬ LẠI — vá 08/08/2026 ═══════════
+      //
+      // ⚠️ LỖI KIẾN TRÚC CỦA CHÍNH HARNESS NÀY, ⛔ KHÔNG PHẢI CỦA CSDL.
+      //
+      // `don()` chỉ xoá tài khoản do **lượt chạy hiện tại** tạo ra. Một lượt
+      // chạy hỏng giữa chừng *(mạng đứt, `Ctrl+C`, một phép thử ném lỗi)* để
+      // lại tài khoản `zz-*`, và từ đó **MỌI lượt chạy sau đều hỏng vĩnh
+      // viễn** với *"email address has already been registered"*.
+      //
+      // 🔴 Đo được: `zz-rlsext-in@monica.vn` còn sót đúng **một** tài khoản,
+      // và nó làm hai bài kiểm phân quyền đỏ liên tục nhiều phiên làm việc —
+      // đủ lâu để mọi người quen mắt và coi đó là *"hai bài hỏng sẵn"*.
+      //
+      // 🔑 Đó là điều nguy hiểm nhất: một bài kiểm hỏng thường trực **thôi
+      // được đọc**. Nó ⛔ không còn bảo vệ gì, mà vẫn chiếm chỗ như thể có.
+      //
+      // ⚠️ Xoá rồi tạo lại, ⛔ KHÔNG dùng lại tài khoản cũ: vai của nó có thể
+      // khác lượt này, và một tài khoản mang vai sai sẽ làm bài kiểm phân
+      // quyền **xanh nhầm** — tệ hơn hẳn đỏ.
+      if (error && /already/i.test(error.message)) {
+        const { data: ds } = await admin.auth.admin.listUsers({ perPage: 1000 });
+        const cu = (ds?.users ?? []).find((u) => (u.email ?? '').toLowerCase() === email);
+        if (cu) {
+          await admin.from('profiles').delete().eq('id', cu.id);
+          await admin.auth.admin.deleteUser(cu.id);
+          console.log(`   ↻ dọn tài khoản mồ côi từ lượt chạy trước: ${email}`);
+        }
+        ({ data, error } = await admin.auth.admin.createUser({
+          email, password, email_confirm: true,
+          app_metadata: { role: vaiTro }, user_metadata: { full_name: `ZZ ${tienTo} ${the}` },
+        }));
+      }
+
       if (error) throw new Error(`${the}: ${error.message}`);
       users.push(data.user.id);
       await admin.from('profiles').upsert({ id: data.user.id, full_name: `ZZ ${tienTo} ${the}` });
