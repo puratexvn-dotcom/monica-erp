@@ -253,60 +253,35 @@ export async function saveSizeBreakdown(input: unknown): Promise<ActionResult> {
   }
   const v = parsed.data;
 
-  // Xoá rồi ghi lại toàn bộ: bảng màu×size luôn được sửa cả cụm, so từng ô để
-  // biết thêm/sửa/xoá phức tạp hơn nhiều mà không được lợi gì.
+  // 🟢 08/08/2026 · migration `053` — MỘT LỆNH, MỘT GIAO DỊCH. ĐÓNG `TD-01`.
   //
-  // ⚠️ NHƯNG XOÁ VÀ GHI LÀ HAI CÂU LỆNH RIÊNG, KHÔNG CÙNG MỘT GIAO DỊCH.
-  // Bản trước xoá xong mới ghi. Câu ghi hỏng — mạng đứt, RLS chặn, ràng buộc
-  // đổ — là **MẤT SẠCH** bảng cỡ/màu của đơn đó, không đường khôi phục.
+  // ─── ĐIỀU BẢN TRƯỚC PHẢI LÀM, VÀ VÌ SAO NAY KHÔNG CẦN NỮA ─────────────
+  // Bảng màu×size luôn được sửa **cả cụm**, nên đường ghi là *xoá hết rồi chèn
+  // lại*. Nhưng `.delete()` và `.insert()` qua PostgREST là **HAI câu lệnh
+  // riêng, ⛔ không cùng một giao dịch** — câu thứ hai hỏng là **MẤT SẠCH**
+  // bảng cỡ/màu của đơn đó.
   //
-  // Ở đây CHỤP TRƯỚC, và nếu câu ghi hỏng thì GHI LẠI BẢN CHỤP. Cửa sổ mất
-  // dữ liệu thu từ "toàn phần, vĩnh viễn" xuống "chỉ khi cả câu ghi lẫn câu
-  // khôi phục cùng hỏng" — và trường hợp đó được báo bằng một thông điệp nói
-  // thẳng là dữ liệu đã mất, thay vì im lặng.
+  // Bản trước vá bằng cách **chụp trước, hỏng thì ghi lại bản chụp** — một
+  // phương án BÙ TRỪ, ⛔ không phải giao dịch thật. Chính chú thích cũ đã ghi:
+  // *"Cách đúng là một RPC làm cả hai trong MỘT câu lệnh. Đã ghi vào TD-01."*
   //
-  // ⚠️ Đây là phương án BÙ TRỪ, không phải giao dịch thật. Cách đúng là một
-  // RPC làm cả hai trong MỘT câu lệnh. Đã ghi vào Technical Debt (TD-01) —
-  // không làm ở đây vì nó cần migration, mà migration thì phải có người chạy;
-  // bản vá này phải có tác dụng NGAY, không chờ ai.
-  const { data: banChup, error: snapErr } = await g.supabase
-    .from('order_size_breakdown')
-    .select('color_code, size_code, quantity')
-    .eq('order_id', v.order_id);
-  if (snapErr) return { ok: false, message: friendlyDbError('snapshotBreakdown', snapErr) };
-
-  const { error: delErr } = await g.supabase
-    .from('order_size_breakdown')
-    .delete()
-    .eq('order_id', v.order_id);
-  if (delErr) return { ok: false, message: friendlyDbError('clearBreakdown', delErr) };
-
-  const { error } = await g.supabase.from('order_size_breakdown').insert(
-    v.rows.map((r) => ({
-      order_id: v.order_id,
-      color_code: r.color_code.toUpperCase(),
-      size_code: r.size_code.toUpperCase(),
+  // 🔑 `mos_md_thay_bang_size` LÀ cái RPC đó. Xoá và chèn nay nằm trong cùng
+  // một giao dịch của hàm ⇒ hỏng là quay lui SẠCH: ⛔ không còn cửa sổ mất dữ
+  // liệu, ⛔ không cần bản chụp, ⛔ không cần câu báo *"dữ liệu đã mất"*.
+  //
+  // ⚠️ RPC còn KHOÁ THEO WORKFLOW: đơn đã COMPLETED/SHIPPED/CANCELLED ⇒ 23514.
+  // Trigger của `049` nằm trên `orders` và ⛔ không chạm bảng này, nên thiếu
+  // phép thử trong RPC thì số lượng theo màu/size của một đơn ĐÃ ĐÓNG **vẫn
+  // ghi đè được** — đúng loại cửa sau mà `BUG-4` đi tìm.
+  const { error } = await g.supabase.rpc('mos_md_thay_bang_size', {
+    p_order_id: v.order_id,
+    p_rows: v.rows.map((r) => ({
+      color_code: r.color_code,
+      size_code: r.size_code,
       quantity: r.quantity,
     })),
-  );
-  if (error) {
-    // Khôi phục theo bản chụp. Không dùng chuỗi viết cứng — Điều XXXI mức ②.
-    if (banChup && banChup.length > 0) {
-      const { error: restoreErr } = await g.supabase.from('order_size_breakdown').insert(
-        banChup.map((r) => ({ ...r, order_id: v.order_id })),
-      );
-      if (restoreErr) {
-        return {
-          ok: false,
-          message:
-            'Lưu thất bại VÀ khôi phục cũng thất bại — bảng cỡ/màu của đơn này ' +
-            'hiện đang TRỐNG. Vui lòng nhập lại ngay và báo quản trị hệ thống. ' +
-            `(${friendlyDbError('restoreBreakdown', restoreErr)})`,
-        };
-      }
-    }
-    return { ok: false, message: friendlyDbError('saveBreakdown', error) };
-  }
+  });
+  if (error) return { ok: false, message: friendlyDbError('saveBreakdown', error) };
 
   revalidatePath(PATH);
   const total = v.rows.reduce((s, r) => s + r.quantity, 0);

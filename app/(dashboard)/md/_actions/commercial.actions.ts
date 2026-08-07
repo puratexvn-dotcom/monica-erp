@@ -271,7 +271,14 @@ export async function deleteCostingItem(itemId: string, costingId: string): Prom
   const g = await guard();
   if (!g.supabase) return { ok: false, message: g.error };
 
-  const { error } = await g.supabase.from('costing_items').delete().eq('id', itemId);
+  // 🟢 08/08/2026 · migration `053` — XOÁ MỀM QUA RPC, ⛔ không `.delete()`.
+  // `053` thu hồi quyền `DELETE` của `authenticated` (đóng `TD-25`).
+  //
+  // ⚠️ Trigger `046` vẫn đứng nguyên: khoản mục của chiết tính **ĐÃ DUYỆT**
+  // bất động hoàn toàn, nên lệnh này sẽ đổ `23514` ở đó — ĐÚNG, và người dùng
+  // nhận câu tiếng Việt qua `friendlyDbError`.
+  const { error } = await g.supabase.rpc('mos_md_luu_tru',
+    { p_bang: 'costing_items', p_id: itemId });
   if (error) return { ok: false, message: friendlyDbError('deleteCostingItem', error) };
 
   await syncCostingMargin(costingId);

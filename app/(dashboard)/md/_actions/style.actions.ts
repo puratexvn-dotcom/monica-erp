@@ -221,9 +221,17 @@ export async function deleteStyleChild(
   const g = await guard();
   if (!g.supabase) return { ok: false, message: g.error };
 
-  const { error } = await g.supabase.from(table).delete().eq('id', id);
-  if (error) return { ok: false, message: friendlyDbError(`delete:${table}`, error) };
+  // 🟢 08/08/2026 · migration `053` — XOÁ MỀM QUA RPC, ⛔ không `.delete()`.
+  //
+  // `053` đã THU HỒI quyền `DELETE` của `authenticated` trên ba bảng này
+  // (đóng `TD-25`), nên lời gọi cũ nay sẽ đổ `42501`.
+  //
+  // ⚠️ Đi qua RPC `SECURITY DEFINER` chứ ⛔ không `UPDATE` thẳng: policy
+  // `<bảng>_an_da_luu_tru` lọc `deleted_at IS NULL`, mà PostgREST luôn kèm
+  // `RETURNING` ⇒ dòng vừa gỡ ⛔ không tự trả về được (CLAUDE.md §7).
+  const { error } = await g.supabase.rpc('mos_md_luu_tru', { p_bang: table, p_id: id });
+  if (error) return { ok: false, message: friendlyDbError(`luuTru:${table}`, error) };
 
   revalidatePath(PATH);
-  return { ok: true, message: 'Đã xoá.' };
+  return { ok: true, message: 'Đã gỡ khỏi mã hàng. Dữ liệu GIỮ NGUYÊN — khôi phục được.' };
 }

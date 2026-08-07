@@ -20,44 +20,31 @@
     "⛔ KHÔNG thêm mục mới để cho bài kiểm xanh. Mỗi mục ở đây là một chỗ dữ liệu",
     "   nghiệp vụ bị xoá VĨNH VIỄN, và Hiến pháp III đòi xoá mềm.",
     "",
-    "Sổ này RỖNG là đích: khi mọi lời gọi chuyển sang xoá mềm/RPC, TC-1 đóng và",
-    "`md-internal-scope` vào được CI (Board Decision CI-1).",
+    "🟢 08/08/2026 — SỔ NÀY NAY **RỖNG**. `TD-25` ĐÓNG HOÀN TOÀN.",
     "",
-    "🟢 07/08/2026 — 4 ⇒ 3 mục. `deleteDocument` (md_documents) đã GỠ khỏi sổ:",
-    "   Board Decision BUG-5 cấm xoá vật lý, và hàm nay TỪ CHỐI thay vì gọi",
-    "   `.delete()`. ⚠️ Đây là nợ GIẢM THẬT, ⛔ không phải nới ngưỡng — arch test",
-    "   mục ② tự bắt 'mục chết' và chính nó buộc phải gỡ dòng này.",
-    "   ⚠️ Lưu trữ THẬT cho md_documents vẫn CHƯA có (bảng thiếu `deleted_at`)",
-    "   ⇒ ADR-027, đang bị SECURITY FREEZE chặn."
+    "   Đường đi, đúng thứ tự — và thứ tự LÀ điều kiện:",
+    "     051 · md_documents       — deleteDocument() đã TỪ CHỐI từ 07/08 (Board",
+    "                                cấm xoá vật lý) ⇒ quyền DELETE thành thừa",
+    "     052 · md_documents · style_bom · material_requests — thêm deleted_at,",
+    "                                policy ẩn dòng, RPC lưu trữ/khôi phục/liệt kê",
+    "     053 · costing_items · style_colorways · style_sizes · style_operations",
+    "                                — xoá mềm; và order_size_breakdown chuyển",
+    "                                sang RPC NGUYÊN TỬ (đóng luôn TD-01)",
+    "",
+    "   ⚠️ `042` Mục 1c đã nói đúng điều kiện: *\"Phải chuyển bốn lời gọi đó sang",
+    "   xoá mềm hoặc RPC TRƯỚC, rồi mới thu hồi.\"* Ba migration trên làm đúng",
+    "   trình tự ấy — chuyển đường TRƯỚC, thu hồi SAU. Thu hồi trước là làm gãy",
+    "   chức năng đang chạy với lỗi 42501 mà người dùng ⛔ không hiểu.",
+    "",
+    "   🔑 `order_size_breakdown` CỐ Ý ⛔ KHÔNG dùng xoá mềm. Nó được ghi lại",
+    "   **cả cụm** mỗi lần lưu, nên xoá mềm sinh một thế hệ dòng chết sau MỖI",
+    "   lần bấm — 10 màu × 8 size sửa 20 lần là 1.600 dòng rác. Ở đó mục tiêu",
+    "   *\"vai nội bộ ⛔ không xoá cứng được\"* đạt bằng cách đưa lệnh xoá vào",
+    "   TRONG một RPC nguyên tử. Cùng một điều khoản Hiến pháp, hai cách thi",
+    "   hành, vì bản chất dữ liệu khác nhau.",
+    "",
+    "⛔ SỔ NÀY PHẢI Ở LẠI RỖNG. Thêm một mục là quay lại nợ đã trả xong."
   ],
 
-  "mienTru": [
-    {
-      "tep": "app/(dashboard)/md/_actions/commercial.actions.ts",
-      "ham": "deleteCostingItem",
-      "bang": ["costing_items"],
-      "soLuong": 1,
-      "dong": 270,
-      "no": "TD-25",
-      "lyDo": "Khoản mục chiết tính. ⚠️ Bảng này nay chịu trigger bất biến của 046: khoản mục của chiết tính ĐÃ DUYỆT bị khoá, nên lời gọi chỉ còn tác dụng trên bản NHÁP. Cần `deleted_at` ⇒ ADR riêng."
-    },
-    {
-      "tep": "app/(dashboard)/md/_actions/po.actions.ts",
-      "ham": "saveSizeBreakdown",
-      "bang": ["order_size_breakdown"],
-      "soLuong": 1,
-      "dong": 161,
-      "no": "TD-25 · TD-01 · TC-3",
-      "lyDo": "Xoá-rồi-ghi-lại bảng cỡ/màu. Đây KHÔNG phải xoá chứng từ mà là bước 1 của một phép ghi đè — và chính nó là TD-01 (bù trừ thay cho giao dịch). Trả cùng lượt với TC-3 bằng một RPC SECURITY DEFINER làm cả xoá lẫn ghi trong MỘT giao dịch."
-    },
-    {
-      "tep": "app/(dashboard)/md/_actions/style.actions.ts",
-      "ham": "deleteStyleChild",
-      "bang": ["style_colorways", "style_sizes", "style_operations"],
-      "soLuong": 1,
-      "dong": 211,
-      "no": "TD-25",
-      "lyDo": "Bảng con của mã hàng. Hàm nhận TÊN BẢNG ĐỘNG `from(table)` nên MỘT lời gọi phủ BA bảng — cả ba đều nằm trong 6 ngoại lệ TD-25. ✅ TD-35 ĐÃ TRẢ 05/08/2026: `style_bom` gỡ khỏi kiểu union và khỏi TABLE_OF, vì 042 đã thu hồi quyền DELETE trên nó (ADR-018 §6.2). Nay trình biên dịch chặn lối gọi sai, không phải người dùng phát hiện lúc bấm nút."
-    }
-  ]
+  "mienTru": []
 }
