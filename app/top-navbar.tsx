@@ -37,6 +37,9 @@ export default function TopNavbar() {
               vực nội bộ. */}
           <Link
             href="/"
+            // Logo về trang chủ — ⛔ không nạp trước: trang chủ là nơi người
+            // dùng VỪA RỜI, nên nó đã nằm sẵn trong bộ nhớ điều hướng.
+            prefetch={false}
             aria-label={`Về trang chủ ${APP_NAME}`}
             className="relative h-8 w-24 shrink-0 rounded-lg transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:h-10 sm:w-36"
           >
@@ -85,6 +88,12 @@ export default function TopNavbar() {
                 chặn đúng như trước. */}
             <Link
               href="/admin"
+              // 🔴 TẮT PREFETCH — 07/08/2026. Nút này nằm ở thanh đầu **mọi
+              // trang**, nên Next.js nạp trước `/admin` ở khắp nơi. Đo trên
+              // trang chủ: `admin?_rsc=` mất **452 ms** và mỗi lần đó máy chủ
+              // dựng cả trang quản trị. Phần lớn người dùng ⛔ không bao giờ
+              // bấm nó — họ ⛔ không có quyền vào.
+              prefetch={false}
               aria-label="Platform Services — quản trị hệ thống"
               title="Platform Services"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 shadow-sm transition-all hover:border-violet-300 hover:text-violet-600 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"

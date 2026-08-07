@@ -556,6 +556,7 @@ export default function MdClient({
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <Link
           href="/md/assignments"
+          prefetch={false}
           className="flex touch-manipulation items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-800 transition hover:border-indigo-300 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 active:scale-95"
         >
           <Handshake className="h-4 w-4 shrink-0" aria-hidden="true" />

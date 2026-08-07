@@ -71,6 +71,60 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // ══ ĐƯỜNG TẮT: ⛔ KHÔNG CÓ COOKIE PHIÊN ⇒ ⛔ KHÔNG GỌI MẠNG ══════════════
+  //
+  // 🔴 Sửa 07/08/2026 sau khi ĐO. `supabase.auth.getUser()` là **một lượt
+  // đi–về mạng tới máy chủ Auth**, và middleware chạy cho **mọi** request khớp
+  // matcher — kể cả trang chủ công khai và mọi lần Next.js nạp trước
+  // (`?_rsc=`). Đo được: TTFB trang chủ **901 ms**, trong đó phần lớn là lượt
+  // gọi này.
+  //
+  // 🔑 **Phép suy luận, ⛔ không phải phỏng đoán:** Supabase giữ phiên trong
+  // cookie `sb-…-auth-token`. ⛔ **Không có cookie đó ⇒ ⛔ không thể có phiên**
+  // — `getUser()` chắc chắn trả `null`. Gọi mạng để nghe câu trả lời đã biết
+  // trước là trả tiền cho một thông tin ⛔ không có.
+  //
+  // ⚠️ ĐÂY ⛔ **KHÔNG** PHẢI NỚI LỎNG PHÂN QUYỀN. Nhánh này kết luận **CHƯA
+  // ĐĂNG NHẬP** — kết luận **NGHIÊM NHẤT** có thể. Nó ⛔ không cho ai vào đâu
+  // cả: đường bảo vệ *(chuyển hướng `/login` khi vào khu nội bộ)* giữ **y
+  // nguyên**. Thứ duy nhất bỏ đi là lượt gọi mạng thừa.
+  //
+  // ⚠️ Cookie **có** mà giả mạo thì vẫn đi tiếp xuống `getUser()` như cũ — ⛔
+  // không có đường tắt nào cho trường hợp đó, và ⛔ không được có.
+  const coCookiePhien = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'));
+
+  if (!coCookiePhien) {
+    if (!requiresAuth) return response;
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = '';
+    url.searchParams.set('next', path);
+    return NextResponse.redirect(url);
+  }
+
+  // ══ ĐƯỜNG TẮT ②: TRANG CÔNG KHAI ⇒ ⛔ KHÔNG GỌI AUTH ═══════════════════
+  //
+  // 🔴 Sửa 07/08/2026 sau khi ĐO. Với người **đã đăng nhập**, TTFB trang chủ là
+  // **857 ms** — gần như toàn bộ là lượt `getUser()` này. Tệ hơn: trang chủ gọi
+  // Auth **HAI LẦN** — một ở đây *(chặn từng byte HTML)*, một ở `HomeBody`.
+  //
+  // 🔑 Middleware cần `user` cho đúng **ba** việc: chặn khu nội bộ · ép đổi mật
+  // khẩu · đá khỏi `/login` khi đã đăng nhập. Trang công khai ⛔ **không** dùng
+  // tới việc nào trong ba, trừ cổng ép-đổi-mật-khẩu.
+  //
+  // ⚠️ CỔNG ÉP ĐỔI MẬT KHẨU **⛔ KHÔNG BỊ BỎ** — nó **chuyển chỗ** sang
+  // `app/_home/home-body.tsx`, nơi đã sẵn có `getSessionUser()` và nằm **trong
+  // `<Suspense>`** nên ⛔ không chặn lần vẽ đầu. Kết quả với người dùng là **y
+  // hệt**: vẫn bị đá sang `/update-password`. Đây là **dời phép kiểm**, ⛔
+  // KHÔNG phải nới lỏng phân quyền — mọi khu nội bộ vẫn qua nhánh dưới.
+  //
+  // ⚠️ `/login` và `/update-password` **⛔ KHÔNG** đi đường tắt: hai trang đó
+  // dùng `user` cho chính logic của chúng.
+  const congKhaiThuan = !requiresAuth && path !== '/login';
+  if (congKhaiThuan) return response;
+
   const supabase = createServerClient(
     supabaseUrl,
     supabaseKey,

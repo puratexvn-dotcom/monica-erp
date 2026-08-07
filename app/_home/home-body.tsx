@@ -1,6 +1,7 @@
 import HomeContent from './home-content';
 import { getSessionUser } from '@/lib/auth/session';
 import { docMucSong } from './live-state.service';
+import { redirect } from 'next/navigation';
 
 // ============================================================================
 // THÂN TRANG CHỦ — TÁCH RA ĐỂ TRANG CHỦ ⛔ KHÔNG CHỜ PHIÊN
@@ -29,6 +30,21 @@ import { docMucSong } from './live-state.service';
 
 export default async function HomeBody() {
   const phien = await getSessionUser();
+
+  // 🔴 CỔNG ÉP ĐỔI MẬT KHẨU — dời từ `middleware.ts` xuống đây, 07/08/2026.
+  //
+  // Middleware phải gọi Auth **trước từng byte HTML**, nên phép kiểm này khiến
+  // TTFB trang chủ **857 ms** với người đã đăng nhập. Ở đây nó nằm trong
+  // `<Suspense>`: khung trang vẽ xong rồi mới tới lượt nó chạy.
+  //
+  // 🔑 Kết quả với người dùng **y hệt** — vẫn bị đá sang `/update-password`.
+  // Thứ duy nhất đổi là **lúc nào** phép kiểm chạy, ⛔ không phải **có chạy hay
+  // không**.
+  //
+  // ⚠️ Đây là lớp **trải nghiệm**, ⛔ không phải hàng rào. Hàng rào thật vẫn là
+  // `middleware` cho mọi khu nội bộ · `guard()` mỗi hàm · RLS ở CSDL.
+  if (phien?.mustChangePassword) redirect('/update-password');
+
   const role = phien?.role ?? null;
 
   // ⚠️ Đo mức sống **SAU** khi biết vai — ⛔ không song song được với nó:

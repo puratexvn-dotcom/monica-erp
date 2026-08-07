@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from 'react';
+
+import BottomNavData from './_shell/bottom-nav-data';
 // ─── BỘ CHỮ — GIAI ĐOẠN 1 CỦA TD-10 ────────────────────────────────────────
 //
 // Board chốt **Inter Variable, tự lưu trữ qua `next/font/local`**. Kho hiện
@@ -137,67 +140,28 @@ export const viewport: Viewport = {
 // force-dynamic từ trước nên không mất gì thêm.
 // ============================================================================
 
-export default async function RootLayout({
+// ============================================================================
+// 🔴 LAYOUT GỐC TRỞ LẠI ĐỒNG BỘ — 07/08/2026, sửa sau khi ĐO.
+//
+// Trước bản này hàm dưới đây là `async` và bên trong nó `await` một lượt gọi
+// Auth **cùng hai truy vấn CSDL**. Layout gốc `await` thì React ⛔ **không có
+// gì để gửi đi** — nên **từng byte HTML của MỌI trang** xếp hàng sau chúng.
+//
+// Đo bằng `curl` ngay trên máy chủ: `ttfb 0,026 s` khi ⛔ không có cookie phiên
+// ⟷ **`0,426 – 0,720 s`** khi có. Và `time_starttransfer == time_total` — máy
+// chủ giữ **toàn bộ** trang, ⛔ không stream byte nào.
+//
+// 🔑 `<Suspense>` ở `app/page.tsx` **vô tác dụng** với thứ chặn nằm ở layout
+// gốc — nó ở **phía trên** ranh giới đó. Đây là lý do vòng tối ưu trước ⛔
+// không giải quyết được: tôi đã bọc đúng chỗ, nhưng ⛔ không phải chỗ chặn.
+//
+// ⇒ Phần cần dữ liệu dời sang `app/_shell/bottom-nav-data.tsx`, bọc `<Suspense>`.
+// ============================================================================
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let role: Role | null = null;
-  let reportMetrics: ReportMetric[] = [];
-
-  // Lỗi ở đây không được làm sập cả ứng dụng: thiếu vai trò thì thanh điều
-  // hướng vẫn hiện, nút "Bàn làm việc" chỉ dẫn về /login.
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const raw = user?.app_metadata?.role;
-    if (isRole(raw)) role = raw;
-
-    // Số liệu cho nút Báo cáo. Hiện chỉ làm cho MD/Giám đốc theo yêu cầu; các
-    // bộ phận khác để rỗng và panel tự hiện trạng thái "chưa có số liệu" —
-    // KHÔNG dựng số giả cho có, vì báo cáo bịa số thì tệ hơn không có báo cáo.
-    if (role === 'md' || role === 'giamdoc') {
-      const CLOSED = ['COMPLETED', 'CLOSED', 'CANCELLED', 'SHIPPED'];
-      const [poRes, prodRes] = await Promise.allSettled([
-        supabase.from('orders').select('status'),
-        supabase.from('production_orders').select('status'),
-      ]);
-
-      const running =
-        poRes.status === 'fulfilled' && !poRes.value.error
-          ? (poRes.value.data ?? []).filter(
-              (o) => !CLOSED.includes(String(o.status ?? '').toUpperCase()),
-            ).length
-          : null;
-
-      const pendingProd =
-        prodRes.status === 'fulfilled' && !prodRes.value.error
-          ? (prodRes.value.data ?? []).filter(
-              (p) => String(p.status ?? '').toUpperCase() === 'PENDING',
-            ).length
-          : null;
-
-      const nf = new Intl.NumberFormat('vi-VN');
-      reportMetrics = [
-        {
-          label: 'Tổng số PO đang chạy',
-          value: running === null ? '—' : nf.format(running),
-          unit: running === null ? undefined : 'PO',
-        },
-        {
-          label: 'Lệnh sản xuất chờ xử lý',
-          value: pendingProd === null ? '—' : nf.format(pendingProd),
-          unit: pendingProd === null ? undefined : 'lệnh',
-          tone: pendingProd && pendingProd > 0 ? 'amber' : 'emerald',
-        },
-      ];
-    }
-  } catch {
-    role = null;
-  }
-
   return (
     // `inter.variable` đặt biến `--font-sans` lên thẻ gốc; `font-sans` của
     // Tailwind đọc biến đó. Đổi nguồn phông ở Giai đoạn 2 không chạm dòng này.
@@ -219,7 +183,12 @@ export default async function RootLayout({
               khoảng trắng gấp đôi ở cuối trang. */}
           <div className="pb-20">{children}</div>
 
-          <AppBottomNav role={role} reportMetrics={reportMetrics} />
+          {/* 🔑 Bọc `<Suspense>`: khung trang bay đi NGAY, thanh dưới điền vào
+              sau. `fallback` là một khối cao đúng bằng thanh thật — ⛔ để trống
+              thì nội dung nhảy vị trí lúc thanh xuất hiện. */}
+          <Suspense fallback={<div className="h-14" aria-hidden="true" />}>
+            <BottomNavData />
+          </Suspense>
 
           {/*
             Toaster đặt ở layout gốc để mọi trang dùng chung một hàng đợi.

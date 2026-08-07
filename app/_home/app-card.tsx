@@ -464,6 +464,25 @@ export default function AppCard({
       // về `ModuleReady`, nên `href` chắc chắn tồn tại — máy kiểm chứng minh
       // điều đó thay vì ta ép nó im lặng.
       href={mod.href}
+      // 🔴 TẮT PREFETCH — 07/08/2026, sửa sau khi ĐO.
+      //
+      // Next.js mặc định **nạp trước** mọi `<Link>` lọt vào khung nhìn. Trang
+      // chủ có tới 15 thẻ App ⇒ mở trang là bắn **15 request `?_rsc=`** cùng
+      // lúc. Mỗi request đó:
+      //   ① đi qua `middleware.ts` ⇒ **một lượt đi–về mạng tới Supabase Auth**
+      //   ② dựng cả một trang Workspace ở máy chủ ⇒ truy vấn CSDL thật
+      //
+      // Đo được (CPU×4, 4G, cache rỗng): bốn tệp lâu nhất của trang chủ đều là
+      // prefetch — `subcon 904ms` · `giam-doc 805ms` · `md 776ms` ·
+      // `admin 591ms`. Chúng **giành băng thông và CPU máy chủ** với chính
+      // trang người dùng đang chờ.
+      //
+      // 🔑 Người dùng mở trang chủ để bấm **MỘT** App, ⛔ không phải mười lăm.
+      // Nạp trước 15 Workspace là trả giá cho 14 lần đoán sai.
+      //
+      // ⚠️ ⛔ KHÔNG mất gì về chức năng: `prefetch={false}` vẫn nạp khi **rê
+      // chuột** lên thẻ, nên cú bấm thật vẫn nhanh như cũ.
+      prefetch={false}
       title={`${chuThich}${duoiChuThich}`}
       className={`${base} focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#F6F7F9]`}
     >

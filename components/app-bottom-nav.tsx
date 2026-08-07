@@ -164,6 +164,13 @@ export default function AppBottomNav({
           <li className="flex-1">
             <Link
               href={workbenchHref}
+              // 🔴 TẮT PREFETCH — 07/08/2026. Thanh này có mặt ở **mọi trang**,
+              // nên Next.js nạp trước cả Workspace của vai người dùng ở khắp
+              // nơi — kể cả khi họ đang đứng trong chính Workspace đó. Đo trên
+              // trang chủ: `md?_rsc=` mất **316 ms**, và mỗi lần đó máy chủ
+              // dựng lại toàn bộ `/md` kèm truy vấn CSDL.
+              // ⚠️ ⛔ Không mất gì: rê chuột/chạm vào vẫn nạp trước cú bấm thật.
+              prefetch={false}
               onClick={goWorkbench}
               aria-current={workbenchActive ? 'page' : undefined}
               className={`${btn} ${workbenchActive ? NAV_ICON.workbench : 'text-slate-600'}`}
