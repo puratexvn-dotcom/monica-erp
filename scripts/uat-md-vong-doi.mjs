@@ -408,8 +408,7 @@ console.log('\n⑭ ĐÓNG LẠI');
 }
 
 // ═══ ⑮ LƯU TRỮ MỀM (052) ═══════════════════════════════════════════════════
-console.log('
-⑮ LƯU TRỮ MỀM — 3 bảng có `deleted_at`');
+console.log('\n⑮ LƯU TRỮ MỀM — 3 bảng có `deleted_at`');
 {
   // 🔴 Phép thử QUAN TRỌNG NHẤT của `052`: PostgREST bọc PATCH trong CTE có
   // RETURNING, nên nếu lưu trữ đi bằng UPDATE thẳng thì nó BÁO LỖI dù dữ liệu
@@ -463,7 +462,7 @@ console.log('
 }
 
 // ═══ ⑯ PHÂN QUYỀN ══════════════════════════════════════════════════════════
-console.log('\n⑮ PHÂN QUYỀN');
+console.log('\n⑯ PHÂN QUYỀN');
 {
   const ban = {
     customer_code: `${TAG}-KH`, name: `Khách UAT ${TAG} (md002)`, brand: 'BrandX',
