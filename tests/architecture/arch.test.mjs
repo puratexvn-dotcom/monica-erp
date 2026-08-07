@@ -221,6 +221,10 @@ for (const f of [
   // ~10 báo cáo hợp lệ ra đời TRƯỚC luật, mà sửa chúng là viết lại lịch sử
   // (Hiến pháp §43.7). Nợ `TD-GR1`.
   'docs/REPORT_STANDARD.md',
+  // WORKSPACE DESIGN DNA — Board Directive 07/08/2026 · ADR-026. Cùng cảnh ngộ
+  // với `REPORT_STANDARD.md`: phép kiểm này chỉ canh tệp **TỒN TẠI**, ⛔ không
+  // canh được tám tầng và mười luật bên trong. Nợ `TD-DNA1`.
+  'docs/WORKSPACE_DESIGN_DNA.md',
 ]) s.ok(f, existsSync(join(ROOT, f)));
 
 // ── 7. MIGRATION — không được sửa tệp đã chạy ──────────────────────────────

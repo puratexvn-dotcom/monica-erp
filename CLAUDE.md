@@ -70,6 +70,27 @@ luật là **trích dẫn ⛔ không hợp lệ**.
 
 ---
 
+# 🧬 WORKSPACE DESIGN DNA — dựng Workspace mới thì đọc trước
+
+**[`docs/WORKSPACE_DESIGN_DNA.md`](docs/WORKSPACE_DESIGN_DNA.md)** — [ADR-026](docs/adr/ADR-026-workspace-design-dna.md)
+✅ **đã ban hành** *(Board, 07/08/2026)*. `/md` **đã đóng băng** làm bản mẫu.
+
+Mọi Workspace phải trả lời ***"What should I do now?"*** — ⛔ **không** phải
+*"What data do I have?"* — và xếp đúng **tám tầng**:
+
+```
+① Command Center → ② Quick Actions → ③ Risk Center → ④ Business Flow
+→ ⑤ Today's Focus → ⑥ Data → ⑦ Task → ⑧ Report
+```
+
+🔑 **Thứ tự LÀ chuẩn.** Có đủ tám khối mà xếp `Data` lên trên là **⛔ không thi
+hành** — đó chỉ là đổi chỗ.
+
+⚠️ **⛔ Chưa có phép kiểm tự động** cho tám tầng *(nợ `TD-DNA1`)*. Bộ kiểm chỉ
+canh tệp **tồn tại**. Cưỡng chế còn lại là **kỷ luật rà soát**.
+
+---
+
 # MONICA ONE CONSTITUTION
 
 Before any design, coding, refactoring or architecture decision:
@@ -139,7 +160,7 @@ bậc dưới đây do [ADR-010](docs/adr/ADR-010-thu-bac-van-ban-chuan-tac.md) 
 | **1** | [`docs/architecture/00-CONSTITUTION.md`](docs/architecture/00-CONSTITUTION.md) | **Hiến pháp duy nhất** — 45 Điều · `v1.5 ADOPTED` |
 | **2** | [`docs/adr/`](docs/adr/) | quyết định kiến trúc — **bất biến, không sửa** |
 | **2′** | [`docs/enterprise-design/`](docs/enterprise-design/) | **Enterprise Design** — 13 tài liệu EDD · 149 Decision Log · chỉ mục ở [`PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md) |
-| **3** | [`docs/UI_UX_STANDARDS.md`](docs/UI_UX_STANDARDS.md) · [`docs/MUTATION_POLICY.md`](docs/MUTATION_POLICY.md) | Engineering Standards |
+| **3** | [`docs/UI_UX_STANDARDS.md`](docs/UI_UX_STANDARDS.md) · [`docs/WORKSPACE_DESIGN_DNA.md`](docs/WORKSPACE_DESIGN_DNA.md) · [`docs/MUTATION_POLICY.md`](docs/MUTATION_POLICY.md) | Engineering Standards |
 | **4** | [`docs/MONICA_CONSTITUTION.md`](docs/MONICA_CONSTITUTION.md) · [`docs/ENGINEERING_PLAYBOOK.md`](docs/ENGINEERING_PLAYBOOK.md) | Approved Playbooks — 12 nguyên tắc + 34 quy tắc, **vẫn ràng buộc đầy đủ** |
 | **5** | [`docs/DOMAIN_GLOSSARY.md`](docs/DOMAIN_GLOSSARY.md) · audit · discovery | Technical Documentation |
 | **6** | mã nguồn · lược đồ CSDL | **thấp nhất — mã không bao giờ là nguồn chân lý** |
