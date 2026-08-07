@@ -92,6 +92,75 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
 /** Sinh lịch T&A từ mẫu. Ưu tiên mẫu đúng hình thức gia công, không có thì
  *  dùng mẫu mặc định. Không tìm được mẫu nào thì bỏ qua chứ KHÔNG chặn tạo PO —
  *  thiếu lịch còn hơn không tạo được đơn. */
+/**
+ * Sinh lịch T&A cho **những đơn đang chạy CHƯA có mốc nào**.
+ *
+ * ─── 🔴 VÌ SAO CẦN HÀM NÀY, 07/08/2026 ──────────────────────────────────
+ * `seedMilestones()` **chỉ chạy lúc TẠO PO**. Nhưng 14 đơn đang chạy trong
+ * CSDL được tạo **trước** khi có đoạn mã đó ⇒ ⛔ **không đơn nào có mốc**.
+ *
+ * Hậu quả đo được trên màn hình: khu **Vấn đề cần xử lý** có 7 dòng, trong khi
+ * ô *"Việc hôm nay"* hiện **0** và hộp thư việc trống trơn — vì cả năm bảng
+ * nuôi nó *(`order_milestones` · `sample_submissions` · `change_requests` ·
+ * `md_comments` · `v_order_risk`)* đều RỖNG.
+ *
+ * 🔑 MD mở máy thấy *"⛔ không có việc nào"* trong khi có **6 đơn đã quá hạn
+ * giao**. Đó là màn hình **nói dối theo kiểu trấn an** — nguy hơn báo động sai,
+ * vì báo động sai thì người ta đi kiểm, còn trấn an sai thì ⛔ không ai đi đâu.
+ *
+ * ⚠️ ⛔ **KHÔNG đụng đơn đã có mốc.** Đơn nào đã có lịch thì lịch đó là **sự
+ * thật nghiệp vụ** — có thể MD đã sửa tay. Ghi đè lên nó là **xoá công của
+ * người dùng**, và `order_milestones` ⛔ không có bản sao để lùi.
+ *
+ * ⚠️ ⛔ Không đụng lược đồ, ⛔ không đụng công thức: dùng **đúng**
+ * `seedMilestones()` mà `createPo` vẫn gọi, trên **đúng** mẫu `ta_templates`
+ * đang có *(`FOB-STD`, 15 mốc)*.
+ */
+export async function sinhLichTaChoDonCu(): Promise<ActionResult> {
+  const g = await guard();
+  if (!g.supabase) return { ok: false, message: g.error };
+
+  const donRes = await safeQuery<{ id: string; po_number: string; delivery_date: string | null; order_type: string | null; status: string }>(
+    'đơn hàng',
+    () => g.supabase.from('orders').select('id, po_number, delivery_date, order_type, status'),
+  );
+  if (donRes.error) return { ok: false, message: donRes.error };
+
+  const mocRes = await safeQuery<{ order_id: string }>(
+    'mốc tiến độ',
+    () => g.supabase.from('order_milestones').select('order_id'),
+  );
+  if (mocRes.error) return { ok: false, message: mocRes.error };
+
+  const daCo = new Set(mocRes.rows.map((m) => m.order_id));
+  const DA_DONG = ['COMPLETED', 'CLOSED', 'CANCELLED'];
+
+  const canSinh = donRes.rows.filter(
+    (d) => !daCo.has(d.id)
+      && Boolean(d.delivery_date)
+      && !DA_DONG.includes(String(d.status ?? '').toUpperCase()),
+  );
+
+  if (canSinh.length === 0) {
+    return { ok: true, message: 'Mọi đơn đang chạy đều đã có lịch T&A — ⛔ không có gì để sinh.' };
+  }
+
+  // ⚠️ Tuần tự, ⛔ không song song: mỗi lượt là một chuỗi đọc-rồi-ghi, và bắn
+  // 14 chuỗi cùng lúc lên một kết nối ⛔ không nhanh hơn bao nhiêu mà lại khó
+  // truy khi một đơn hỏng.
+  let xong = 0;
+  for (const d of canSinh) {
+    await seedMilestones(d.id, d.delivery_date as string, d.order_type ?? 'FOB');
+    xong += 1;
+  }
+
+  revalidatePath(PATH);
+  return {
+    ok: true,
+    message: `Đã sinh lịch T&A cho ${xong}/${canSinh.length} đơn đang chạy.`,
+  };
+}
+
 async function seedMilestones(orderId: string, deliveryDate: string, orderType: string): Promise<void> {
   const g = await guard();
   if (!g.supabase) return;

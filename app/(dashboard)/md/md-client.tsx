@@ -43,6 +43,8 @@ import {
 import ActionablePoList from '@/components/md/command-center/actionable-po';
 import MdWorkspaceHead from '@/components/md/command-center/md-workspace-head';
 import MdDailyFocus from '@/components/md/command-center/md-daily-focus';
+import MdTaskSection from '@/components/md/command-center/md-task-section';
+import { sinhLichTaChoDonCu } from './_actions/po.actions';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
 import type { CommandCenterData } from './_services/command-center.service';
@@ -680,17 +682,15 @@ export default function MdClient({
               <PoList rows={poRows} error={poError} onRefresh={refresh} />
             </div>
 
-            {/* ⑦ TASK — hộp thư việc.
-                ⚠️ Đứng SAU dữ liệu, đúng thứ tự Board §9 khai
-                *(… → PO → Task → Report)*. Phần **khẩn** của nó đã được rút lên
-                khối ⑤; đây là bản đầy đủ. */}
-            <MosTaskInbox
-              title="Hộp thư việc"
+            {/* ⑦ TASK — hộp thư việc + lối sửa khi rỗng.
+                Gom trong `md-task-section.tsx`: hai thứ đó là **hai mặt của
+                một câu** và phải đổi cùng nhau. */}
+            <MdTaskSection
               tasks={ccFeed?.tasks ?? []}
-              error={cc?.errors.all ?? null}
+              loi={cc?.errors.all ?? null}
               wording={MD_URGENCY}
-              emptyTitle="Không có việc nào tới hạn"
               emptyHint={MD_TASK_EMPTY_HINT}
+              chaySinhLich={sinhLichTaChoDonCu}
             />
 
             {/* ⑧ REPORT — báo cáo ngày, bản GỌN.

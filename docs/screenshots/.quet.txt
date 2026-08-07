@@ -2,7 +2,7 @@ admin001  /admin                    ✅             ok     0 bđ · 0 form sạc
 gd001     /giam-doc                 ✅             ok     3 bđ · 0 form sạch                  
 gd001     /orders                   ✅             ok     0 bđ · 0 form sạch                  
 gd001     /subcon                   ✅             ok     1 bđ · 3 form sạch                  
-md001     /md                       ✅             ok     4 bđ · 0 form sạch                  
+md001     /md                       ✅             ok     5 bđ · 0 form sạch                  
 md001     /orders                   ✅             ok     0 bđ · 0 form sạch                  
 md001     /subcon                   ✅             ok     1 bđ · 3 form sạch                  
 kt001     /ke-toan                  ✅             ok     0 bđ · 0 form sạch                  
