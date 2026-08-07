@@ -72,8 +72,9 @@ export default function MdRiskCenter({
   //
   // ⚠️ **⛔ KHÔNG giấu số bị cắt.** Nói thẳng còn bao nhiêu và chỉ chỗ xem —
   // cắt im lặng thì màn hình đọc thành *"chỉ có 8 vấn đề"*.
-  // 🔴 Board *MD V5* §4: *"chỉ giữ **5 rủi ro cao nhất**. Có `Xem tất cả`."*
-  const TOI_DA = 5;
+  // 🔴 Board *MD V5.1* §4: *"**Giảm chiều cao.** Hiển thị **4 Risk**. Dòng
+  // cuối `… còn xxx` + `Xem tất cả`."* — V5 để 5, nay hạ về 4.
+  const TOI_DA = 4;
   const bay = [
     ...canhBao.map((c, i) => ({ loai: 'd' as const, key: `d-${i}-${c.tieuDe}`, c })),
     ...alerts.map((a) => ({ loai: 'a' as const, key: a.id, a })),
@@ -91,7 +92,9 @@ export default function MdRiskCenter({
           <span className={`tabular-nums text-slate-500 ${TYPE.caption}`}>{tong} mục</span>
         )}
       </div>
-      <div className="p-4">
+      {/* §4 + §10: đệm 4 ⇒ 3, khe giữa các thẻ 3 ⇒ 2 — bốn thẻ thì mỗi khe
+          tiết kiệm nhân lên ba lần theo chiều dọc. */}
+      <div className="p-3">
 
       {/* 🔴 LỖI ĐỌC PHẢI HIỆN RA, ⛔ KHÔNG ĐƯỢC NUỐT.
           *"⛔ Không có rủi ro nào"* và *"⛔ không đọc được CSDL"* trông y hệt
@@ -111,14 +114,14 @@ export default function MdRiskCenter({
           </p>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-3">
+        <ul className="grid grid-cols-1 gap-2">
           {/* Nguy cấp đứng trước — `canhBao` đã được `daily-digest` sắp theo mức độ. */}
           {hien.filter((x) => x.loai === 'd').map(({ key, c }, i) => {
             const nguy = c.mucDo === 'NGHIEM_TRONG';
             return (
               <li
                 key={key}
-                className={`flex items-start gap-3 rounded-2xl px-4 py-3.5 ring-1 ${nguy ? STATUS.critical.chip : STATUS.warning.chip}`}
+                className={`flex items-start gap-2.5 rounded-xl px-3 py-2.5 ring-1 ${nguy ? STATUS.critical.chip : STATUS.warning.chip}`}
               >
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
@@ -139,7 +142,7 @@ export default function MdRiskCenter({
           {hien.filter((x) => x.loai === 'a').map(({ a }) => (
             <li
               key={a.id}
-              className={`flex items-start gap-3 rounded-2xl px-4 py-3 ring-1 ${STATUS.critical.chip}`}
+              className={`flex items-start gap-2.5 rounded-xl px-3 py-2.5 ring-1 ${STATUS.critical.chip}`}
             >
               <a.icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <div className="min-w-0 flex-1">

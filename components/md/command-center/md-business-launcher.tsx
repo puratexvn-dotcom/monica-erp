@@ -26,6 +26,10 @@ import { Check, Lock } from 'lucide-react';
 
 import { TYPE, FONT_WEIGHT, LINE_HEIGHT } from '@/lib/design/typography';
 import { STATUS } from '@/lib/design/tokens';
+import {
+  oLauncherMo, oLauncherKhoa, huyHieuLauncher, huyHieuLauncherKhoa,
+  chuNhanLauncher, chuSoLauncher, chuSoLauncherTrong,
+} from '@/components/ui';
 
 export interface OLauncher {
   id: string;
@@ -41,12 +45,21 @@ export interface OLauncher {
   khoa?: boolean;
 }
 
-const o =
-  'group relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border ' +
-  'border-slate-200 bg-white px-2 py-3 text-center transition';
-const oMo = `${o} hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md ` +
-  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200';
-const oKhoa = `${o} cursor-not-allowed bg-slate-50`;
+// 🔴 Board *MD V5.1* §8: *"Các ô Launcher đang khá **nhạt**. Tăng độ nổi của
+// **icon** và **số lượng**. **Giảm màu viền.** Tăng cảm giác hiện đại."*
+//
+// ─── 🔑 ĐỔI VIỀN LẤY BÓNG ───────────────────────────────────────────────
+// Viền `slate-200` quanh mười ô vẽ ra **mười cái hộp**; mắt đọc *"biểu mẫu"*,
+// ⛔ không đọc *"bảng điều khiển"* — đúng thứ §11 nói. Bỏ viền, thay bằng
+// **bóng mảnh**: ô vẫn tách khỏi nền nhưng ⛔ không còn bị đóng khung.
+//
+// 🔑 Độ nổi chuyển từ **đường viền** sang **nội dung**: biểu tượng đặt trong
+// một huy hiệu có nền, con số lên cỡ `metricSm` và đậm. Ô sáng lên nhờ thứ nó
+// **chứa**, ⛔ không nhờ thứ **bao quanh** nó.
+// ⚠️ Lớp lấy từ `components/ui`, ⛔ không viết màu thẳng — bánh cóc `TD-07`
+// đã bắt đúng lần đầu tôi viết `ring-slate-900/5` ở đây.
+const oMo = oLauncherMo;
+const oKhoa = oLauncherKhoa;
 
 function NoiDung({ t }: { t: OLauncher }) {
   const Icon = t.icon;
@@ -61,11 +74,16 @@ function NoiDung({ t }: { t: OLauncher }) {
           : <Check className={`h-3 w-3 ${STATUS.healthy.text}`} aria-hidden="true" />}
       </span>
 
-      <Icon className={`h-5 w-5 ${t.khoa ? 'text-slate-400 opacity-50' : 'text-slate-600'}`} aria-hidden="true" />
-      <span className={`block text-slate-800 ${TYPE.caption} ${LINE_HEIGHT.snug} ${FONT_WEIGHT.semibold}`}>
+      {/* §8 — biểu tượng có huy hiệu nền: nổi hơn hẳn một nét vẽ trần. */}
+      <span className={t.khoa ? huyHieuLauncherKhoa : huyHieuLauncher}>
+        <Icon className={`h-4 w-4 ${t.khoa ? 'opacity-50' : ''}`} aria-hidden="true" />
+      </span>
+      <span className={`block ${chuNhanLauncher} ${TYPE.caption} ${LINE_HEIGHT.snug} ${FONT_WEIGHT.medium}`}>
         {t.nhan}
       </span>
-      <span className={`block tabular-nums ${TYPE.caption} ${t.so === null ? 'text-slate-400' : 'text-slate-500'}`}>
+      {/* §8 — con số là **dữ liệu**, nên nó phải nặng hơn cái nhãn. Bản trước
+          số và nhãn cùng cỡ cùng sắc, nên ô đọc ra ⛔ không có trọng tâm. */}
+      <span className={`block ${TYPE.metricSm} ${FONT_WEIGHT.bold} ${t.so === null ? chuSoLauncherTrong : chuSoLauncher}`}>
         {t.so === null ? '⚪' : t.so}
       </span>
     </>
@@ -79,10 +97,10 @@ export default function MdBusinessLauncher({
   onMoTab: (tab: string) => void;
 }) {
   return (
-    <section aria-label="Phòng Merchandising" className="mb-5">
-      <h2 className={`mb-2.5 text-slate-700 ${TYPE.overline}`}>Phòng Merchandising</h2>
+    <section aria-label="Phòng Merchandising" className="mb-4">
+      <h2 className={`mb-2 text-slate-500 ${TYPE.overline}`}>Phòng Merchandising</h2>
       {/* 10 ô — điện thoại 4, bảng 5, máy bàn 10. ⛔ Không cuộn ngang ở khổ nào. */}
-      <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-5 lg:grid-cols-10">
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-10">
         {dsO.map((t) => {
           if (t.khoa) {
             return (

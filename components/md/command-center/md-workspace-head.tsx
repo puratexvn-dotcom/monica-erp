@@ -166,7 +166,7 @@ export default function MdWorkspaceHead({
 
       {/* ④ ORDER JOURNEY + ⑤ PO WORKSPACE — full chiều ngang.
           🔴 Board *MD V5* §1: **màn hình kết thúc ngay sau `Danh sách PO`.** */}
-      <div className="mt-5 space-y-5">{orderCenter}</div>
+      <div className="mt-4 space-y-4">{orderCenter}</div>
     </>
   );
 }

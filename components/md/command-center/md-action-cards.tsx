@@ -40,9 +40,20 @@ export interface HanhDongMd {
 // bật. Có icon. Có màu."* — sắc **Action = xanh dương**.
 // Thẻ PHỤ: viền nhạt, **nền trắng** — nhẹ hơn thẻ chính một bậc để mắt phân
 // biệt được ngay mà ⛔ không cần đọc nhãn.
+// 🔴 Board *MD V5.1* §1: *"Chiếm quá nhiều chiều cao. Giảm ~30%. Mỗi card chỉ
+// giữ icon · tiêu đề · 1 dòng mô tả. ⛔ Không cần nhiều khoảng trắng."*
+//
+// ─── 🔑 XẾP NGANG, ⛔ KHÔNG XẾP DỌC ─────────────────────────────────────
+// Bản trước xếp **dọc**: biểu tượng một dòng, tên một dòng, mô tả một dòng ⇒
+// ba tầng chồng lên nhau. Xếp **ngang** *(biểu tượng ⟷ chữ)* bỏ được nguyên
+// một tầng mà ⛔ không mất thông tin nào — đúng nghĩa *"giảm chiều cao"*, ⛔
+// không phải *"cắt nội dung"*.
+//
+// ⚠️ `truncate` ở dòng mô tả: ô hẹp thì cắt bằng dấu ba chấm, ⛔ KHÔNG xuống
+// dòng. Một thẻ xuống dòng làm cả hàng sáu thẻ cao theo — đúng thứ đang sửa.
 const the =
-  `group flex flex-col items-start gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 text-left transition ` +
-  `hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 ` +
+  `group flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-2.5 text-left transition ` +
+  `hover:border-slate-300 hover:shadow-sm focus-visible:outline-none focus-visible:ring-4 ` +
   SAC_NHOM.action.tuongTac;
 
 function The({ nhan, phu, icon: Icon, chay }: {
@@ -50,12 +61,12 @@ function The({ nhan, phu, icon: Icon, chay }: {
 }) {
   return (
     <button type="button" onClick={chay} className={the}>
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
-        <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
+        <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className={`block text-slate-800 ${TYPE.bodySm} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
-        <span className={`block text-slate-500 ${TYPE.caption}`}>{phu}</span>
+        <span className={`block truncate text-slate-800 ${TYPE.bodySm} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
+        <span className={`block truncate text-slate-500 ${TYPE.caption}`}>{phu}</span>
       </span>
     </button>
   );
@@ -63,8 +74,8 @@ function The({ nhan, phu, icon: Icon, chay }: {
 
 export default function MdActionCards({ hd }: { hd: HanhDongMd }) {
   return (
-    <section aria-label="Action Center" className="mb-5">
-      <h2 className={`mb-2.5 text-slate-700 ${TYPE.overline}`}>Bắt đầu việc gì?</h2>
+    <section aria-label="Action Center" className="mb-4">
+      <h2 className={`mb-2 text-slate-500 ${TYPE.overline}`}>Bắt đầu việc gì?</h2>
 
       {/* 🔴 MỘT PRIMARY, NĂM SECONDARY — Board §3: *"+ Tạo PO nổi bật nhất."*
           🔑 Sáu nút **cùng cỡ, cùng màu** là sáu nút **⛔ không nút nào nổi**.
@@ -73,7 +84,9 @@ export default function MdActionCards({ hd }: { hd: HanhDongMd }) {
       {/* ⚠️ **BẢY** cột, ⛔ không phải sáu: thẻ chính chiếm 2 ô ⇒ 2 + 5 = 7 vừa
           khít một hàng. Để `grid-cols-6` thì ô thứ sáu bị đẩy xuống dòng riêng
           và dải trông như bị vỡ. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+      {/* §10: khe 3 ⇒ 2.5. Sáu thẻ trên một hàng thì mỗi khe tiết kiệm nhân
+          lên năm lần theo chiều ngang, ⛔ không đổi khả năng đọc. */}
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-7">
         <button
           type="button"
           onClick={hd.taoPo}

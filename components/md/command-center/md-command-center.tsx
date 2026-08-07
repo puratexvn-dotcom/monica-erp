@@ -29,7 +29,10 @@ import { STATUS } from '@/lib/design/tokens';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import type { TongQuanMd } from '@/lib/mos/md/command-center-kpi';
 // ⚠️ Lớp thẻ bấm được lấy từ `components/ui`, ⛔ không viết màu thẳng ở đây.
-import { theBamDuoc, loiDiChu } from '@/components/ui';
+// ⚠️ `theBamDuoc` KHÔNG còn dùng ở đây: từ *V5.1* §2 các ô ⛔ không phải thẻ
+// rời nữa mà là ô trong **một khung chung**, nên chúng ⛔ không được có viền
+// và bóng riêng. Lớp đó vẫn nguyên trong `components/ui` cho nơi khác dùng.
+import { loiDiChu } from '@/components/ui';
 
 type Nhan = 'trung' | 'tot' | 'canh' | 'nguy';
 
@@ -40,8 +43,22 @@ const TONE: Record<Nhan, { chip: string; text: string; dot: string }> = {
   nguy: { chip: STATUS.critical.chip, text: STATUS.critical.text, dot: STATUS.critical.dot },
 };
 
+// 🔴 Board *MD V5.1* §2: *"KPI bị chia nhỏ. **Ghép lại thành một cụm thống
+// nhất.** 5 ô nằm **sát nhau**. ⛔ Không có khoảng hở lớn."*
+//
+// ─── 🔑 MỘT KHUNG · NĂM Ô · KẺ CHỈ VẠCH TÓC ────────────────────────────
+// Bản trước là **năm thẻ rời**, mỗi thẻ một viền + một bóng + khe 12px. Mắt
+// đọc ra **năm vật thể**, ⛔ không phải *một bảng điều khiển*. Nay gộp vào
+// **một khung duy nhất**, các ô ngăn nhau bằng vạch tóc — đó là khác biệt
+// giữa *"cụm chỉ số"* và *"mấy cái thẻ xếp gần nhau"*.
+//
+// 🔑 Và nó trả thẳng cho §5: ô thứ **5** chiếm **cả hai cột** nên lưới ⛔ không
+// còn **lỗ hổng ở góc**. Chính lỗ hổng đó đẩy khối xanh *"Hôm nay xưởng đã làm
+// được"* trôi xuống, khiến Board thấy nó *"lọt giữa KPI và Journey"*.
+const oNen = 'flex flex-col items-start p-3 text-left transition';
+
 function O({
-  nhan, so, phu, icon: Icon, tone, onClick, nhanBam, loiDi,
+  nhan, so, phu, icon: Icon, tone, onClick, nhanBam, loiDi, rong,
 }: {
   nhan: string;
   so: string;
@@ -52,41 +69,46 @@ function O({
   nhanBam: string;
   /** Câu **hành động** hiện ngay trên ô — Board §1. */
   loiDi?: string;
+  /** Ô cuối chiếm cả hai cột ⇒ lưới ⛔ không hở góc. */
+  rong?: boolean;
 }) {
   const t = TONE[tone];
+  const khung = `${oNen} ${rong ? 'col-span-2' : 'border-r border-slate-100'} border-b border-slate-100`;
   const noiDung = (
     <>
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex w-full items-center justify-between gap-2">
         <p className={`${TYPE.overline} text-slate-500`}>{nhan}</p>
-        <Icon className={`h-4 w-4 shrink-0 ${t.text}`} aria-hidden="true" />
+        <Icon className={`h-3.5 w-3.5 shrink-0 ${t.text}`} aria-hidden="true" />
       </div>
-      <p className={`mt-1.5 tabular-nums ${TYPE.pageTitle} ${FONT_WEIGHT.bold} ${t.text}`}>{so}</p>
-      <p className={`mt-0.5 ${TYPE.caption} text-slate-500`}>{phu}</p>
+      {/* §10: số và chú thích nằm CÙNG một dòng cơ sở — bản trước xếp dọc và
+          tốn thêm một tầng cho mỗi ô, nhân năm lần. */}
+      {/* ⚠️ `whitespace-nowrap` trên CON SỐ, `flex-wrap` trên hàng chứa nó.
+          Đo trên ảnh mobile: ô hẹp làm `53%` **đứt giữa số và dấu %** — hai
+          dòng, đọc thành *"53"* rồi *"%"*. Một chỉ số bị ngắt là một chỉ số
+          đọc sai. Nay số ⛔ không bao giờ đứt; nếu chật thì **chú thích**
+          xuống dòng, vì chú thích đứt được mà con số thì ⛔ không. */}
+      <p className={`mt-0.5 flex flex-wrap items-baseline gap-x-1.5 ${t.text}`}>
+        <span className={`whitespace-nowrap tabular-nums ${TYPE.sectionTitle} ${FONT_WEIGHT.bold}`}>{so}</span>
+        <span className={`${TYPE.caption} text-slate-500`}>{phu}</span>
+      </p>
       {/* 🔴 Board §1: *"KPI ⛔ không được là ngõ cụt … Mỗi KPI phải trả lời:
           tôi cần hành động gì?"*
           🔑 Con trỏ đổi hình khi rê chuột là **⛔ không đủ**: trên điện thoại
           ⛔ không có con trỏ, và người dùng máy bàn cũng phải rê tới mới biết.
           Nên lối đi được **viết ra thành chữ**. */}
       {onClick && (
-        <p className={`mt-2 inline-flex items-center gap-1 ${loiDiChu} ${TYPE.caption} ${FONT_WEIGHT.semibold}`}>
+        <span className={`mt-1 inline-flex items-center gap-1 ${loiDiChu} ${TYPE.caption} ${FONT_WEIGHT.semibold}`}>
           {loiDi} <ArrowRight className="h-3 w-3" aria-hidden="true" />
-        </p>
+        </span>
       )}
     </>
   );
 
   // ⛔ KHÔNG bọc `<button>` quanh ô ⛔ không có nơi để tới — con trỏ đổi thành
   // bàn tay rồi bấm ⛔ không xảy ra gì là **lời hứa suông của giao diện**.
-  if (!onClick) {
-    return <div className="rounded-2xl border border-slate-200 bg-white p-4">{noiDung}</div>;
-  }
+  if (!onClick) return <div className={khung}>{noiDung}</div>;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={nhanBam}
-      className={`p-4 ${theBamDuoc}`}
-    >
+    <button type="button" onClick={onClick} aria-label={nhanBam} className={`${khung} hover:bg-slate-50`}>
       {noiDung}
     </button>
   );
@@ -105,9 +127,10 @@ export default function MdCommandCenter({
 
   return (
     <section aria-label="Tổng quan điều hành">
-      {/* ⚠️ 2 CỘT, ⛔ KHÔNG 5. Từ 07/08/2026 khối này nằm trong **cột trái** rộng
-          3/12 — dàn 5 ô ngang ở đó thì mỗi ô chỉ còn ~60px và con số bị cắt. */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* ⚠️ 2 CỘT, ⛔ KHÔNG 5. Khối này nằm trong **cột giữa** rộng 4/12 — dàn
+          5 ô ngang ở đó thì mỗi ô chỉ còn ~60px và con số bị cắt.
+          🔴 *V5.1* §2: MỘT khung bao ngoài, ⛔ không còn năm thẻ rời. */}
+      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-slate-200 bg-white [&>*:nth-last-child(-n+1)]:border-b-0">
         <O
           nhan="Đơn đang quản lý" so={String(tq.tongPo)} phu="tổng PO còn chạy"
           icon={ClipboardList} tone="trung" onClick={onMoDon} nhanBam="Mở danh sách đơn hàng"
@@ -137,6 +160,7 @@ export default function MdCommandCenter({
           phu={tq.khanNhat ? `khẩn nhất: ${tq.khanNhat.moTa}` : 'hộp thư việc trống'}
           icon={CalendarClock} tone={tq.soViecHomNay > 0 ? 'canh' : 'tot'}
           onClick={onMoViec} nhanBam="Mở danh sách việc hôm nay" loiDi="Mở tiêu điểm"
+          rong
         />
       </div>
 
@@ -151,7 +175,10 @@ export default function MdCommandCenter({
 
           ⚠️ ⛔ KHÔNG bịa lời khen khi ⛔ chưa ai báo cáo. Một dải chúc mừng
           trên nền dữ liệu rỗng là **nịnh**, và người dùng nhận ra ngay. */}
-      <div className={`mt-3 rounded-2xl border px-4 py-3 ${tq.chuaCoBaoCao ? 'border-slate-200 bg-white' : `${TONE.tot.chip} border`}`}>
+      {/* 🔴 *V5.1* §5: *"Đưa lên NGAY DƯỚI KPI. ⛔ Không để lọt giữa KPI và
+          Journey."* — `mt-3` ⇒ `mt-2`, và lưới KPI ở trên nay ⛔ không còn lỗ
+          hổng góc, nên khối này dán sát đáy cụm chỉ số. */}
+      <div className={`mt-2 rounded-2xl border px-3.5 py-2.5 ${tq.chuaCoBaoCao ? 'border-slate-200 bg-white' : `${TONE.tot.chip} border`}`}>
         {tq.chuaCoBaoCao ? (
           <p className={`${TYPE.bodySm} text-slate-500`}>
             ⚪ Hôm nay <strong>chưa nhận được báo cáo nào</strong> từ tổ trưởng, nhà thầu hay QA —

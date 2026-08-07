@@ -149,15 +149,16 @@ function PoList({
         <PoPipeline rows={rows} filter={flowFilter} onFilter={setFlowFilter} />
       )}
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      {/* 🔴 *V5.1* §7: *"Thanh Filter nhỏ hơn. Khoảng trắng ít hơn."* */}
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <div className="relative min-w-0 flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Tìm mã PO, mã hàng, khách hàng..."
             aria-label="Tìm đơn hàng"
-            className={`${inputCls} pl-9`}
+            className={`${inputCls} py-1.5 pl-9 text-xs`}
           />
         </div>
 
@@ -166,7 +167,7 @@ function PoList({
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
-            className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition ${
+            className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
               filter === f.key
                 ? 'bg-blue-600 text-white'
                 : 'border border-slate-200 bg-white text-slate-600 hover:border-blue-300'

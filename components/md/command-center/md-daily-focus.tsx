@@ -47,7 +47,7 @@ export default function MdDailyFocus({
     // 🔴 Board §4: *"Chỉ Top 5. ⛔ Không hiển thị danh sách dài."*
     // ⚠️ Khối "Báo cáo hôm nay 3/4" ĐÃ RỜI khỏi đây sang tầng Management —
     // nó là câu chuyện **17 giờ**, ⛔ không phải câu chuyện 8 giờ sáng.
-    <section aria-label="Tiêu điểm hôm nay" className="grid grid-cols-1 gap-4">
+    <section aria-label="Tiêu điểm hôm nay" className="grid grid-cols-1 gap-3">
       {/* ─── ⑦ TODAY ────────────────────────────────────────────────────── */}
       {/* 🔴 Board *MD V5* §10: bốn khu **Action · Risk · Today · Journey** phải
           khác màu rõ ràng — màu để **phân biệt chức năng**, ⛔ không trang trí.
@@ -64,7 +64,10 @@ export default function MdDailyFocus({
             <span className={`tabular-nums text-slate-500 ${TYPE.caption}`}>{tieuDiem.length} việc</span>
           )}
         </div>
-        <div className="p-4">
+        {/* 🔴 *V5.1* §3: *"phải cao bằng khối KPI. ⛔ Không kéo dài xuống quá
+            thấp."* — đệm 4 ⇒ 3, khe giữa các việc 2.5 ⇒ 1.5. Vẫn **đủ 5 việc**;
+            rút ngắn bằng **khoảng cách**, ⛔ không bằng cách bớt việc. */}
+        <div className="p-3">
 
         {tieuDiem.length === 0 ? (
           <p className={`text-slate-500 ${TYPE.bodySm}`}>
@@ -75,9 +78,9 @@ export default function MdDailyFocus({
             </span>
           </p>
         ) : (
-          <ol className="space-y-2.5">
+          <ol className="space-y-1.5">
             {tieuDiem.map((v, i) => (
-              <li key={`${i}-${v.viec}`} className="flex items-start gap-3">
+              <li key={`${i}-${v.viec}`} className="flex items-start gap-2.5">
                 <span className={`shrink-0 tabular-nums ${TYPE.body} ${v.nguyCap ? STATUS.critical.text : 'text-slate-400'}`}>
                   {SO_THU_TU[i]}
                 </span>
@@ -105,7 +108,7 @@ export default function MdDailyFocus({
         )}
 
           {onXemTatCa && (
-            <button type="button" onClick={onXemTatCa} className={`mt-3 ${nutNoi('today')}`}>
+            <button type="button" onClick={onXemTatCa} className={`mt-2.5 ${nutNoi('today')}`}>
               Xem tất cả <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
             </button>
           )}

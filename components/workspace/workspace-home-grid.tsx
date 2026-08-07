@@ -82,14 +82,14 @@ export default function WorkspaceHomeGrid({
       {/* ⚠️ `items-start` — mỗi cột cao đúng nội dung của nó, ⛔ không bị kéo
           giãn bằng cột cao nhất. ⛔ Không có nó, khối ngắn nhận một nền trắng
           thừa và đọc thành *"⛔ còn nội dung nhưng chưa nạp"*. */}
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         {/* ⚠️ Cột giữa GẤP ĐÔI hai cột bên: nó chứa bảng dữ liệu. Chia đều thì
             bảng bị bóp còn nửa chiều ngang và phải **cuộn ngang**. */}
-        <section aria-label="Công việc của tôi" className={`order-2 space-y-5 lg:order-1 ${cTrai}`}>
+        <section aria-label="Công việc của tôi" className={`order-2 space-y-4 lg:order-1 ${cTrai}`}>
           {myWork}
         </section>
 
-        <section aria-label="Khu làm việc chính" className={`order-3 space-y-5 lg:order-2 ${cGiua}`}>
+        <section aria-label="Khu làm việc chính" className={`order-3 space-y-4 lg:order-2 ${cGiua}`}>
           {workCenter}
         </section>
 
@@ -99,7 +99,7 @@ export default function WorkspaceHomeGrid({
         </section>
       </div>
 
-      {dashboard && <div className="mt-5">{dashboard}</div>}
+      {dashboard && <div className="mt-4">{dashboard}</div>}
     </>
   );
 }

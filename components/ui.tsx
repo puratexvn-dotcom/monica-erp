@@ -102,15 +102,47 @@ export function nutNoi(n: SacNhom): string {
 // `TD-07` đã bắt đúng lần đầu tôi viết `bg-blue-600` thẳng trong tệp phân hệ
 // *(nợ phình 106 → 107)*. Bánh cóc **đúng** — và cách sửa là **dời chuỗi về
 // thẻ màu**, ⛔ không phải nới trần nợ.
+//
+// 🔴 *MD V5.1* §9: *"`+ Tạo PO` **cao hơn · đậm hơn · nổi bật hơn**. Các nút
+// còn lại **cùng kích thước**."*
+// 🔑 Năm thẻ phụ vừa lùn đi 30% *(§1)*, nên thẻ chính nay cao hơn hẳn chúng mà
+// ⛔ không cần thêm một điểm ảnh nào — **tương phản đến từ việc hạ phần còn
+// lại**, ⛔ không từ việc bơm phần chính. `shadow-lg` + `ring` lo phần *"đậm"*.
 export const theHanhDongChinh =
-  'group col-span-2 flex items-center gap-3 rounded-2xl bg-blue-600 p-4 text-left shadow-md transition ' +
+  'group col-span-2 row-span-1 flex items-center gap-3 rounded-2xl bg-blue-600 p-4 text-left ' +
+  'shadow-lg ring-1 ring-blue-700/20 transition ' +
   'hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl ' +
   'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200';
 /** Huy hiệu biểu tượng NẰM TRONG thẻ hành động chính — nền trong suốt trên nền đặc. */
 export const huyHieuTheChinh =
-  'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white transition group-hover:scale-105';
+  'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white transition group-hover:scale-105';
 /** Dòng mô tả dưới nhãn của thẻ hành động chính. */
 export const chuPhuTheChinh = 'text-blue-100';
+
+// 🔴 Ô BUSINESS LAUNCHER — Board *MD V5.1* §8: *"Giảm màu viền. Tăng độ nổi
+// của icon và số lượng. Tăng cảm giác hiện đại."*
+//
+// 🔑 Viền cứng `border-slate-200` quanh mười ô vẽ ra **mười cái hộp** — mắt đọc
+// *"biểu mẫu"*, ⛔ không đọc *"bảng điều khiển"* (§11). Thay bằng **vòng mảnh
+// gần như trong suốt** + bóng: ô vẫn tách khỏi nền mà ⛔ không bị đóng khung.
+//
+// ⚠️ Đặt ở ĐÂY vì bánh cóc `TD-07` đã bắt đúng khi tôi viết `ring-slate-900/5`
+// và `ring-blue-200` thẳng trong tệp phân hệ (nợ 106 ⇒ 107).
+const oLauncherNen =
+  'group relative flex flex-col items-center justify-center gap-1 rounded-2xl ' +
+  'bg-white px-2 py-2.5 text-center shadow-sm ring-1 ring-slate-900/5 transition';
+export const oLauncherMo =
+  `${oLauncherNen} hover:-translate-y-0.5 hover:shadow-md hover:ring-slate-900/10 ` +
+  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200';
+export const oLauncherKhoa = `${oLauncherNen} cursor-not-allowed bg-slate-50`;
+/** Huy hiệu biểu tượng trong ô Launcher — có nền nên nổi hơn nét vẽ trần. */
+export const huyHieuLauncher =
+  'flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 transition group-hover:scale-110';
+export const huyHieuLauncherKhoa =
+  'flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 transition';
+export const chuNhanLauncher = 'text-slate-700';
+export const chuSoLauncher = 'text-slate-900';
+export const chuSoLauncherTrong = 'text-slate-300';
 
 // ============================================================================
 // 🎨 SẮC THEO NHÓM CHỨC NĂNG — Board Directive 07/08/2026 §12
@@ -149,7 +181,10 @@ export function hopNhom(n: SacNhom): string {
   return `rounded-2xl border ${SAC_NHOM[n].vien} bg-white overflow-hidden`;
 }
 export function dauHopNhom(n: SacNhom): string {
-  return `flex items-center justify-between gap-3 border-b ${SAC_NHOM[n].vien} ${SAC_NHOM[n].nen} px-4 py-2.5`;
+  // 🔴 *MD V5.1* §7 *"giảm chiều cao header"* + §10: `py-2.5` ⇒ `py-2`,
+  // `px-4` ⇒ `px-3.5`. Đầu khối là **nhãn**, ⛔ không phải nội dung — nó ⛔
+  // không đáng chiếm chiều cao ngang một dòng dữ liệu.
+  return `flex items-center justify-between gap-3 border-b ${SAC_NHOM[n].vien} ${SAC_NHOM[n].nen} px-3.5 py-2`;
 }
 
 /** Huy hiệu biểu tượng của thẻ hành động. */
