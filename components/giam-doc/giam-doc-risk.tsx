@@ -25,7 +25,8 @@ import { STATUS } from '@/lib/design/tokens';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import type { CanhBao } from '@/lib/mos/md/daily-digest';
 
-const TOI_DA = 8;
+// Board §10 — mở sẵn 4 dòng.
+const TOI_DA = 4;
 
 export interface ChuyenLoi {
   line_name: string;

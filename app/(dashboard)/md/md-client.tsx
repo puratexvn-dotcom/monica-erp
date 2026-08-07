@@ -14,7 +14,6 @@ import {
 import { Card, btnPrimary, btnGhost } from '@/components/ui';
 import { NoData, ErrorState } from '@/components/data-state';
 import PoFormDialog from '../orders/po-form-dialog';
-import PoList from '@/components/md/po/po-list';
 import StyleList from '@/components/md/style/style-list';
 import StyleFormDialog from '@/components/md/style/style-form-dialog';
 import CustomerList from '@/components/md/crm/customer-list';
@@ -40,11 +39,11 @@ import {
   mdTasks, mdKpis, mdAlerts, MD_URGENCY, MD_WATCHING_HINT, MD_TASK_EMPTY_HINT,
   type MdKpiTarget,
 } from '@/components/md/command-center/md-feed';
-import ActionablePoList from '@/components/md/command-center/actionable-po';
 import MdWorkspaceHead from '@/components/md/command-center/md-workspace-head';
 import MdDailyFocus from '@/components/md/command-center/md-daily-focus';
 import MdTaskSection from '@/components/md/command-center/md-task-section';
 import MdHoatDong from '@/components/md/command-center/md-hoat-dong';
+import MdOrderCenter from './md-order-center';
 import { sinhLichTaChoDonCu } from './_actions/po.actions';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
@@ -65,7 +64,6 @@ import {
 import {
   MaterialRequestTable, ProductionOrderTable, ShipmentTable,
 } from './md-flow-tables';
-import MdOrderJourney from './md-order-journey';
 import DailyDigestCard from '@/components/md/dashboard/daily-digest-card';
 import type { BaoCaoNgay } from '@/lib/mos/md/daily-digest';
 import { vnTodayISO } from '@/lib/mos/po-flow';
@@ -122,6 +120,7 @@ const MdCharts = dynamic(() => import('@/components/md/dashboard/md-dashboard'),
 export default function MdClient({
   baoCaoNgay,
   role,
+  initialCc,
   initialSnapshot,
   initialPoRows,
   initialPoError,
@@ -131,6 +130,8 @@ export default function MdClient({
 }: {
   baoCaoNgay: BaoCaoNgay;
   role: Role | null;
+  /** Command Center nạp SẴN ở máy chủ — xem chú thích tại `useState` bên dưới. */
+  initialCc?: CommandCenterData;
   initialSnapshot: MdSnapshot;
   initialPoRows: PoRow[];
   initialPoError: string | null;
@@ -152,7 +153,15 @@ export default function MdClient({
   const dashboard = useMdDashboard();
 
   // ─── COMMAND CENTER ──────────────────────────────────────────────────────
-  const [cc, setCc] = useState<CommandCenterData | null>(null);
+  // 🔴 KHỞI TẠO TỪ MÁY CHỦ — sửa lỗi "hiện giao diện CŨ vài giây".
+  //
+  // Bản trước khởi tạo `null` rồi gọi `getCommandCenterClient()` trong
+  // `useEffect` ⇒ HTML đầu tiên ⛔ KHÔNG có ba cột, người dùng thấy khung cũ +
+  // thanh tab rồi mới thấy Workspace mới thay vào.
+  //
+  // 🔑 Đó ⛔ không phải "chậm" — đó là **hai giao diện nối tiếp nhau**. Nay dữ
+  // liệu đi cùng HTML, nên **lần vẽ đầu tiên đã là giao diện cuối cùng**.
+  const [cc, setCc] = useState<CommandCenterData | null>(initialCc ?? null);
 
   // 🔑 Ba mảng chứng từ con dựng MỘT LẦN, dùng chung cho Command Center và
   // "Đơn hàng đang ở đâu?". Trước đây chỉ có màn hình hành trình map chúng;
@@ -170,10 +179,16 @@ export default function MdClient({
     po_number: x.po_number, status: x.status,
     so: x.shipment_no, moc: x.etd_date, evidence_path: x.evidence_path,
   })), [snap.shipments]);
+  // ⚠️ GIỮ hàm nạp lại — sau khi ghi dữ liệu, ba cột phải tươi lại mà ⛔ không
+  // tải lại cả trang. Nhưng ⛔ KHÔNG gọi nó lúc mở trang nữa: dữ liệu đã đi
+  // cùng HTML, gọi thêm là **một lượt mạng thừa và một lần vẽ lại thừa**.
   const loadCc = useCallback(() => {
     void getCommandCenterClient().then(setCc);
   }, []);
-  useEffect(loadCc, [loadCc]);
+  useEffect(() => {
+    if (initialCc) return;   // máy chủ đã đưa sẵn ⇒ ⛔ không gọi lại
+    loadCc();
+  }, [initialCc, loadCc]);
 
   // PO 360° mở từ BẤT KỲ đâu: một việc trong hộp việc, một dòng PO, một cảnh
   // báo, hay kết quả tìm nhanh. Giữ state ở đây để mọi chỗ dùng chung một panel
@@ -424,6 +439,8 @@ export default function MdClient({
       // ⚠️ Tệp `md-quick-actions.ts` **GIỮ NGUYÊN** trong kho (ràng buộc ②) —
       // nó vẫn là khuôn hợp lệ của khung cho phân hệ khác; chỉ `/md` thôi dùng.
       hanhDongNhanh={[]}
+      // 🔴 Board §2 + §3 — bỏ tiêu đề lặp và nút "Về Trang chủ" trùng logo.
+      an="ca"
     >
       {/* ═══ DNA WORKSPACE — Board Directive 07/08/2026 (MD UX Redesign v2) ═══
           ① Command Center → ② Quick Actions → ③ Risk Center → ④ Business Flow
@@ -491,23 +508,20 @@ export default function MdClient({
             />
           }
           orderCenter={
-            <>
-              {/* ④ BUSINESS FLOW — *"Đơn hàng đang ở đâu?"*, chữ ký sản phẩm. */}
-              <MdOrderJourney
-                pos={poRows}
-                materials={ctMaterials}
-                productions={ctProductions}
-                shipments={ctShipments}
-                inspections={snap.qaReports}
-                today={vnTodayISO()}
-                onOpenTab={(t) => goTab(t as TabKey)}
-              />
-              {/* ⑥ DATA — bảng PO, cuộn trong khung của nó (`DNA-6`). */}
-              {cc && <ActionablePoList pos={cc.pos} error={cc.errors.orders} onOpenPo={openPo} />}
-              <div className="max-h-[30rem] overflow-y-auto rounded-2xl border border-slate-200">
-                <PoList rows={poRows} error={poError} onRefresh={refresh} />
-              </div>
-            </>
+            <MdOrderCenter
+              pos={poRows}
+              materials={ctMaterials}
+              productions={ctProductions}
+              shipments={ctShipments}
+              inspections={snap.qaReports}
+              today={vnTodayISO()}
+              onOpenTab={(t) => goTab(t as TabKey)}
+              ccPos={cc?.pos ?? []}
+              ccLoi={cc?.errors.orders ?? null}
+              onOpenPo={openPo}
+              poError={poError}
+              onRefresh={refresh}
+            />
           }
           // Board §3: *"Recent Activity — đưa xuống cuối cột."*
           // ⚠️ Nạp KHI BẤM, ⛔ không nạp sẵn: nhật ký ⛔ không phải thứ MD mở
@@ -686,18 +700,12 @@ export default function MdClient({
           </div>
         )}
 
-        {/* 🔴 TAB "PO" ⛔ KHÔNG DỰNG LẠI GÌ — Board Directive 07/08/2026 (MD
-            Home V2): hành trình đơn và bảng PO nay nằm ở **cột giữa** phía
-            trên. Dựng lại ở đây là **đúng thứ trùng lặp Board yêu cầu xoá**
-            (§7: *"card trùng dữ liệu · bảng ⛔ không có hành động"*).
-            ⚠️ Thanh 13 tab **giữ nguyên** — nó vẫn là đường vào 12 khu còn lại. */}
+        {/* Tab "PO" ⛔ không dựng lại gì: hành trình đơn và bảng PO nay ở
+            **cột giữa** phía trên (Board §11 — xoá card trùng dữ liệu). */}
         {tab === 'po' && (
-          <div className="p-5">
-            <p className="text-sm text-slate-500">
-              Hành trình đơn hàng và danh sách PO nằm ở <strong>cột giữa</strong> phía trên —
-              ⛔ <strong>không</strong> bày lại ở đây để tránh trùng lặp.
-            </p>
-          </div>
+          <p className="p-5 text-sm text-slate-500">
+            Hành trình đơn hàng và danh sách PO nằm ở <strong>cột giữa</strong> phía trên.
+          </p>
         )}
 
         {/* 🔑 Ba bảng dời sang `md-flow-tables.tsx` — Board Directive 06/08/2026

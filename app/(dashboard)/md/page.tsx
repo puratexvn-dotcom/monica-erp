@@ -3,6 +3,16 @@ import { loadMdSnapshot, type MdSnapshot } from './md-actions';
 import { listPoRows } from './_services/po.service';
 import { listStyles } from './_services/style.service';
 import { napNguonDigest } from './_services/daily-digest.service';
+// 🔴 NẠP COMMAND CENTER Ở MÁY CHỦ — sửa lỗi "hiện giao diện CŨ vài giây".
+//
+// Trước bản này `md-client` gọi `getCommandCenterClient()` trong `useEffect`,
+// tức **sau khi hydrate**. HTML đầu tiên vì vậy ⛔ KHÔNG có ba cột — người
+// dùng thấy khung cũ + thanh tab, rồi mới thấy Workspace mới thay vào.
+//
+// 🔑 Đó ⛔ không phải "chậm" — đó là **hai giao diện khác nhau nối tiếp nhau**,
+// đúng thứ Board cấm. Sửa bằng cách nạp ở máy chủ để **HTML đầu tiên đã là
+// giao diện cuối cùng**.
+import { getCommandCenter } from './_services/command-center.service';
 import { tongHopNgay } from '@/lib/mos/md/daily-digest';
 import MdClient from './md-client';
 import type { PoOption } from './md-types';
@@ -35,14 +45,28 @@ export const dynamic = 'force-dynamic';
 export default async function MerchandiserPage() {
   // allSettled: một truy vấn lỗi không được kéo cả trang sang error boundary.
   // Mỗi nhóm dữ liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
-  const [snapRes, poRes, styleRes, digestRes] = await Promise.allSettled([
+  const [snapRes, poRes, styleRes, digestRes, ccRes] = await Promise.allSettled([
     loadMdSnapshot(),
     listPoRows(),
     listStyles(),
     // Báo cáo ngày — Board 06/08/2026. Nguồn hỏng ⇒ digest tự ghi "⚪ chưa đo
     // được" thay vì bịa số 0, nên ⛔ không cần nhánh lỗi riêng ở đây.
     napNguonDigest(),
+    // ⚠️ Trong CÙNG `allSettled`: nó chạy **song song** với bốn nguồn kia, nên
+    // ⛔ không cộng thêm thời gian chờ — chỉ dời chỗ từ client sang server.
+    getCommandCenter(),
   ]);
+
+  // Command Center hỏng ⇒ trả cấu trúc RỖNG kèm lời khai, ⛔ không ném lỗi:
+  // ba cột vẫn phải dựng được để người dùng thấy phần còn lại.
+  const cc = ccRes.status === 'fulfilled'
+    ? ccRes.value
+    : {
+      tasks: [], pos: [], alerts: [],
+      errors: {
+        all: `Không đọc được Command Center: ${ccRes.reason instanceof Error ? ccRes.reason.message : String(ccRes.reason)}`,
+      } as Record<string, string | null>,
+    };
 
   let snapshot: MdSnapshot;
   if (snapRes.status === 'fulfilled') {
@@ -107,6 +131,7 @@ export default async function MerchandiserPage() {
         // chắc chắn bị từ chối. Hàng rào thật nằm ở `setCostingStatus` (máy chủ)
         // và RLS — xem `lib/mos/md/costing-approval.ts`.
         role={(await guard()).role}
+        initialCc={cc}
         initialSnapshot={snapshot}
         initialPoRows={po.rows}
         initialPoError={po.error}

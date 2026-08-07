@@ -25,7 +25,7 @@ import type { LucideIcon } from 'lucide-react';
 import { FilePlus2, UserPlus, Calculator, Shirt, FileText, Boxes } from 'lucide-react';
 
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
-import { theBamDuoc, huyHieuThe } from '@/components/ui';
+import { SAC_NHOM } from '@/components/ui';
 
 export interface HanhDongMd {
   taoPo: () => void;
@@ -36,18 +36,24 @@ export interface HanhDongMd {
   yeuCauNpl: () => void;
 }
 
-const the = `group flex flex-col items-start gap-2.5 p-4 ${theBamDuoc}`;
+// 🔴 Board §12: *"Các nút tạo mới: **⛔ Không dùng button trắng.** Phải nổi
+// bật. Có icon. Có màu."* — sắc **Action = xanh dương**.
+const the =
+  `group flex flex-col items-start gap-2.5 rounded-2xl border p-4 text-left transition ` +
+  `${SAC_NHOM.action.vien} ${SAC_NHOM.action.nen} ` +
+  `hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 ` +
+  SAC_NHOM.action.tuongTac;
 
 function The({ nhan, phu, icon: Icon, chay }: {
   nhan: string; phu: string; icon: LucideIcon; chay: () => void;
 }) {
   return (
     <button type="button" onClick={chay} className={the}>
-      <span className={`${huyHieuThe} h-10 w-10`}>
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className={`block text-slate-900 ${TYPE.bodySm} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
+        <span className={`block ${SAC_NHOM.action.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>+ {nhan}</span>
         <span className={`block text-slate-500 ${TYPE.caption}`}>{phu}</span>
       </span>
     </button>

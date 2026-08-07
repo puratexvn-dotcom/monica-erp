@@ -65,6 +65,46 @@ export const theBamDuoc =
  *  được**, ⛔ không phải **mò ra**. */
 export const loiDiChu = 'text-blue-700 transition hover:bg-blue-50 rounded-lg';
 
+// ============================================================================
+// 🎨 SẮC THEO NHÓM CHỨC NĂNG — Board Directive 07/08/2026 §12
+//
+//   Action → xanh dương · Risk → đỏ · Today → cam · Journey → xanh lá ·
+//   Dashboard → tím
+//
+// 🔑 Màu ở đây là **THÔNG TIN**, ⛔ không phải trang trí (Hiến pháp §44.6):
+// nó cho biết *"khối này thuộc loại việc nào"* trước cả khi đọc chữ. Mắt học
+// bảng màu sau vài lần mở, rồi định vị được khu cần tới mà ⛔ không phải đọc
+// tiêu đề.
+//
+// ⚠️ Nền **rất nhạt** (`-50`) và viền `-200`: Board nói *"⛔ không lòe loẹt, ⛔
+// không rainbow, premium"*. Sắc mạnh chỉ dành cho **biểu tượng** và **viền
+// trên** — đủ để nhận ra, ⛔ không đủ để làm màn hình ồn.
+// ============================================================================
+export const SAC_NHOM = {
+  action: {
+    nen: 'bg-blue-50', vien: 'border-blue-200', chu: 'text-blue-700',
+    huy: 'bg-blue-100 text-blue-700',
+    // Trạng thái tương tác gom sẵn ở đây để tệp phân hệ ⛔ không phải viết
+    // `hover:bg-blue-100` — bánh cóc `TD-07` chặn màu trần trong tệp MỚI.
+    tuongTac: 'hover:bg-blue-100/70 focus-visible:ring-blue-200',
+  },
+  risk: { nen: 'bg-rose-50', vien: 'border-rose-200', chu: 'text-rose-700', huy: 'bg-rose-100 text-rose-700' },
+  today: { nen: 'bg-amber-50', vien: 'border-amber-200', chu: 'text-amber-700', huy: 'bg-amber-100 text-amber-700' },
+  journey: { nen: 'bg-emerald-50', vien: 'border-emerald-200', chu: 'text-emerald-700', huy: 'bg-emerald-100 text-emerald-700' },
+  dashboard: { nen: 'bg-violet-50', vien: 'border-violet-200', chu: 'text-violet-700', huy: 'bg-violet-100 text-violet-700' },
+} as const;
+
+export type SacNhom = keyof typeof SAC_NHOM;
+
+/** Khung một Box có đầu màu nhẹ — Board §12: *"Các Box có Header màu nhẹ. ⛔
+ *  Không trắng toàn bộ."* */
+export function hopNhom(n: SacNhom): string {
+  return `rounded-2xl border ${SAC_NHOM[n].vien} bg-white overflow-hidden`;
+}
+export function dauHopNhom(n: SacNhom): string {
+  return `flex items-center justify-between gap-3 border-b ${SAC_NHOM[n].vien} ${SAC_NHOM[n].nen} px-4 py-2.5`;
+}
+
 /** Huy hiệu biểu tượng của thẻ hành động. */
 export const huyHieuThe =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-100';

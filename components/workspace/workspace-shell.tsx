@@ -81,6 +81,9 @@ export interface WorkspaceShellProps {
    */
   bocCuc?: 'doc' | 'ngang' | 'tuyBien';
   hanhDongNhanh: readonly QuickAction[];
+  /** Ẩn bớt phần khung. `'dauTrang'` = bỏ tiêu đề; `'ca'` = bỏ cả tiêu đề lẫn
+   *  lối về trang chủ. Bỏ trống = giữ nguyên như cũ cho 12 phân hệ còn lại. */
+  an?: 'dauTrang' | 'ca';
   /**
    * Lỗi đọc dữ liệu từ Command Center. `null`/bỏ trống = đọc được.
    *
@@ -94,7 +97,7 @@ export interface WorkspaceShellProps {
 }
 
 export default function WorkspaceShell({
-  moduleKey, tenModule, moTaKey, feed, loi, hanhDongNhanh, bocCuc = 'doc', children,
+  moduleKey, tenModule, moTaKey, feed, loi, hanhDongNhanh, bocCuc = 'doc', an, children,
 }: WorkspaceShellProps) {
   const { t } = useLanguage();
   const mau = MODULE_IDENTITY[moduleKey];
@@ -102,13 +105,22 @@ export default function WorkspaceShell({
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       {/* ─── ĐẦU TRANG ────────────────────────────────────────────────── */}
-      <header className="mb-8">
-        <p className={`${TYPE.overline} ${mau.primary}`}>{t('workspace.eyebrow')}</p>
-        {/* Tên Module ⛔ KHÔNG đi qua `t()` — từ vựng hiến định (§45.3), và
-            phép kiểm ⑪ cưỡng chế điều đó. */}
-        <h1 className={`${TYPE.pageTitle} mt-1 text-slate-900`}>{tenModule}</h1>
-        <p className={`${TYPE.body} mt-1.5 text-slate-500`}>{t(moTaKey)}</p>
-      </header>
+      {/* 🔴 `an='dauTrang'` — Board Directive 07/08/2026 §2: *"Xóa hoàn toàn
+          KHÔNG GIAN LÀM VIỆC / Merchandising / mô tả. **⛔ Không để khoảng
+          trắng. ⛔ Không giữ chiều cao cũ.**"*
+          🔑 Thanh trên của Dashboard đã in **tên phân hệ** rồi; khối này lặp
+          lại đúng thông tin đó và ăn ~150 px của màn hình đầu tiên.
+          ⚠️ Trả `null`, ⛔ KHÔNG trả `<header className="h-0">` — thẻ rỗng vẫn
+          giữ `mb-8` và để lại đúng khoảng trắng Board yêu cầu xoá. */}
+      {an !== 'dauTrang' && an !== 'ca' && (
+        <header className="mb-8">
+          <p className={`${TYPE.overline} ${mau.primary}`}>{t('workspace.eyebrow')}</p>
+          {/* Tên Module ⛔ KHÔNG đi qua `t()` — từ vựng hiến định (§45.3), và
+              phép kiểm ⑪ cưỡng chế điều đó. */}
+          <h1 className={`${TYPE.pageTitle} mt-1 text-slate-900`}>{tenModule}</h1>
+          <p className={`${TYPE.body} mt-1.5 text-slate-500`}>{t(moTaKey)}</p>
+        </header>
+      )}
 
       {/* ⚠️ Băng lỗi đứng TRƯỚC mọi khối dữ liệu. Đặt nó ở cuối trang thì
           người dùng đọc xong bốn số 0 rồi mới biết là **⛔ chưa đọc được** —
@@ -208,7 +220,12 @@ export default function WorkspaceShell({
 
       {/* Lối về trang chủ — `EP-2`: nút `Home` phải về được Launcher từ **mọi**
           Workspace, nếu ⛔ không trang chủ thôi là *"điểm vào"* và chỉ còn là
-          *"trang đăng nhập"*. */}
+          *"trang đăng nhập"*.
+          🔴 Board §3: *"Logo MONICA **đã là Home**. ⛔ Không được lặp chức
+          năng."* ⇒ phân hệ nào bật `an='ca'` thì bỏ nút này.
+          ⚠️ `EP-2` VẪN ĐƯỢC GIỮ: logo ở thanh trên là `<Link href="/">` — lối
+          về Launcher ⛔ không mất, nó chỉ **thôi có hai chỗ**. */}
+      {an !== 'ca' && (
       <div className="mt-8">
         <Link
           href="/"
@@ -217,6 +234,7 @@ export default function WorkspaceShell({
           ← {t('workspace.backHome')}
         </Link>
       </div>
+      )}
     </div>
   );
 }

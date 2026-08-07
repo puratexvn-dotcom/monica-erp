@@ -61,7 +61,8 @@ export default function MdRiskCenter({
   //
   // ⚠️ **⛔ KHÔNG giấu số bị cắt.** Nói thẳng còn bao nhiêu và chỉ chỗ xem —
   // cắt im lặng thì màn hình đọc thành *"chỉ có 8 vấn đề"*.
-  const TOI_DA = 8;
+  // Board §10: mở sẵn **4 dòng**, phần còn lại sau nút mở rộng.
+  const TOI_DA = 4;
   const bay = [
     ...canhBao.map((c, i) => ({ loai: 'd' as const, key: `d-${i}-${c.tieuDe}`, c })),
     ...alerts.map((a) => ({ loai: 'a' as const, key: a.id, a })),
