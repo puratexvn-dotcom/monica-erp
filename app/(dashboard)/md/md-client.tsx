@@ -47,6 +47,7 @@ import MdHoatDong from '@/components/md/command-center/md-hoat-dong';
 import MdOrderCenter from './md-order-center';
 import MdDialogs from './md-dialogs';
 import KhoiGap from '@/components/ui/khoi-gap';
+import { nhoTab, tabDaNho } from './md-tab-memory';
 import { O_LAUNCHER_MD } from './md-launcher-items';
 import { sinhLichTaChoDonCu } from './_actions/po.actions';
 import CommandPalette from '@/components/md/command-palette';
@@ -143,7 +144,9 @@ export default function MdClient({
   initialStyleError: string | null;
   poOptions: PoOption[];
 }) {
-  const [tab, setTab] = useState<TabKey>('po');
+  // Tab đang mở phải sống sót qua lần React dựng lại — lý do đầy đủ và ba
+  // phép đo ở `./md-tab-memory.ts` (UAT `BUG-2`).
+  const [tab, setTab] = useState<TabKey>(tabDaNho());
   const [snap, setSnap] = useState(initialSnapshot);
   const [poRows, setPoRows] = useState(initialPoRows);
   const [poError, setPoError] = useState(initialPoError);
@@ -238,6 +241,9 @@ export default function MdClient({
   // nhưng bảng lệnh tìm nhanh còn nhảy tới tab Mã hàng và Khách hàng. KpiTarget
   // là tập con của TabKey nên KpiGrid vẫn truyền vào được, không phải ép kiểu.
   const goTab = useCallback((target: TabKey) => {
+    // Ghi vào biến tầm module TRƯỚC khi đổi state: nếu Server Action dựng lại
+    // component ngay sau đó, giá trị này là thứ duy nhất còn sống.
+    nhoTab(target);
     setTab(target);
     tabBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
@@ -592,7 +598,10 @@ export default function MdClient({
                     key={t.key}
                     role="tab"
                     aria-selected={on}
-                    onClick={() => setTab(t.key)}
+                    // Qua `goTab` chứ ⛔ không `setTab` thẳng — `goTab` mới là
+                    // chỗ ghi nhớ tab. Hai đường đổi tab mà chỉ một đường ghi
+                    // nhớ là đúng cách để `BUG-2` quay lại ở nửa số nút.
+                    onClick={() => goTab(t.key)}
                     // ring-inset thay cho border: viền vẽ vào PHÍA TRONG nên nút
                     // không đổi kích thước giữa hai trạng thái, hàng tab không
                     // nhích qua lại mỗi lần bấm.

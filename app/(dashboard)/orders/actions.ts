@@ -5,6 +5,11 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 import { canAccess, isRole } from '@/lib/rbac';
 import { poFormSchema, type PoRow } from './po-schema';
+// 🔴 UAT `BUG-3` — xem chú thích tại chỗ gọi trong `createOrder`.
+// ⚠️ Dùng LẠI hàm ghi nhật ký đã có ở phân hệ MD, ⛔ không viết hàm thứ hai:
+// hai đường ghi nhật ký là hai khuôn bản ghi, và lúc tra cứu sẽ phải hợp nhất
+// hai định dạng — đúng thứ một sổ kiểm toán ⛔ không được phép có.
+import { writeAudit } from '../md/_actions/audit';
 
 // ============================================================================
 // SERVER ACTIONS — Quản lý đơn hàng (bảng `orders`)
@@ -82,7 +87,7 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     return { ok: false, message: 'Dữ liệu chưa hợp lệ.', fieldErrors };
   }
 
-  const { error: dbError } = await supabase.from('orders').insert({
+  const { data: dong, error: dbError } = await supabase.from('orders').insert({
     po_number: parsed.data.po_number,
     customer_name: parsed.data.customer_name,
     style_code: parsed.data.style_code,
@@ -94,7 +99,7 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     currency: parsed.data.currency,
     unit_price: parsed.data.unit_price ?? null,
     status: parsed.data.status,
-  });
+  }).select('id').single();
 
   if (dbError) {
     // 23505 = vi phạm UNIQUE. Báo đúng ô bị trùng thay vì ném mã lỗi Postgres.
@@ -107,6 +112,29 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     }
     return { ok: false, message: `Không tạo được đơn hàng: ${dbError.message}` };
   }
+
+  // 🔴 THÊM 07/08/2026 · UAT `BUG-3` — TRƯỚC ĐÂY TẠO PO ⛔ KHÔNG ĐỂ LẠI VẾT.
+  //
+  // Đo bằng phiên md001 thật: lập một PO qua giao diện rồi mở tab **Nhật ký**
+  // ⇒ ⛔ không có dòng nào. Đếm trong mã: `commercial.actions.ts` gọi
+  // `writeAudit` **8 lần**, `po.actions.ts` **3 lần**, còn tệp này — đúng cái
+  // mà nút *"+ Tạo PO"* gọi — **0 lần**.
+  //
+  // 🔑 Nghĩa là **chứng từ quan trọng nhất hệ thống là chứng từ DUY NHẤT
+  // ⛔ không có vết**. Khách hàng · yêu cầu báo giá · chiết tính đều truy được
+  // *"ai lập, lúc nào"*; đơn hàng thì ⛔ không.
+  //
+  // ⚠️ `writeAudit` cố ý **⛔ không ném lỗi** *(xem `audit.ts`)*: nhật ký hỏng
+  // ⛔ không được làm hỏng việc tạo đơn. Nên đặt nó SAU khi ghi thành công và
+  // ⛔ không `try/catch` thêm ở đây — thêm nữa là che mất log máy chủ.
+  await writeAudit('ORDER', (dong as { id: string } | null)?.id ?? null, 'CREATE', {
+    po_number: { from: null, to: parsed.data.po_number },
+    total_quantity: { from: null, to: parsed.data.total_quantity },
+    // Giá trị thương mại vào thẳng nhật ký: đây là ô hay bị sửa nhất sau khi
+    // đàm phán lại, và cũng là ô cần truy vết nhất.
+    unit_price: { from: null, to: parsed.data.unit_price ?? null },
+    currency: { from: null, to: parsed.data.currency },
+  });
 
   revalidatePath(MODULE_PATH);
   return { ok: true, message: `Đã tạo đơn hàng ${parsed.data.po_number}.` };

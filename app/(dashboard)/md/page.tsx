@@ -45,7 +45,7 @@ export const dynamic = 'force-dynamic';
 export default async function MerchandiserPage() {
   // allSettled: một truy vấn lỗi không được kéo cả trang sang error boundary.
   // Mỗi nhóm dữ liệu tự báo lỗi của riêng nó, phần còn lại vẫn dùng được.
-  const [snapRes, poRes, styleRes, digestRes, ccRes] = await Promise.allSettled([
+  const [snapRes, poRes, styleRes, digestRes, ccRes, roleRes] = await Promise.allSettled([
     loadMdSnapshot(),
     listPoRows(),
     listStyles(),
@@ -55,7 +55,29 @@ export default async function MerchandiserPage() {
     // ⚠️ Trong CÙNG `allSettled`: nó chạy **song song** với bốn nguồn kia, nên
     // ⛔ không cộng thêm thời gian chờ — chỉ dời chỗ từ client sang server.
     getCommandCenter(),
+    // 🔴 SỬA 07/08/2026 · UAT `BUG-2` — TRƯỚC ĐÂY `guard()` được `await`
+    // **ngay bên trong JSX** (`role={(await guard()).role}`).
+    //
+    // ─── 🔑 VÌ SAO MỘT DÒNG ĐÓ LÀM MẤT TOÀN BỘ STATE ────────────────────
+    // `await` trong JSX là một **điểm treo nằm SAU** phần render còn lại. Mỗi
+    // lần Server Action gọi `revalidatePath('/md')`, route được vẽ lại, điểm
+    // treo đó treo lần nữa, và React **huỷ rồi dựng lại** `MdClient`.
+    // Dựng lại ⇒ `useState<TabKey>('po')` về mặc định.
+    //
+    // Hệ quả đo được bằng phiên md001 thật: **tạo xong bất kỳ chứng từ nào,
+    // người dùng bị ném về màn hình Command Center** và ⛔ không thấy thứ vừa
+    // tạo. Đo tách bạch: bấm *"Tải lại"* (thuần client) thì tab **giữ nguyên**;
+    // chỉ Server Action mới làm mất — đúng dấu vân tay của điểm treo này.
+    //
+    // ⚠️ Đặt vào CÙNG `allSettled` chứ ⛔ không `await` riêng một dòng: nó chạy
+    // **song song** với năm nguồn kia nên ⛔ không cộng thêm mili-giây nào, và
+    // ⛔ không còn `await` nào nằm trong JSX.
+    guard(),
   ]);
+
+  // Vai chỉ để giao diện ⛔ không mời bấm thứ chắc chắn bị từ chối. `guard()`
+  // hỏng ⇒ `null` ⇒ giao diện khoá chặt hơn, ⛔ không mở rộng hơn.
+  const role = roleRes.status === 'fulfilled' ? roleRes.value.role : null;
 
   // Command Center hỏng ⇒ trả cấu trúc RỖNG kèm lời khai, ⛔ không ném lỗi:
   // ba cột vẫn phải dựng được để người dùng thấy phần còn lại.
@@ -130,7 +152,7 @@ export default async function MerchandiserPage() {
         // 🔴 Vai truyền xuống CHỈ để giao diện ⛔ không mời người dùng bấm thứ
         // chắc chắn bị từ chối. Hàng rào thật nằm ở `setCostingStatus` (máy chủ)
         // và RLS — xem `lib/mos/md/costing-approval.ts`.
-        role={(await guard()).role}
+        role={role}
         initialCc={cc}
         initialSnapshot={snapshot}
         initialPoRows={po.rows}
