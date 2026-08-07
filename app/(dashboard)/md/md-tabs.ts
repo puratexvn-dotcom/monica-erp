@@ -75,6 +75,24 @@ export const TABS: TabDef[] = [
 
 export const GROUPS = ['Thương mại', 'Triển khai', 'Phối hợp'] as const;
 
+/**
+ * Năm tab MD dùng **hằng ngày** — Board Directive *MD V4* §13: *"Hiển thị 5
+ * Tab đầu + More ▼. ⛔ Không xoá tab."*
+ *
+ * 🔑 Chọn theo **nhịp làm việc**, ⛔ không theo thứ tự bảng chữ cái:
+ *   `po`         — mở mỗi sáng
+ *   `materials`  — hỏi mỗi trưa *"NPL về chưa"*
+ *   `production` — hỏi mỗi trưa *"chuyền chạy chưa"*
+ *   `shipments`  — mỗi chiều, booking tàu
+ *   `comments`   — buyer hỏi là phải trả lời trong ngày
+ *
+ * ⚠️ Tám tab còn lại là việc **theo chu kỳ** *(một lần mỗi mã hàng, mỗi tháng)*
+ * — chúng vào **More ▼**, ⛔ **không bị xoá**. Board nói rõ: *"⛔ Không xoá tab."*
+ */
+export const TAB_HANG_NGAY: readonly TabKey[] = [
+  'po', 'materials', 'production', 'shipments', 'comments',
+];
+
 export function fmtDate(v: string | null): string {
   if (!v) return '—';
   const [y, m, d] = v.slice(0, 10).split('-');

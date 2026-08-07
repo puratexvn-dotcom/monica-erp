@@ -38,13 +38,21 @@ const NHAN_DICH: Record<DichCanhBao, string> = {
 };
 
 export default function MdRiskCenter({
-  canhBao, alerts, loi, onDi,
+  canhBao: canhBaoGoc, alerts, loi, onDi, boQua,
 }: {
   canhBao: readonly CanhBao[];
   alerts: readonly MosAlert[];
   loi?: string | null;
   onDi: (dich: DichCanhBao) => void;
+  /** Tiêu đề ĐÃ hiện ở khối *Hôm nay* — Board §5: *"Risk ⛔ không lặp dữ liệu
+   *  Today."* Bỏ chúng ra khỏi đây thay vì bày lần thứ hai. */
+  boQua?: readonly string[];
 }) {
+  // 🔴 Lọc TRƯỚC khi đếm: con số *"N mục"* phải khớp thứ **thật sự còn lại**,
+  // ⛔ không phải tổng trước khi lọc — số ⛔ không khớp danh sách là số nói dối.
+  const canhBao = boQua && boQua.length > 0
+    ? canhBaoGoc.filter((c) => !boQua.includes(c.tieuDe))
+    : canhBaoGoc;
   const tong = canhBao.length + alerts.length;
 
   // 🔴 CHẶN NGƯỠNG — Board Directive 07/08/2026 §5: *"Chỉ hiển thị vấn đề. ⛔

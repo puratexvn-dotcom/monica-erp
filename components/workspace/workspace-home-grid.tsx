@@ -32,7 +32,7 @@
 // ============================================================================
 
 export default function WorkspaceHomeGrid({
-  actionCenter, myWork, workCenter, risk, dashboard,
+  actionCenter, myWork, workCenter, risk, dashboard, deu = false,
 }: {
   /** Dải thao tác nhanh — full ngang, trên cùng. Bỏ trống nếu phân hệ chưa có. */
   actionCenter?: React.ReactNode;
@@ -44,6 +44,12 @@ export default function WorkspaceHomeGrid({
   risk: React.ReactNode;
   /** DƯỚI ba cột — báo cáo, biểu đồ tổng. */
   dashboard?: React.ReactNode;
+  /** `true` ⇒ chia **4/4/4** thay vì 3/6/3.
+   *
+   *  🔑 3/6/3 đúng khi cột giữa chứa **bảng**. Khi cả ba cột đều là khối
+   *  **đọc nhanh** *(V4: Today · KPI · Risk)* thì cột giữa ⛔ không cần rộng
+   *  gấp đôi — và để nó gấp đôi sẽ làm hai cột bên bị bóp ⛔ không cần thiết. */
+  deu?: boolean;
 }) {
   return (
     <>
@@ -52,16 +58,16 @@ export default function WorkspaceHomeGrid({
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         {/* ⚠️ Cột giữa GẤP ĐÔI hai cột bên: nó chứa bảng dữ liệu. Chia đều thì
             bảng bị bóp còn nửa chiều ngang và phải **cuộn ngang**. */}
-        <section aria-label="Công việc của tôi" className="order-2 space-y-5 lg:order-1 lg:col-span-3">
+        <section aria-label="Công việc của tôi" className={`order-2 space-y-5 lg:order-1 ${deu ? 'lg:col-span-4' : 'lg:col-span-3'}`}>
           {myWork}
         </section>
 
-        <section aria-label="Khu làm việc chính" className="order-3 space-y-5 lg:order-2 lg:col-span-6">
+        <section aria-label="Khu làm việc chính" className={`order-3 space-y-5 lg:order-2 ${deu ? 'lg:col-span-4' : 'lg:col-span-6'}`}>
           {workCenter}
         </section>
 
         {/* 🔴 `order-1` trên điện thoại — LÊN ĐẦU, trước cả My Work. */}
-        <section aria-label="Cần xử lý ngay" className="order-1 lg:order-3 lg:col-span-3">
+        <section aria-label="Cần xử lý ngay" className={`order-1 lg:order-3 ${deu ? 'lg:col-span-4' : 'lg:col-span-3'}`}>
           {risk}
         </section>
       </div>

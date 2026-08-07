@@ -38,10 +38,11 @@ export interface HanhDongMd {
 
 // 🔴 Board §12: *"Các nút tạo mới: **⛔ Không dùng button trắng.** Phải nổi
 // bật. Có icon. Có màu."* — sắc **Action = xanh dương**.
+// Thẻ PHỤ: viền nhạt, **nền trắng** — nhẹ hơn thẻ chính một bậc để mắt phân
+// biệt được ngay mà ⛔ không cần đọc nhãn.
 const the =
-  `group flex flex-col items-start gap-2.5 rounded-2xl border p-4 text-left transition ` +
-  `${SAC_NHOM.action.vien} ${SAC_NHOM.action.nen} ` +
-  `hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 ` +
+  `group flex flex-col items-start gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 text-left transition ` +
+  `hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 ` +
   SAC_NHOM.action.tuongTac;
 
 function The({ nhan, phu, icon: Icon, chay }: {
@@ -49,11 +50,11 @@ function The({ nhan, phu, icon: Icon, chay }: {
 }) {
   return (
     <button type="button" onClick={chay} className={the}>
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
-        <Icon className="h-5 w-5" aria-hidden="true" />
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
+        <Icon className="h-4.5 w-4.5" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className={`block ${SAC_NHOM.action.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>+ {nhan}</span>
+        <span className={`block text-slate-800 ${TYPE.bodySm} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
         <span className={`block text-slate-500 ${TYPE.caption}`}>{phu}</span>
       </span>
     </button>
@@ -64,9 +65,34 @@ export default function MdActionCards({ hd }: { hd: HanhDongMd }) {
   return (
     <section aria-label="Action Center" className="mb-5">
       <h2 className={`mb-2.5 text-slate-700 ${TYPE.overline}`}>Bắt đầu việc gì?</h2>
-      {/* Sáu ô — điện thoại 2, bảng 3, máy bàn 6. ⛔ Không để xuống dòng lẻ. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <The nhan="Tạo PO" phu="đơn hàng mới" icon={FilePlus2} chay={hd.taoPo} />
+
+      {/* 🔴 MỘT PRIMARY, NĂM SECONDARY — Board §3: *"+ Tạo PO nổi bật nhất."*
+          🔑 Sáu nút **cùng cỡ, cùng màu** là sáu nút **⛔ không nút nào nổi**.
+          Người dùng phải đọc cả sáu nhãn mới chọn được — đó là thuế nhận thức
+          trả cho một quyết định mà 80% thời gian đã biết trước câu trả lời. */}
+      {/* ⚠️ **BẢY** cột, ⛔ không phải sáu: thẻ chính chiếm 2 ô ⇒ 2 + 5 = 7 vừa
+          khít một hàng. Để `grid-cols-6` thì ô thứ sáu bị đẩy xuống dòng riêng
+          và dải trông như bị vỡ. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+        <button
+          type="button"
+          onClick={hd.taoPo}
+          className={
+            'group col-span-2 flex items-center gap-3 rounded-2xl border p-4 text-left transition ' +
+            `${SAC_NHOM.action.vien} ${SAC_NHOM.action.nen} ` +
+            'hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 ' +
+            SAC_NHOM.action.tuongTac
+          }
+        >
+          <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
+            <FilePlus2 className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <span className="min-w-0">
+            <span className={`block ${SAC_NHOM.action.chu} ${TYPE.body} ${FONT_WEIGHT.bold}`}>+ Tạo PO</span>
+            <span className={`block text-slate-500 ${TYPE.caption}`}>đơn hàng mới — việc chính của MD</span>
+          </span>
+        </button>
+
         <The nhan="Khách hàng" phu="thêm vào danh mục" icon={UserPlus} chay={hd.khachHang} />
         <The nhan="Chiết tính" phu="tích công đoạn ⇒ giá" icon={Calculator} chay={hd.chietTinh} />
         <The nhan="Định mức" phu="mã hàng · BOM" icon={Shirt} chay={hd.dinhMuc} />

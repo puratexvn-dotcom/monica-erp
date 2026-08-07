@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 // dòng đang sửa và gỡ nó ⛔ không đổi hành vi.
 import {
   Plus, RefreshCw, AlertTriangle, Sparkles, Loader2, Handshake, ArrowUpRight,
+  ChevronDown,
 } from 'lucide-react';
 
 import { Card, btnPrimary, btnGhost } from '@/components/ui';
@@ -44,6 +45,9 @@ import MdDailyFocus from '@/components/md/command-center/md-daily-focus';
 import MdTaskSection from '@/components/md/command-center/md-task-section';
 import MdHoatDong from '@/components/md/command-center/md-hoat-dong';
 import MdOrderCenter from './md-order-center';
+import MdDialogs from './md-dialogs';
+import KhoiGap from '@/components/ui/khoi-gap';
+import { O_LAUNCHER_MD } from './md-launcher-items';
 import { sinhLichTaChoDonCu } from './_actions/po.actions';
 import CommandPalette from '@/components/md/command-palette';
 import Po360Sheet from '@/components/md/po/po-360-sheet';
@@ -58,7 +62,7 @@ import { GROUP_TONE } from '@/components/md/semantic-tone';
 // 🔑 Siêu dữ liệu 13 tab dời sang `md-tabs.ts` — Board Directive 06/08/2026 ·
 // `KD-4` `TD-39`. Phép dời THUẦN: ⛔ không đổi nghiệp vụ, giao diện hay API.
 import {
-  TABS, GROUPS, CREATE_LABEL,
+  TABS, GROUPS, CREATE_LABEL, TAB_HANG_NGAY,
   type TabKey,
 } from './md-tabs';
 import {
@@ -145,6 +149,10 @@ export default function MdClient({
   const [poError, setPoError] = useState(initialPoError);
   const [styles, setStyles] = useState(initialStyles);
   const [styleError, setStyleError] = useState(initialStyleError);
+  // 🔴 Board §13: *"Hiển thị 5 Tab đầu + More ▼. ⛔ Không xoá tab."*
+  // ⚠️ Tab **đang mở** luôn hiện dù ⛔ không thuộc nhóm hằng ngày — ⛔ không thì
+  // người dùng bấm More, chọn một tab, rồi thấy chính tab đó biến mất.
+  const [moTabPhu, setMoTabPhu] = useState(false);
   const [dialog, setDialog] = useState<TabKey | null>(null);
   const [autoDialog, setAutoDialog] = useState<'material' | 'production' | null>(null);
   const [pending, startTransition] = useTransition();
@@ -179,9 +187,8 @@ export default function MdClient({
     po_number: x.po_number, status: x.status,
     so: x.shipment_no, moc: x.etd_date, evidence_path: x.evidence_path,
   })), [snap.shipments]);
-  // ⚠️ GIỮ hàm nạp lại — sau khi ghi dữ liệu, ba cột phải tươi lại mà ⛔ không
-  // tải lại cả trang. Nhưng ⛔ KHÔNG gọi nó lúc mở trang nữa: dữ liệu đã đi
-  // cùng HTML, gọi thêm là **một lượt mạng thừa và một lần vẽ lại thừa**.
+  // ⚠️ GIỮ hàm nạp lại cho lúc SAU khi ghi. ⛔ Không gọi lúc mở trang: dữ liệu
+  // đã đi cùng HTML, gọi thêm là một lượt mạng thừa.
   const loadCc = useCallback(() => {
     void getCommandCenterClient().then(setCc);
   }, []);
@@ -349,7 +356,10 @@ export default function MdClient({
   // Đếm để hiện trên tab — người dùng biết ngay nhóm nào có việc.
   // Tab chưa nạp thì trả null (ẩn số) chứ không trả 0: hiện 0 khi thật ra
   // chưa đọc sẽ khiến người dùng tưởng là không có dữ liệu.
-  const counts: Record<TabKey, number | null> = {
+  // ⚠️ `useMemo`: bảng này là **phụ thuộc** của `oLauncher` ngay bên dưới.
+  // Dựng lại mỗi lần vẽ thì `oLauncher` cũng dựng lại mỗi lần vẽ, và 10 ô
+  // Launcher render thừa — ESLint bắt đúng chỗ.
+  const counts: Record<TabKey, number | null> = useMemo(() => ({
     customers: customers?.rows.length ?? null,
     rfq: inquiries?.rows.length ?? null,
     costing: costings?.rows.length ?? null,
@@ -363,7 +373,17 @@ export default function MdClient({
     changes: changes?.rows.length ?? null,
     risks: risks?.rows.length ?? null,
     audit: activity?.rows.length ?? null,
-  };
+  }), [customers, inquiries, costings, styles.length, poRows.length, snap, documents, comments, changes, risks, activity]);
+
+  // ① BUSINESS IDENTITY — số lấy từ `counts` ĐÃ tính ở trên, ⛔ không truy vấn
+  // thêm và ⛔ không dựng bảng đếm thứ hai (hai bảng là hai cơ hội lệch nhau).
+  // ⚠️ `customers` ĐÃ có sẵn trong ảnh chụp máy chủ ⇒ dùng nó thay cho bảng
+  // đếm theo tab (bảng đó chỉ có số **sau khi** người dùng mở tab). Ô Launcher
+  // hiện ⚪ trong khi dữ liệu đã nằm sẵn trên trang là **⚪ sai sự thật**.
+  const oLauncher = useMemo(
+    () => O_LAUNCHER_MD({ ...counts, customers: counts.customers ?? snap.customers.length }),
+    [counts, snap.customers.length],
+  );
 
   const errorOf: Record<TabKey, string | null> = {
     customers: customers?.error ?? null,
@@ -488,6 +508,8 @@ export default function MdClient({
           alerts={ccFeed?.alerts ?? []}
           loi={cc.errors.all}
           onDi={(d) => goTab(d as TabKey)}
+          oLauncher={oLauncher}
+          onMoTab={(t) => goTab(t as TabKey)}
           // ⚠️ Sáu hành động ĐÚNG thứ tự Board §2. Mỗi cái mở **đúng chỗ làm
           // việc đó**, ⛔ không chỉ chuyển tab rồi để người dùng tự tìm nút.
           hanhDong={{
@@ -499,13 +521,15 @@ export default function MdClient({
             yeuCauNpl: () => { goTab('materials'); setAutoDialog('material'); },
           }}
           hopThuViec={
-            <MdTaskSection
-              tasks={ccFeed?.tasks ?? []}
-              loi={cc?.errors.all ?? null}
-              wording={MD_URGENCY}
-              emptyHint={MD_TASK_EMPTY_HINT}
-              chaySinhLich={sinhLichTaChoDonCu}
-            />
+            <KhoiGap tieuDe="Hộp thư việc" so={`${ccFeed?.tasks.length ?? 0} việc`}>
+              <MdTaskSection
+                tasks={ccFeed?.tasks ?? []}
+                loi={cc?.errors.all ?? null}
+                wording={MD_URGENCY}
+                emptyHint={MD_TASK_EMPTY_HINT}
+                chaySinhLich={sinhLichTaChoDonCu}
+              />
+            </KhoiGap>
           }
           orderCenter={
             <MdOrderCenter
@@ -516,9 +540,6 @@ export default function MdClient({
               inspections={snap.qaReports}
               today={vnTodayISO()}
               onOpenTab={(t) => goTab(t as TabKey)}
-              ccPos={cc?.pos ?? []}
-              ccLoi={cc?.errors.orders ?? null}
-              onOpenPo={openPo}
               poError={poError}
               onRefresh={refresh}
             />
@@ -527,8 +548,19 @@ export default function MdClient({
           // ⚠️ Nạp KHI BẤM, ⛔ không nạp sẵn: nhật ký ⛔ không phải thứ MD mở
           // máy để đọc, và một truy vấn thừa ở đây là đúng thứ vừa gỡ khỏi
           // đường chặn của trang chủ (TTFB 901 → 74 ms).
-          hoatDong={<MdHoatDong nap={listActivityClient} moTab={() => goTab('audit')} />}
-          dashboard={<DailyDigestCard bc={baoCaoNgay} gonGang />}
+          hoatDong={
+            <KhoiGap tieuDe="Nhật ký thao tác">
+              <MdHoatDong nap={listActivityClient} moTab={() => goTab('audit')} />
+            </KhoiGap>
+          }
+          dashboard={
+            <KhoiGap
+              tieuDe="Báo cáo ngày"
+              so={baoCaoNgay.rong ? '⚪ chưa ai báo cáo' : `${baoCaoNgay.canhBao.length} cảnh báo`}
+            >
+              <DailyDigestCard bc={baoCaoNgay} gonGang />
+            </KhoiGap>
+          }
         />
       )}
 
@@ -558,7 +590,7 @@ export default function MdClient({
               aria-label={`Nhóm ${g}`}
               className="flex flex-1 gap-1.5 overflow-x-auto pb-1"
             >
-              {TABS.filter((t) => t.group === g).map((t) => {
+              {TABS.filter((t) => t.group === g && (moTabPhu || TAB_HANG_NGAY.includes(t.key) || t.key === tab)).map((t) => {
                 const on = t.key === tab;
                 const Icon = t.icon;
                 const n = counts[t.key];
@@ -597,6 +629,17 @@ export default function MdClient({
           </div>
           );
         })}
+
+        {/* More ▼ — 8 tab theo chu kỳ. Board: *"⛔ Không xoá tab."* */}
+        <button
+          type="button"
+          onClick={() => setMoTabPhu((v) => !v)}
+          aria-expanded={moTabPhu}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition hover:bg-slate-100"
+        >
+          {moTabPhu ? 'Thu gọn' : `More (${TABS.length - TAB_HANG_NGAY.length})`}
+          <ChevronDown className={`h-4 w-4 transition ${moTabPhu ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
       </div>
 
       {/* ═══ LỐI VÀO MÀN HÌNH PHẦN VIỆC ═════════════════════════════════════
@@ -794,101 +837,45 @@ export default function MdClient({
         )}
       </Card>
 
-      {/* ── TỔNG QUAN ĐIỀU HÀNH + BIỂU ĐỒ: nằm trong khu gấp ─────────── */}
-      <div className="mt-6 space-y-6 border-t border-slate-200 pt-6">
-        <MosKpiGrid
-          title="Tổng quan điều hành"
-          kpis={kpiCards}
-          loading={dashboard.loading}
-          onReload={dashboard.reload}
-          columns="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-        />
-        <MdCharts data={dashboard.data} />
+      {/* 🔴 XOÁ `MosKpiGrid` — Board §12 *"⛔ không được tồn tại KPI trùng"*.
+          Nó **trùng TÊN** với khối chỉ số ở cột giữa nhưng **khác bộ số**
+          *(4 ⟷ 5 ô)*. ⛔ Không phải thừa — **nguy hiểm**: người dùng ⛔ không
+          biết bộ nào đúng, rồi thôi tin **mọi** con số khác.
+          `MdCharts` xuống khối GẤP — Board §10 *"Analytics thu gọn"*. */}
+      <div className="mt-6 border-t border-slate-200 pt-6">
+        <KhoiGap tieuDe="Phân tích">
+          <MdCharts data={dashboard.data} />
+        </KhoiGap>
       </div>
 
-      {/* ── Các hộp thoại tạo mới ──────────────────────────────────────── */}
-      <CustomerFormDialog
-        open={dialog === 'customers'}
-        onClose={() => setDialog(null)}
-        onCreated={async () => {
-          await loadTab('customers', true);
-          setCustomerOptions(await listCustomerOptionsClient());
-        }}
-      />
-      <InquiryFormDialog
-        open={dialog === 'rfq'}
-        customers={customerOptions}
-        onClose={() => setDialog(null)}
-        onCreated={reloaders.rfq}
-      />
-      <CostingFormDialog
-        open={dialog === 'costing'}
-        customers={customerOptions}
+      {/* Toàn bộ hộp thoại + panel PO 360 + bảng lệnh — tách sang
+          `md-dialogs.tsx` vì trần 900 dòng. Sửa bằng **CẤU TRÚC**, ⛔ không
+          bằng cách nới trần. */}
+      <MdDialogs
+        dialog={dialog}
+        setDialog={setDialog}
+        autoDialog={autoDialog}
+        setAutoDialog={setAutoDialog}
+        congDoanMo={congDoanMo}
+        setCongDoanMo={setCongDoanMo}
+        customerOptions={customerOptions}
+        setCustomerOptions={setCustomerOptions}
         styles={styles}
-        onClose={() => setDialog(null)}
-        onCreated={reloaders.costing}
-      />
-      {/* 🔴 Tính giá theo công đoạn — Board 06/08/2026. Dùng chung state
-          `dialog` nhưng khoá riêng, để nút "Tạo bản chiết tính" (nhập tay) và
-          nút "Tính theo công đoạn" ⛔ không giành nhau một ô nhớ. */}
-      <CostingByOperationsDialog
-        open={congDoanMo}
-        customers={customerOptions}
-        onClose={() => setCongDoanMo(false)}
-        onDone={reloaders.costing}
-      />
-      <PoFormDialog open={dialog === 'po'} onClose={() => setDialog(null)} onCreated={refresh} />
-      <StyleFormDialog open={dialog === 'styles'} onClose={() => setDialog(null)} onCreated={refresh} />
-      <MaterialRequestDialog open={dialog === 'materials'} onClose={() => setDialog(null)} onDone={refresh} pos={poOptions} />
-      <ProductionOrderDialog open={dialog === 'production'} onClose={() => setDialog(null)} onDone={refresh} pos={poOptions} />
-      <ShipmentFormDialog open={dialog === 'shipments'} onClose={() => setDialog(null)} onDone={refresh} pos={poOptions} />
-
-      {/* ── Sinh tự động ───────────────────────────────────────────────── */}
-      <MaterialGenDialog
-        open={autoDialog === 'material'}
-        pos={poRows}
-        onClose={() => setAutoDialog(null)}
-        onDone={refresh}
-      />
-      <ProductionGenDialog
-        open={autoDialog === 'production'}
-        pos={poRows}
-        styleSam={samByOrder}
-        onClose={() => setAutoDialog(null)}
-        onDone={refresh}
-      />
-
-      {/*
-        Form khách hàng RÚT GỌN đời đầu vẫn được giữ nguyên trong md-forms.tsx
-        và mount ở đây để không mất đường cũ; hiện chưa gắn vào nút nào vì form
-        đầy đủ ở trên là bản mở rộng của chính nó (có thêm đồng tiền, điều kiện
-        giao hàng, điều khoản thanh toán, hạn mức công nợ).
-      */}
-      <LegacyCustomerFormDialog open={false} onClose={() => {}} onDone={refresh} />
-
-      {/* ═══ HIỂN THỊ LŨY TIẾN: xem nhanh PO mà KHÔNG rời màn hình ═══════
-          Panel trượt phủ 100% trên điện thoại, ~40% trên màn rộng. Đóng lại
-          là mắt đã ở sẵn chỗ cũ trong Command Center, không phải định vị lại
-          như khi chuyển trang. */}
-      <Po360Sheet
-        orderId={po360?.id ?? null}
-        poNumber={po360?.no ?? null}
-        onClose={() => {
-          setPo360(null);
-          // Xử lý xong một PO thì việc và cảnh báo liên quan có thể đã đổi
-          loadCc();
-        }}
-      />
-
-      <CommandPalette
-        open={paletteOpen}
-        onClose={() => setPaletteOpen(false)}
-        pos={poRows}
-        styles={styles}
+        poRows={poRows}
+        poOptions={poOptions}
+        samByOrder={samByOrder}
         customers={customers?.rows ?? []}
-        onPickPo={openPo}
-        onPickStyle={() => goTab('styles')}
-        onPickCustomer={() => goTab('customers')}
+        reloadRfq={reloaders.rfq}
+        reloadCosting={reloaders.costing}
+        loadTab={loadTab}
+        refresh={refresh}
+        po360={po360}
+        setPo360={setPo360}
+        loadCc={loadCc}
+        paletteOpen={paletteOpen}
+        setPaletteOpen={setPaletteOpen}
+        openPo={openPo}
+        goTab={goTab}
       />
     </WorkspaceShell>
   );

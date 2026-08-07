@@ -199,8 +199,19 @@ export default function WorkspaceShell({
           Hai khối này cần bảng ⛔ chưa tồn tại, và `SECURITY FREEZE` đang chặn
           migration. Hiện chúng ra kèm **lý do thật** thay vì giấu đi hoặc bịa
           số — Playbook Điều XX: *"⛔ Không Mock"*. */}
-      <BlockChoDuLieu tieuDeKey="workspace.calendar" lyDoKey="workspace.needsData" />
-      <BlockChoDuLieu tieuDeKey="workspace.recent" lyDoKey="workspace.needsData" />
+      {/* 🔴 `an='ca'` bỏ hai khối này — Board §12: *"⛔ Không được tồn tại
+          Timeline trùng · Activity trùng."*
+          `/md` đã có **Nhật ký thao tác** thật ở tầng Management; giữ thêm hai
+          khối `SẮP CÓ` cùng tên là **trùng tên, khác nội dung** — thứ dạy người
+          dùng bỏ qua cả khu vực đó.
+          ⚠️ Phân hệ khác **vẫn giữ** chúng: chúng nói thật rằng bảng dữ liệu ⛔
+          chưa tồn tại, và đó là *"⛔ không Mock"* chứ ⛔ không phải rác. */}
+      {an !== 'ca' && (
+        <>
+          <BlockChoDuLieu tieuDeKey="workspace.calendar" lyDoKey="workspace.needsData" />
+          <BlockChoDuLieu tieuDeKey="workspace.recent" lyDoKey="workspace.needsData" />
+        </>
+      )}
 
       {/* ─── DẢI DỊCH VỤ TOÀN CỤC — ĐÃ GỠ 06/08/2026 ────────────────────
           🔴 Gỡ sau đợt rà thực chiến: dải này dựng **4 nút `SẮP CÓ` bị khoá**

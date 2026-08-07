@@ -15,17 +15,15 @@
 // ============================================================================
 import MdOrderJourney from './md-order-journey';
 import PoList from '@/components/md/po/po-list';
-import ActionablePoList from '@/components/md/command-center/actionable-po';
 import { hopNhom, dauHopNhom, SAC_NHOM } from '@/components/ui';
 import KhoiThuGon from '@/components/ui/khoi-thu-gon';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import type { ChungTuCon, BienBanKiem } from '@/lib/mos/md/order-journey';
 import type { PoRow } from '@/schemas/md';
-import type { CommandCenterData } from './_services/command-center.service';
 
 export default function MdOrderCenter({
   pos, materials, productions, shipments, inspections, today, onOpenTab,
-  ccPos, ccLoi, onOpenPo, poError, onRefresh,
+  poError, onRefresh,
 }: {
   pos: PoRow[];
   materials: ChungTuCon[];
@@ -34,9 +32,6 @@ export default function MdOrderCenter({
   inspections: BienBanKiem[];
   today: string;
   onOpenTab: (t: string) => void;
-  ccPos: CommandCenterData['pos'];
-  ccLoi: string | null;
-  onOpenPo: (orderId: string, poNumber: string) => void;
   poError: string | null;
   onRefresh: () => void;
 }) {
@@ -56,9 +51,13 @@ export default function MdOrderCenter({
       />
       </KhoiThuGon>
 
-      {ccPos.length > 0 || ccLoi ? (
-        <ActionablePoList pos={ccPos} error={ccLoi} onOpenPo={onOpenPo} />
-      ) : null}
+      {/* 🔴 XOÁ `ActionablePoList` 07/08/2026 — Board §7: *"Chỉ giữ 1 PO List.
+          Xoá mọi PO Summary trùng lặp."*
+          Nó bày **cùng 14 PO** với Journey ngay trên và Danh sách PO ngay
+          dưới. Thông tin riêng duy nhất của nó — *"15 mốc trễ"* — đã có ở
+          **Hộp thư việc**. Đo được: mã PO lặp **7 → 5 → 3 lần**.
+          ⚠️ Component `actionable-po.tsx` **GIỮ NGUYÊN** trong kho (ràng buộc
+          ②) — phân hệ khác vẫn dùng được khuôn đó. */}
 
       {/* ⑥ DATA — `DNA-6`: bảng cuộn TRONG khung của nó, ⛔ không đẩy khối
           dưới ra khỏi tầm mắt. */}
