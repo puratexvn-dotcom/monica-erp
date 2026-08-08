@@ -8,6 +8,7 @@ import { uploadEvidence } from '@/app/actions/upload-action';
 import { Field, inputCls, SAC_O } from '@/components/ui';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import { DOC_TYPES, DOC_TYPE_LABEL, type DocType } from '@/schemas/md';
+import { ACCEPT_BANG_CHUNG } from '@/lib/mos/evidence/mime';
 
 // ============================================================================
 // 🔴 ĐÍNH KÈM HÌNH ẢNH & TÀI LIỆU CHO PO — Board 08/08/2026
@@ -124,10 +125,10 @@ export default function PoDinhKem({
           ref={o}
           type="file"
           multiple
-          // ⚠️ Danh sách này phải **khớp `ALLOWED_MIME` ở máy chủ**. Rộng hơn
-          // thì người dùng chọn được tệp rồi bị máy chủ từ chối — mời họ làm
-          // một việc chắc chắn thất bại.
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+          // 🔴 Sinh từ **nguồn sự thật duy nhất**, ⛔ không gõ tay. Gõ tay là
+          // cách allowlist thứ ba ra đời — và hai cái đầu đã đủ để làm PDF
+          // hỏng suốt hai ngày.
+          accept={ACCEPT_BANG_CHUNG}
           className="sr-only"
           onChange={(e) => void chon(e.target.files)}
         />

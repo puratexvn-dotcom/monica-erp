@@ -3,6 +3,10 @@
 import { createClient } from '@/utils/supabase/server';
 import { isRole } from '@/lib/rbac';
 import { ngayVN } from '@/lib/time';
+import {
+  MIME_BANG_CHUNG, GIOI_HAN_BYTE, DUOI_THEO_MIME, laMimeHopLe, loiSaiDinhDang,
+  type MimeBangChung,
+} from '@/lib/mos/evidence/mime';
 
 // ============================================================================
 // UPLOAD ẢNH BẰNG CHỨNG LÊN SUPABASE STORAGE
@@ -35,33 +39,12 @@ export interface UploadResult {
   message: string;
 }
 
-const MAX_BYTES = 8 * 1024 * 1024;
-
-// 🔴 THÊM `application/pdf` — Board 06/08/2026: *"PO phải upload được hình ảnh
-// mẫu **và tài liệu đi kèm**."* Tech pack, bảng màu, chứng từ đều là PDF.
+// 🔴 **ALLOWLIST NAY LẤY TỪ MỘT NGUỒN DUY NHẤT** — Board 08/08/2026 §1.
 //
-// ⚠️ **CỐ Ý ⛔ KHÔNG mở cho Word/Excel.** Hai định dạng đó mang **macro chạy
-// được**, và tệp ở đây được người ngoài *(nhà thầu, khách)* tải về mở trên máy
-// của họ. Mở allowlist cho chúng là quyết định **bảo mật**, ⛔ không phải tiện
-// ích — cần Board. Ai cần gửi Excel thì xuất PDF, hoặc chờ Board mở.
-const ALLOWED_MIME = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/heic',
-  'image/heif',
-  'application/pdf',
-]);
-
-/** Phần mở rộng suy từ MIME, KHÔNG lấy từ tên tệp do client gửi */
-const EXT_BY_MIME: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/heic': 'heic',
-  'image/heif': 'heif',
-  'application/pdf': 'pdf',
-};
+// ⚠️ Trước bản này, tệp NÀY tự giữ một allowlist, và `storage.buckets` giữ một
+// cái khác. Ngày 06/08 Board yêu cầu nhận PDF; chỗ này được sửa, bucket thì ⛔
+// không — nên PDF **chọn được trên màn hình rồi bị Supabase từ chối**.
+// Lý do đầy đủ ở `lib/mos/evidence/mime.ts`.
 
 /**
  * Đẩy một ảnh lên bucket `evidences`.
@@ -91,18 +74,17 @@ export async function uploadEvidence(formData: FormData): Promise<UploadResult> 
     return { ok: false, message: 'Không nhận được tệp ảnh.' };
   }
 
-  if (!ALLOWED_MIME.has(raw.type)) {
+  if (!laMimeHopLe(raw.type)) {
     return {
       ok: false,
-      message: `Định dạng không hỗ trợ (${raw.type || 'không rõ'}). Chỉ nhận ảnh JPG, PNG, WEBP, HEIC và tài liệu PDF. `
-        + 'File Word/Excel xin xuất sang PDF trước khi tải lên.',
+      message: loiSaiDinhDang(raw.type),
     };
   }
 
-  if (raw.size > MAX_BYTES) {
+  if (raw.size > GIOI_HAN_BYTE) {
     return {
       ok: false,
-      message: `Ảnh ${(raw.size / 1024 / 1024).toFixed(1)} MB vượt giới hạn 8 MB. Chụp lại ở độ phân giải thấp hơn.`,
+      message: `Tệp ${(raw.size / 1024 / 1024).toFixed(1)} MB vượt giới hạn ${GIOI_HAN_BYTE / 1024 / 1024} MB.`,
     };
   }
 
@@ -116,7 +98,7 @@ export async function uploadEvidence(formData: FormData): Promise<UploadResult> 
     typeof folderRaw === 'string' && /^[a-z0-9-]{1,32}$/.test(folderRaw) ? folderRaw : 'misc';
 
   const vnDate = ngayVN();
-  const ext = EXT_BY_MIME[raw.type] ?? 'jpg';
+  const ext = DUOI_THEO_MIME[raw.type as MimeBangChung] ?? 'jpg';
   const path = `${folder}/${user.id}/${vnDate}/${crypto.randomUUID()}.${ext}`;
 
   // ── 4. Đẩy lên bucket ─────────────────────────────────────────────────────
