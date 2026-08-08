@@ -91,6 +91,35 @@ canh tệp **tồn tại**. Cưỡng chế còn lại là **kỷ luật rà soá
 
 ---
 
+# 🏭 SUBCONTRACT PORTAL DNA — mạng lưới gia công bên ngoài
+
+**[`docs/MONICA_ONE_SUBCONTRACT_PORTAL_DNA.md`](docs/MONICA_ONE_SUBCONTRACT_PORTAL_DNA.md)**
+— Board Directive 08/08/2026. 🟠 **CHỜ BOARD/CEO DUYỆT · ⛔ CHƯA CODE.**
+
+> **Subcontract Portal ⛔ KHÔNG phải màn hình nhập sản lượng, ⛔ không phải
+> "Supplier portal".** Nó là **Production Partner Portal** — cổng vận hành cho
+> **toàn mạng lưới** đơn vị gia công bên ngoài.
+
+🔴 **Đo 08/08/2026 — kiến trúc đã đúng ~70%, nhưng ⛔ KHÔNG chạy:**
+
+```
+partner_accounts  0 dòng  ⇒ ⛔ CHƯA MỘT subcontractor nào từng ĐĂNG NHẬP
+contract_types    0 dòng  ⇒ CM · CMT · FOB ⛔ không chọn được
+style_operations  0 dòng  ⇒ giao theo CÔNG ĐOẠN ⛔ không dùng được thật
+```
+
+⚠️ Và có **HAI mô hình subcontract sống song song** — `subcontractors`/
+`subcon_orders` *(cũ, hẹp: giặt·in)* ⟷ `partners`/`assignments` *(mới, rộng)*.
+`/subcon` hiện chạy trên mô hình **cũ** và là màn hình **nội bộ**. Hợp nhất
+*(`R-0`)* phải quyết **trước** khi mở cổng.
+
+🔑 Luật bất biến: quyền theo **ASSIGNMENT** ⛔ không theo ROLE · `partnerId` từ
+`partner_accounts` ⛔ **không** từ JWT · **MỘT** cổng theo *Capability Model*
+⛔ không CM/CMT/FOB portal riêng · bằng chứng dùng
+[Evidence DNA](docs/MONICA_ONE_EVIDENCE_DNA.md) ⛔ không dựng `SubconEvidence`.
+
+---
+
 # 🧾 EVIDENCE DNA — gắn bằng chứng vào con số thì đọc trước
 
 **[`docs/MONICA_ONE_EVIDENCE_DNA.md`](docs/MONICA_ONE_EVIDENCE_DNA.md)** —
