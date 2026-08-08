@@ -328,13 +328,21 @@ console.log('\n⑦ AUDIT · VERSION — đơn hàng');
 } finally {
   // ─── DỌN ────────────────────────────────────────────────────────────────
   // ⚠️ Xoá theo thứ tự NGƯỢC với thứ tự tạo — đơn tham chiếu khách hàng.
+  //
+  // 🔴 **⛔ KHÔNG CÒN XOÁ `activity_log` — migration `056` · ADR-030.**
+  // Sổ kiểm toán nay bất biến với **mọi vai kể cả `service_role`**, nên lệnh
+  // xoá cũ ở đây sẽ **luôn thất bại**. Giữ nó lại sẽ biến mỗi lượt dọn thành
+  // một lỗi bị nuốt im lặng.
+  //
+  // 🔑 `K-1` đã nói trước điều này: *"Bài kiểm thất bại **chính vì** thứ nó
+  // kiểm đang chạy đúng."* Dòng kiểm toán của dữ liệu UAT **ở lại**, và đó là
+  // **đúng ngữ nghĩa** của sổ chỉ-ghi-thêm: nó ghi rằng *"đã từng có một dòng
+  // ở đây"*. Dọn khi cần bằng `supabase/maintenance/M003_purge_uat_audit.sql`.
   for (const id of rac.orders) {
     await admin.from('order_milestones').delete().eq('order_id', id);
-    await admin.from('activity_log').delete().eq('entity_type', 'ORDER').eq('entity_id', id);
     await admin.from('orders').delete().eq('id', id);
   }
   for (const id of rac.customers) {
-    await admin.from('activity_log').delete().eq('entity_type', 'CUSTOMER').eq('entity_id', id);
     await admin.from('customers').delete().eq('id', id);
   }
 }
