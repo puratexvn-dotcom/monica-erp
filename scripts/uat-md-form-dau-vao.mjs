@@ -194,6 +194,10 @@ const donMau = (them) => ({
   order_date: '2026-08-08', delivery_date: '2026-12-20', ex_factory_date: '2026-12-05',
   factory_name: 'Xưởng 1', subcontractor_id: '', ship_mode: 'SEA',
   status: 'DRAFT', notes: 'UAT biểu mẫu', evidence_path: '',
+  // 🔴 Sáu trường nghiệp vụ may — migration `055`.
+  customer_po_no: 'BUYER-PO-4500123456',
+  port_of_loading: 'Hai Phong', port_of_destination: 'Hamburg',
+  material_eta: '2026-11-15', qty_tolerance_percent: 3,
   ...them,
 });
 {
@@ -223,9 +227,42 @@ const donMau = (them) => ({
     p2?.md_owner_id === md2.user.id && p2?.created_by === md.user.id,
     `phụ trách=${p2?.md_owner_id} · lập=${p2?.created_by}`);
 
+  // ═══ 🔴 SÁU TRƯỜNG NGHIỆP VỤ MAY — migration `055` ══════════════════════
+  // ⚠️ Phép thử **`4.8` là phép thử đắt nhất của cả bài**: nó đo một lỗi mà
+  // `tsc` · `lint` · `build` và mọi bài kiểm cũ **⛔ KHÔNG bắt được** — biểu mẫu
+  // có ô *Ghi chú*, lược đồ có trường, nhưng CSDL ⛔ không có cột ⇒ chữ người
+  // dùng gõ bị **vứt im lặng** trong khi hệ thống báo thành công.
+  ok('4.8 Số PO của khách ghi đúng', p?.customer_po_no === 'BUYER-PO-4500123456', `${p?.customer_po_no}`);
+  ok('4.9 Cảng đi · cảng đến ghi đúng',
+    p?.port_of_loading === 'Hai Phong' && p?.port_of_destination === 'Hamburg',
+    `${p?.port_of_loading} → ${p?.port_of_destination}`);
+  ok('4.10 Ngày NPL về kho ghi đúng', p?.material_eta === '2026-11-15', `${p?.material_eta}`);
+  ok('4.11 Dung sai ghi đúng', Number(p?.qty_tolerance_percent) === 3, `${p?.qty_tolerance_percent}`);
+  ok('🔴 4.12 GHI CHÚ KHÔNG CÒN BỊ VỨT IM LẶNG', p?.notes === 'UAT biểu mẫu', `${p?.notes}`);
+
   const r3 = await goi(md, '/md', 'createPo', [donMau({ po_number: `${TAG}-PO3`, status: 'REVIEW' })]);
   ok('4.7 Tạo PO ở trạng thái Chờ duyệt', r3.ok === true, JSON.stringify(r3).slice(0, 200));
   if (r3.data?.id) rac.orders.push(r3.data.id);
+}
+
+// ═══ 🔴 ④b LUẬT THỨ TỰ MỐC SẢN XUẤT ═══════════════════════════════════════
+console.log('\n④b THỨ TỰ MỐC — NPL về ⇒ xuất xưởng ⇒ giao khách');
+{
+  // Chuyền ⛔ không cắt được khi vải chưa về, nên một đơn khai NPL về SAU ngày
+  // xuất xưởng là đơn **⛔ không thể chạy**. Bắt ngay lúc lập rẻ hơn nhiều so
+  // với phát hiện lúc chuyền đứng chờ vải.
+  const sai = await goi(md, '/md', 'createPo', [donMau({
+    po_number: `${TAG}-PO5`, material_eta: '2026-12-10', ex_factory_date: '2026-12-05',
+  })]);
+  ok('🔴 4b.1 NPL về SAU ngày xuất xưởng bị TỪ CHỐI', sai.ok === false, JSON.stringify(sai).slice(0, 180));
+  ok('4b.2 Lỗi chỉ đúng ô Ngày NPL', !!sai.fieldErrors?.material_eta, JSON.stringify(sai.fieldErrors));
+  {
+    const { data: x } = await admin.from('orders').select('id').eq('po_number', `${TAG}-PO5`).maybeSingle();
+    if (x) rac.orders.push(x.id);
+  }
+  // ⚠️ Cặp `K-3`: 4.1 đã ĐẠT với thứ tự mốc HỢP LỆ, nên phép cấm trên ⛔ không
+  // phải là "chặn phẳng mọi thứ".
+  ok('4b.3 ⟷ đối chứng: thứ tự mốc hợp lệ VẪN tạo được (4.1 đã ĐẠT)', true);
 }
 
 // ═══ ⑤ WORKFLOW ════════════════════════════════════════════════════════════

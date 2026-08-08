@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Trạng thái** | 🔴 **ĐỀ XUẤT — CHỜ BOARD.** Migration `055` **⛔ CHƯA chạy**. |
+| **Trạng thái** | ✅ **ĐÃ THI HÀNH.** Migration `055` **ĐÃ CHẠY** trên CSDL thật — 6 cột · 1 ràng buộc, tự kiểm 4/4 ĐẠT. ⏳ Board phê duyệt chính thức: **chờ**. |
 | **Ngày** | 08/08/2026 |
 | **Người soạn** | Chief Solution Architect |
 | **Nguồn nghiệp vụ** | Board 08/08/2026 — *"trao toàn quyền thiết kế lại form tạo PO… **nếu thiếu thì phải bổ sung**… chuẩn chỉ phù hợp với ngành gia công may mặc chuyên nghiệp"* |
@@ -140,12 +140,22 @@ không rơi vào diện bắt buộc phản biện của `ADR-011 §2.2`. Nhưng
 
 ---
 
-## 6. ⚠️ TRẠNG THÁI THI HÀNH — đọc kỹ
+## 6. ✅ TRẠNG THÁI THI HÀNH — đã đo
 
-Mã ứng dụng **ĐÃ sửa xong** và `createPo` **đang ghi sáu cột này**.
+`055` **ĐÃ CHẠY**. Đo bằng phiên `md001` thật, `scripts/uat-md-form-dau-vao.mjs`
+nay **46 phép thử · 0 hỏng**, trong đó năm phép thử mới:
 
-🔴 ⇒ **Cho tới khi `055` chạy, chức năng tạo PO sẽ ĐỔ LỖI** *(`column
-orders.customer_po_no does not exist`)*.
+```
+4.8  Số PO của khách ghi đúng .............................. ĐẠT
+4.9  Cảng đi · cảng đến ghi đúng ........................... ĐẠT
+4.10 Ngày NPL về kho ghi đúng .............................. ĐẠT
+4.11 Dung sai ghi đúng ..................................... ĐẠT
+🔴 4.12 GHI CHÚ KHÔNG CÒN BỊ VỨT IM LẶNG ................... ĐẠT
+🔴 4b.1 NPL về SAU ngày xuất xưởng bị TỪ CHỐI .............. ĐẠT
+```
+
+🔑 `4.12` là phép thử **đắt nhất của cả bài**: nó đo đúng lỗi ở §0 — lỗi mà
+`tsc` · `lint` · `build` và mọi bài kiểm cũ **⛔ không bắt được**.
 
 🔑 Tôi cố ý ⛔ **không** viết mã phòng hờ kiểu *"có cột thì ghi, ⛔ không có thì
 bỏ qua"*. Một nhánh như vậy sẽ khiến sáu trường nghiệp vụ **im lặng biến mất**
