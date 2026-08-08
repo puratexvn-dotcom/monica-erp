@@ -10,6 +10,9 @@
 
 ---
 
+> 🧾 **Khuôn đã đóng gói để dùng lại:** [`MONICA_ONE_EVIDENCE_DNA.md`](MONICA_ONE_EVIDENCE_DNA.md)
+> — tệp này ghi *vì sao và đã làm gì*; DNA ghi *phân hệ mới làm thế nào*.
+
 ## 0. 🔑 KẾT LUẬN QUAN TRỌNG NHẤT — ĐỌC TRƯỚC
 
 Đo trên CSDL và kho lưu trữ **đang chạy**, 08/08/2026:

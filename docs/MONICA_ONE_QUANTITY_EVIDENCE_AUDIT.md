@@ -60,6 +60,10 @@ rồi gọi URL bằng `fetch` trần *(⛔ không cookie, ⛔ không `apikey`)*
 **`HTTP 200`**. Kế hoạch xử lý:
 [`MONICA_ONE_EVIDENCE_SECURITY_PLAN.md`](MONICA_ONE_EVIDENCE_SECURITY_PLAN.md).
 
+> 🧾 **Khuôn dùng lại cho mọi phân hệ:** [`MONICA_ONE_EVIDENCE_DNA.md`](MONICA_ONE_EVIDENCE_DNA.md)
+> — 27 điểm còn thiếu ở đây triển khai theo **đúng một** khuôn đó, ⛔ không mỗi
+> phân hệ một kiểu.
+
 🔑 **Và đo được một điều đổi hẳn mức khẩn:** kho hiện có **0 tệp**, CSDL có **0
 tham chiếu**. Vá lúc này tốn **một migration**; vá khi có 5.000 tệp tốn thêm
 một cuộc di trú và một khoảng hệ thống chạy nửa chừng.

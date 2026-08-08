@@ -91,6 +91,32 @@ canh tệp **tồn tại**. Cưỡng chế còn lại là **kỷ luật rà soá
 
 ---
 
+# 🧾 EVIDENCE DNA — gắn bằng chứng vào con số thì đọc trước
+
+**[`docs/MONICA_ONE_EVIDENCE_DNA.md`](docs/MONICA_ONE_EVIDENCE_DNA.md)** —
+Board Directive *EVIDENCE DNA PACKAGING* 08/08/2026. Nền tảng đã thi hành:
+[ADR-031](docs/adr/ADR-031-kho-bang-chung-rieng-tu.md) · migration `057` ·
+đo hành vi **13/13**.
+
+> ### ⛔ KHÔNG tạo `POEvidence` · `ProductionEvidence` · `QAEvidence` …
+> **Cùng một bài toán ⇒ MỘT khuôn.**
+
+Dùng lại **nguyên vẹn**: bảng `md_documents` *(gắn đa hình)* · bucket
+`evidences` *(riêng tư)* · `layUrlBangChung` *(Signed URL 300 giây, kiểm quyền
+trước khi ký)* · `lib/mos/evidence/mime.ts` *(một allowlist)*.
+
+🔑 Mỗi khuôn mới là **một bề mặt tấn công phải tự đi lại chín chặng** — và
+⛔ không ai làm đủ chín thứ đó lần thứ hai. Nền tảng này tốn hai ngày và **ba
+khuyết tật đã đo**, trong đó `P0` là tệp thương mại của buyer đọc được bằng
+`fetch` **trần**.
+
+⚠️ **Có đường ống ⛔ không phải là có nước chảy.** Hiện **0 / 27** điểm sản
+lượng thật sự có bằng chứng; gắn theo **TỪNG TRƯỜNG** ⛔ **chưa tồn tại**; vết
+kiểm toán cho tài liệu **0 dòng**. Lộ trình ở §9 — 🔴 **chặn bởi SECURITY
+FREEZE**. ⛔ Đừng đọc `13/13` thành *"Monica ONE đã có Evidence-First"*.
+
+---
+
 # MONICA ONE CONSTITUTION
 
 Before any design, coding, refactoring or architecture decision:
