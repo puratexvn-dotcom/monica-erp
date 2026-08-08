@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Trạng thái** | 📋 **KẾ HOẠCH — ⛔ CHƯA thi hành.** ⛔ Không mã · ⛔ không migration · ⛔ không đụng production. |
+| **Trạng thái** | 🟠 **ĐANG THI HÀNH.** Mã ✅ xong · migration `057` 🔴 **⛔ CHƯA chạy**. Xem §9. |
 | **Ngày** | 08/08/2026 |
 | **Nguồn** | Board Directive *EVIDENCE SECURITY FOUNDATION* 08/08/2026 |
 | **Người soạn** | Chief Solution Architect |
@@ -268,3 +268,49 @@ bản vá **chặn phẳng mọi người** cũng cho bài kiểm màu xanh.
 - ⛔ **Chưa** ước lượng **dung lượng** khi 24 điểm số lượng đều đính kèm.
 - ⛔ **Chưa** xét ảnh **HEIC** từ iPhone: bucket nhận, nhưng trình duyệt trên
   máy bàn **⛔ không hiển thị được**. Cần chuyển đổi hoặc cảnh báo — ⛔ chưa có.
+
+---
+
+## 9. TRẠNG THÁI THI HÀNH — 08/08/2026
+
+Board Directive *EVIDENCE SECURITY IMPLEMENTATION* đã duyệt. Đã làm:
+
+| # | Việc | Trạng thái |
+|---|---|---|
+| ① | `lib/mos/evidence/mime.ts` — **một nguồn allowlist**; `upload-action` và ô chọn tệp đọc từ đó | ✅ |
+| ② | `app/actions/evidence-url-action.ts` — Signed URL 300 giây, **hai** phép kiểm | ✅ |
+| ③ | `lib/mos/evidence/access.ts` — hằng số + ánh xạ đối tượng ⟷ bảng | ✅ |
+| ④ | `scripts/kiem-bang-chung.mjs` — 10 phép đo hành vi | ✅ |
+| ⑤ | `ADR-031` | ✅ |
+| ⑥ | **`057_evidence_private_bucket.sql`** | 🔴 **⛔ CHƯA CHẠY** |
+
+### ⚠️ Vì sao ⛔ CHƯA ghi `IMPLEMENTED`
+
+`CLAUDE.md §3`: *"Người dùng tự chạy migration trên Supabase SQL Editor. ⛔
+Không có RPC nào chạy DDL từ mã nguồn."* Tôi ⛔ không có đường nào áp
+`057` — và đổi `storage.buckets` + `storage.objects` policy đòi **chủ sở hữu**.
+
+⇒ Ba khuyết tật `P0` · `P1` · `P0-b` **vẫn còn nguyên** cho tới khi `057` chạy.
+
+### Đo TRƯỚC khi `057` chạy — `kiem-bang-chung.mjs`
+
+```
+BẢO MẬT KHO BẰNG CHỨNG: 3 đạt · 6 hỏng
+  ⛔ 1.PDF   tải lên PDF
+  ⛔ 2.1     bucket đặt riêng tư
+  ⛔ 2.2     KHÁCH VÃNG LAI ⛔ không đọc được URL công khai
+  ⛔ 3.x     ⛔ không có PDF để đo Signed URL
+  ⛔ 4.1     md001 ⛔ không xoá được bằng chứng
+  ⛔ 5.1     allowlist KHO khớp lib
+```
+
+🔑 Sáu phép hỏng **đúng bằng** sáu khuyết tật đã biết. Bài kiểm vì vậy **phân
+biệt được** trạng thái hở với trạng thái kín — điều kiện để kết quả `PASS` sau
+này có nghĩa.
+
+### Sau khi Board chạy `057`
+
+```
+node scripts/kiem-bang-chung.mjs      # kỳ vọng 10/0
+npm run verify && node tests/architecture/arch.test.mjs
+```
