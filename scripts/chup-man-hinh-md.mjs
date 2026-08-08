@@ -196,6 +196,36 @@ async function chup(ten, rong, cao, { toanTrang = true } = {}) {
     await new Promise((s) => setTimeout(s, 600));
   }
 
+  // 🔴 **F5 · Ctrl+F5 — Board FINAL HANDOVER CHECK.**
+  //
+  // 🔑 Đo bằng **chữ ký DOM**, ⛔ không bằng ảnh: hai ảnh trông giống nhau vẫn
+  // có thể đến từ hai cây DOM khác nhau, còn một trang hỏng sau khi tải lại
+  // thường hỏng ở **số lượng nút** chứ ⛔ không ở màu.
+  //
+  // ⚠️ `ignoreCache: true` là **đúng nghĩa Ctrl+F5** — bỏ qua bộ nhớ đệm.
+  // Chạy cả hai vì chúng đi hai đường khác nhau: `F5` dùng lại gói JS đã đệm,
+  // `Ctrl+F5` tải lại từ đầu. Một lỗi hydrat hoá chỉ lộ ở đúng một trong hai.
+  if (process.env.ANH_TAI_LAI) {
+    const kyTen = async () => chay(
+      "(() => document.querySelectorAll('body *').length + '|'"
+      + " + (document.querySelector('main,[aria-label]') ? 'co-khoi' : 'thieu-khoi')"
+      + " + '|' + document.body.innerText.replace(/\s+/g, ' ').trim().length)()",
+    );
+    const a = await kyTen();
+    await goi('Page.reload', { ignoreCache: false }, sessionId);
+    await new Promise((s) => setTimeout(s, 5000));
+    const b = await kyTen();
+    await goi('Page.reload', { ignoreCache: true }, sessionId);
+    await new Promise((s) => setTimeout(s, 5000));
+    const c = await kyTen();
+    // ⚠️ Số ký tự chữ đổi vài đơn vị là BÌNH THƯỜNG *(đồng hồ, "còn 3 ngày")*.
+    // So **số nút** và **có khối chính hay không** — hai thứ ⛔ không được đổi.
+    const nut = (x) => x.split('|').slice(0, 2).join('|');
+    const dat = nut(a) === nut(b) && nut(b) === nut(c);
+    console.log(`   ${dat ? '✅' : '⛔'} F5 · Ctrl+F5 — nạp đầu ${a} · F5 ${b} · Ctrl+F5 ${c}`);
+    if (!dat) sachTaiLai = false;
+  }
+
   // 🔴 Đo tràn ngang **ở đúng khổ đang xét**, TRƯỚC khi nới khung để chụp.
   const tran = JSON.parse(await chay(DO_TRAN));
   const co = tran.cuonNgang;
@@ -225,6 +255,7 @@ async function chup(ten, rong, cao, { toanTrang = true } = {}) {
 }
 
 let sach = true;
+let sachTaiLai = true;
 try {
   for (const k of KHO) {
     console.log(`\n── ${k.ten} ${k.w}×${k.h} ──`);
@@ -237,4 +268,4 @@ try {
 }
 console.log(`\n${sach ? '✅' : '⛔'} Tràn ngang: ${sach ? 'ĐẠT ở mọi khổ' : 'HỎNG — xem thủ phạm ở trên'}`);
 console.log('⚠️ Ảnh + phép đo tràn CHỨNG MINH bố cục ⛔ không vỡ; chúng ⛔ KHÔNG chứng minh nó ĐẸP.');
-process.exit(sach ? 0 : 1);
+process.exit(sach && sachTaiLai ? 0 : 1);
