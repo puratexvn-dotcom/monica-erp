@@ -73,13 +73,13 @@ function NoiDung({ t }: { t: OLauncher }) {
       </span>
 
       <span className={huyLauncher(t.sac)}>
-        <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+        <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
 
       {/* 🔴 Board 08/08/2026: *"Icon, số liệu, **tiêu đề** và mũi tên phải sử
           dụng **màu định danh tương ứng**."* Bản trước để `text-slate-700` —
           một sắc trung tính dùng chung cho cả mười ô, tức đúng thứ Board bác. */}
-      <span className={`block ${s.chu} ${TYPE.caption} ${LINE_HEIGHT.snug} ${FONT_WEIGHT.bold}`}>
+      <span className={`block ${s.chu} ${TYPE.label} ${LINE_HEIGHT.snug} ${FONT_WEIGHT.bold}`}>
         {t.nhan}
       </span>
 
@@ -88,9 +88,9 @@ function NoiDung({ t }: { t: OLauncher }) {
           ⚠️ `null` ⇒ một **chấm tròn nhạt**, ⛔ không phải số `0`: `0` ở ô *"Nhà
           máy"* đọc thành *"⛔ không có chuyền nào"* — một tin sai. */}
       {t.so === null
-        ? <span className={`my-0.5 block h-2.5 w-2.5 rounded-full ${s.huy}`} aria-label="chưa đo được" />
+        ? <span className={`my-1.5 block h-3 w-3 rounded-full ${s.huy}`} aria-label="chưa đo được" />
         : (
-          <span className={`block ${TYPE.metricSm} ${FONT_WEIGHT.bold} ${s.chu}`}>
+          <span className={`block ${TYPE.metric} ${s.chu}`}>
             {t.so}
           </span>
         )}

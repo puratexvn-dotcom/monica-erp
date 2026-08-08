@@ -73,15 +73,15 @@ function The({ nhan, phu, icon: Icon, sac, chay }: {
     <button type="button" onClick={chay} className={theHanhDong(sac)}>
       <span className={daiHanhDong(sac)}>
         <span className={huyHanhDong(sac)}>
-          <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+          <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       </span>
 
       {/* `flex-1` — thân thẻ giãn ra để **sáu thẻ cùng hàng cao bằng nhau**
           dù mô tả dài ngắn khác nhau; thiếu nó thì vạch đáy màu của mỗi thẻ
           dừng ở một độ cao khác nhau và cả hàng đọc ra là **so le**. */}
-      <span className="flex flex-1 flex-col items-center gap-1 px-2 pb-2.5 pt-6 text-center">
-        <span className={`block ${s.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>+ {nhan}</span>
+      <span className="flex flex-1 flex-col items-center gap-1.5 px-3 pb-3.5 pt-8 text-center">
+        <span className={`block ${s.chu} ${TYPE.cardTitle} ${FONT_WEIGHT.bold}`}>+ {nhan}</span>
         {/* Vạch ngắn dưới tiêu đề — chi tiết của ảnh mẫu, và nó có việc: tách
             *tên hành động* khỏi *lời giải thích* mà ⛔ không tốn một dòng. */}
         <span className={`block h-0.5 w-6 rounded-full ${s.vach}`} aria-hidden="true" />

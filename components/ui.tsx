@@ -298,7 +298,14 @@ export type SacOKey = keyof typeof SAC_O;
  *  mười thẻ cạnh nhau ⛔ không bị dồn thêm 20 px chiều ngang, và nó cùng hệ
  *  màu với nền nên thẻ đọc ra **một mảng màu**, ⛔ không phải **một cái hộp**. */
 export function theLauncher(s: SacOKey, khoa = false): string {
-  return `group relative flex flex-col items-center gap-1.5 rounded-2xl p-2.5 text-center ring-1 `
+  // 🔴 **NHỊP KHOẢNG TRẮNG THEO REFERENCE A** — Board *MD DESIGN LANGUAGE
+  // LOCK* §3 *"khoảng trắng rộng"* · §7 *"SẠCH — RỘNG — CAO CẤP"*.
+  //
+  // ⚠️ Đối chiếu ảnh mẫu với ảnh chụp thật: thẻ của tôi **chật hơn hẳn** —
+  // đệm `p-2.5` (10px) so với ~14px của mẫu, khe `gap-1.5` so với ~8px. Sai
+  // lệch nhỏ ở từng thẻ, nhưng nhân với mười thẻ thì cả dải đọc ra là **bảng
+  // dữ liệu dày**, ⛔ không phải **bảng điều khiển thoáng** như Reference A.
+  return `group relative flex flex-col items-center gap-2 rounded-2xl p-3.5 text-center ring-1 `
     + `${SAC_O[s].nen} ${SAC_O[s].vong} transition `
     + (khoa
       ? 'cursor-not-allowed opacity-70'
@@ -307,7 +314,9 @@ export function theLauncher(s: SacOKey, khoa = false): string {
 
 /** Huy hiệu tròn chứa biểu tượng ở thẻ Launcher. */
 export function huyLauncher(s: SacOKey): string {
-  return `flex h-9 w-9 items-center justify-center rounded-full ${SAC_O[s].huy}`;
+  // Reference A: vòng tròn biểu tượng **lớn và rõ**, là điểm nhìn đầu tiên của
+  // thẻ. `h-9` (36px) quá nhỏ so với mẫu ⇒ `h-11` (44px).
+  return `flex h-11 w-11 items-center justify-center rounded-full ${SAC_O[s].huy}`;
 }
 
 /** Thẻ Action Center — dải màu đầu thẻ + thân trắng + vạch đáy cùng sắc. */
@@ -348,10 +357,12 @@ export function theHanhDong(s: SacOKey): string {
  *  trí: huy hiệu nằm vắt qua đường ranh **khâu hai nửa thẻ lại làm một**. Đặt
  *  gọn trong dải thì thẻ đọc ra **hai khối rời chồng lên nhau**. */
 export function daiHanhDong(s: SacOKey): string {
-  return `relative flex h-11 items-center justify-center ${SAC_O[s].dai}`;
+  return `relative flex h-14 items-center justify-center ${SAC_O[s].dai}`;
 }
 export function huyHanhDong(s: SacOKey): string {
-  return 'absolute left-1/2 top-full flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 '
+  // Reference A: huy hiệu **lớn**, cưỡi lên mép dải, và là thứ đọc được đầu
+  // tiên của thẻ hành động. `h-10` nhỏ hơn mẫu một bậc rõ rệt.
+  return 'absolute left-1/2 top-full flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 '
     + `items-center justify-center rounded-full bg-white shadow-md ${SAC_O[s].chu}`;
 }
 
