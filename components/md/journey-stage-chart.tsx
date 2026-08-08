@@ -66,11 +66,30 @@ export default function JourneyStageChart({ ds }: { ds: readonly HanhTrinh[] }) 
     // được, và 64px tiết kiệm ở đây trả thẳng cho **bảng hành trình bên dưới**,
     // nơi mỗi dòng là một đơn hàng thật. Ưu tiên **dòng dữ liệu** hơn **khoảng
     // trống trong biểu đồ**.
-    <div className="h-36 w-full rounded-xl border border-slate-200 bg-white p-2">
+    <div className="h-44 w-full rounded-xl border border-slate-200 bg-white p-2">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={duLieu} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+        <BarChart data={duLieu} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="chang" tick={{ fontSize: 11 }} interval={0} />
+          {/* 🔴 **LỖI ĐO ĐƯỢC bằng ảnh chụp khổ 390 · 08/08/2026.**
+              Sáu nhãn *(Đơn hàng · Vật tư · Sản xuất · Kiểm hàng · Giao hàng ·
+              Hoàn tất)* trên một trục rộng ~330 px cho mỗi nhãn **55 px** ⇒
+              chúng **dính liền nhau** thành `Sản xuấtKiểm hàngGiao hàng`.
+
+              🔑 Sửa bằng `angle` + `textAnchor`, ⛔ **KHÔNG** bằng `interval=
+              "preserveStartEnd"`: bỏ bớt nhãn sẽ làm **bốn trong sáu chặng mất
+              tên**, và một biểu đồ *"đơn hàng đang ở đâu"* mà ⛔ không đọc được
+              tên chặng thì ⛔ không trả lời được chính câu hỏi của nó.
+
+              ⚠️ `height={52}` phải nới theo — nhãn nghiêng chiếm chỗ dọc; thiếu
+              nó thì chữ bị **cắt cụt ở đáy**, đổi một lỗi lấy một lỗi khác. */}
+          <XAxis
+            dataKey="chang"
+            tick={{ fontSize: 11 }}
+            interval={0}
+            angle={-32}
+            textAnchor="end"
+            height={52}
+          />
           <YAxis tick={{ fontSize: 11 }} width={36} allowDecimals={false} />
           <Tooltip formatter={(v) => [`${v} đơn`, 'Đang đứng ở đây']} />
           <Bar dataKey="sl" radius={[6, 6, 0, 0]}>

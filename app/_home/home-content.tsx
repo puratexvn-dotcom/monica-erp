@@ -5,6 +5,7 @@
 // thống — xem `AN_KHOI_TRANG_CHU` ở registry.
 import { MODULES_TRANG_CHU } from '@/lib/mos/registry/business-apps';
 import AppCard from './app-card';
+import GlobalSearch from './global-search';
 import { modulePermissionState } from '@/lib/mos/capability/visible-modules';
 import type { Role } from '@/lib/rbac';
 import type { LiveStateOrNull } from '@/lib/mos/registry/live-state';
@@ -228,6 +229,28 @@ export default function HomeContent({
           **Work Zone** = HỢP của mọi Work Inbox tôi có quyền. Nó là **phép
           chiếu**, ⛔ không sở hữu dữ liệu — nên dời chỗ nó là quyết định ĐIỀU
           HƯỚNG, ⛔ không phải quyết định DỮ LIỆU, và ⛔ không mất gì. */}
+
+      {/* ═══ 🔴 GLOBAL SEARCH — Board Directive 08/08/2026 §2 ════════════
+          Vị trí chính thức, và nó là **một điều khoản**, ⛔ không phải gợi ý:
+
+              BUSINESS OPERATING SYSTEM   ← tagline ngay trên
+                        ↓
+              GLOBAL SEARCH               ← ĐÂY
+                        ↓
+              BUSINESS LAUNCHER           ← lưới ngay dưới
+
+          🔑 Đặt **ngoài** `<section>` Hero và **trước** `<section
+          id="business-apps">` — đúng khe giữa hai khối, ⛔ không lồng vào khối
+          nào. Lồng vào Hero thì nó thành một phần của khối thương hiệu; lồng
+          vào Launcher thì nó thành một ô trong lưới.
+
+          ⚠️ **⛔ KHÔNG đụng Lời Chúa** *(Board §12 — `IMMUTABLE`)*: Lời Chúa
+          nằm ở `top-navbar.tsx`, ⛔ không ở tệp này. Bản vá này ⛔ không thêm,
+          sửa hay xoá một dòng nào của nó.
+
+          ⚠️ **⛔ KHÔNG đụng Business Launcher** *(Board §11)*: số ô · thứ tự ·
+          dữ liệu · màu · biểu tượng · hành vi · route — giữ nguyên hoàn toàn. */}
+      <GlobalSearch />
 
       {/* ═══ LƯỚI BUSINESS APP — ngay dưới Hero ══════════════════════════
           **Điện thoại 3 · từ `sm` là 4.** Khoảng cách dọc luôn rộng hơn ngang.

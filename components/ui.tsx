@@ -197,6 +197,18 @@ export type SacNhom = keyof typeof SAC_NHOM;
 // **trắng trơn** mà `next build` vẫn xanh. Đây là cái bẫy `UI_UX_STANDARDS §8`
 // mục 5 ghi lại, và nó là lý do bảng dưới đây dài dòng thay vì sinh tự động.
 // ============================================================================
+/** ⚠️ **`chu` DÙNG `-700` CHO CẢ TÁM SẮC — đo, ⛔ không đoán.**
+ *
+ *  `chu` sơn hai thứ là **CHỮ THƯỜNG dưới 18px**: con số trên thẻ Launcher và
+ *  tiêu đề thẻ Action Center ⇒ ngưỡng WCAG AA là **4.5**, ⛔ không phải 3.0.
+ *  Ở `-600` phép đo cho: hổ phách **3.06** · xanh lá **3.58** · ngọc **3.6** ·
+ *  hồng **4.34** — **năm trên tám sắc hỏng**, và ba sắc còn lại chỉ vừa đủ.
+ *
+ *  🔑 Nâng **đồng loạt** thay vì vá từng sắc: một bảng màu mà mỗi hue một nấc
+ *  là bảng màu ⛔ không ai nhớ nổi, và nấc kế tiếp thêm vào sẽ lại đoán sai.
+ *
+ *  🔑 **Mỗi ô vẫn có một sắc riêng** — Board cấm bỏ nguyên tắc đó. Thứ đổi là
+ *  **độ sâu** của cùng một sắc, ⛔ không phải bản thân sắc. */
 export interface SacO {
   /** Nền thẻ Launcher — pastel rất nhạt. */
   nen: string;
@@ -214,45 +226,54 @@ export interface SacO {
   vach: string;
 }
 
+// 🔴 **`mo` ĐỔI `-300` ⇒ `-500` · 08/08/2026 — ĐO ĐƯỢC, ⛔ không phỏng đoán.**
+// `scripts/kiem-tuong-phan.mjs` chấm mũi `›` ở góc thẻ Launcher **1.39–1.75**
+// trên nền `-50/70`, trong khi `WCAG 1.4.11` đòi **3.0** cho thành phần giao
+// diện. `-300` ⇒ `-500` đưa lên **2.07–2.65** — **vẫn hỏng** ở các sắc SÁNG
+// *(cam · hổ phách · ngọc)*, nên đi tiếp một nấc tới `-600`.
+//
+// 🔑 Thứ bậc thị giác **⛔ không mất**: mũi `›` vẫn nhỏ hơn hẳn và nằm ở góc,
+// còn con số thì lớn và ở giữa. Thứ bậc do **cỡ và vị trí** dựng nên — dựng nó
+// bằng cách làm một thành phần mờ tới mức ⛔ không nhìn ra là dựng sai chỗ.
 export const SAC_O = {
   blue: {
     nen: 'bg-blue-50/70', vong: 'ring-blue-100', huy: 'bg-blue-100 text-blue-600',
-    chu: 'text-blue-600', mo: 'text-blue-300',
+    chu: 'text-blue-700', mo: 'text-blue-600',
     dai: 'bg-gradient-to-br from-blue-500 to-blue-600', vach: 'bg-blue-500',
   },
   emerald: {
     nen: 'bg-emerald-50/70', vong: 'ring-emerald-100', huy: 'bg-emerald-100 text-emerald-600',
-    chu: 'text-emerald-600', mo: 'text-emerald-300',
+    chu: 'text-emerald-700', mo: 'text-emerald-600',
     dai: 'bg-gradient-to-br from-emerald-400 to-emerald-500', vach: 'bg-emerald-500',
   },
   violet: {
     nen: 'bg-violet-50/70', vong: 'ring-violet-100', huy: 'bg-violet-100 text-violet-600',
-    chu: 'text-violet-600', mo: 'text-violet-300',
+    chu: 'text-violet-700', mo: 'text-violet-600',
     dai: 'bg-gradient-to-br from-violet-500 to-violet-600', vach: 'bg-violet-500',
   },
   orange: {
-    nen: 'bg-orange-50/70', vong: 'ring-orange-100', huy: 'bg-orange-100 text-orange-600',
-    chu: 'text-orange-600', mo: 'text-orange-300',
+    nen: 'bg-orange-50/70', vong: 'ring-orange-100', huy: 'bg-orange-100 text-orange-700',
+    chu: 'text-orange-700', mo: 'text-orange-600',
     dai: 'bg-gradient-to-br from-orange-400 to-orange-500', vach: 'bg-orange-500',
   },
   teal: {
-    nen: 'bg-teal-50/70', vong: 'ring-teal-100', huy: 'bg-teal-100 text-teal-600',
-    chu: 'text-teal-600', mo: 'text-teal-300',
+    nen: 'bg-teal-50/70', vong: 'ring-teal-100', huy: 'bg-teal-100 text-teal-700',
+    chu: 'text-teal-700', mo: 'text-teal-600',
     dai: 'bg-gradient-to-br from-teal-400 to-teal-500', vach: 'bg-teal-500',
   },
   rose: {
     nen: 'bg-rose-50/70', vong: 'ring-rose-100', huy: 'bg-rose-100 text-rose-600',
-    chu: 'text-rose-600', mo: 'text-rose-300',
+    chu: 'text-rose-700', mo: 'text-rose-600',
     dai: 'bg-gradient-to-br from-rose-500 to-pink-500', vach: 'bg-rose-500',
   },
   amber: {
-    nen: 'bg-amber-50/70', vong: 'ring-amber-100', huy: 'bg-amber-100 text-amber-600',
-    chu: 'text-amber-600', mo: 'text-amber-300',
+    nen: 'bg-amber-50/70', vong: 'ring-amber-100', huy: 'bg-amber-100 text-amber-700',
+    chu: 'text-amber-700', mo: 'text-amber-600',
     dai: 'bg-gradient-to-br from-amber-400 to-amber-500', vach: 'bg-amber-500',
   },
   sky: {
     nen: 'bg-sky-50/70', vong: 'ring-sky-100', huy: 'bg-sky-100 text-sky-600',
-    chu: 'text-sky-600', mo: 'text-sky-300',
+    chu: 'text-sky-700', mo: 'text-sky-600',
     dai: 'bg-gradient-to-br from-sky-400 to-sky-500', vach: 'bg-sky-500',
   },
 } as const satisfies Record<string, SacO>;
@@ -278,6 +299,22 @@ export function huyLauncher(s: SacOKey): string {
 }
 
 /** Thẻ Action Center — dải màu đầu thẻ + thân trắng + vạch đáy cùng sắc. */
+// 🔴 GLOBAL SEARCH — Board Directive 08/08/2026.
+//
+// ⚠️ Ba chuỗi này ĐẶT Ở ĐÂY chứ ⛔ không ở `app/_home/global-search.tsx`:
+// bánh cóc màu `TD-07` đã bắt đúng lần đầu tôi viết `focus-visible:ring-blue-400`
+// thẳng trong tệp mới *(nợ phình 106 ⇒ 107)*. Bánh cóc **đúng** — và cách sửa
+// là **dời chuỗi về thẻ màu**, ⛔ không phải thêm tên tệp vào sổ nợ.
+export const oTimKiem =
+  'flex w-full items-center gap-2.5 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 '
+  + 'text-left shadow-sm backdrop-blur transition hover:border-slate-300 hover:shadow '
+  + 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400';
+export const hopTimKiem = 'rounded-2xl border border-slate-300 bg-white shadow-xl';
+/** Dòng kết quả ĐANG được chọn — nền xám trung tính, ⛔ không sắc định danh:
+ *  mỗi dòng đã mang sắc riêng ở huy hiệu, tô thêm nền màu là hai tín hiệu
+ *  tranh nhau nói *"đây là dòng đang chọn"*. */
+export const dongKetQuaChon = 'bg-slate-100';
+
 export function theHanhDong(s: SacOKey): string {
   return `group flex flex-col overflow-hidden rounded-2xl bg-white text-left ring-1 shadow-sm transition `
     + `${SAC_O[s].vong} hover:-translate-y-0.5 hover:shadow-lg `
@@ -322,7 +359,10 @@ export const chuCanhBao = 'text-rose-400';
 export const huyHieuThe =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-100';
 
-export const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 whitespace-nowrap';
+// 🔴 `text-slate-400` trên nền trắng đo được **2.56** — dưới ngưỡng `4.5` của
+// WCAG AA cho chữ thường. Tiêu đề cột là **nhãn dữ liệu**, ⛔ không phải chữ
+// trang trí: đọc ⛔ không ra thì cả bảng mất nghĩa. `-500` cho **4.61**.
+export const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 whitespace-nowrap';
 export const tdCls = 'px-4 py-3 text-sm text-slate-700 whitespace-nowrap';
 
 // ─── Lớp ô bảng dùng chung ──────────────────────────────────────────────────
@@ -348,7 +388,10 @@ export const tdMuted = `${tdCls} text-xs text-slate-500`;
 /** Con số — `tabular-nums` để các hàng thẳng cột khi cuộn. */
 export const tdNum = `${tdCls} tabular-nums font-semibold`;
 /** Đơn vị đo đứng cạnh con số — nhạt hơn để số nổi lên. */
-export const unitCls = 'font-normal text-slate-400';
+// Cùng phép đo với `thCls`. Đơn vị tính *(`USD/sp`, `m`, `pcs`)* là phần
+// **⛔ không được đoán** của một con số — CLAUDE.md §2.5: *"mọi con số phải có
+// đơn vị"*. Một đơn vị đọc ⛔ không ra thì con số đứng cạnh nó thành mơ hồ.
+export const unitCls = 'font-normal text-slate-500';
 
 // ── Card & Section ──────────────────────────────────────────────────────────
 export function Card({ title, icon: Icon, action, children, className = '' }: {

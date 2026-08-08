@@ -92,7 +92,7 @@ function NoiDung({ t }: { t: OLauncher }) {
           </span>
         )}
 
-      <span className={`block text-slate-500 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>
+      <span className={`block text-slate-600 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>
         {t.moTa}
       </span>
     </>

@@ -85,7 +85,7 @@ function The({ nhan, phu, icon: Icon, sac, chay }: {
         {/* ⚠️ **MỘT** dòng, ⛔ không hai — Board: *"⛔ Không nhồi nhiều text. ⛔
             Không để card quá cao."* `line-clamp-2` là **trần**, ⛔ không phải
             đích: câu ⛔ không được dài tới mức chạm nó. */}
-        <span className={`line-clamp-2 text-slate-500 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>{phu}</span>
+        <span className={`line-clamp-2 text-slate-600 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>{phu}</span>
       </span>
 
       <span className={`mt-auto block h-1 w-full ${s.vach}`} aria-hidden="true" />
@@ -106,7 +106,7 @@ function ThePhu({ nhan, phu, icon: Icon, sac, chay }: {
       </span>
       <span className="min-w-0">
         <span className={`block truncate text-slate-700 ${TYPE.caption} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
-        <span className={`block truncate text-slate-500 ${TYPE.caption}`}>{phu}</span>
+        <span className={`block truncate text-slate-600 ${TYPE.caption}`}>{phu}</span>
       </span>
     </button>
   );

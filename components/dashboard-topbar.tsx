@@ -145,10 +145,20 @@ export default function DashboardTopbar() {
               // tiêu đề còn vài chữ, mà tiêu đề mới là thứ cần đọc trước.
               // Khẩu hiệu nay mang sắc của chính phân hệ, không còn xanh dương
               // cứng cho mọi nơi.
+              //
+              // 🔴 **`md:` ⇒ `lg:` — 08/08/2026, lỗi ĐO ĐƯỢC bằng ảnh chụp
+              // khổ 768.** Ở đúng mốc `md` câu hiện ra nhưng **bị cắt cụt**:
+              //     `ĐÚNG · ĐỦ · ĐỀU • TẬN TÂM & TRÁ…`
+              //
+              // 🔑 Một khẩu hiệu cắt giữa chữ ⛔ không phải *"rút gọn"* — nó
+              // đọc ra là **lỗi dựng trang**, và nó nói sai chính câu nó mang.
+              // `truncate` giữ lại làm lưới cuối cho tiêu đề phân hệ dài bất
+              // thường; nhưng khoảng hiện phải là khoảng **đủ chỗ**, ⛔ không
+              // phải khoảng *"vừa đủ để bắt đầu cắt"*.
               <p
-                className={`ml-0 hidden truncate text-[11px] font-semibold uppercase tracking-[0.12em] md:block ${
+                className={`ml-0 hidden truncate text-[11px] font-semibold uppercase tracking-[0.12em] lg:block ${
                   identity ? identity.primary : 'text-slate-500'
-                } ${identity ? 'md:ml-[1.375rem]' : ''}`}
+                } ${identity ? 'lg:ml-[1.375rem]' : ''}`}
               >
                 {id.slogan}
               </p>
