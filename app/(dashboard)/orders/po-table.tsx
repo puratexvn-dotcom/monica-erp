@@ -21,6 +21,12 @@ import { PO_STATUSES, PO_STATUS_LABEL, type PoRow, type PoStatus } from './po-sc
 const nf = new Intl.NumberFormat('vi-VN');
 
 const STATUS_TONE: Record<PoStatus, Tone> = {
+  // 🔑 `Record<PoStatus, …>` **bắt buộc đủ khoá** — chính vì thế thêm hai bậc
+  // mới ở `po-schema` làm `tsc` đỏ ở đây, và đó là điều đúng: một trạng thái có
+  // thật mà bảng ⛔ không biết tô màu sẽ hiện ra như một ô trống ⛔ không ai
+  // giải thích được.
+  DRAFT: 'slate',
+  REVIEW: 'amber',
   APPROVED: 'indigo',
   IN_PRODUCTION: 'amber',
   COMPLETED: 'emerald',

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { guard, friendlyDbError, safeQuery } from '../_services/guard';
-import { writeAudit } from './audit';
+import { writeAudit, writeVersion } from './audit';
 // Luật ai-được-duyệt nằm ở `lib/` — Cổng khách hàng và bảng tổng của Giám đốc
 // rồi cũng phải đọc đúng luật này.
 import { kiemQuyen, duocTrinh } from '@/lib/mos/md/costing-approval';
@@ -64,10 +64,17 @@ export async function createCustomerFull(input: unknown): Promise<ActionResult<{
       incoterm: v.incoterm,
       payment_term: nz(v.payment_term),
       credit_limit: v.credit_limit ?? null,
+      // 🔴 Hồ sơ B2B — Board 08/08/2026. Cột do `054` thêm.
+      // ⚠️ `?? null` chứ ⛔ KHÔNG `?? 0`: `0` = *"trả ngay (COD)"*, `null` =
+      // *"⛔ chưa khai"* — cùng luật ba trạng thái với `credit_limit`.
+      credit_term_days: v.credit_term_days ?? null,
+      product_categories: nz(v.product_categories),
+      market: nz(v.market),
+      buyer_since: nz(v.buyer_since),
       notes: nz(v.notes),
       created_by: g.userId,
     })
-    .select('id')
+    .select('*')
     .single();
 
   if (error) {
@@ -79,8 +86,26 @@ export async function createCustomerFull(input: unknown): Promise<ActionResult<{
     };
   }
 
-  const id = (data as { id: string }).id;
+  const dong = data as Record<string, unknown>;
+  const id = dong.id as string;
   await writeAudit('CUSTOMER', id, 'CREATE', { customer_code: { from: null, to: v.customer_code } });
+  // 🔴 **LỖI THẬT — UAT BIỂU MẪU 08/08/2026 TÌM RA: `CUSTOMER` ⛔ CHƯA TỪNG CÓ
+  //    PHIÊN BẢN 1.**
+  //
+  // Đo được: tạo một khách hàng rồi sửa nó **một lần** ⇒ sổ phiên bản đọc ra
+  // `[1]`, ⛔ không phải `[1, 2]`. Vì lượt tạo chỉ gọi `writeAudit` — một
+  // **dòng nhật ký**, ⛔ không phải một **ảnh chụp**. `writeVersion` đếm số
+  // ảnh chụp đang có, thấy `0`, nên lượt SỬA đầu tiên tự đánh số `1`.
+  //
+  // 🔑 Hai hậu quả, và cái thứ hai nặng hơn:
+  //   ① số phiên bản **lệch một** so với số lần chứng từ thật sự đổi
+  //   ② **giá trị GỐC ⛔ không được chụp lại ở đâu cả** ⇒ sửa xong thì ⛔
+  //      không còn đường nào biết lúc lập nó mang giá trị gì
+  //
+  // ⚠️ Board `BUG-5` 07/08/2026 đòi *"lưu Version, ⛔ không overwrite dữ
+  // liệu"*. Ghi vết *"ai đã tạo"* mà ⛔ không chụp *"tạo ra cái gì"* thì điều
+  // khoản ấy mới thi hành được một nửa.
+  await writeVersion('CUSTOMER', id, 'CREATE', null, dong);
 
   revalidatePath(PATH);
   return { ok: true, message: `Đã tạo khách hàng ${v.customer_code} — ${v.name}.`, data: { id } };
@@ -152,7 +177,7 @@ export async function createInquiry(input: unknown): Promise<ActionResult<{ id: 
       notes: nz(v.notes),
       created_by: g.userId,
     })
-    .select('id')
+    .select('*')
     .single();
 
   if (error) {
@@ -164,8 +189,11 @@ export async function createInquiry(input: unknown): Promise<ActionResult<{ id: 
     };
   }
 
-  const id = (data as { id: string }).id;
+  const dong = data as Record<string, unknown>;
+  const id = dong.id as string;
   await writeAudit('INQUIRY', id, 'CREATE', { inquiry_no: { from: null, to: v.inquiry_no } });
+  // 🔴 Cùng khuyết tật, cùng cách vá — xem chú thích ở `createCustomerFull`.
+  await writeVersion('INQUIRY', id, 'CREATE', null, dong);
 
   revalidatePath(PATH);
   return { ok: true, message: `Đã tạo yêu cầu báo giá ${v.inquiry_no}.`, data: { id } };
@@ -217,7 +245,7 @@ export async function createCosting(input: unknown): Promise<ActionResult<{ id: 
       notes: nz(v.notes),
       created_by: g.userId,
     })
-    .select('id')
+    .select('*')
     .single();
 
   if (error) {
@@ -231,8 +259,14 @@ export async function createCosting(input: unknown): Promise<ActionResult<{ id: 
     };
   }
 
-  const id = (data as { id: string }).id;
+  const dong = data as Record<string, unknown>;
+  const id = dong.id as string;
   await writeAudit('COSTING', id, 'CREATE', { costing_no: { from: null, to: `${v.costing_no} v1` } });
+  // 🔴 Cùng khuyết tật, cùng cách vá — xem chú thích ở `createCustomerFull`.
+  // ⚠️ `version` của bản chiết tính và **số phiên bản chứng từ** là HAI thứ
+  // khác nhau: cái đầu là bản chào giá thứ mấy với khách, cái sau là lần sửa
+  // thứ mấy của một bản. Chúng ⛔ không thay thế được cho nhau.
+  await writeVersion('COSTING', id, 'CREATE', null, dong);
 
   revalidatePath(PATH);
   return { ok: true, message: `Đã tạo bản chiết tính ${v.costing_no} phiên bản 1.`, data: { id } };
@@ -420,7 +454,7 @@ export async function reviseCosting(costingId: string): Promise<ActionResult<{ i
       notes: s.notes,
       created_by: g.userId,
     })
-    .select('id')
+    .select('*')
     .single();
 
   if (error) return { ok: false, message: friendlyDbError('reviseCosting:insert', error) };

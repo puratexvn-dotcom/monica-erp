@@ -19,7 +19,29 @@ export { CURRENCIES, CURRENCY_LABEL };
 // ở client thì ai gọi thẳng Server Action cũng bỏ qua được toàn bộ ràng buộc.
 // ============================================================================
 
+/**
+ * 🔴 **`DRAFT` VÀ `REVIEW` THÊM 08/08/2026 — và đây là một LỖ HỔNG THẬT, ⛔
+ * không phải một ô còn thiếu.**
+ *
+ * Board chụp màn hình chính biểu mẫu này với ô *"TRẠNG THÁI = **Đã duyệt**"*
+ * và ra chỉ thị: *"⛔ Không cho mặc định 'Đã duyệt' khi tạo mới."*
+ *
+ * 🔑 Nguyên nhân đo được có **hai lớp**, và chỉ vá một lớp thì lớp kia vẫn hở:
+ *   ① `defaultValues.status = 'APPROVED'` ở `po-form-dialog.tsx`
+ *   ② **danh sách này ⛔ KHÔNG HỀ CÓ `DRAFT`** — nên kể cả khi đổi mặc định,
+ *      người dùng vẫn **⛔ không có bậc nào thấp hơn `APPROVED` để chọn**.
+ *      Vá riêng ① sẽ đẻ ra một biểu mẫu mở lên với ô trống ⛔ không lưu được.
+ *
+ * 🔴 Hệ quả của nguyên trạng: **mọi PO lập từ `/orders` đều ra đời ở trạng thái
+ * ĐÃ DUYỆT** — một chứng từ tự phê duyệt chính nó, ⛔ không ai bấm nút duyệt,
+ * ⛔ không dòng nhật ký nào ghi ai duyệt. Vi phạm `Hiến pháp Điều 8`.
+ *
+ * ⚠️ Lớp thứ ba nằm ở CSDL: `orders.status DEFAULT 'APPROVED'` từ migration
+ * `002`. Migration `054` đổi nó thành `'DRAFT'`. Ba lớp phải cùng đúng.
+ */
 export const PO_STATUSES = [
+  'DRAFT',
+  'REVIEW',
   'APPROVED',
   'IN_PRODUCTION',
   'COMPLETED',
@@ -30,6 +52,8 @@ export const PO_STATUSES = [
 export type PoStatus = (typeof PO_STATUSES)[number];
 
 export const PO_STATUS_LABEL: Record<PoStatus, string> = {
+  DRAFT: 'Nháp',
+  REVIEW: 'Chờ duyệt',
   APPROVED: 'Đã duyệt',
   IN_PRODUCTION: 'Đang sản xuất',
   COMPLETED: 'Hoàn thành',

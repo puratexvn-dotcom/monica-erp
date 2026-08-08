@@ -42,12 +42,17 @@ export function duocSuaPo(role: Role | null): boolean {
  * chúng lại ngay khi đặt xong. Chỉ Giám đốc mở lại được.
  */
 export const PO_TIEN_DO = [
-  'DRAFT', 'APPROVED', 'IN_PRODUCTION', 'COMPLETED', 'SHIPPED', 'CANCELLED',
+  'DRAFT', 'REVIEW', 'APPROVED', 'IN_PRODUCTION', 'COMPLETED', 'SHIPPED', 'CANCELLED',
 ] as const;
 export type PoTienDo = (typeof PO_TIEN_DO)[number];
 
 export const PO_TIEN_DO_LABEL: Record<PoTienDo, string> = {
   DRAFT: 'Nháp',
+  // 🔴 08/08/2026 — bậc *Review* của Board. Nó phải có mặt **ở đây nữa**, ⛔
+  // không chỉ ở `order.schema.ts`: `kiemSuaPo()` đọc danh sách NÀY, nên một
+  // trạng thái vắng mặt ở đây là trạng thái **⛔ không đặt được từ màn hình
+  // sửa** — đúng cái bẫy đã làm `SHIPPED`/`CANCELLED` thành luật chết.
+  REVIEW: 'Chờ duyệt',
   APPROVED: 'Đã duyệt',
   IN_PRODUCTION: 'Đang sản xuất',
   COMPLETED: 'Hoàn thành 🔒',

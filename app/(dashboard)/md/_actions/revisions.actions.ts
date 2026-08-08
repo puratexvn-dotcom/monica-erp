@@ -362,6 +362,13 @@ export async function updateCustomer(id: string, input: unknown): Promise<Action
     incoterm: v.incoterm,
     payment_term: nz(v.payment_term),
     credit_limit: v.credit_limit ?? null,
+    // 🔴 Hồ sơ B2B — Board 08/08/2026. **Phải có mặt ở CẢ HAI** đường tạo và
+    // sửa: thêm ô vào form mà quên đường sửa ⇒ ô đó khai một lần rồi ⛔ không
+    // bao giờ sửa được, và ⛔ không có lỗi nào báo cho ai biết.
+    credit_term_days: v.credit_term_days ?? null,
+    product_categories: nz(v.product_categories),
+    market: nz(v.market),
+    buyer_since: nz(v.buyer_since),
     notes: nz(v.notes),
   }, `khách hàng ${v.customer_code}`);
 }

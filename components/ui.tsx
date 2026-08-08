@@ -8,6 +8,7 @@
 
 import { useEffect, useState, type ReactNode, type ElementType } from 'react';
 import { X, Inbox, ShieldAlert, CloudOff, Star, Search } from 'lucide-react';
+import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 
 export type Tone = 'indigo' | 'emerald' | 'rose' | 'amber' | 'slate';
 
@@ -245,6 +246,52 @@ export function Card({ title, icon: Icon, action, children, className = '' }: {
       )}
       {children}
     </div>
+  );
+}
+
+/**
+ * 🔴 **NHÓM Ô GẤP ĐƯỢC TRONG BIỂU MẪU** — Board Directive 08/08/2026:
+ * *"**⛔ Không tạo popup dài. Chia section/tab.**"*
+ *
+ * 🔑 Đặt ở đây, ⛔ không chép vào từng hộp thoại: hai biểu mẫu Board vừa bác
+ * *(Khách hàng · Đơn hàng)* đều cần đúng thứ này, và hai bản sao của một khối
+ * bố cục thì **⛔ không bao giờ đứng yên cùng nhau** — sửa khoảng cách ở một
+ * chỗ là hai hộp thoại lệch nhau ngay lần sau.
+ *
+ * ⚠️ Gấp ⛔ **không** đồng nghĩa với ẩn: nhãn nhóm và dòng tóm tắt `phu` vẫn
+ * hiện khi gấp, nên người dùng luôn biết **còn gì bên dưới** và **trong đó
+ * đang có gì**. Một khối gấp ⛔ không nói gì khi đóng chỉ là một khối bị giấu.
+ */
+export function NhomGap({
+  ten, icon: Icon, mo, onMo, children, phu,
+}: {
+  ten: string;
+  icon: ElementType;
+  mo: boolean;
+  onMo: () => void;
+  children: ReactNode;
+  /** Tóm tắt hiện ngay cạnh nhãn — thứ giúp đọc được nhóm mà ⛔ không mở ra. */
+  phu?: string;
+}) {
+  return (
+    <section className="rounded-xl border border-slate-200">
+      <button
+        type="button"
+        onClick={onMo}
+        aria-expanded={mo}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+      >
+        <Icon className={`h-4 w-4 shrink-0 ${SAC_NHOM.action.chu}`} aria-hidden="true" />
+        <span className={`text-slate-800 ${TYPE.label} ${FONT_WEIGHT.bold}`}>{ten}</span>
+        {phu && <span className={`truncate text-slate-400 ${TYPE.caption}`}>{phu}</span>}
+        <span className={`ml-auto text-slate-400 ${TYPE.caption}`}>{mo ? '−' : '+'}</span>
+      </button>
+      {mo && (
+        <div className="grid grid-cols-1 gap-3 border-t border-slate-100 p-3 sm:grid-cols-2">
+          {children}
+        </div>
+      )}
+    </section>
   );
 }
 

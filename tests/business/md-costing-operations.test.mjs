@@ -178,9 +178,18 @@ console.log('\n⑨ SỬA PO — ai được sửa, và chặn dữ liệu vô ng
   // *"có sáu cái"*; nó ⛔ không phát hiện được ai đó đổi `SHIPPED` thành
   // `SHIPED`. Đây đúng bài học "số viết cứng trong bài kiểm" đã hai lần gây
   // báo động giả, ghi ở `arch.test.mjs` mục ③.
-  ok('Đủ 6 trạng thái tiến độ, ĐÚNG TÊN (Board BUG-4 · 07/08/2026)',
+  // 🔴 **6 ⇒ 7 · Board Directive 08/08/2026** — thêm `REVIEW`.
+  // Board liệt kê nhóm Workflow gồm đúng năm bậc *"Draft · **Review** ·
+  // Approved · Production · Completed"*. Bậc `REVIEW` là **chỗ đứng của một PO
+  // đã điền xong nhưng ⛔ CHƯA ai duyệt** — thiếu nó, MD chỉ có hai đường: để
+  // `DRAFT` mãi *(⛔ không ai biết đến lượt mình xem)* hoặc **tự đặt
+  // `APPROVED`** — tức tự duyệt đơn của chính mình.
+  ok('Đủ 7 trạng thái tiến độ, ĐÚNG TÊN (Board 07 + 08/08/2026)',
     JSON.stringify([...PO_TIEN_DO].sort())
-      === JSON.stringify(['APPROVED', 'CANCELLED', 'COMPLETED', 'DRAFT', 'IN_PRODUCTION', 'SHIPPED']));
+      === JSON.stringify(['APPROVED', 'CANCELLED', 'COMPLETED', 'DRAFT', 'IN_PRODUCTION', 'REVIEW', 'SHIPPED']),
+    JSON.stringify([...PO_TIEN_DO].sort()));
+  ok('REVIEW đặt được — ⛔ không thì "gửi duyệt" là một nút ⛔ không đi tới đâu',
+    kiemSuaPo({ ...hopLe, status: 'REVIEW' }).ok === true);
   ok('SHIPPED đặt được — ⛔ không thì luật "SHIPPED: Khóa" là luật chết',
     kiemSuaPo({ ...hopLe, status: 'SHIPPED' }).ok === true);
   ok('CANCELLED đặt được — lối LƯU TRỮ duy nhất của PO',

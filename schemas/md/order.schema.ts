@@ -26,12 +26,28 @@ import {
 // số lượng, giá, ngày giao, xưởng sản xuất, điều kiện giao hàng.
 // ============================================================================
 
+/**
+ * 🔴 **`REVIEW` THÊM 08/08/2026 — Board Directive *FIX MD INPUT EXPERIENCE*.**
+ * Board liệt kê nhóm ⑤ *Workflow* gồm đúng năm bậc: *"Draft · **Review** ·
+ * Approved · Production · Completed."*
+ *
+ * 🔑 Bậc này ⛔ không phải nhãn trang trí — nó là **chỗ đứng của một PO đã điền
+ * xong nhưng CHƯA ai duyệt**. Thiếu nó thì MD chỉ có hai lựa chọn: để `DRAFT`
+ * mãi *(⛔ không ai biết là đã đến lượt mình xem)*, hoặc **tự đặt `APPROVED`**
+ * — tức tự phê duyệt đơn của chính mình, đúng thứ `SoD` cấm.
+ *
+ * ⚠️ `orders.status` là `VARCHAR(50)` **⛔ KHÔNG có `CHECK`** *(migration `002`
+ * dòng 17)*, nên thêm bậc ở đây ⛔ không cần migration. Nhưng cũng vì thế CSDL
+ * ⛔ **không** chặn giúp giá trị rác — lược đồ này và `kiemSuaPo()` là hàng rào
+ * duy nhất.
+ */
 export const PO_STATUSES = [
-  'DRAFT', 'APPROVED', 'IN_PRODUCTION', 'COMPLETED', 'SHIPPED', 'CANCELLED',
+  'DRAFT', 'REVIEW', 'APPROVED', 'IN_PRODUCTION', 'COMPLETED', 'SHIPPED', 'CANCELLED',
 ] as const;
 export type PoStatus = (typeof PO_STATUSES)[number];
 export const PO_STATUS_LABEL: Record<PoStatus, string> = {
   DRAFT: 'Nháp',
+  REVIEW: 'Chờ duyệt',
   APPROVED: 'Đã duyệt',
   IN_PRODUCTION: 'Đang sản xuất',
   COMPLETED: 'Hoàn thành',
@@ -49,6 +65,22 @@ export function isPoRunning(status: string | null | undefined): boolean {
   return !CLOSED_PO_STATUSES.has(String(status ?? '').toUpperCase());
 }
 
+/**
+ * 🔴 **HAI BẬC DUY NHẤT ĐƯỢC ĐẶT LÚC TẠO MỚI** — Board 08/08/2026:
+ * *"**⛔ Không cho mặc định 'Đã duyệt' khi tạo mới.**"*
+ *
+ * 🔑 Board cấm cái **mặc định**; bản vá này đi xa hơn một bước và cấm luôn cái
+ * **lựa chọn** — vì một ô chọn có sẵn *"Đã duyệt"* trong danh sách thì chỉ mất
+ * một cú bấm để quay lại đúng chỗ cũ, và bấm nhầm ⛔ không để lại dấu vết nào
+ * phân biệt được với cố ý.
+ *
+ * ⚠️ Đây ⛔ **không** phải phép thay `SoD`. Nó chỉ chặn đường **tạo ra một đơn
+ * đã-duyệt-từ-lúc-sinh**. Chuyển `REVIEW → APPROVED` vẫn đi qua `updatePo` và
+ * chịu đủ luật khoá + nhật ký ở đó.
+ */
+export const PO_STATUS_KHI_TAO = ['DRAFT', 'REVIEW'] as const;
+export type PoStatusKhiTao = (typeof PO_STATUS_KHI_TAO)[number];
+
 // ─── Form tạo/sửa PO ────────────────────────────────────────────────────────
 export const poFormSchema = z
   .object({
@@ -57,6 +89,11 @@ export const poFormSchema = z
     customer_id: optionalUuid('Khách hàng'),
     season_id: optionalUuid('Mùa vụ'),
     costing_id: optionalUuid('Bản chiết tính'),
+    // 🔴 Board nhóm ⓐ *Order Identity* — *"MD Owner"*. Cột do `054` thêm.
+    // ⚠️ **KHÁC `created_by`**: `created_by` là *"ai đã lập"* — sự thật lịch sử
+    // ⛔ không đổi được; `md_owner_id` là *"ai ĐANG phụ trách"* — đổi khi bàn
+    // giao hoặc nghỉ việc. Gộp hai câu hỏi vào một cột là mất một câu.
+    md_owner_id: optionalUuid('Merchandiser phụ trách'),
 
     total_quantity: positiveInt('Số lượng'),
     order_type: z.enum(ORDER_TYPES).default('FOB'),

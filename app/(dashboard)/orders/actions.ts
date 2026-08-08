@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 import { canAccess, isRole, type Role } from '@/lib/rbac';
 import { poFormSchema, type PoRow } from './po-schema';
+import { PO_STATUS_KHI_TAO } from '@/schemas/md';
 // 🔴 BUG-4 · Board 07/08/2026. Bộ luật khoá **thuần** — xem chú thích đầu tệp.
 import {
   phanQuyetSuaPo, phanQuyetMoLaiPo, duocSua, PO_SAU_KHI_MO_LAI,
@@ -121,6 +122,23 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     return { ok: false, message: 'Dữ liệu chưa hợp lệ.', fieldErrors };
   }
 
+  // 🔴 **CÙNG MỘT LUẬT VỚI ORDER MASTER** — Board 08/08/2026.
+  // Vá riêng biểu mẫu MD mà bỏ đường này là để nguyên một cửa sau: cùng bảng
+  // `orders`, cùng hậu quả, chỉ khác màn hình. Một điều luật chỉ áp ở một trong
+  // hai lối vào thì ⛔ không phải điều luật.
+  //
+  // ⚠️ Cần ghi một đơn CŨ đã duyệt từ trước? Lập ở `Nháp` rồi đổi trạng thái —
+  // đường đó đi qua `updateOrderStatus`, nơi **ghi nhật ký và lưu phiên bản**.
+  // Chậm hơn một bước, và bước đó chính là **cái vết** cần có.
+  if (!(PO_STATUS_KHI_TAO as readonly string[]).includes(parsed.data.status)) {
+    return {
+      ok: false,
+      message: 'Đơn hàng mới chỉ được tạo ở trạng thái Nháp hoặc Chờ duyệt. '
+        + 'Duyệt là hành động riêng, phải có người bấm và có vết trong nhật ký.',
+      fieldErrors: { status: 'Chỉ được chọn Nháp hoặc Chờ duyệt khi tạo mới' },
+    };
+  }
+
   const { data: dong, error: dbError } = await supabase.from('orders').insert({
     po_number: parsed.data.po_number,
     customer_name: parsed.data.customer_name,
@@ -133,7 +151,7 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     currency: parsed.data.currency,
     unit_price: parsed.data.unit_price ?? null,
     status: parsed.data.status,
-  }).select('id').single();
+  }).select('*').single();
 
   if (dbError) {
     // 23505 = vi phạm UNIQUE. Báo đúng ô bị trùng thay vì ném mã lỗi Postgres.
@@ -169,6 +187,13 @@ export async function createOrder(input: unknown): Promise<ActionResult> {
     unit_price: { from: null, to: parsed.data.unit_price ?? null },
     currency: { from: null, to: parsed.data.currency },
   });
+  // 🔴 **VÁ 08/08/2026 — vết CÓ, ảnh chụp ⛔ KHÔNG.**
+  // Dòng `writeAudit` ngay trên ghi được *"ai lập, lúc nào"* nhưng chỉ chụp
+  // **bốn ô**. `writeVersion` chụp **nguyên dòng** và đánh số phiên bản `1`.
+  // Thiếu nó thì lượt SỬA đầu tiên tự đánh số `1` — sổ phiên bản lệch một, và
+  // giá trị lúc lập ⛔ không còn ở đâu để đối chiếu.
+  await writeVersion('ORDER', (dong as { id: string } | null)?.id ?? '', 'CREATE',
+    null, dong as Record<string, unknown>);
 
   revalidatePath(MODULE_PATH);
   return { ok: true, message: `Đã tạo đơn hàng ${parsed.data.po_number}.` };

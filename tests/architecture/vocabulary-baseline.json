@@ -70,6 +70,7 @@
     "QUERY_ROOTS": "KHÔNG phải vốn từ nghiệp vụ — gốc query key của TanStack Query.",
     "TRANSLATION_KEYS": "KHÔNG phải vốn từ nghiệp vụ — ba mã ngôn ngữ, Hiến pháp Điều 45.",
     "PO_VIEWS": "KHÔNG phải vốn từ nghiệp vụ — tên các lát cắt màn hình PO 360°.",
+    "PO_STATUS_KHI_TAO": "KHÔNG phải vốn từ mới — TẬP CON của PO_STATUSES gồm đúng hai bậc được phép đặt LÚC TẠO MỚI (DRAFT · REVIEW), theo Board 08/08/2026 *\"không cho mặc định Đã duyệt khi tạo mới\"*. Nó là một QUY TẮC PHÂN QUYỀN diễn đạt bằng danh sách, không phải một vốn từ trạng thái thứ hai; mọi giá trị của nó đã nằm trong PO_STATUSES và chịu chung món nợ TC-4 ghi ở đó.",
     "WH_ACTIONS": "KHÔNG phải vốn từ nghiệp vụ — tên hành động phân quyền, lib/rbac.ts.",
     "CHANG": "DẪN XUẤT — order-journey.ts suy 6 chặng từ CHỨNG TỪ CON (phiếu NPL, lệnh SX, lô hàng), không lưu cột `current_stage` nào. CLAUDE.md §2.5 cấm lưu dữ liệu tính được.",
     "TRANG_THAI_CHANG": "DẪN XUẤT — trạng thái mỗi chặng, tính tại chỗ. Gồm `KHONG_DO_DUOC` cho chặng Kiểm hàng vì MD chưa có đường dữ liệu QA (`V.1`: không kết luận trên bảng rỗng).",

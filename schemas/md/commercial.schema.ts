@@ -11,6 +11,7 @@ import {
   optionalEmail,
   optionalPhone,
   positiveInt,
+  nonNegativeInt,
   positiveDecimal,
   nonNegativeDecimal,
   percentField,
@@ -44,6 +45,24 @@ export const customerFormSchema = z.object({
   // được từ hộp thoại Sửa. `0` = *"⛔ không cho nợ"*, một phát biểu nghiệp vụ
   // THẬT, khác `null` = *"⛔ chưa khai"*. Xem chú thích ở `nonNegativeDecimal`.
   credit_limit: nonNegativeDecimal('Hạn mức công nợ', 2, 999_999_999).optional(),
+
+  // 🔴 **HỒ SƠ B2B NGÀNH MAY — Board Directive 08/08/2026.**
+  //    *"Bổ sung chuẩn B2B garment: Buyer information · Commercial profile ·
+  //    Payment profile · Credit rule · Product category · Market."*
+  //
+  // 🔑 Bốn nhóm đầu **ĐÃ CÓ** ô từ trước *(buyer_group · brand · contact_person
+  // · currency · incoterm · payment_term · credit_limit)*. Bốn ô dưới đây là
+  // phần **thật sự còn thiếu** — cột do migration `054` thêm.
+  //
+  // ⚠️ `credit_term_days` đi **CẶP** với `credit_limit`. *"Cho nợ 100.000 USD"*
+  // ⛔ không nói **bao lâu**; thiếu số ngày thì kế toán ⛔ không tính nổi tuổi
+  // nợ, và *"Credit rule"* mà Board hỏi mới có một nửa. Cùng luật ba trạng
+  // thái: `0` = trả ngay (COD) · `undefined` = ⛔ chưa khai.
+  credit_term_days: nonNegativeInt('Số ngày cho nợ').max(365, 'Số ngày cho nợ tối đa 365').optional(),
+  product_categories: optionalText('Nhóm hàng', 500),
+  market: optionalText('Thị trường', 200),
+  buyer_since: optionalDate('Khách hàng từ'),
+
   notes: optionalText('Ghi chú', 2000),
 });
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;

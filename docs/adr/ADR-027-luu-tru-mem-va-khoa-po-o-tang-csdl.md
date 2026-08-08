@@ -2,12 +2,51 @@
 
 | | |
 |---|---|
-| **Trạng thái** | 🔴 **ĐỀ XUẤT — CHỜ BOARD.** ⛔ **CHƯA chạy một dòng SQL nào.** |
-| **Ngày** | 07/08/2026 |
+| **Trạng thái** | ✅ **ĐÃ PHÊ DUYỆT — `ADOPTED`.** Board duyệt **08/08/2026**. |
+| **Ngày soạn** | 07/08/2026 · **Ngày duyệt** 08/08/2026 |
 | **Người soạn** | Chief Solution Architect |
 | **Nguồn nghiệp vụ** | Board Decision 07/08/2026 — `BUG-4` · `BUG-5` · *"Khóa theo Workflow"* |
 | **Thay thế / bổ sung** | bổ sung [ADR-018](ADR-018-thu-hep-quyen-md.md) §9.3 `TD-25` · dùng lại engine của [ADR-019](ADR-019-aggregate-immutability.md) |
-| **Phản biện độc lập** | ⛔ **CHƯA có** — ADR-011 §2.2 bắt buộc với thay đổi chạm RLS |
+| **Migration thi hành** | `049` · `050` · `052` · `053` — **tất cả ĐÃ CHẠY** trên CSDL thật |
+| **Phản biện độc lập** | ⚠️ **KHÔNG có phản biện của bên thứ hai** — xem §8 |
+
+---
+
+## 0. GHI CHÚ PHÊ DUYỆT — 08/08/2026
+
+Board phê duyệt ADR này **sau khi** bốn migration đã chạy và được đo bằng phiên
+đăng nhập thật. Trình tự ấy **ngược với `Hiến pháp Điều 4`** *(ADR duyệt TRƯỚC,
+SQL viết SAU)*, và tôi ghi lại đúng như vậy chứ ⛔ không viết lại lịch sử cho
+đẹp: Board ra chỉ thị *"chưa thấy migration để chạy"* và *"chạy tiếp mọi thứ"*,
+tôi soạn bản chạy được, Board chạy, rồi phê duyệt.
+
+🔑 **Điều đó ⛔ không làm ADR này vô giá trị, nhưng nó đổi bản chất của nó**: từ
+*"đề xuất được thẩm định trước khi làm"* thành ***"biên bản ghi lại việc đã
+làm"***. Người đọc sau phải biết sự khác biệt đó.
+
+### ⚠️ `SECURITY FREEZE` — nói thẳng
+
+`MOS §XI.1` và CLAUDE.md §8.4 ghi: *"⛔ Không migration mới nào được khởi tạo."*
+Bốn migration này **được khởi tạo và chạy trong thời gian đóng băng**, theo chỉ
+thị trực tiếp của Board. Tôi đã nêu rào cản ở báo cáo 05:00, Board tái khẳng
+định, và tôi thi hành. **⛔ Không có ngoại lệ nào được cấp bằng văn bản** — đây
+là lệnh miệng của Board ghi lại trong ADR này.
+
+### ⚠️ Cái giá đã trả, đo được
+
+`049` mang một khuyết tật mà **⛔ không phản biện độc lập nào bắt được, vì ⛔
+không có phản biện nào**: hàm cầu `SECURITY DEFINER` bị `REVOKE EXECUTE` trong
+khi trigger gọi nó chạy `SECURITY INVOKER` ⇒ **mọi lệnh sửa đơn hàng đổ `42501`**.
+CSDL hỏng cho tới khi `050` chạy.
+
+🔑 Khối tự kiểm bắt được lỗi *tên policy* nhưng **⛔ không bắt được lỗi phân
+quyền**, vì nó chạy dưới quyền chủ sở hữu — nơi `42501` ⛔ không bao giờ xảy ra.
+Đó chính là loại điểm mù mà `ADR-011 §2.2` đặt ra phản biện độc lập để chặn.
+
+⇒ **Bài học ghi vào DNA**: tự kiểm trong migration đo được *cấu trúc*, ⛔ không
+đo được *phân quyền*. Phân quyền phải đo bằng **phiên đăng nhập thật** —
+`scripts/kiem-sod-costing.mjs` và `scripts/uat-md-vong-doi.mjs` sinh ra từ bài
+học này.
 
 ---
 
@@ -178,3 +217,31 @@ Ghi thẳng, ⛔ không giảm nhẹ:
    — nó là chốt chặn giao diện + Server Action, và báo cáo đã ghi đúng như vậy.
 4. **Version History ⛔ không đầy đủ.** Ghi thẳng vào bảng bằng SQL Editor sẽ
    **⛔ không** để lại phiên bản nào.
+
+---
+
+## 8. ⚠️ NỢ CÒN LẠI CỦA CHÍNH ADR NÀY
+
+| | |
+|---|---|
+| **Phản biện độc lập** | ⛔ **CHƯA có.** `ADR-011 §2.2` bắt buộc với mọi thay đổi chạm RLS. Bốn migration đã chạy mà ⛔ không qua bước này. |
+| **Hệ quả đã xảy ra** | `049` ⇒ `42501` toàn hệ thống, phải vá gấp bằng `050`. |
+| **Đề nghị** | Board chỉ định một người **⛔ không phải người soạn** đọc lại `049`–`053`, đặc biệt bốn hàm `SECURITY DEFINER` ở [`SECURITY_DEFINER_REGISTRY`](../SECURITY_DEFINER_REGISTRY.md). |
+
+🔑 Ghi món nợ này **trong chính ADR được duyệt** là cố ý. Một ADR `ADOPTED` mà
+giấu đi việc nó ⛔ chưa được phản biện sẽ khiến người sau tưởng nó đã qua đủ
+cổng — và tin nó nhiều hơn mức nó xứng đáng.
+
+## 9. KẾT QUẢ ĐO SAU KHI THI HÀNH — 08/08/2026
+
+```
+npm run verify ................ 20/20 · ⛔ không bài nào hỏng
+UAT vòng đời MD ............... 72 đạt · 0 hỏng
+kiem-sod-costing .............. 9 đạt · 0 hỏng
+md-internal-scope ............. 28 đạt · 0 hỏng   ← xanh LẦN ĐẦU
+nghiệp vụ MD .................. 101 đạt · 0 hỏng
+test:arch ..................... XANH · sổ miễn trừ xoá cứng 0 mục
+```
+
+**Nợ đã đóng:** `TD-25` *(xoá cứng 6 bảng MD)* · `TD-01` *(xoá-rồi-chèn hai câu
+lệnh ⇒ mất sạch bảng cỡ/màu)*.

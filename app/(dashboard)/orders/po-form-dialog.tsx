@@ -50,7 +50,10 @@ export default function PoFormDialog({
       // ⛔ KHÔNG đặt 0: `0` là *"giá bằng không"*, ⛔ không phải *"chưa chốt
       // giá"*. Để trống ⇒ ghi `null` ⇒ báo cáo hiện ⚪ **chưa đo được**.
       unit_price: undefined,
-      status: 'APPROVED',
+      // 🔴 08/08/2026 — Board: *"⛔ Không cho mặc định 'Đã duyệt' khi tạo mới."*
+      // Đơn mới **⛔ chưa ai duyệt**, nên mặc định phải nói đúng điều đó. Mặc
+      // định an toàn là mặc định **ít quyền nhất**, ⛔ không phải tiện nhất.
+      status: 'DRAFT',
     },
   });
 

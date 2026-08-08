@@ -397,3 +397,87 @@ export async function listSeasonOptions(): Promise<
   );
   return res.rows;
 }
+
+// ─── Ô CHỌN CHO ORDER MASTER — Board Directive 08/08/2026 ───────────────────
+//
+// 🔑 **MỘT lời gọi, ba danh sách.** Ba chuyến đi riêng cho ba ô chọn của cùng
+// một hộp thoại là ba lần chờ mạng mà người dùng nhìn thấy thành ba lần ô nhảy.
+//
+// 🔑 Board: *"Ưu tiên: **ít nhập tay · tự lấy dữ liệu · reuse dữ liệu đã có**."*
+// Cả ba danh sách dưới đây đều phục vụ đúng câu đó — chúng biến ba ô **gõ tay**
+// thành ba ô **chọn**, và ô chiết tính còn **tự điền đơn giá** giúp.
+
+export interface OChonNguoiPhuTrach {
+  id: string;
+  employee_code: string | null;
+  full_name: string | null;
+}
+
+export interface OChonXuongNgoai {
+  id: string;
+  vendor_code: string;
+  vendor_name: string;
+  service_type: string | null;
+}
+
+/** Bản chiết tính dùng làm **căn cứ giá** của đơn — Board nhóm ⓒ. */
+export interface OChonChietTinh {
+  id: string;
+  costing_no: string;
+  version: number;
+  status: string;
+  customer_id: string | null;
+  style_id: string | null;
+  quoted_price: number | null;
+  currency: string | null;
+}
+
+export interface OChonDonHang {
+  nguoiPhuTrach: OChonNguoiPhuTrach[];
+  xuongNgoai: OChonXuongNgoai[];
+  chietTinh: OChonChietTinh[];
+}
+
+export async function listPoFormOptions(): Promise<OChonDonHang> {
+  const g = await guard();
+  if (!g.supabase) return { nguoiPhuTrach: [], xuongNgoai: [], chietTinh: [] };
+  const sb = g.supabase;
+
+  const [nguoi, xuong, ct] = await Promise.all([
+    safeQuery<OChonNguoiPhuTrach>('ô chọn người phụ trách', () =>
+      sb.from('profiles')
+        .select('id, employee_code, full_name')
+        // ⚠️ Chỉ người **đang làm việc**. Giao đơn cho một tài khoản đã nghỉ là
+        // tạo ra một đơn ⛔ không ai theo dõi mà bảng nào cũng báo *"đã có
+        // người phụ trách"*.
+        .eq('is_active', true)
+        .order('full_name')
+        .limit(300),
+    ),
+    safeQuery<OChonXuongNgoai>('ô chọn xưởng gia công ngoài', () =>
+      sb.from('subcontractors')
+        .select('id, vendor_code, vendor_name, service_type')
+        .eq('is_active', true)
+        .order('vendor_name')
+        .limit(300),
+    ),
+    safeQuery<OChonChietTinh>('ô chọn bản chiết tính', () =>
+      sb.from('costings')
+        .select('id, costing_no, version, status, customer_id, style_id, quoted_price, currency')
+        .order('created_at', { ascending: false })
+        .limit(300),
+    ),
+  ]);
+
+  return {
+    nguoiPhuTrach: nguoi.rows,
+    xuongNgoai: xuong.rows,
+    // ⚠️ `quoted_price` là `NUMERIC` ⇒ PostgREST trả **chuỗi**. Ép ngay tại
+    // đây, ⛔ không để tầng vẽ tự đoán: `'1200' * 2` ra `2400` nhưng
+    // `'1200' + 2` ra `'12002'`, và lỗi đó chỉ lộ ra ở màn hình tính tiền.
+    chietTinh: ct.rows.map((c) => ({
+      ...c,
+      quoted_price: c.quoted_price === null ? null : Number(c.quoted_price),
+    })),
+  };
+}

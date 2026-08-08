@@ -8,6 +8,7 @@ import { duocSuaPo, kiemSuaPo, canhBaoGiamSoLuong } from '@/lib/mos/md/po-edit';
 import { phanQuyetSuaPo, duocSua } from '@/lib/mos/md/document-lock';
 import {
   poFormSchema,
+  PO_STATUS_KHI_TAO,
   sizeBreakdownSchema,
   sampleFormSchema,
   riskAssessmentSchema,
@@ -34,6 +35,28 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
     return { ok: false, message: 'Dữ liệu chưa hợp lệ.', fieldErrors: zodFieldErrors(parsed.error.issues) };
   }
   const v = parsed.data;
+
+  // ═══ 🔴 ĐƠN MỚI ⛔ KHÔNG ĐƯỢC RA ĐỜI Ở TRẠNG THÁI ĐÃ DUYỆT ═══════════════
+  // Board 08/08/2026: *"⛔ Không cho mặc định 'Đã duyệt' khi tạo mới."*
+  //
+  // 🔑 Ô chọn trên biểu mẫu **đã** bỏ `Đã duyệt` khỏi danh sách. Phép kiểm này
+  // ⛔ KHÔNG thừa: Server Action là **endpoint HTTP gọi thẳng được** — ai cũng
+  // gửi được `status: 'APPROVED'` mà ⛔ không đi qua màn hình nào. Chốt chặn ở
+  // giao diện chỉ để **⛔ không mời người dùng bấm thứ chắc chắn bị từ chối**;
+  // hàng rào thật phải nằm ở đây và ở CSDL *(`054` đổi `DEFAULT`)*.
+  //
+  // ⚠️ Đây ⛔ **không** khoá vĩnh viễn ba bậc sau — `updatePo` vẫn đặt được
+  // chúng, và ở đó mỗi lần đổi đều **ghi nhật ký + lưu phiên bản**. Điều bị
+  // chặn là **một đơn tự phê duyệt chính nó ngay lúc sinh ra**, ⛔ không ai
+  // bấm nút duyệt và ⛔ không dòng vết nào ghi ai duyệt — `Hiến pháp Điều 8`.
+  if (!(PO_STATUS_KHI_TAO as readonly string[]).includes(v.status)) {
+    return {
+      ok: false,
+      message: 'Đơn hàng mới chỉ được tạo ở trạng thái Nháp hoặc Chờ duyệt. '
+        + 'Duyệt là một hành động riêng, phải có người bấm và có vết trong nhật ký.',
+      fieldErrors: { status: 'Chỉ được chọn Nháp hoặc Chờ duyệt khi tạo mới' },
+    };
+  }
 
   // Lấy tên khách từ bảng customers để cột customer_name (kiểu text, có từ
   // thời trước) luôn khớp với customer_id. Hai chỗ lệch nhau thì báo cáo theo
@@ -84,6 +107,12 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
       customer_name: customerName || 'Chưa gán khách hàng',
       season_id: nz(v.season_id),
       costing_id: nz(v.costing_id),
+      // 🔴 Board nhóm Ⓐ *"MD Owner"* — cột do `054` thêm.
+      // ⚠️ Bỏ trống ⇒ **chính người lập phụ trách**. ⛔ KHÔNG để `null`: một đơn
+      // ⛔ không ai phụ trách là một đơn ⛔ không ai nhắc, và mọi bảng *"việc của
+      // tôi"* sẽ lặng lẽ bỏ sót nó. `created_by` vẫn ghi riêng bên dưới — hai
+      // câu hỏi khác nhau, hai cột khác nhau.
+      md_owner_id: nz(v.md_owner_id) ?? g.userId,
       total_quantity: v.total_quantity,
       order_type: v.order_type,
       incoterm: nz(v.incoterm),
