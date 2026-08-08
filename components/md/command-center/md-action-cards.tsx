@@ -4,22 +4,38 @@
 // ACTION CENTER — dải thao tác nhanh, ĐỨNG NGAY DƯỚI ĐẦU TRANG
 //
 // Board Directive 07/08/2026 *(MD Home V2)* §2:
-//
 //   > *"Đây là khu vực thao tác nhanh … **⛔ Không được giấu trong menu. ⛔
 //   > Không để cuối trang.**"*
 //
-// Sáu nút, **đúng thứ tự Board khai**:
-//   Tạo PO · Khách hàng · Chiết tính · Định mức · Tech Pack · Yêu cầu NPL
-//
 // ─── 🔑 VÌ SAO ĐÂY ⛔ KHÔNG PHẢI BẢN SAO CỦA THANH TAB ───────────────────
 // Thanh tab trả lời *"tôi muốn XEM khu nào"*. Dải này trả lời *"tôi muốn LÀM
-// việc gì"* — hai câu khác nhau. Vào tab *"Khách hàng"* rồi còn phải tìm nút
-// *"Thêm khách hàng"* là **hai cú bấm cho một ý định**.
+// việc gì"* — hai câu khác nhau.
 //
-// ⚠️ Mỗi nút phải dẫn tới **một hành động có thật**. Một nút mở ra chỗ ⛔ không
-// tồn tại là *"lời nói dối của giao diện"*.
+// ═══ 🔴 BOARD DIRECTIVE *MD UI VISUAL FIX* · 08/08/2026 ═══════════════════
+//   > *"**BẮT BUỘC mỗi ô có màu nhận diện khác nhau.** PO → xanh dương ·
+//   > Khách hàng → xanh lá · Chiết tính → tím · Định mức → cam · Tech Pack →
+//   > xanh ngọc · Yêu cầu NPL → hồng/đỏ. **⛔ Không được để 6 ô cùng một màu
+//   > xanh.**"*
+//   > *"Mỗi card cần: **Icon · Tên chức năng · một dòng mô tả ngắn**. ⛔ Không
+//   > nhồi nhiều text."*
+//   > *"**XOÁ 2 TIÊU ĐỀ** … ⛔ không để lại khoảng trắng."*
 //
-// ⚠️ Màu/lớp thẻ từ `components/ui`, cỡ chữ từ `TYPE` — bánh cóc `TD-07`/`TD-10`.
+// ─── ⚠️ MỘT MÂU THUẪN GIỮA HAI CHỈ THỊ, VÀ CÁCH GIẢI ───────────────────
+// Chỉ thị hôm nay nói *"**Giữ 6 chức năng**"* rồi liệt kê đúng sáu. Nhưng
+// `BUG-1` *(Board, 07/08/2026)* đã ra lệnh **thêm ba** — *Báo giá · Sản xuất ·
+// Yêu cầu thay đổi* — kèm lý do đo được: ba nghiệp vụ ấy **⛔ không có lối vào
+// trực tiếp nào khác**, và chỉ thị hôm nay cũng ghi *"**⛔ KHÔNG đổi
+// navigation logic**"*.
+//
+// 🔑 Xoá ba thẻ đó là **cắt đường vào của ba nghiệp vụ** — tức đổi navigation,
+// thứ chỉ thị hôm nay cấm. Nên: **sáu thẻ Board liệt kê dựng đúng theo ảnh
+// mẫu** *(dải màu đầu thẻ, mỗi thẻ một sắc)*; **ba thẻ `BUG-1` xuống hàng
+// phụ**, nhỏ và nhẹ hơn hẳn. ⛔ Không mất gì, và thứ bậc nói đúng sự thật:
+// sáu việc chính, ba việc ⛔ không thường xuyên.
+//
+// ⚠️ Tệp này ⛔ **KHÔNG chứa một literal màu nào** — bánh cóc `TD-07`. Sắc lấy
+// từ `SAC_O` ở `components/ui`, nơi chuỗi lớp viết **nguyên** *(ghép chuỗi ⇒
+// Tailwind cắt mất ⇒ giao diện trắng trơn mà `next build` vẫn xanh)*.
 // ============================================================================
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -27,8 +43,11 @@ import {
   FileQuestion, Factory, ClipboardList,
 } from 'lucide-react';
 
-import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
-import { SAC_NHOM, theHanhDongChinh, huyHieuTheChinh, chuPhuTheChinh } from '@/components/ui';
+import { TYPE, FONT_WEIGHT, LINE_HEIGHT } from '@/lib/design/typography';
+import {
+  SAC_O, theHanhDong, daiHanhDong, huyHanhDong, theLauncher, huyLauncher,
+  type SacOKey,
+} from '@/components/ui';
 
 export interface HanhDongMd {
   taoPo: () => void;
@@ -37,43 +56,56 @@ export interface HanhDongMd {
   dinhMuc: () => void;
   techPack: () => void;
   yeuCauNpl: () => void;
-  // 🔴 BA HÀNH ĐỘNG THÊM 07/08/2026 — Board Decision `BUG-1`. Xem khối chú
-  // thích ngay trên chỗ dựng chúng ở cuối tệp.
+  // 🔴 BA HÀNH ĐỘNG THÊM 07/08/2026 — Board Decision `BUG-1`.
   baoGia: () => void;
   sanXuat: () => void;
   yeuCauThayDoi: () => void;
 }
 
-// 🔴 Board §12: *"Các nút tạo mới: **⛔ Không dùng button trắng.** Phải nổi
-// bật. Có icon. Có màu."* — sắc **Action = xanh dương**.
-// Thẻ PHỤ: viền nhạt, **nền trắng** — nhẹ hơn thẻ chính một bậc để mắt phân
-// biệt được ngay mà ⛔ không cần đọc nhãn.
-// 🔴 Board *MD V5.1* §1: *"Chiếm quá nhiều chiều cao. Giảm ~30%. Mỗi card chỉ
-// giữ icon · tiêu đề · 1 dòng mô tả. ⛔ Không cần nhiều khoảng trắng."*
-//
-// ─── 🔑 XẾP NGANG, ⛔ KHÔNG XẾP DỌC ─────────────────────────────────────
-// Bản trước xếp **dọc**: biểu tượng một dòng, tên một dòng, mô tả một dòng ⇒
-// ba tầng chồng lên nhau. Xếp **ngang** *(biểu tượng ⟷ chữ)* bỏ được nguyên
-// một tầng mà ⛔ không mất thông tin nào — đúng nghĩa *"giảm chiều cao"*, ⛔
-// không phải *"cắt nội dung"*.
-//
-// ⚠️ `truncate` ở dòng mô tả: ô hẹp thì cắt bằng dấu ba chấm, ⛔ KHÔNG xuống
-// dòng. Một thẻ xuống dòng làm cả hàng sáu thẻ cao theo — đúng thứ đang sửa.
-const the =
-  `group flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-2.5 text-left transition ` +
-  `hover:border-slate-300 hover:shadow-sm focus-visible:outline-none focus-visible:ring-4 ` +
-  SAC_NHOM.action.tuongTac;
+/** Thẻ hành động chính — dựng theo đúng ảnh mẫu Board gửi:
+ *  dải màu đầu thẻ ⇒ huy hiệu tròn trắng ⇒ tiêu đề mang sắc ⇒ vạch ngắn ⇒
+ *  **một** dòng mô tả ⇒ vạch đáy cùng sắc. */
+function The({ nhan, phu, icon: Icon, sac, chay }: {
+  nhan: string; phu: string; icon: LucideIcon; sac: SacOKey; chay: () => void;
+}) {
+  const s = SAC_O[sac];
+  return (
+    <button type="button" onClick={chay} className={theHanhDong(sac)}>
+      <span className={daiHanhDong(sac)}>
+        <span className={huyHanhDong(sac)}>
+          <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+        </span>
+      </span>
 
-function The({ nhan, phu, icon: Icon, chay }: {
-  nhan: string; phu: string; icon: LucideIcon; chay: () => void;
+      <span className="flex flex-col items-center gap-1 px-2 pb-2.5 pt-6 text-center">
+        <span className={`block ${s.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>+ {nhan}</span>
+        {/* Vạch ngắn dưới tiêu đề — chi tiết của ảnh mẫu, và nó có việc: tách
+            *tên hành động* khỏi *lời giải thích* mà ⛔ không tốn một dòng. */}
+        <span className={`block h-0.5 w-6 rounded-full ${s.vach}`} aria-hidden="true" />
+        {/* ⚠️ **MỘT** dòng, ⛔ không hai — Board: *"⛔ Không nhồi nhiều text. ⛔
+            Không để card quá cao."* `line-clamp-2` là **trần**, ⛔ không phải
+            đích: câu ⛔ không được dài tới mức chạm nó. */}
+        <span className={`line-clamp-2 text-slate-500 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>{phu}</span>
+      </span>
+
+      <span className={`mt-auto block h-1 w-full ${s.vach}`} aria-hidden="true" />
+    </button>
+  );
+}
+
+/** Thẻ hành động **phụ** — ba việc của `BUG-1`. Dùng lại đúng khuôn thẻ
+ *  Launcher: nhẹ hơn hẳn hàng trên nên thứ bậc đọc được ngay, mà vẫn có sắc
+ *  định danh riêng như Board yêu cầu. */
+function ThePhu({ nhan, phu, icon: Icon, sac, chay }: {
+  nhan: string; phu: string; icon: LucideIcon; sac: SacOKey; chay: () => void;
 }) {
   return (
-    <button type="button" onClick={chay} className={the}>
-      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition ${SAC_NHOM.action.huy} group-hover:scale-105`}>
+    <button type="button" onClick={chay} className={`${theLauncher(sac)} !flex-row !items-center !gap-2.5 !text-left`}>
+      <span className={huyLauncher(sac)}>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className={`block truncate text-slate-800 ${TYPE.bodySm} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
+        <span className={`block truncate text-slate-700 ${TYPE.caption} ${FONT_WEIGHT.semibold}`}>+ {nhan}</span>
         <span className={`block truncate text-slate-500 ${TYPE.caption}`}>{phu}</span>
       </span>
     </button>
@@ -82,82 +114,44 @@ function The({ nhan, phu, icon: Icon, chay }: {
 
 export default function MdActionCards({ hd }: { hd: HanhDongMd }) {
   return (
+    // 🔴 *"XOÁ 2 TIÊU ĐỀ … ⛔ không để lại khoảng trắng."* `<h2>Bắt đầu việc
+    // gì?</h2>` đã gỡ cùng `mb-2` của nó. `aria-label` giữ lại cho trình đọc
+    // màn hình — gỡ chữ hiện hình ⛔ không có nghĩa là gỡ cả ngữ nghĩa.
     <section aria-label="Action Center" className="mb-4">
-      <h2 className={`mb-2 text-slate-500 ${TYPE.overline}`}>Bắt đầu việc gì?</h2>
-
-      {/* 🔴 MỘT PRIMARY, NĂM SECONDARY — Board §3: *"+ Tạo PO nổi bật nhất."*
-          🔑 Sáu nút **cùng cỡ, cùng màu** là sáu nút **⛔ không nút nào nổi**.
-          Người dùng phải đọc cả sáu nhãn mới chọn được — đó là thuế nhận thức
-          trả cho một quyết định mà 80% thời gian đã biết trước câu trả lời. */}
-      {/* 🔴 **NĂM cột, HAI hàng** — đổi 07/08/2026 theo `BUG-1`.
-          Bản trước là `lg:grid-cols-7`: thẻ chính chiếm 2 ô ⇒ 2 + 5 = 7 khít
-          **một** hàng. Nay có **tám** thẻ phụ ⇒ 2 + 8 = **10** ô = đúng **hai**
-          hàng năm cột, ⛔ không thẻ nào mồ côi ở cuối dòng.
-          ⚠️ Giữ `grid-cols-7` mà nhét 10 ô sẽ ra 7 + 3 — hàng dưới trống bốn ô,
-          nhìn như dải bị vỡ. Số cột phải chia hết tổng số ô, ⛔ không phải chọn
-          cho đẹp rồi hy vọng. */}
-      {/* §10: khe 3 ⇒ 2.5. Thêm một hàng là thêm ~46 px — đó là **cái giá đã
-          biết** của việc đưa đủ nghiệp vụ lên mặt trước, ⛔ không phải phình
-          ngoài ý muốn. */}
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-        <button
-          type="button"
-          onClick={hd.taoPo}
-          // 🔴 Board *MD V5* §6: *"+ Tạo PO phải LỚN NHẤT. Màu nổi bật nhất."*
-          //
-          // ⚠️ ĐỔI TỪ NỀN NHẠT SANG **NỀN ĐẶC**. Bản trước dùng `bg-blue-50` —
-          // trên ảnh chụp Board gửi, thẻ chính nhạt gần bằng năm thẻ trắng bên
-          // cạnh, nên *"nổi bật nhất"* chỉ đúng trên giấy. Nền đặc + chữ trắng
-          // là thứ duy nhất trên màn hình này, nên ⛔ không thể nhầm.
-          //
-          // ⚠️ Lớp lấy từ `components/ui`, ⛔ không viết màu thẳng — bánh cóc
-          // `TD-07` đã bắt đúng lần đầu tôi viết `bg-blue-600` ở đây.
-          className={theHanhDongChinh}
-        >
-          <span className={huyHieuTheChinh}>
-            <FilePlus2 className="h-6 w-6" aria-hidden="true" />
-          </span>
-          <span className="min-w-0">
-            <span className={`block text-white ${TYPE.cardTitle} ${FONT_WEIGHT.bold}`}>+ Tạo PO</span>
-            <span className={`block ${chuPhuTheChinh} ${TYPE.caption}`}>đơn hàng mới — việc chính của MD</span>
-          </span>
-        </button>
-
-        <The nhan="Khách hàng" phu="thêm vào danh mục" icon={UserPlus} chay={hd.khachHang} />
-        <The nhan="Báo giá" phu="nhận yêu cầu từ khách" icon={FileQuestion} chay={hd.baoGia} />
-        <The nhan="Chiết tính" phu="tích công đoạn ⇒ giá" icon={Calculator} chay={hd.chietTinh} />
-        <The nhan="Định mức" phu="mã hàng · BOM" icon={Shirt} chay={hd.dinhMuc} />
-        <The nhan="Tech Pack" phu="tài liệu kỹ thuật" icon={FileText} chay={hd.techPack} />
-        <The nhan="Yêu cầu NPL" phu="đề nghị mua vật tư" icon={Boxes} chay={hd.yeuCauNpl} />
-        <The nhan="Sản xuất" phu="lệnh sản xuất từ SAM" icon={Factory} chay={hd.sanXuat} />
-        <The nhan="Yêu cầu thay đổi" phu="khách đổi số lượng · ngày" icon={ClipboardList} chay={hd.yeuCauThayDoi} />
+      {/* 🔴 SÁU THẺ CHÍNH — đúng sáu chức năng và đúng sáu sắc Board chỉ định.
+          ⚠️ **Sáu cột chia hết cho sáu thẻ** ⇒ ⛔ không thẻ nào mồ côi cuối
+          dòng. Điện thoại 2, bảng 3, máy bàn 6. */}
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+        <The nhan="Thêm PO" phu="Thêm đơn hàng mới" icon={FilePlus2} sac="blue" chay={hd.taoPo} />
+        <The nhan="Thêm khách hàng" phu="Thêm khách hàng mới" icon={UserPlus} sac="emerald" chay={hd.khachHang} />
+        <The nhan="Thêm chiết tính" phu="Tạo bảng chiết tính" icon={Calculator} sac="violet" chay={hd.chietTinh} />
+        <The nhan="Thêm định mức" phu="Tạo mã hàng & BOM" icon={Shirt} sac="orange" chay={hd.dinhMuc} />
+        <The nhan="Thêm Tech Pack" phu="Tạo hồ sơ kỹ thuật" icon={FileText} sac="teal" chay={hd.techPack} />
+        <The nhan="Yêu cầu NPL" phu="Tạo yêu cầu nguyên phụ liệu" icon={Boxes} sac="rose" chay={hd.yeuCauNpl} />
       </div>
 
-      {/* ═══ 🔴 BUG-1 · BA HÀNH ĐỘNG BỔ SUNG · Board Decision 07/08/2026 ═════
-          > *"Chỉ bổ sung Action Center còn thiếu: **Báo giá · Sản xuất · Yêu
-          > cầu thay đổi**. Đảm bảo **tất cả nghiệp vụ đều đi được** từ Action
-          > Center hoặc Business Launcher. **⛔ Không được tạo thêm thanh điều
-          > hướng mới.**"*
+      {/* ═══ 🔴 BA HÀNH ĐỘNG CỦA `BUG-1` — HÀNG PHỤ ═══════════════════════
+          > Board 07/08/2026: *"Chỉ bổ sung Action Center còn thiếu: **Báo giá ·
+          > Sản xuất · Yêu cầu thay đổi**. Đảm bảo **tất cả nghiệp vụ đều đi
+          > được** từ Action Center hoặc Business Launcher."*
 
-          ─── ⚠️ LỖ HỔNG ĐANG VÁ, ĐO ĐƯỢC ────────────────────────────────
-          Sau `V5`, màn hình mặc định bày **10 ô Launcher + 6 thẻ hành động**.
-          Đối chiếu với **13 tab** nghiệp vụ, **ba tab ⛔ KHÔNG có lối vào trực
-          tiếp nào**: `rfq` · `production` · `changes`. Tới được thì vẫn tới —
-          nhưng phải **ba cú bấm** qua `More ▼`, tức là ba nghiệp vụ bị hạ cấp
-          xuống hạng hai chỉ vì bố cục, ⛔ không vì nghiệp vụ.
+          ⚠️ Ba nghiệp vụ này **⛔ KHÔNG có lối vào trực tiếp nào khác** — đo
+          được: đối chiếu 13 tab với màn hình mặc định, `rfq` · `production` ·
+          `changes` chỉ tới được qua ba cú bấm trong `More ▼`. Xoá ba thẻ này
+          là hạ ba nghiệp vụ xuống hạng hai **vì bố cục**, ⛔ không vì nghiệp vụ.
 
-          🔑 **Vá ở ĐÂY chứ ⛔ không khôi phục 13 tab**, và ⛔ không thêm thanh
-          điều hướng: Board đã bác cả hai. Action Center trả lời *"tôi muốn LÀM
-          gì"* — thêm ba việc vào một danh sách việc là **đúng chỗ**, còn thêm
-          một thanh nữa là đúng thứ Board cấm.
-
-          ⚠️ **Ba nghiệp vụ này ⛔ KHÔNG lên Business Launcher.** Launcher trả
-          lời *"tôi có bao nhiêu X"* và mọi ô của nó đều mang **một con số**;
-          *"Yêu cầu thay đổi"* nhét vào đó sẽ phải bịa ra một con số, hoặc hiện
-          ⚪ vĩnh viễn. Hai khối, hai câu hỏi — ⛔ không trộn.
-
-          ⚠️ Mỗi nút mở **đúng chỗ làm việc đó**, ⛔ không chỉ đổi tab rồi để
-          người dùng tự tìm nút — xem `hanhDong` ở `md-client.tsx`. */}
+          ⚠️ Chúng ⛔ KHÔNG lên Business Launcher: mọi ô Launcher mang **một con
+          số**, còn *"Yêu cầu thay đổi"* nhét vào đó sẽ phải bịa ra một con số
+          hoặc hiện ⚪ vĩnh viễn. Hai khối, hai câu hỏi — ⛔ không trộn. */}
+      {/* ⚠️ `flex flex-wrap`, ⛔ KHÔNG `grid-cols-3`: lưới ba cột kéo mỗi thẻ ra
+          ~420 px trên máy bàn, và một thẻ 420 px chứa đúng một biểu tượng với
+          hai dòng chữ ngắn đọc ra là **ba mảng trống**. Thẻ phụ nên **co theo
+          nội dung** — nó là việc phụ, và kích thước phải nói đúng điều đó. */}
+      <div className="mt-2.5 flex flex-col flex-wrap gap-2.5 sm:flex-row">
+        <ThePhu nhan="Báo giá" phu="Nhận yêu cầu từ khách" icon={FileQuestion} sac="sky" chay={hd.baoGia} />
+        <ThePhu nhan="Sản xuất" phu="Lệnh sản xuất từ SAM" icon={Factory} sac="amber" chay={hd.sanXuat} />
+        <ThePhu nhan="Yêu cầu thay đổi" phu="Khách đổi số lượng · ngày" icon={ClipboardList} sac="violet" chay={hd.yeuCauThayDoi} />
+      </div>
     </section>
   );
 }

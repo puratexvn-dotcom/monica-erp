@@ -176,6 +176,126 @@ export const SAC_NHOM = {
 
 export type SacNhom = keyof typeof SAC_NHOM;
 
+// ============================================================================
+// 🔴 SẮC ĐỊNH DANH TỪNG Ô — Board Directive *MD UI VISUAL FIX* 08/08/2026
+//
+//   > *"**MỖI Ô = MỘT NHẬN DIỆN MÀU RIÊNG.** ⛔ Không được để 6 ô cùng một màu
+//   > xanh… Màu phải **pastel hiện đại**, chuyên nghiệp, ⛔ không quá chói."*
+//
+// ─── ⚠️ ĐIỀU NÀY ĐẢO MỘT QUYẾT ĐỊNH CŨ, VÀ PHẢI NÓI RÕ ─────────────────
+// `md-business-launcher.tsx` ghi: *"SẮC TRUNG TÍNH, ⛔ KHÔNG tô màu 10 ô…
+// Tô màu chúng sẽ đánh bại chính khối rủi ro đỏ ngay bên dưới."* Lập luận ấy
+// **⛔ không sai**, nhưng Board đã cân nhắc và chọn hướng khác, kèm ảnh mẫu.
+//
+// 🔑 Điều giữ cho khối rủi ro vẫn thắng là **ĐỘ ĐẶC, ⛔ không phải sự độc
+// quyền về màu**: Launcher dùng nền `-50/60` với chữ `-600` — pastel, phẳng,
+// ⛔ không viền đậm. Khối rủi ro dùng nền đặc + viền. Mắt vẫn đọc ra thứ bậc,
+// vì thứ bậc nằm ở **độ tương phản**, ⛔ không ở việc ai được phép có màu.
+//
+// ⚠️ **CHUỖI LỚP PHẢI VIẾT NGUYÊN, ⛔ KHÔNG GHÉP.** Tailwind quét mã nguồn
+// bằng văn bản: `` `bg-${hue}-50` `` bị cắt mất lúc dựng ⇒ giao diện ra
+// **trắng trơn** mà `next build` vẫn xanh. Đây là cái bẫy `UI_UX_STANDARDS §8`
+// mục 5 ghi lại, và nó là lý do bảng dưới đây dài dòng thay vì sinh tự động.
+// ============================================================================
+export interface SacO {
+  /** Nền thẻ Launcher — pastel rất nhạt. */
+  nen: string;
+  /** Vòng viền mảnh cùng hệ màu, thay cho `border` xám. */
+  vong: string;
+  /** Huy hiệu tròn chứa biểu tượng. */
+  huy: string;
+  /** Chữ mang sắc — dùng cho con số và tiêu đề hành động. */
+  chu: string;
+  /** Sắc nhạt cho mũi `›` ở góc. */
+  mo: string;
+  /** Dải đầu thẻ hành động — chuyển sắc NHẸ, cùng một hệ màu. */
+  dai: string;
+  /** Vạch phân cách ngắn dưới tiêu đề + vạch đáy thẻ. */
+  vach: string;
+}
+
+export const SAC_O = {
+  blue: {
+    nen: 'bg-blue-50/70', vong: 'ring-blue-100', huy: 'bg-blue-100 text-blue-600',
+    chu: 'text-blue-600', mo: 'text-blue-300',
+    dai: 'bg-gradient-to-br from-blue-500 to-blue-600', vach: 'bg-blue-500',
+  },
+  emerald: {
+    nen: 'bg-emerald-50/70', vong: 'ring-emerald-100', huy: 'bg-emerald-100 text-emerald-600',
+    chu: 'text-emerald-600', mo: 'text-emerald-300',
+    dai: 'bg-gradient-to-br from-emerald-400 to-emerald-500', vach: 'bg-emerald-500',
+  },
+  violet: {
+    nen: 'bg-violet-50/70', vong: 'ring-violet-100', huy: 'bg-violet-100 text-violet-600',
+    chu: 'text-violet-600', mo: 'text-violet-300',
+    dai: 'bg-gradient-to-br from-violet-500 to-violet-600', vach: 'bg-violet-500',
+  },
+  orange: {
+    nen: 'bg-orange-50/70', vong: 'ring-orange-100', huy: 'bg-orange-100 text-orange-600',
+    chu: 'text-orange-600', mo: 'text-orange-300',
+    dai: 'bg-gradient-to-br from-orange-400 to-orange-500', vach: 'bg-orange-500',
+  },
+  teal: {
+    nen: 'bg-teal-50/70', vong: 'ring-teal-100', huy: 'bg-teal-100 text-teal-600',
+    chu: 'text-teal-600', mo: 'text-teal-300',
+    dai: 'bg-gradient-to-br from-teal-400 to-teal-500', vach: 'bg-teal-500',
+  },
+  rose: {
+    nen: 'bg-rose-50/70', vong: 'ring-rose-100', huy: 'bg-rose-100 text-rose-600',
+    chu: 'text-rose-600', mo: 'text-rose-300',
+    dai: 'bg-gradient-to-br from-rose-500 to-pink-500', vach: 'bg-rose-500',
+  },
+  amber: {
+    nen: 'bg-amber-50/70', vong: 'ring-amber-100', huy: 'bg-amber-100 text-amber-600',
+    chu: 'text-amber-600', mo: 'text-amber-300',
+    dai: 'bg-gradient-to-br from-amber-400 to-amber-500', vach: 'bg-amber-500',
+  },
+  sky: {
+    nen: 'bg-sky-50/70', vong: 'ring-sky-100', huy: 'bg-sky-100 text-sky-600',
+    chu: 'text-sky-600', mo: 'text-sky-300',
+    dai: 'bg-gradient-to-br from-sky-400 to-sky-500', vach: 'bg-sky-500',
+  },
+} as const satisfies Record<string, SacO>;
+
+export type SacOKey = keyof typeof SAC_O;
+
+/** Thẻ Launcher — pastel, ⛔ không viền xám, bóng rất mảnh.
+ *
+ *  🔑 `ring-1` thay cho `border`: vòng ring ⛔ không chiếm chỗ trong hộp nên
+ *  mười thẻ cạnh nhau ⛔ không bị dồn thêm 20 px chiều ngang, và nó cùng hệ
+ *  màu với nền nên thẻ đọc ra **một mảng màu**, ⛔ không phải **một cái hộp**. */
+export function theLauncher(s: SacOKey, khoa = false): string {
+  return `group relative flex flex-col items-center gap-1.5 rounded-2xl p-2.5 text-center ring-1 `
+    + `${SAC_O[s].nen} ${SAC_O[s].vong} transition `
+    + (khoa
+      ? 'cursor-not-allowed opacity-70'
+      : 'hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2');
+}
+
+/** Huy hiệu tròn chứa biểu tượng ở thẻ Launcher. */
+export function huyLauncher(s: SacOKey): string {
+  return `flex h-9 w-9 items-center justify-center rounded-full ${SAC_O[s].huy}`;
+}
+
+/** Thẻ Action Center — dải màu đầu thẻ + thân trắng + vạch đáy cùng sắc. */
+export function theHanhDong(s: SacOKey): string {
+  return `group flex flex-col overflow-hidden rounded-2xl bg-white text-left ring-1 shadow-sm transition `
+    + `${SAC_O[s].vong} hover:-translate-y-0.5 hover:shadow-lg `
+    + 'focus-visible:outline-none focus-visible:ring-2';
+}
+/** Dải màu đầu thẻ. `relative` để huy hiệu **cưỡi lên mép dưới** của nó.
+ *
+ *  🔑 Chi tiết này lấy đúng từ ảnh mẫu Board gửi, và nó ⛔ không phải trang
+ *  trí: huy hiệu nằm vắt qua đường ranh **khâu hai nửa thẻ lại làm một**. Đặt
+ *  gọn trong dải thì thẻ đọc ra **hai khối rời chồng lên nhau**. */
+export function daiHanhDong(s: SacOKey): string {
+  return `relative flex h-11 items-center justify-center ${SAC_O[s].dai}`;
+}
+export function huyHanhDong(s: SacOKey): string {
+  return 'absolute left-1/2 top-full flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 '
+    + `items-center justify-center rounded-full bg-white shadow-md ${SAC_O[s].chu}`;
+}
+
 /** Khung một Box có đầu màu nhẹ — Board §12: *"Các Box có Header màu nhẹ. ⛔
  *  Không trắng toàn bộ."* */
 export function hopNhom(n: SacNhom): string {

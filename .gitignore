@@ -49,3 +49,7 @@ yarn-error.log*
 # vercel
 .vercel
 node_modules
+
+# Ảnh chụp màn hình do scripts/chup-man-hinh-md.mjs sinh ra — SẢN PHẨM ĐO, ⛔
+# không phải mã nguồn. Chúng đổi mỗi lần chạy và nặng vài trăm KB một tấm.
+.anh-man-hinh/
