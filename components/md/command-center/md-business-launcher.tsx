@@ -76,7 +76,10 @@ function NoiDung({ t }: { t: OLauncher }) {
         <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
       </span>
 
-      <span className={`block text-slate-700 ${TYPE.caption} ${LINE_HEIGHT.snug} ${FONT_WEIGHT.semibold}`}>
+      {/* 🔴 Board 08/08/2026: *"Icon, số liệu, **tiêu đề** và mũi tên phải sử
+          dụng **màu định danh tương ứng**."* Bản trước để `text-slate-700` —
+          một sắc trung tính dùng chung cho cả mười ô, tức đúng thứ Board bác. */}
+      <span className={`block ${s.chu} ${TYPE.caption} ${LINE_HEIGHT.snug} ${FONT_WEIGHT.bold}`}>
         {t.nhan}
       </span>
 

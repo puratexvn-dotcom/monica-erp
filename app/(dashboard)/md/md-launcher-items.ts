@@ -48,7 +48,7 @@ export function O_LAUNCHER_MD(n: DemTheoTab): OLauncher[] {
     { id: 'chiettinh', nhan: 'Chiết tính', icon: Calculator, so: n.costing, moTab: 'costing', sac: 'orange', moTa: 'Bảng chiết & giá thành' },
     { id: 'techpack', nhan: 'Tech Pack', icon: FileText, so: n.documents, moTab: 'documents', sac: 'teal', moTa: 'Hồ sơ kỹ thuật' },
     { id: 'dinhmuc', nhan: 'Định mức', icon: Shirt, so: n.styles, moTab: 'styles', sac: 'rose', moTa: 'Mã hàng · BOM' },
-    { id: 'npl', nhan: 'Yêu cầu NPL', icon: Boxes, so: n.materials, moTab: 'materials', sac: 'amber', moTa: 'Đề nghị mua nguyên phụ liệu' },
+    { id: 'npl', nhan: 'Yêu cầu NPL', icon: Boxes, so: n.materials, moTab: 'materials', sac: 'amber', moTa: 'Nhu cầu nguyên phụ liệu' },
     { id: 'giaohang', nhan: 'Giao hàng', icon: Ship, so: n.shipments, moTab: 'shipments', sac: 'emerald', moTa: 'Lịch giao & kiểm hàng' },
     { id: 'giacong', nhan: 'Gia công ngoài', icon: Users, so: null, href: '/subcon', sac: 'violet', moTa: 'Đối tác gia công' },
     { id: 'traodoi', nhan: 'Trao đổi', icon: MessageSquare, so: n.comments, moTab: 'comments', sac: 'sky', moTa: 'Trao đổi & thông báo' },

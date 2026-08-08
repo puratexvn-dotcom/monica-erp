@@ -77,15 +77,20 @@ function The({ nhan, phu, icon: Icon, sac, chay }: {
         </span>
       </span>
 
-      <span className="flex flex-col items-center gap-1 px-2 pb-2.5 pt-6 text-center">
+      {/* `flex-1` — thân thẻ giãn ra để **sáu thẻ cùng hàng cao bằng nhau**
+          dù mô tả dài ngắn khác nhau; thiếu nó thì vạch đáy màu của mỗi thẻ
+          dừng ở một độ cao khác nhau và cả hàng đọc ra là **so le**. */}
+      <span className="flex flex-1 flex-col items-center gap-1 px-2 pb-2.5 pt-6 text-center">
         <span className={`block ${s.chu} ${TYPE.bodySm} ${FONT_WEIGHT.bold}`}>+ {nhan}</span>
         {/* Vạch ngắn dưới tiêu đề — chi tiết của ảnh mẫu, và nó có việc: tách
             *tên hành động* khỏi *lời giải thích* mà ⛔ không tốn một dòng. */}
         <span className={`block h-0.5 w-6 rounded-full ${s.vach}`} aria-hidden="true" />
-        {/* ⚠️ **MỘT** dòng, ⛔ không hai — Board: *"⛔ Không nhồi nhiều text. ⛔
-            Không để card quá cao."* `line-clamp-2` là **trần**, ⛔ không phải
-            đích: câu ⛔ không được dài tới mức chạm nó. */}
-        <span className={`line-clamp-2 text-slate-600 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>{phu}</span>
+        {/* 🔴 **BỎ `line-clamp-2`** — Board 08/08/2026: *"⛔ Không dùng dấu
+            `...` trong tiêu đề hoặc mô tả."* `line-clamp` cắt câu rồi dán ba
+            chấm, tức đúng thứ vừa bị cấm. Câu dài nhất *("Thêm đơn hàng mới —
+            công việc chính của MD")* xuống **ba dòng** ở khổ hẹp, và thẻ cao
+            theo — đó là **cái giá đã biết** của việc hiện đủ chữ. */}
+        <span className={`text-slate-600 ${TYPE.caption} ${LINE_HEIGHT.snug}`}>{phu}</span>
       </span>
 
       <span className={`mt-auto block h-1 w-full ${s.vach}`} aria-hidden="true" />
@@ -122,11 +127,13 @@ export default function MdActionCards({ hd }: { hd: HanhDongMd }) {
           ⚠️ **Sáu cột chia hết cho sáu thẻ** ⇒ ⛔ không thẻ nào mồ côi cuối
           dòng. Điện thoại 2, bảng 3, máy bàn 6. */}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
-        <The nhan="Thêm PO" phu="Thêm đơn hàng mới" icon={FilePlus2} sac="blue" chay={hd.taoPo} />
-        <The nhan="Thêm khách hàng" phu="Thêm khách hàng mới" icon={UserPlus} sac="emerald" chay={hd.khachHang} />
-        <The nhan="Thêm chiết tính" phu="Tạo bảng chiết tính" icon={Calculator} sac="violet" chay={hd.chietTinh} />
-        <The nhan="Thêm định mức" phu="Tạo mã hàng & BOM" icon={Shirt} sac="orange" chay={hd.dinhMuc} />
-        <The nhan="Thêm Tech Pack" phu="Tạo hồ sơ kỹ thuật" icon={FileText} sac="teal" chay={hd.techPack} />
+        {/* 🔴 Mô tả lấy **NGUYÊN VĂN** Board đưa 08/08/2026 — ⛔ không rút
+            gọn, ⛔ không thêm dấu `...`. */}
+        <The nhan="Thêm PO" phu="Thêm đơn hàng mới — công việc chính của MD" icon={FilePlus2} sac="blue" chay={hd.taoPo} />
+        <The nhan="Thêm khách hàng" phu="Thêm khách hàng mới vào hệ thống" icon={UserPlus} sac="emerald" chay={hd.khachHang} />
+        <The nhan="Thêm chiết tính" phu="Tính giá thành & hiệu quả đơn hàng" icon={Calculator} sac="violet" chay={hd.chietTinh} />
+        <The nhan="Thêm định mức" phu="Tạo mã hàng & BOM mới" icon={Shirt} sac="orange" chay={hd.dinhMuc} />
+        <The nhan="Thêm Tech Pack" phu="Tạo bộ hồ sơ kỹ thuật mới" icon={FileText} sac="teal" chay={hd.techPack} />
         <The nhan="Yêu cầu NPL" phu="Tạo yêu cầu nguyên phụ liệu" icon={Boxes} sac="rose" chay={hd.yeuCauNpl} />
       </div>
 

@@ -210,7 +210,17 @@ export type SacNhom = keyof typeof SAC_NHOM;
  *  🔑 **Mỗi ô vẫn có một sắc riêng** — Board cấm bỏ nguyên tắc đó. Thứ đổi là
  *  **độ sâu** của cùng một sắc, ⛔ không phải bản thân sắc. */
 export interface SacO {
-  /** Nền thẻ Launcher — pastel rất nhạt. */
+  /** Nền thẻ — **dải chuyển sắc pastel**, ⛔ không phải một mảng phẳng.
+   *
+   *  🔴 Board 08/08/2026: *"**Toàn bộ background của card phải có màu
+   *  pastel/gradient riêng**… ⛔ Không được hiểu 'mỗi ô một màu' là chỉ đổi
+   *  màu icon/chữ."*
+   *
+   *  ⚠️ Bản trước dùng `-50/70` — **70% của sắc nhạt nhất trong thang**. Trên
+   *  ảnh chụp thật nó gần như **⛔ không phân biệt được với nền trắng**, nên
+   *  *"mỗi ô một màu"* chỉ đúng trên bảng màu chứ ⛔ không đúng trên màn hình.
+   *  Nay `from-{h}-50 → to-{h}-100/80`: đủ để đọc ra là **một mảng màu**, vẫn
+   *  đủ nhạt để chữ `-700` bên trên đạt WCAG AA. */
   nen: string;
   /** Vòng viền mảnh cùng hệ màu, thay cho `border` xám. */
   vong: string;
@@ -224,6 +234,8 @@ export interface SacO {
   dai: string;
   /** Vạch phân cách ngắn dưới tiêu đề + vạch đáy thẻ. */
   vach: string;
+  /** Thân thẻ Action Center — sắc **rất nhạt** của chính thẻ, ⛔ không trắng. */
+  than: string;
 }
 
 // 🔴 **`mo` ĐỔI `-300` ⇒ `-500` · 08/08/2026 — ĐO ĐƯỢC, ⛔ không phỏng đoán.**
@@ -237,44 +249,44 @@ export interface SacO {
 // bằng cách làm một thành phần mờ tới mức ⛔ không nhìn ra là dựng sai chỗ.
 export const SAC_O = {
   blue: {
-    nen: 'bg-blue-50/70', vong: 'ring-blue-100', huy: 'bg-blue-100 text-blue-600',
+    nen: 'bg-gradient-to-b from-blue-50 to-blue-100/80', vong: 'ring-blue-200', huy: 'bg-blue-100 text-blue-600',
     chu: 'text-blue-700', mo: 'text-blue-600',
-    dai: 'bg-gradient-to-br from-blue-500 to-blue-600', vach: 'bg-blue-500',
+    dai: 'bg-gradient-to-br from-blue-500 to-blue-600', vach: 'bg-blue-500', than: 'bg-blue-50/60',
   },
   emerald: {
-    nen: 'bg-emerald-50/70', vong: 'ring-emerald-100', huy: 'bg-emerald-100 text-emerald-600',
+    nen: 'bg-gradient-to-b from-emerald-50 to-emerald-100/80', vong: 'ring-emerald-200', huy: 'bg-emerald-100 text-emerald-600',
     chu: 'text-emerald-700', mo: 'text-emerald-600',
-    dai: 'bg-gradient-to-br from-emerald-400 to-emerald-500', vach: 'bg-emerald-500',
+    dai: 'bg-gradient-to-br from-emerald-400 to-emerald-500', vach: 'bg-emerald-500', than: 'bg-emerald-50/60',
   },
   violet: {
-    nen: 'bg-violet-50/70', vong: 'ring-violet-100', huy: 'bg-violet-100 text-violet-600',
+    nen: 'bg-gradient-to-b from-violet-50 to-violet-100/80', vong: 'ring-violet-200', huy: 'bg-violet-100 text-violet-600',
     chu: 'text-violet-700', mo: 'text-violet-600',
-    dai: 'bg-gradient-to-br from-violet-500 to-violet-600', vach: 'bg-violet-500',
+    dai: 'bg-gradient-to-br from-violet-500 to-violet-600', vach: 'bg-violet-500', than: 'bg-violet-50/60',
   },
   orange: {
-    nen: 'bg-orange-50/70', vong: 'ring-orange-100', huy: 'bg-orange-100 text-orange-700',
+    nen: 'bg-gradient-to-b from-orange-50 to-orange-100/80', vong: 'ring-orange-200', huy: 'bg-orange-100 text-orange-700',
     chu: 'text-orange-700', mo: 'text-orange-600',
-    dai: 'bg-gradient-to-br from-orange-400 to-orange-500', vach: 'bg-orange-500',
+    dai: 'bg-gradient-to-br from-orange-400 to-orange-500', vach: 'bg-orange-500', than: 'bg-orange-50/60',
   },
   teal: {
-    nen: 'bg-teal-50/70', vong: 'ring-teal-100', huy: 'bg-teal-100 text-teal-700',
+    nen: 'bg-gradient-to-b from-teal-50 to-teal-100/80', vong: 'ring-teal-200', huy: 'bg-teal-100 text-teal-700',
     chu: 'text-teal-700', mo: 'text-teal-600',
-    dai: 'bg-gradient-to-br from-teal-400 to-teal-500', vach: 'bg-teal-500',
+    dai: 'bg-gradient-to-br from-teal-400 to-teal-500', vach: 'bg-teal-500', than: 'bg-teal-50/60',
   },
   rose: {
-    nen: 'bg-rose-50/70', vong: 'ring-rose-100', huy: 'bg-rose-100 text-rose-600',
+    nen: 'bg-gradient-to-b from-rose-50 to-rose-100/80', vong: 'ring-rose-200', huy: 'bg-rose-100 text-rose-600',
     chu: 'text-rose-700', mo: 'text-rose-600',
-    dai: 'bg-gradient-to-br from-rose-500 to-pink-500', vach: 'bg-rose-500',
+    dai: 'bg-gradient-to-br from-rose-500 to-pink-500', vach: 'bg-rose-500', than: 'bg-rose-50/60',
   },
   amber: {
-    nen: 'bg-amber-50/70', vong: 'ring-amber-100', huy: 'bg-amber-100 text-amber-700',
+    nen: 'bg-gradient-to-b from-amber-50 to-amber-100/80', vong: 'ring-amber-200', huy: 'bg-amber-100 text-amber-700',
     chu: 'text-amber-700', mo: 'text-amber-600',
-    dai: 'bg-gradient-to-br from-amber-400 to-amber-500', vach: 'bg-amber-500',
+    dai: 'bg-gradient-to-br from-amber-400 to-amber-500', vach: 'bg-amber-500', than: 'bg-amber-50/60',
   },
   sky: {
-    nen: 'bg-sky-50/70', vong: 'ring-sky-100', huy: 'bg-sky-100 text-sky-600',
+    nen: 'bg-gradient-to-b from-sky-50 to-sky-100/80', vong: 'ring-sky-200', huy: 'bg-sky-100 text-sky-600',
     chu: 'text-sky-700', mo: 'text-sky-600',
-    dai: 'bg-gradient-to-br from-sky-400 to-sky-500', vach: 'bg-sky-500',
+    dai: 'bg-gradient-to-br from-sky-400 to-sky-500', vach: 'bg-sky-500', than: 'bg-sky-50/60',
   },
 } as const satisfies Record<string, SacO>;
 
@@ -315,9 +327,19 @@ export const hopTimKiem = 'rounded-2xl border border-slate-300 bg-white shadow-x
  *  tranh nhau nói *"đây là dòng đang chọn"*. */
 export const dongKetQuaChon = 'bg-slate-100';
 
+/** Thẻ Action Center.
+ *
+ *  🔴 Board 08/08/2026: *"Đây cũng phải là các **CARD MÀU RIÊNG**, ⛔ không
+ *  phải card trắng có icon màu… ⛔ Không dùng một màu trắng chung cho toàn bộ
+ *  card rồi chỉ đổi icon."*
+ *
+ *  ⚠️ Bản trước để thân thẻ **trắng tinh** — nên nhìn cả hàng sáu thẻ thì phần
+ *  chiếm diện tích lớn nhất của mỗi thẻ đều **giống hệt nhau**, và màu chỉ
+ *  sống ở dải trên cùng. Nay thân mang **sắc nhạt của chính thẻ**: đủ để đọc
+ *  ra là *"thẻ màu cam"* từ xa, ⛔ không đủ để nuốt mất chữ. */
 export function theHanhDong(s: SacOKey): string {
-  return `group flex flex-col overflow-hidden rounded-2xl bg-white text-left ring-1 shadow-sm transition `
-    + `${SAC_O[s].vong} hover:-translate-y-0.5 hover:shadow-lg `
+  return `group flex flex-col overflow-hidden rounded-2xl text-left ring-1 shadow-sm transition `
+    + `${SAC_O[s].than} ${SAC_O[s].vong} hover:-translate-y-0.5 hover:shadow-lg `
     + 'focus-visible:outline-none focus-visible:ring-2';
 }
 /** Dải màu đầu thẻ. `relative` để huy hiệu **cưỡi lên mép dưới** của nó.
