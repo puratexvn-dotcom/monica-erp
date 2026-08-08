@@ -63,7 +63,9 @@ ALTER TABLE public.activity_log ENABLE TRIGGER mos_activity_log_immutable;
 
 -- ─── 5. TỰ KIỂM — hàng rào PHẢI đứng lại được ──────────────────────────────
 DO $$
-DECLARE v_id UUID; v_loi TEXT;
+-- ⚠️ `activity_log.id` là **SỐ NGUYÊN**, ⛔ không phải UUID — đã đo trên CSDL
+--    đang chạy. `entity_id` mới là `UUID`.
+DECLARE v_id BIGINT; v_loi TEXT;
 BEGIN
   INSERT INTO public.activity_log (entity_type, entity_id, action, changes)
   VALUES ('ORDER', '00000000-0000-0000-0000-000000000000', 'CREATE',

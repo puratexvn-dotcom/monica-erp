@@ -122,7 +122,11 @@ BEGIN
     'kể cả service_role. Cần sửa thật thì phải DISABLE TRIGGER bằng chủ sở hữu '
     'bảng — và việc đó cố ý để lại vết. Xem ADR-030.',
     lower(TG_OP)
-    USING ERRCODE = 'P0002';
+    -- ⚠️ **Mã tự đặt `P0403`, ⛔ KHÔNG dùng mã chuẩn.** Bản trước chọn một mã
+    -- vốn ĐÃ CÓ nghĩa trong PL/pgSQL *(`no_data_found`)* — chiếm nó là làm
+    -- một mã có sẵn nghĩa khác đi, và người bắt lỗi về sau sẽ đọc nhầm.
+    -- `P0403` theo đúng tiền lệ `P0409` *(xung đột ghi đè)* của CLAUDE.md §2.5.
+    USING ERRCODE = 'P0403';
   RETURN NULL;  -- ⛔ không bao giờ tới đây
 END;
 $$;
@@ -160,7 +164,14 @@ COMMENT ON TABLE public.activity_log IS
 --    mới chứng minh **hành vi** — và đây đúng là bài học `ADR-027 §0`: khối tự
 --    kiểm bắt được lỗi *tên policy* nhưng ⛔ không bắt được lỗi *phân quyền*.
 DO $$
-DECLARE v_id UUID; v_loi TEXT; v_dem INT;
+-- 🔴 **`activity_log.id` LÀ SỐ NGUYÊN, ⛔ KHÔNG PHẢI UUID.**
+-- Bản trước khai `v_id UUID` và lệnh đổ ngay ở dòng đầu khối:
+--     22P02: invalid input syntax for type uuid: "450"
+-- ⚠️ Tôi **đoán** kiểu thay vì **đo** — đúng thứ CLAUDE.md §3 cấm: *"Luôn đối
+--    chiếu với CSDL đang chạy, ⛔ không tin nội dung file migration hay trí
+--    nhớ."* Đã đo lại: `id` = 4, 5, 6 … (số nguyên tự tăng); `entity_id` mới
+--    là `UUID`.
+DECLARE v_id BIGINT; v_loi TEXT; v_dem INT;
 BEGIN
   -- 5.1 ⭐ INSERT PHẢI CÒN CHẠY. Sổ ngừng ghi được là hỏng nặng hơn lỗ hổng
   --     đang vá — hệ thống sẽ **im lặng mất khả năng ghi nhận**.
@@ -174,7 +185,7 @@ BEGIN
   v_loi := NULL;
   BEGIN UPDATE public.activity_log SET action = 'UPDATE' WHERE id = v_id;
   EXCEPTION WHEN OTHERS THEN v_loi := SQLSTATE; END;
-  IF v_loi IS DISTINCT FROM 'P0002' THEN
+  IF v_loi IS DISTINCT FROM 'P0403' THEN
     RAISE EXCEPTION '⛔ TỰ KIỂM 5.2: UPDATE ⛔ không bị chặn đúng cách (SQLSTATE=%).', COALESCE(v_loi, 'KHÔNG LỖI');
   END IF;
 
@@ -182,7 +193,7 @@ BEGIN
   v_loi := NULL;
   BEGIN DELETE FROM public.activity_log WHERE id = v_id;
   EXCEPTION WHEN OTHERS THEN v_loi := SQLSTATE; END;
-  IF v_loi IS DISTINCT FROM 'P0002' THEN
+  IF v_loi IS DISTINCT FROM 'P0403' THEN
     RAISE EXCEPTION '⛔ TỰ KIỂM 5.3: DELETE ⛔ không bị chặn đúng cách (SQLSTATE=%).', COALESCE(v_loi, 'KHÔNG LỖI');
   END IF;
 
