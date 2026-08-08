@@ -41,6 +41,32 @@ không phát nổi `TRUNCATE` *(PostgREST ⛔ không có động từ đó)*. Ha
 
 ⚠️ Nói *"đã chặn xong"* khi mới đo được một trong hai tầng là **báo PASS sớm**.
 
+### ✅ TẦNG TRIGGER VÀ `TRUNCATE` — ĐÃ ĐO, 08/08/2026
+
+`A003` chạy bằng **chủ sở hữu bảng** qua SQL Editor — tức vai **CÓ** quyền, nên
+chặn (nếu có) **chỉ có thể** đến từ trigger:
+
+```
+1. INSERT vẫn chạy .................................. ĐẠT
+2. UPDATE bị TRIGGER chặn (P0403) ................... ĐẠT
+3. DELETE bị TRIGGER chặn (P0403) ................... ĐẠT
+4. TRUNCATE bị TRIGGER chặn (P0403) ................. ĐẠT   🔴
+5. Dòng thử CÒN NGUYÊN sau cả ba phép ............... ĐẠT
+```
+
+🔑 **Cách kiểm chứng ⛔ không dựa vào lời khai:** `A003` kết thúc bằng
+`RAISE EXCEPTION` nếu có phép hỏng, và `RAISE` trong khối `DO` làm **cả giao
+dịch quay lui** — tức dòng `__a003_ghi_them` của bước 1 sẽ **⛔ không tồn tại**.
+Đo trên CSDL thật: dòng đó **CÓ MẶT** *(`id = 491`, `10:21:43`)* ⇒ khối chạy
+tới cuối ⇒ `v_hong = 0` ⇒ **cả năm phép ĐẠT**.
+
+⇒ **Cả hai tầng đã được chứng minh bằng hành vi**: `REVOKE` chặn `service_role`
+*(42501)*, `TRIGGER` chặn chủ sở hữu và `TRUNCATE` *(P0403)*.
+
+⚠️ **Giới hạn ở §3 ⛔ KHÔNG đổi**: superuser vẫn tắt được trigger bằng
+`session_replication_role`. ⇒ ⛔ **Không** dùng chữ *"bất biến tuyệt đối"* mà
+⛔ không kèm câu này.
+
 ---
 
 ## 1. 🔴 ĐÂY LÀ ĐẢO MỘT QUYẾT ĐỊNH CÓ CHỦ Ý, ⛔ KHÔNG PHẢI VÁ MỘT SƠ SUẤT
