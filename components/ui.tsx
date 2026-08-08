@@ -448,7 +448,7 @@ export function Card({ title, icon: Icon, action, children, className = '' }: {
  * đang có gì**. Một khối gấp ⛔ không nói gì khi đóng chỉ là một khối bị giấu.
  */
 export function NhomGap({
-  ten, icon: Icon, mo, onMo, children, phu,
+  ten, icon: Icon, mo, onMo, children, phu, sac,
 }: {
   ten: string;
   icon: ElementType;
@@ -457,28 +457,72 @@ export function NhomGap({
   children: ReactNode;
   /** Tóm tắt hiện ngay cạnh nhãn — thứ giúp đọc được nhóm mà ⛔ không mở ra. */
   phu?: string;
+  /**
+   * 🔴 **SẮC ĐỊNH DANH CỦA NHÓM — Board *MD VISUAL CORRECTION* 08/08/2026.**
+   *
+   * ⚠️ Bản trước để **cả năm nhóm dùng chung một sắc xanh** *(`SAC_NHOM.action`)*
+   * ⇒ năm biểu tượng giống hệt nhau, và người điền ⛔ không phân biệt được
+   * mình đang ở nhóm nào nếu ⛔ không đọc chữ. Đúng thứ Board vừa bác ở
+   * Launcher và Action Center, chỉ khác chỗ nó nằm.
+   *
+   * 🔑 Cùng bảng `SAC_O` với hai khu vực kia ⇒ biểu mẫu và bàn làm việc nói
+   * **cùng một ngôn ngữ màu**, ⛔ không phải hai hệ thống cạnh nhau.
+   */
+  sac?: SacOKey;
 }) {
+  const s = sac ? SAC_O[sac] : null;
   return (
-    <section className="rounded-xl border border-slate-200">
+    <section className={`overflow-hidden rounded-xl border ${s ? s.vong.replace('ring-', 'border-') : 'border-slate-200'}`}>
       <button
         type="button"
         onClick={onMo}
         aria-expanded={mo}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        className={`flex w-full items-center gap-2 px-3 py-2 text-left ${s ? s.than : ''}`}
       >
-        <Icon className={`h-4 w-4 shrink-0 ${SAC_NHOM.action.chu}`} aria-hidden="true" />
-        <span className={`text-slate-800 ${TYPE.label} ${FONT_WEIGHT.bold}`}>{ten}</span>
-        {phu && <span className={`truncate text-slate-400 ${TYPE.caption}`}>{phu}</span>}
-        <span className={`ml-auto text-slate-400 ${TYPE.caption}`}>{mo ? '−' : '+'}</span>
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${s ? s.huy : SAC_NHOM.action.huy}`}>
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <span className={`${s ? s.chu : 'text-slate-800'} ${TYPE.label} ${FONT_WEIGHT.bold}`}>{ten}</span>
+        {phu && <span className={`truncate text-slate-500 ${TYPE.caption}`}>{phu}</span>}
+        <span className={`ml-auto ${s ? s.chu : 'text-slate-400'} ${TYPE.label} ${FONT_WEIGHT.bold}`}>{mo ? '−' : '+'}</span>
       </button>
       {mo && (
-        <div className="grid grid-cols-1 gap-3 border-t border-slate-100 p-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 border-t border-slate-100 bg-white p-3 sm:grid-cols-2">
           {children}
         </div>
       )}
     </section>
   );
 }
+
+/**
+ * 🔴 **HÀNG NÚT DÁN ĐÁY HỘP THOẠI.**
+ *
+ * ⚠️ `Modal` cuộn ở `max-h-[92dvh]`, nên với một biểu mẫu dài **nút `Lưu` nằm
+ * ngoài vùng nhìn thấy cho tới khi người dùng cuộn hết**. Ở khổ laptop 900px
+ * thì form PO cao hơn khung — tức thao tác quan trọng nhất của màn hình là
+ * thao tác **phải đi tìm**.
+ *
+ * 🔑 `sticky bottom-0` dán nó vào đáy vùng cuộn: luôn với tới được, và ⛔
+ * không tốn thêm một pixel chiều cao nào. Viền trên + nền đặc để nó ⛔ không
+ * lẫn vào nội dung trôi bên dưới.
+ */
+export const hangNutDayHopThoai =
+  'sticky bottom-0 -mx-5 -mb-5 mt-1 flex justify-end gap-2 border-t border-slate-200 bg-white px-5 py-3';
+
+/**
+ * 🔴 **Ô CHỈ ĐỌC — phải TRÔNG khác ô nhập, ⛔ không chỉ xám hơn.**
+ *
+ * ⚠️ Bản trước dùng lại `inputCls` rồi đổi nền: ra một hộp **cùng viền, cùng
+ * chiều cao, cùng bo góc** với ô nhập thật. Người điền phải **thử bấm vào**
+ * mới biết ô nào sửa được — và trong một biểu mẫu 20 ô thì đó là 20 lần thử.
+ *
+ * 🔑 Nay bỏ hẳn viền đặc, dùng **viền đứt** + nền xám + biểu tượng khoá. Ba
+ * tín hiệu cùng nói một điều, và ⛔ không tín hiệu nào là màu đơn thuần.
+ */
+export const oChiDoc =
+  'flex w-full items-center gap-1.5 rounded-lg border border-dashed border-slate-300 '
+  + 'bg-slate-50 px-3 py-2 text-sm text-slate-600';
 
 export function PageHeader({ title, desc, action }: { title: string; desc?: string; action?: ReactNode }) {
   return (

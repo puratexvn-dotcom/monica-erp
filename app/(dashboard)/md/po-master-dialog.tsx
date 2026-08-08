@@ -5,11 +5,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import {
-  Loader2, PackagePlus, Fingerprint, Shirt, Banknote, Factory, GitBranch,
+  Loader2, PackagePlus, Fingerprint, Shirt, Banknote, Factory, GitBranch, Lock,
 } from 'lucide-react';
 import type { z } from 'zod';
 
-import { Modal, Field, NhomGap, inputCls, btnGhost, btnPrimary, SAC_NHOM } from '@/components/ui';
+import {
+  Modal, Field, NhomGap, oChiDoc, hangNutDayHopThoai,
+  inputCls, btnGhost, btnPrimary, SAC_NHOM,
+} from '@/components/ui';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import { createPo } from './_actions/po.actions';
 import { listPoFormOptionsClient } from './_actions/md4.client';
@@ -77,6 +80,11 @@ import {
 // mà bài kiểm ③ chặn `components/ → app/` ở **39 tệp** *(`AD-01`)*.
 // ============================================================================
 
+// ⚠️ **KÝ TỰ `⛔` · `⚪` · `✅` LÀ QUY ƯỚC VIẾT TÀI LIỆU, ⛔ KHÔNG dùng trong
+// CHUỖI HIỂN THỊ.** Trình duyệt dựng chúng thành **emoji tròn CÓ MÀU**, và một
+// vệt màu đặc giữa các dòng chú thích xám hút mắt mạnh hơn cả nhãn ô. Board
+// 08/08/2026 cấm *"UI giống game"*; chúng ở lại trong chú thích mã, ⛔ không ra
+// màn hình.
 type Input = z.input<typeof poFormSchema>;
 
 function Err({ children }: { children?: string }) {
@@ -103,8 +111,11 @@ function ODoc({ label, gia_tri, nguon, daChon }: {
 }) {
   return (
     <Field label={label}>
-      <p className={`${inputCls} bg-slate-50 text-slate-600`}>
-        {gia_tri || (daChon ? '⚪ hồ sơ gốc chưa khai' : '— chọn ở ô phía trên trước —')}
+      <p className={oChiDoc}>
+        <Lock className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
+        <span className="min-w-0 truncate">
+          {gia_tri || (daChon ? 'hồ sơ gốc chưa khai' : 'chọn ở ô trên trước')}
+        </span>
       </p>
       <span className={`text-slate-500 ${TYPE.caption}`}>{nguon}</span>
     </Field>
@@ -251,18 +262,18 @@ export default function PoMasterDialog({
       <form onSubmit={onSubmit} noValidate className="space-y-2.5">
         {customers.length === 0 && (
           <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.today.nen} ${SAC_NHOM.today.chu} ${TYPE.caption}`}>
-            ⛔ Chưa có khách hàng nào đang giao dịch. Thêm khách hàng trước — đơn hàng phải gắn với một khách.
+            Chưa có khách hàng nào đang giao dịch. Thêm khách hàng trước — đơn hàng phải gắn với một khách.
           </p>
         )}
         {styles.length === 0 && (
           <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.today.nen} ${SAC_NHOM.today.chu} ${TYPE.caption}`}>
-            ⛔ Chưa có mã hàng nào. Mã hàng mang định mức NPL và SAM — thiếu nó thì ⛔ không sinh được
+            Chưa có mã hàng nào. Mã hàng mang định mức NPL và SAM — thiếu nó thì không sinh được
             yêu cầu vật tư lẫn lệnh sản xuất.
           </p>
         )}
 
         {/* ═══ Ⓐ ORDER IDENTITY ═══════════════════════════════════════════ */}
-        <NhomGap ten="Ⓐ Nhận diện đơn hàng" icon={Fingerprint} mo={mo.a} onMo={bat('a')}
+        <NhomGap sac="blue" ten="Ⓐ Nhận diện đơn hàng" icon={Fingerprint} mo={mo.a} onMo={bat('a')}
           phu={khach ? `${khach.customer_code} — ${khach.name}` : undefined}>
           <Field label="Mã PO" hint="tự chuyển in hoa">
             <input className={inputCls} placeholder="PO-2026-001" {...register('po_number')} />
@@ -283,9 +294,9 @@ export default function PoMasterDialog({
           </Field>
 
           <ODoc label="Buyer (tập đoàn / nhóm mua)" gia_tri={khach?.buyer_group ?? null}
-            nguon="lấy từ hồ sơ khách hàng · ⛔ không lưu lại trên đơn" daChon={!!khach} />
+            nguon="theo hồ sơ khách hàng" daChon={!!khach} />
           <ODoc label="Brand (thương hiệu)" gia_tri={khach?.brand ?? null}
-            nguon="lấy từ hồ sơ khách hàng · ⛔ không lưu lại trên đơn" daChon={!!khach} />
+            nguon="theo hồ sơ khách hàng" daChon={!!khach} />
 
           <Field label="Mùa vụ (Season)">
             <select className={inputCls} {...register('season_id')}>
@@ -298,7 +309,7 @@ export default function PoMasterDialog({
           </Field>
 
           {/* 🔴 **MD OWNER — Ô CHỌN THẬT, ⛔ KHÔNG còn là chữ chết.**
-              Bản trước hiện tên người lập kèm ghi chú *"⛔ không cho sửa"*, vì
+              Bản trước hiện tên người lập kèm ghi chú *"không cho sửa"*, vì
               `orders` ⛔ chưa có cột nào để chuyển giao. Migration `054` thêm
               `md_owner_id`, và ô này là chỗ dùng nó.
               🔑 Nó **KHÁC `created_by`**: *"ai ĐANG phụ trách"* đổi được khi
@@ -308,17 +319,17 @@ export default function PoMasterDialog({
               <option value="">— Mặc định: {tenNguoiLap} (người lập) —</option>
               {chon.nguoiPhuTrach.map((n) => (
                 <option key={n.id} value={n.id}>
-                  {n.full_name || '⚪ chưa khai tên'}{n.employee_code ? ` · ${n.employee_code}` : ''}
+                  {n.full_name || 'chưa khai tên'}{n.employee_code ? ` · ${n.employee_code}` : ''}
                 </option>
               ))}
             </select>
             <Err>{formState.errors.md_owner_id?.message}</Err>
-            <span className={chuPhu}>để trống ⇒ chính bạn phụ trách · người lập vẫn ghi riêng ở `created_by`</span>
+            <span className={chuPhu}>để trống ⇒ chính bạn phụ trách · hệ thống vẫn ghi riêng ai đã lập đơn</span>
           </Field>
         </NhomGap>
 
         {/* ═══ Ⓑ PRODUCT ═════════════════════════════════════════════════ */}
-        <NhomGap ten="Ⓑ Sản phẩm" icon={Shirt} mo={mo.b} onMo={bat('b')}
+        <NhomGap sac="rose" ten="Ⓑ Sản phẩm" icon={Shirt} mo={mo.b} onMo={bat('b')}
           phu={style ? `${style.style_no} — ${style.style_name}` : undefined}>
           <Field label="Mã hàng (Style)" hint="mang định mức NPL và SAM">
             <select className={inputCls} {...register('style_id')}>
@@ -343,16 +354,16 @@ export default function PoMasterDialog({
               tên sản phẩm thứ hai khác tên trong hồ sơ mã hàng, rồi báo cáo
               theo PO và báo cáo theo mã hàng trả hai kết quả. */}
           <ODoc label="Tên sản phẩm (Product name)" gia_tri={style?.style_name ?? null}
-            nguon="lấy từ hồ sơ mã hàng · sửa ở màn hình Mã hàng" daChon={!!style} />
+            nguon="theo hồ sơ mã hàng" daChon={!!style} />
           <ODoc label="Nhóm hàng (Category)" gia_tri={style?.product_group ?? null}
-            nguon="lấy từ hồ sơ mã hàng · sửa ở màn hình Mã hàng" daChon={!!style} />
+            nguon="theo hồ sơ mã hàng" daChon={!!style} />
 
           {/* ⚠️ Bảng MÀU × SIZE, BOM, NPL, QA CỐ Ý ⛔ KHÔNG có ở đây — chúng
               nằm ở PO360, nơi có đủ chỗ cho một bảng. */}
         </NhomGap>
 
         {/* ═══ Ⓒ COMMERCIAL ══════════════════════════════════════════════ */}
-        <NhomGap ten="Ⓒ Thương mại" icon={Banknote} mo={mo.c} onMo={bat('c')}
+        <NhomGap sac="violet" ten="Ⓒ Thương mại" icon={Banknote} mo={mo.c} onMo={bat('c')}
           phu={tongTien !== null ? `≈ ${tongTien.toLocaleString('vi-VN')} ${watch('currency')}` : undefined}>
           {/* 🔴 **COSTING REFERENCE — Board nhóm Ⓒ.**
               Đặt **đầu nhóm** chứ ⛔ không cuối: chọn nó xong thì đơn giá và
@@ -376,9 +387,9 @@ export default function PoMasterDialog({
             <Err>{formState.errors.costing_id?.message}</Err>
             <span className={chuPhu}>
               {chietTinhId
-                ? '✅ Đơn giá dưới đây lấy từ bản chiết tính — sửa được nếu đã đàm phán lại'
+                ? 'Đơn giá dưới đây lấy từ bản chiết tính — sửa được nếu đã đàm phán lại'
                 : chietTinhHop.length === 0
-                  ? '⚪ Chưa có bản chiết tính nào cho đúng khách + mã hàng này'
+                  ? 'Chưa có bản chiết tính nào cho đúng khách + mã hàng này'
                   : `${chietTinhHop.length} bản chiết tính khớp khách hàng và mã hàng đã chọn`}
             </span>
           </Field>
@@ -406,13 +417,13 @@ export default function PoMasterDialog({
             {/* 🔑 Tổng tiền TÍNH TẠI CHỖ, ⛔ không lưu: nó là tích của hai ô
                 ngay trên. Lưu nó là mở đường cho ba con số lệch nhau. */}
             <span className={chuPhu}>
-              {tongTien === null ? '⚪ chưa đủ số lượng và đơn giá để tính tổng'
+              {tongTien === null ? 'chưa đủ số lượng và đơn giá để tính tổng'
                 : `Tổng giá trị đơn ≈ ${tongTien.toLocaleString('vi-VN')} ${watch('currency')}`}
             </span>
           </Field>
 
           <ODoc label="Điều khoản thanh toán (Payment term)" gia_tri={khach?.payment_term ?? null}
-            nguon="lấy từ hồ sơ khách hàng · sửa ở màn hình Khách hàng" daChon={!!khach} />
+            nguon="theo hồ sơ khách hàng" daChon={!!khach} />
 
           <Field label="Điều kiện giao hàng (Incoterm)">
             <select className={inputCls} {...register('incoterm')}>
@@ -424,8 +435,8 @@ export default function PoMasterDialog({
         </NhomGap>
 
         {/* ═══ Ⓓ PRODUCTION ══════════════════════════════════════════════ */}
-        <NhomGap ten="Ⓓ Sản xuất & tiến độ" icon={Factory} mo={mo.d} onMo={bat('d')}
-          phu={ngayGiao ? `giao ${ngayGiao}` : '⛔ chưa có ngày giao'}>
+        <NhomGap sac="amber" ten="Ⓓ Sản xuất & tiến độ" icon={Factory} mo={mo.d} onMo={bat('d')}
+          phu={ngayGiao ? `giao ${ngayGiao}` : 'chưa có ngày giao'}>
           <Field label="Xưởng sản xuất (nội bộ)">
             <input className={inputCls} placeholder="Xưởng 1 — Chuyền A" {...register('factory_name')} />
             <Err>{formState.errors.factory_name?.message}</Err>
@@ -482,13 +493,13 @@ export default function PoMasterDialog({
               </p>
               <p className={TYPE.caption}>
                 · <strong>Ngày kiểm hàng (AQL cuối)</strong>:{' '}
-                {ngayGiao ? themNgay(ngayGiao, -XEM_TRUOC.kiemHang) : '⚪ nhập ngày giao để xem'}
+                {ngayGiao ? themNgay(ngayGiao, -XEM_TRUOC.kiemHang) : 'nhập ngày giao để xem'}
                 {' · '}
                 <strong>Ngày xuất hàng</strong>:{' '}
-                {ngayGiao ? themNgay(ngayGiao, -XEM_TRUOC.xuatHang) : '⚪ nhập ngày giao để xem'}
+                {ngayGiao ? themNgay(ngayGiao, -XEM_TRUOC.xuatHang) : 'nhập ngày giao để xem'}
               </p>
               <p className={TYPE.caption}>
-                ⚠️ Đây là <strong>dự kiến</strong>. Mốc thật sinh từ mẫu T&amp;A và sửa được ở
+                Đây là <strong>dự kiến</strong>. Mốc thật sinh từ mẫu T&amp;A và sửa được ở
                 tab <strong>Lịch trình T&amp;A</strong> của PO360.
               </p>
             </div>
@@ -496,16 +507,16 @@ export default function PoMasterDialog({
         </NhomGap>
 
         {/* ═══ Ⓔ WORKFLOW ════════════════════════════════════════════════ */}
-        <NhomGap ten="Ⓔ Quy trình" icon={GitBranch} mo={mo.e} onMo={bat('e')}
+        <NhomGap sac="emerald" ten="Ⓔ Quy trình" icon={GitBranch} mo={mo.e} onMo={bat('e')}
           phu={PO_STATUS_LABEL[(trangThai ?? 'DRAFT') as keyof typeof PO_STATUS_LABEL]}>
           {/* 🔴 **CHỈ HAI BẬC ĐẦU ĐƯỢC CHỌN KHI TẠO MỚI.**
-              Board: *"⛔ Không cho mặc định 'Đã duyệt' khi tạo mới."*
+              Board: *"Không cho mặc định 'Đã duyệt' khi tạo mới."*
               🔑 Bản vá này đi xa hơn chữ *"mặc định"*: nó **bỏ hẳn** `Đã duyệt`
               khỏi danh sách. Để nó nằm đó thì chỉ mất một cú bấm để quay lại
               đúng chỗ cũ, và bấm nhầm ⛔ không phân biệt được với cố ý.
               ⚠️ Ba bậc sau **⛔ không biến mất** — chúng đặt được ở màn hình
               sửa PO, nơi mỗi lần đổi đều ghi nhật ký và chịu luật khoá. */}
-          <Field label="Trạng thái khi tạo" hint="đơn mới ⛔ chưa ai duyệt">
+          <Field label="Trạng thái khi tạo" hint="đơn mới chưa ai duyệt">
             <select className={inputCls} {...register('status')}>
               {PO_STATUS_KHI_TAO.map((s) => (
                 <option key={s} value={s}>{PO_STATUS_LABEL[s]}</option>
@@ -514,8 +525,8 @@ export default function PoMasterDialog({
             <Err>{formState.errors.status?.message}</Err>
             <span className={chuPhu}>
               {trangThai === 'REVIEW'
-                ? '📤 Gửi duyệt ngay — đơn sẽ hiện ở hàng chờ của Giám đốc'
-                : '📝 Giữ nháp — bạn còn sửa tiếp trước khi gửi duyệt'}
+                ? 'Gửi duyệt ngay — đơn sẽ hiện ở hàng chờ của Giám đốc'
+                : 'Giữ nháp — bạn còn sửa tiếp trước khi gửi duyệt'}
             </span>
           </Field>
 
@@ -527,16 +538,17 @@ export default function PoMasterDialog({
           <div className="sm:col-span-2">
             <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.journey.nen} ${SAC_NHOM.journey.chu} ${TYPE.caption}`}>
               <strong>Nháp</strong> → <strong>Chờ duyệt</strong> → <strong>Đã duyệt</strong> →{' '}
-              <strong>Đang sản xuất</strong> → <strong>Hoàn thành 🔒</strong>
+              <strong>Đang sản xuất</strong> → <strong>Hoàn thành</strong> <Lock className="inline h-3 w-3" aria-hidden="true" />
               <br />
-              ⚠️ Từ <strong>Đã duyệt</strong> trở đi, mỗi lần đổi đều ghi nhật ký và lưu phiên bản.
-              Đơn đã sinh lệnh sản xuất thì ⛔ không sửa trực tiếp được nữa — phải lập Yêu cầu thay đổi.
+              Từ <strong>Đã duyệt</strong> trở đi, mỗi lần đổi đều ghi nhật ký và lưu phiên bản.
+              Đơn đã sinh lệnh sản xuất thì không sửa trực tiếp được nữa — phải lập Yêu cầu thay đổi.
             </p>
           </div>
         </NhomGap>
 
-        {/* *"Các nút Save · Cancel · Edit phải rõ ràng."* */}
-        <div className="flex justify-end gap-2 pt-1">
+        {/* *"Các nút Save · Cancel · Edit phải rõ ràng."* — và **với tới
+            được**: hàng nút dán đáy vùng cuộn, xem `hangNutDayHopThoai`. */}
+        <div className={hangNutDayHopThoai}>
           <button type="button" className={btnGhost} onClick={onClose} disabled={formState.isSubmitting}>
             Hủy
           </button>

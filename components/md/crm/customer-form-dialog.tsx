@@ -10,7 +10,9 @@ import {
 } from 'lucide-react';
 import type { z } from 'zod';
 
-import { Modal, Field, NhomGap, inputCls, btnGhost, btnPrimary } from '@/components/ui';
+import {
+  Modal, Field, NhomGap, hangNutDayHopThoai, inputCls, btnGhost, btnPrimary,
+} from '@/components/ui';
 import { TYPE } from '@/lib/design/typography';
 import { createCustomerFull } from '@/app/(dashboard)/md/_actions/commercial.actions';
 import { updateCustomer } from '@/app/(dashboard)/md/_actions/revisions.actions';
@@ -127,19 +129,19 @@ export default function CustomerFormDialog({
   const tomTatTinDung = useMemo(() => {
     const coHanMuc = hanMucHienTai !== undefined;
     const coSoNgay = soNgayNo !== undefined;
-    if (!coHanMuc && !coSoNgay) return '⚪ Chưa khai quy tắc tín dụng';
-    if (coHanMuc && hanMucHienTai === 0) return '🔒 Hạn mức 0 — khách này ⛔ không được nợ';
+    if (!coHanMuc && !coSoNgay) return 'Chưa khai quy tắc tín dụng';
+    if (coHanMuc && hanMucHienTai === 0) return 'Hạn mức 0 — khách này không được nợ';
     if (coHanMuc && !coSoNgay) {
-      return `⚠️ Hạn mức ${hanMucHienTai.toLocaleString('vi-VN')} ${dongTien} nhưng ⛔ CHƯA khai số ngày `
-        + '— kế toán ⛔ không tính được tuổi nợ';
+      return `Thiếu một nửa quy tắc: hạn mức ${hanMucHienTai.toLocaleString('vi-VN')} ${dongTien} nhưng CHƯA khai số ngày `
+        + '— kế toán không tính được tuổi nợ';
     }
     if (!coHanMuc && coSoNgay) {
-      return `⚠️ Cho nợ ${soNgayNo} ngày nhưng ⛔ CHƯA khai hạn mức — ⛔ không có trần rủi ro`;
+      return `Thiếu một nửa quy tắc: cho nợ ${soNgayNo} ngày nhưng CHƯA khai hạn mức — không có trần rủi ro`;
     }
     if (soNgayNo === 0) {
       return `Hạn mức ${(hanMucHienTai ?? 0).toLocaleString('vi-VN')} ${dongTien} · trả NGAY (COD)`;
     }
-    return `✅ Cho nợ tối đa ${(hanMucHienTai ?? 0).toLocaleString('vi-VN')} ${dongTien}, trong ${soNgayNo} ngày`;
+    return `Cho nợ tối đa ${(hanMucHienTai ?? 0).toLocaleString('vi-VN')} ${dongTien}, trong ${soNgayNo} ngày`;
   }, [hanMucHienTai, soNgayNo, dongTien]);
 
   // Ⓐ Ⓑ mở sẵn — đủ để lưu một khách hàng hợp lệ. Ba nhóm sau gấp lại nhưng
@@ -261,7 +263,7 @@ export default function CustomerFormDialog({
       )}
       <form onSubmit={onSubmit} noValidate className="space-y-2.5">
         {/* ═══ Ⓐ BUYER INFORMATION ══════════════════════════════════════ */}
-        <NhomGap ten="Ⓐ Thông tin khách mua (Buyer information)" icon={Building2}
+        <NhomGap sac="blue" ten="Ⓐ Thông tin khách mua (Buyer information)" icon={Building2}
           mo={mo.a} onMo={bat('a')} phu={watch('name') || undefined}>
           <Field label="Mã khách hàng" hint="tự chuyển in hoa">
             <input className={inputCls} placeholder="KH-001" {...register('customer_code')} />
@@ -290,14 +292,14 @@ export default function CustomerFormDialog({
 
           {/* 🔑 *"Khách từ năm nào"* ⛔ không phải trang trí — nó là thứ dùng để
               xếp thứ tự ưu tiên khi chuyền quá tải và hai đơn cùng kẹt ngày. */}
-          <Field label="Khách hàng từ" hint="để trống nếu ⛔ chưa rõ">
+          <Field label="Khách hàng từ" hint="để trống nếu chưa rõ">
             <input className={inputCls} type="date" {...register('buyer_since')} />
             <Err>{formState.errors.buyer_since?.message}</Err>
           </Field>
         </NhomGap>
 
         {/* ═══ Ⓑ LIÊN HỆ & PHÁP LÝ ══════════════════════════════════════ */}
-        <NhomGap ten="Ⓑ Liên hệ & pháp lý" icon={Contact}
+        <NhomGap sac="sky" ten="Ⓑ Liên hệ & pháp lý" icon={Contact}
           mo={mo.b} onMo={bat('b')} phu={watch('contact_person') || undefined}>
           <Field label="Người liên hệ chính">
             <input className={inputCls} {...register('contact_person')} />
@@ -332,7 +334,7 @@ export default function CustomerFormDialog({
             CỘT** trước migration `054`. Chúng ⛔ không phải thông tin hành
             chính: nhóm hàng quyết định lọc mã hàng và xếp năng lực chuyền, thị
             trường quyết định **tiêu chuẩn kiểm và bộ chứng từ xuất khẩu**. */}
-        <NhomGap ten="Ⓒ Nhóm hàng & thị trường (Product category · Market)" icon={Shirt}
+        <NhomGap sac="rose" ten="Ⓒ Nhóm hàng & thị trường (Product category · Market)" icon={Shirt}
           mo={mo.c} onMo={bat('c')}
           phu={[watch('product_categories'), watch('market')].filter(Boolean).join(' · ') || undefined}>
           <Field label="Nhóm hàng khách đặt" hint="ngăn cách bằng dấu phẩy">
@@ -365,7 +367,7 @@ export default function CustomerFormDialog({
         </NhomGap>
 
         {/* ═══ Ⓓ COMMERCIAL PROFILE ═════════════════════════════════════ */}
-        <NhomGap ten="Ⓓ Hồ sơ thương mại (Commercial profile)" icon={Banknote}
+        <NhomGap sac="violet" ten="Ⓓ Hồ sơ thương mại (Commercial profile)" icon={Banknote}
           mo={mo.d} onMo={bat('d')} phu={`${dongTien} · ${watch('incoterm') ?? 'FOB'}`}>
           <Field label="Đồng tiền giao dịch" hint="tự áp cho mọi đơn của khách này">
             <select className={inputCls} {...register('currency')}>
@@ -387,15 +389,15 @@ export default function CustomerFormDialog({
 
           <div className="sm:col-span-2">
             <p className={`rounded-lg bg-slate-50 px-3 py-2 ${TYPE.caption} text-slate-600`}>
-              🔑 Hai giá trị này <strong>tự điền</strong> vào mọi đơn hàng lập cho khách này — MD ⛔ không
-              phải chọn lại từng lần. Sửa ở đây là sửa cho **các đơn lập sau**; đơn cũ giữ nguyên giá trị
-              đã chốt lúc lập.
+              Hai giá trị này <strong>tự điền</strong> vào mọi đơn hàng lập cho khách này — MD không
+              phải chọn lại từng lần. Sửa ở đây là sửa cho <strong>các đơn lập sau</strong>; đơn cũ giữ
+              nguyên giá trị đã chốt lúc lập.
             </p>
           </div>
         </NhomGap>
 
         {/* ═══ Ⓔ PAYMENT PROFILE · CREDIT RULE ══════════════════════════ */}
-        <NhomGap ten="Ⓔ Thanh toán & quy tắc tín dụng (Payment profile · Credit rule)"
+        <NhomGap sac="amber" ten="Ⓔ Thanh toán & quy tắc tín dụng (Payment profile · Credit rule)"
           icon={CreditCard} mo={mo.e} onMo={bat('e')} phu={tomTatTinDung}>
           <div className="sm:col-span-2">
             <Field label="Điều khoản thanh toán (Payment term)">
@@ -420,7 +422,7 @@ export default function CustomerFormDialog({
               Sai một tầng là hai nghĩa nhập lại làm một. */}
           <Field
             label="Hạn mức công nợ"
-            hint="để TRỐNG = ⛔ chưa khai báo · nhập 0 = ⛔ không cho nợ"
+            hint="để TRỐNG = chưa khai báo · nhập 0 = không cho nợ"
           >
             <input
               className={inputCls}
@@ -441,7 +443,7 @@ export default function CustomerFormDialog({
               *"Cho nợ 100.000 USD"* ⛔ **không** nói **bao lâu**. Thiếu số ngày
               thì kế toán ⛔ không tính nổi tuổi nợ, và *"Credit rule"* mà Board
               hỏi mới có một nửa. Cùng luật ba trạng thái với hạn mức. */}
-          <Field label="Số ngày cho nợ" hint="để TRỐNG = ⛔ chưa khai · nhập 0 = trả ngay (COD)">
+          <Field label="Số ngày cho nợ" hint="để TRỐNG = chưa khai · nhập 0 = trả ngay (COD)">
             <input
               className={inputCls}
               type="number"
@@ -469,7 +471,7 @@ export default function CustomerFormDialog({
           </Field>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className={hangNutDayHopThoai}>
           <button type="button" className={btnGhost} onClick={onClose} disabled={formState.isSubmitting}>
             Hủy
           </button>

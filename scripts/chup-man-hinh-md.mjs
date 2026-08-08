@@ -164,7 +164,12 @@ const DO_TRAN = `(() => {
   });
 })()`;
 
-async function chup(ten, rong, cao, { toanTrang = true } = {}) {
+// ⚠️ `ANH_KHUNG=1` ⇒ chụp ĐÚNG khung nhìn, ⛔ không nới ra vừa nội dung.
+// **Bắt buộc với hộp thoại**: `Modal` dùng `position: fixed`, nên khi nới khung
+// lên 3.500 px để chụp cả trang thì hộp thoại canh giữa **cái khung 3.500 px
+// ấy** — tức trôi xuống tận đáy ảnh. Đó là hiện vật của phép chụp, ⛔ KHÔNG
+// phải lỗi bố cục, và phân biệt được hai thứ đó là cả vấn đề.
+async function chup(ten, rong, cao, { toanTrang = !process.env.ANH_KHUNG } = {}) {
   await goi('Emulation.setDeviceMetricsOverride', {
     width: rong, height: cao, deviceScaleFactor: 1, mobile: rong < 640,
   }, sessionId);
@@ -176,9 +181,23 @@ async function chup(ten, rong, cao, { toanTrang = true } = {}) {
 
   // Bấm một phần tử trước khi chụp — dùng để chụp Search / dropdown ĐANG MỞ.
   if (process.env.ANH_BAM) {
+    // 🔑 `ANH_BAM` nhận **hai dạng**: bộ chọn CSS, hoặc `text=…` để tìm theo
+    // chữ hiện trên nút. Dạng thứ hai cần thiết vì thẻ hành động ⛔ không có
+    // `id` lẫn `aria-label` riêng — neo vào lớp Tailwind thì bài chụp sẽ hỏng
+    // ngay lần đổi bố cục kế tiếp, mà **chữ trên nút thì ổn định**.
     const bam = await chay(
-      `(() => { const e = document.querySelector(${JSON.stringify(process.env.ANH_BAM)});`
-      + ` if (!e) return 'KHONG_THAY'; e.click(); return 'OK'; })()`,
+      `(() => {
+        const dk = ${JSON.stringify(process.env.ANH_BAM)};
+        let e = null;
+        if (dk.startsWith('text=')) {
+          const tu = dk.slice(5).toLowerCase();
+          e = [...document.querySelectorAll('button, a, [role="button"]')]
+            .find((x) => (x.innerText || '').toLowerCase().includes(tu));
+        } else { e = document.querySelector(dk); }
+        if (!e) return 'KHONG_THAY';
+        e.click();
+        return 'OK';
+      })()`,
     );
     if (bam !== 'OK') console.log(`   ⚠️ ANH_BAM: ${bam} — ${process.env.ANH_BAM}`);
     if (process.env.ANH_GO) {
