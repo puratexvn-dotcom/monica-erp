@@ -107,10 +107,17 @@ DROP POLICY IF EXISTS "evidences_authenticated_delete"  ON storage.objects;
 DROP POLICY IF EXISTS "evidences_authenticated_insert"  ON storage.objects;
 
 -- ─── 3. GHI: GIỮ. ĐỌC · SỬA · XOÁ: ⛔ KHÔNG AI ─────────────────────────────
--- 🔑 ⛔ **Không dựng policy `SELECT` nào.** `createSignedUrl` chạy ở tầng
---    Storage API và **⛔ không cần** policy `SELECT` — nó ký bằng khoá dự án.
---    Nhờ vậy đường đọc duy nhất đi qua Server Action, nơi có phép kiểm nghiệp
---    vụ. Dựng thêm một policy `SELECT` "cho tiện" là mở lại đúng cửa vừa đóng.
+-- 🔑 ⛔ **Không dựng policy `SELECT` nào** — đường đọc duy nhất đi qua Server
+--    Action, nơi có phép kiểm nghiệp vụ. Dựng thêm một policy `SELECT` "cho
+--    tiện" là mở lại đúng cửa vừa đóng: **bất kỳ ai đã đăng nhập** sẽ đọc
+--    thẳng được mọi tệp qua Storage API.
+--
+-- ⚠️ **SỬA MỘT KHẲNG ĐỊNH SAI CỦA CHÍNH TỆP NÀY.** Bản đầu ghi:
+--    *"`createSignedUrl` … ⛔ không cần policy `SELECT` — nó ký bằng khoá dự
+--    án."* **SAI** — đo sau khi migration chạy: ký bằng phiên `md001` trả
+--    `Object not found`. `createSignedUrl` **vẫn chịu RLS của vai gọi**.
+--    ⇒ Server Action ký bằng **khoá nâng quyền, SAU KHI** đã kiểm xong hai
+--      phép ở tầng ứng dụng. Xem `app/actions/evidence-url-action.ts §③`.
 CREATE POLICY "evidences_authenticated_insert"
   ON storage.objects FOR INSERT
   TO authenticated

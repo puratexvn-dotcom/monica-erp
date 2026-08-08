@@ -133,7 +133,10 @@ console.log('\n③ SIGNED URL + PHÂN QUYỀN');
       }
       const id = ACT.get('layUrlBangChung');
       if (!id) return { ok: false, message: '⛔ không tìm được action id' };
-      const r = await fetch(`${BASE}/md`, {
+      // ⚠️ Gọi ở `/` chứ ⛔ không phải `/md`: `qa001` bị middleware chặn khỏi
+      // `/md`, nên gọi ở đó sẽ ra "⛔ không đọc được kết quả" — một phép đo
+      // hỏng vì **lý do sai**, che mất điều thật sự cần đo.
+      const r = await fetch(`${BASE}/`, {
         method: 'POST',
         headers: { cookie: phien.ck, 'Next-Action': id, 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify([et, eid, path]), redirect: 'manual',
@@ -158,12 +161,21 @@ console.log('\n③ SIGNED URL + PHÂN QUYỀN');
     }
 
     // 🔴 CHỐNG IDOR: đúng người, đúng đơn, **SAI TỆP**.
+    // 🔴 **HAI PHÉP DƯỚI CHỈ CÓ NGHĨA KHI `3.1` ĐÃ ĐẠT.**
+    // ⚠️ Bài kiểm bản trước báo chúng "ĐẠT" trong khi Server Action **⛔ không
+    // tồn tại trong gói dựng** — mọi lời gọi trả `ok:false`, và một phép thử
+    // khẳng định `ok === false` thì **xanh vì lý do sai**. Đó đúng là loại
+    // "đạt giả" mà `K-3` sinh ra để chặn.
+    // 🔑 Ràng buộc `r1.ok === true` biến chúng thành phép đo thật: chỉ khi
+    //    đường hợp lệ CHẠY ĐƯỢC thì việc chặn đường sai mới nói lên điều gì.
     const r2 = await goi(md, 'ORDER', po.id, 'po/khong-ton-tai/gia-mao.pdf');
-    ok('🔴 3.4 Tệp ⛔ KHÔNG thuộc bản ghi ⇒ TỪ CHỐI (chống IDOR)', r2.ok === false, JSON.stringify(r2).slice(0, 140));
+    ok('🔴 3.4 Tệp ⛔ KHÔNG thuộc bản ghi ⇒ TỪ CHỐI (chống IDOR)',
+      r1.ok === true && r2.ok === false, JSON.stringify(r2).slice(0, 140));
 
     // 🔴 Vai ⛔ không có quyền đọc đơn hàng.
     const r3 = await goi(qa, 'ORDER', po.id, duong.PDF);
-    ok('🔴 3.5 qa001 ⛔ KHÔNG xin được URL cho đơn hàng', r3.ok === false, JSON.stringify(r3).slice(0, 140));
+    ok('🔴 3.5 qa001 ⛔ KHÔNG xin được URL cho đơn hàng',
+      r1.ok === true && r3.ok === false, JSON.stringify(r3).slice(0, 140));
 
     if (doc) await admin.from('md_documents').update({ deleted_at: new Date().toISOString() }).eq('id', doc.id);
   } else {
@@ -174,13 +186,19 @@ console.log('\n③ SIGNED URL + PHÂN QUYỀN');
 // ═══ ④ XOÁ PHẢI BỊ CHẶN ════════════════════════════════════════════════════
 console.log('\n④ XOÁ BỊ CHẶN');
 if (duong.PNG) {
-  const { data, error } = await md.sb.storage.from('evidences').remove([duong.PNG]);
-  // ⚠️ Supabase Storage trả **mảng RỖNG** khi policy chặn, ⛔ không ném lỗi.
-  //    Đo bằng *"tệp còn ⛔ không"* mới là phép đo thật.
-  const conSong = await md.sb.storage.from('evidences').list('po', { search: duong.PNG.split('/').pop() });
+  const { data } = await md.sb.storage.from('evidences').remove([duong.PNG]);
+  // ⚠️ **LỖI CỦA BÀI KIỂM, ĐÃ SỬA.** Bản trước xác minh bằng
+  // `md.sb.storage.list()` — nhưng sau `057` kho **riêng tư và ⛔ không có
+  // policy `SELECT`**, nên người dùng **⛔ không liệt kê được** dù tệp còn
+  // nguyên. Bài kiểm vì thế đọc ra `0 tệp` và kết luận *"đã bị xoá"* — một
+  // phép đo **báo động giả**.
+  // 🔑 Xác minh bằng **khoá quản trị**: nó nhìn thấy sự thật của kho, ⛔ không
+  //    bị chính hàng rào đang kiểm che mắt.
+  const { data: con } = await admin.storage.from('evidences')
+    .list('po', { search: duong.PNG.split('/').pop() });
   ok('🔴 4.1 md001 ⛔ KHÔNG xoá được bằng chứng',
-    (conSong.data || []).length > 0 || !!error,
-    `xoá trả về ${JSON.stringify(data)} · còn ${(conSong.data || []).length} tệp`);
+    (con || []).length > 0,
+    `xoá trả về ${JSON.stringify(data)} · kho còn ${(con || []).length} tệp`);
 }
 
 // ═══ ⑤ HAI TẦNG ALLOWLIST PHẢI KHỚP ════════════════════════════════════════

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Trạng thái** | 🟠 **ĐANG THI HÀNH.** Mã ✅ xong · migration `057` 🔴 **⛔ CHƯA chạy**. Xem §9. |
+| **Trạng thái** | ✅ **ĐÃ THI HÀNH (`IMPLEMENTED`)** — 08/08/2026. `057` đã chạy · hành vi đo **13/13**. Xem §9. |
 | **Ngày** | 08/08/2026 |
 | **Nguồn** | Board Directive *EVIDENCE SECURITY FOUNDATION* 08/08/2026 |
 | **Người soạn** | Chief Solution Architect |
@@ -271,46 +271,91 @@ bản vá **chặn phẳng mọi người** cũng cho bài kiểm màu xanh.
 
 ---
 
-## 9. TRẠNG THÁI THI HÀNH — 08/08/2026
+## 9. TRẠNG THÁI THI HÀNH — ✅ `IMPLEMENTED` · 08/08/2026
 
-Board Directive *EVIDENCE SECURITY IMPLEMENTATION* đã duyệt. Đã làm:
+### 9.1 TRƯỚC ⟷ SAU
+
+| | **TRƯỚC** | **SAU** |
+|---|---|---|
+| **Kho** | `public = true` | `public = false` |
+| **Khách vãng lai đọc tệp** | 🔴 **`HTTP 200`** — `fetch` trần, ⛔ không cookie | ✅ **bị chặn** |
+| **Đường đọc** | URL công khai vĩnh viễn | **Signed URL 300 giây**, phát sau **2** phép kiểm |
+| **Phép kiểm quyền** | *"đã đăng nhập chưa"* | *"tệp có thuộc bản ghi ⛔"* **+** *"đọc được bản ghi cha ⛔"* *(hỏi RLS)* |
+| **Người dùng xoá tệp** | 🟠 **được**, ⛔ không vết | ✅ **⛔ không ai** — bỏ tệp = lưu trữ mềm `md_documents` |
+| **Người dùng sửa/ghi đè tệp** | 🟠 **được** | ✅ **⛔ không ai** |
+| **Tải PDF** | 🟠 **bị từ chối** *(`mime type application/pdf is not supported`)* | ✅ **được** |
+| **Allowlist MIME** | **2 bản lệch nhau**, ⛔ không ai canh | **1 bản gốc** + **1 phép đo** bắt lúc lệch |
+
+### 9.2 THI HÀNH
 
 | # | Việc | Trạng thái |
 |---|---|---|
-| ① | `lib/mos/evidence/mime.ts` — **một nguồn allowlist**; `upload-action` và ô chọn tệp đọc từ đó | ✅ |
+| ① | `lib/mos/evidence/mime.ts` — **một nguồn allowlist**; `upload-action` + ô chọn tệp đọc từ đó | ✅ |
 | ② | `app/actions/evidence-url-action.ts` — Signed URL 300 giây, **hai** phép kiểm | ✅ |
 | ③ | `lib/mos/evidence/access.ts` — hằng số + ánh xạ đối tượng ⟷ bảng | ✅ |
-| ④ | `scripts/kiem-bang-chung.mjs` — 10 phép đo hành vi | ✅ |
-| ⑤ | `ADR-031` | ✅ |
-| ⑥ | **`057_evidence_private_bucket.sql`** | 🔴 **⛔ CHƯA CHẠY** |
+| ④ | `components/md/collab/document-center.tsx` — nút *"Mở tài liệu"* chuyển sang đường mới | ✅ |
+| ⑤ | `scripts/kiem-bang-chung.mjs` — **13** phép đo hành vi | ✅ |
+| ⑥ | `ADR-031` | ✅ |
+| ⑦ | **`057_evidence_private_bucket.sql`** | ✅ **ĐÃ CHẠY** — tự kiểm **6/6** |
 
-### ⚠️ Vì sao ⛔ CHƯA ghi `IMPLEMENTED`
-
-`CLAUDE.md §3`: *"Người dùng tự chạy migration trên Supabase SQL Editor. ⛔
-Không có RPC nào chạy DDL từ mã nguồn."* Tôi ⛔ không có đường nào áp
-`057` — và đổi `storage.buckets` + `storage.objects` policy đòi **chủ sở hữu**.
-
-⇒ Ba khuyết tật `P0` · `P1` · `P0-b` **vẫn còn nguyên** cho tới khi `057` chạy.
-
-### Đo TRƯỚC khi `057` chạy — `kiem-bang-chung.mjs`
+### 9.3 MÔ HÌNH BẢO MẬT SAU THI HÀNH
 
 ```
-BẢO MẬT KHO BẰNG CHỨNG: 3 đạt · 6 hỏng
-  ⛔ 1.PDF   tải lên PDF
-  ⛔ 2.1     bucket đặt riêng tư
-  ⛔ 2.2     KHÁCH VÃNG LAI ⛔ không đọc được URL công khai
-  ⛔ 3.x     ⛔ không có PDF để đo Signed URL
-  ⛔ 4.1     md001 ⛔ không xoá được bằng chứng
-  ⛔ 5.1     allowlist KHO khớp lib
+ĐỌC   ⛔ KHÔNG policy nào.  Chỉ vào bằng Signed URL 300s do Server Action phát:
+        ① tra `md_documents`   — tệp có THUỘC bản ghi ⛔      (chống IDOR)
+        ② đọc bản ghi cha      — bằng PHIÊN CỦA NGƯỜI GỌI     (hỏi RLS)
+        ③ ký                   — bằng khoá nâng quyền, CHỈ SAU KHI ①② cho qua
+GHI   `authenticated`.  SỬA · XOÁ  ⛔ KHÔNG AI.
 ```
 
-🔑 Sáu phép hỏng **đúng bằng** sáu khuyết tật đã biết. Bài kiểm vì vậy **phân
-biệt được** trạng thái hở với trạng thái kín — điều kiện để kết quả `PASS` sau
-này có nghĩa.
+🔑 **Ranh giới ở ③ là toàn bộ thiết kế:** *phán quyết* chạy dưới quyền **người
+gọi**; *hành động* chạy dưới quyền **nâng cấp**. Đảo thứ tự là mở toang.
 
-### Sau khi Board chạy `057`
+⚠️ **Giới hạn, nói thẳng:** kín với `anon`, với **mọi vai nghiệp vụ**, và với
+mọi đường ứng dụng. **⛔ KHÔNG kín** trước `service_role` *(mang `BYPASSRLS`, và
+storage ⛔ không đặt trigger được như `056`)* hay superuser. Phòng thủ còn lại là
+**giữ khoá** — nó chỉ ở máy chủ và script chạy tay.
+
+### 9.4 KẾT QUẢ ĐO — TRƯỚC ⟷ SAU, cùng một bài kiểm
 
 ```
-node scripts/kiem-bang-chung.mjs      # kỳ vọng 10/0
-npm run verify && node tests/architecture/arch.test.mjs
+TRƯỚC `057`   3 đạt · 6 hỏng      SAU `057`   13 đạt · 0 hỏng
 ```
+
+🔑 Sáu phép hỏng lúc trước **đúng bằng** sáu khuyết tật đã biết. Đó là điều
+khiến `13/13` hôm nay **có nghĩa**: bài kiểm đã chứng minh nó **phân biệt được**
+trạng thái hở với trạng thái kín — một bộ kiểm chỉ từng xanh thì ⛔ không chứng
+minh được gì.
+
+| Nhóm | Phép đo | |
+|---|---|---|
+| ① Tải lên | PNG · JPG · **PDF** · từ chối `.txt` | 4 ✅ |
+| ② Kho riêng tư | `public=false` · **khách vãng lai bị chặn** | 2 ✅ |
+| ③ Signed URL | phát được · **hạn 300s** · mở được · **chống IDOR** · **`qa001` bị từ chối** | 5 ✅ |
+| ④ Xoá | `md001` **⛔ không xoá được** | 1 ✅ |
+| ⑤ Một nguồn | allowlist KHO ⟷ `mime.ts` | 1 ✅ |
+
+Hồi quy: `npm run verify` **20/20** · `uat-md-form-dau-vao` **46/0** ·
+`uat-md-vong-doi` **72/0** · `next build` sạch.
+
+### 9.5 🔴 MỘT KHẲNG ĐỊNH SAI ĐÃ BỊ CHÍNH PHÉP ĐO BÁC BỎ
+
+Kế hoạch này, `ADR-031` và `057` bản đầu **đều** ghi: *"`createSignedUrl` ⛔
+không cần policy `SELECT`."* **SAI** — đo sau khi `057` chạy: ký bằng phiên
+`md001` trả **`Object not found`**. `createSignedUrl` **vẫn chịu RLS của vai
+gọi**.
+
+⚠️ Hậu quả nếu ⛔ không đo: mọi nút *"Mở tài liệu"* đứng im, **lược đồ vẫn đúng
+y như thiết kế**, và ⛔ không một bài kiểm lược đồ nào bắt được. Cùng họ sai lầm
+với `22P02` ở `056`. Cả hai lần thứ bắt được đều là **phép đo hành vi**.
+
+Đã sửa ở ba nơi *(mã · ADR · migration)*, ⛔ không xoá dấu vết.
+
+### 9.6 ⚠️ CÒN NỢ
+
+| | |
+|---|---|
+| **Phản biện độc lập** | ⛔ **CHƯA có** — `ADR-011 §2.2` |
+| **Board phê chuẩn `ADR-031`** | 🟠 duyệt triển khai, ⛔ chưa phê chuẩn chính thức |
+| **27 điểm sản lượng ⛔ chưa có bằng chứng** | `MONICA_ONE_QUANTITY_EVIDENCE_AUDIT.md` — đây mới là *hạ tầng*, ⛔ chưa phải *phủ sóng* |
+| **Tệp cũ** | ⛔ **không có** — kho rỗng lúc vá *(0 tệp · 0 tham chiếu)*. ⛔ Không URL nào từng rò |

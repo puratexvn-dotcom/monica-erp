@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo, useState, useTransition } from 'react';
-import { Download, FileText, Search, Trash2, Pencil } from 'lucide-react';
+import { Download, FileText, Search, Trash2, Pencil, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge, inputCls, Modal, Field, btnGhost, btnPrimary } from '@/components/ui';
@@ -11,7 +11,7 @@ import { DOC_TYPE_LABEL, DOC_TYPES, ENTITY_TYPE_LABEL, labelOf } from '../po/lab
 import { deleteDocument } from '@/app/(dashboard)/md/_actions/collaboration.actions';
 // 🔴 BUG-5 · Board 07/08/2026 — Update cho Tech Pack.
 import { updateTechPack } from '@/app/(dashboard)/md/_actions/revisions.actions';
-import { publicUrl } from '@/lib/storage';
+import { layUrlBangChung } from '@/app/actions/evidence-url-action';
 import type { DocumentCenterRow } from '@/app/(dashboard)/md/_services/collaboration.service';
 
 // ============================================================================
@@ -42,6 +42,24 @@ function DocumentCenter({
   onRefresh: () => void | Promise<void>;
 }) {
   const [q, setQ] = useState('');
+  /** Tệp đang xin URL — để nút hiện vòng quay và ⛔ không bấm được hai lần. */
+  const [dangMo, setDangMo] = useState<string | null>(null);
+
+  /** Mở một tài liệu qua **Signed URL**.
+   *
+   *  ⚠️ ⛔ KHÔNG dựng URL ở client: đường dẫn trong kho ⛔ không còn mở trực
+   *  tiếp được sau `057`. Máy chủ ký sau khi kiểm quyền, và URL sống 300 giây. */
+  async function moTep(d: DocumentCenterRow) {
+    setDangMo(d.id);
+    try {
+      const r = await layUrlBangChung(d.entity_type, d.entity_id, d.storage_path);
+      if (!r.ok || !r.url) { toast.error('Không mở được tài liệu', { description: r.message }); return; }
+      window.open(r.url, '_blank', 'noreferrer');
+    } finally {
+      setDangMo(null);
+    }
+  }
+
   const [type, setType] = useState('');
   const [pending, startTransition] = useTransition();
   /** 🔴 `BUG-5` — tài liệu đang sửa. Giữ **bản nháp tại chỗ** thay vì gọi
@@ -171,26 +189,27 @@ function DocumentCenter({
                 <td className={tdCls}>{fmtDate(d.created_at)}</td>
                 <td className={tdCls}>
                   <div className="flex items-center gap-1">
-                    {/* Thiếu biến môi trường Supabase thì publicUrl trả null —
-                        hiện nút mờ chứ không tạo thẻ <a> trỏ vào URL sai */}
-                    {publicUrl(d.storage_path) ? (
-                      <a
-                        href={publicUrl(d.storage_path) as string}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={`Mở tài liệu ${d.title}`}
-                        className="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        <Download className="h-4 w-4" />
-                      </a>
-                    ) : (
-                      <span
-                        title="Chưa cấu hình địa chỉ kho lưu trữ nên không mở được tệp"
-                        className="rounded-lg p-1.5 text-slate-300"
-                      >
-                        <Download className="h-4 w-4" />
-                      </span>
-                    )}
+                    {/* 🔴 **ĐỔI TỪ URL CÔNG KHAI SANG SIGNED URL — `057`.**
+                        Kho bằng chứng nay **riêng tư**, nên thẻ `<a href=
+                        {publicUrl(...)}>` cũ **⛔ không mở được nữa** *(403)*.
+                        Đây là hệ quả trực tiếp của migration, và nếu ⛔ không
+                        sửa ở đây thì mọi nút *"Mở tài liệu"* trong Trung tâm
+                        tài liệu sẽ hỏng lặng lẽ.
+
+                        🔑 Đường mới đi qua `layUrlBangChung`, nơi máy chủ hỏi
+                        **hai** câu trước khi ký: tệp có thuộc bản ghi ⛔, và
+                        người này có đọc được bản ghi đó ⛔. URL sống 300 giây. */}
+                    <button
+                      type="button"
+                      disabled={dangMo === d.id}
+                      onClick={() => void moTep(d)}
+                      aria-label={`Mở tài liệu ${d.title}`}
+                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-40"
+                    >
+                      {dangMo === d.id
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <Download className="h-4 w-4" />}
+                    </button>
                     {/* 🔴 BUG-5 — sửa tên / phân loại. Lối đi THAY CHO xoá. */}
                     <button
                       type="button"

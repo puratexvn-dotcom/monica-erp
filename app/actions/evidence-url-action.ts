@@ -1,5 +1,7 @@
 'use server';
 
+import { createClient as createServiceClient } from '@supabase/supabase-js';
+
 import { createClient } from '@/utils/supabase/server';
 import { HAN_SIGNED_URL_GIAY, BANG_THEO_ENTITY, type EntityBangChung } from '@/lib/mos/evidence/access';
 
@@ -23,8 +25,14 @@ import { HAN_SIGNED_URL_GIAY, BANG_THEO_ENTITY, type EntityBangChung } from '@/l
 //     XXX)*, và RLS đã thi hành điều đó. Hỏi RLS là tự động đúng luật ấy —
 //     ⛔ không phải nhớ chép lại nó.
 //
-// ⚠️ **⛔ TUYỆT ĐỐI KHÔNG dùng `service_role` ở đây.** Nó mang `BYPASSRLS`, nên
-// dùng nó là **vô hiệu hoá đúng phép kiểm mà hàm này tồn tại để làm**.
+// ⚠️ **⛔ TUYỆT ĐỐI KHÔNG dùng `service_role` cho HAI PHÉP KIỂM.** Nó mang
+// `BYPASSRLS`, nên dùng nó ở đó là **vô hiệu hoá đúng phép kiểm mà hàm này tồn
+// tại để làm**.
+//
+// 🔑 Nó **CÓ** được dùng ở bước ③ *(ký URL)* — nhưng chỉ **SAU KHI** hai phép
+// kiểm đã cho qua. Ranh giới đó là toàn bộ thiết kế: **phán quyết chạy dưới
+// quyền người gọi; hành động chạy dưới quyền nâng cấp.** Đảo thứ tự là mở
+// toang. Lý do kỹ thuật ở §③.
 //
 // ─── ⚠️ HAI PHÉP KIỂM, ⛔ KHÔNG PHẢI MỘT ────────────────────────────────
 //   ① Tệp có **thuộc về** bản ghi đó ⛔ — tra `md_documents`, ⛔ không tin
@@ -94,7 +102,41 @@ export async function layUrlBangChung(
   }
 
   // ── ③ Phát URL CÓ HẠN ──────────────────────────────────────────────────
-  const { data, error } = await supabase.storage
+  //
+  // 🔴 **ĐO ĐƯỢC, VÀ NÓ BÁC MỘT KHẲNG ĐỊNH TÔI ĐÃ VIẾT TRONG `057`.**
+  // Tôi từng ghi: *"`createSignedUrl` chạy ở tầng Storage API và ⛔ không cần
+  // policy `SELECT`."* **SAI.** Đo thật sau khi `057` chạy:
+  //
+  //     createSignedUrl bằng phiên md001  →  "Object not found"
+  //
+  // `createSignedUrl` **vẫn chịu RLS của vai gọi**. ⛔ Không policy `SELECT`
+  // nào ⇒ `authenticated` ⛔ không **thấy** đối tượng ⇒ ⛔ không ký được.
+  //
+  // ─── HAI ĐƯỜNG, VÀ VÌ SAO CHỌN ĐƯỜNG NÀY ──────────────────────────────
+  //   ⓐ Thêm policy `SELECT` cho `authenticated`
+  //      🔴 **BÁC.** Lúc đó **bất kỳ ai đã đăng nhập** cũng đọc thẳng được mọi
+  //      tệp qua Storage API — tức vứt bỏ đúng cổng quyền nghiệp vụ mà hàm này
+  //      tồn tại để dựng. Kín hơn công khai một chút, nhưng vẫn ⛔ không hỏi
+  //      *"người này có quyền với ĐƠN HÀNG đó ⛔"*.
+  //
+  //   ⓑ **Ký bằng khoá nâng quyền, SAU KHI đã kiểm xong ①②** ← chọn
+  //      Đây là khuôn *"kiểm trước, nâng quyền sau"*: phán quyết nằm ở mã của
+  //      ta, nơi đọc được cả `md_documents` lẫn RLS của bảng cha; việc ký chỉ
+  //      là hệ quả của phán quyết đó.
+  //
+  // ⚠️ **Khoá này ⛔ KHÔNG bao giờ rời máy chủ.** Tệp mang `'use server'`, nên
+  // nó ⛔ không được đóng gói xuống trình duyệt. Và nó **chỉ được dùng ở dòng
+  // ký** — hai phép kiểm bên trên **cố ý** chạy bằng phiên của người gọi, vì
+  // dùng khoá nâng quyền ở đó sẽ vô hiệu hoá chính chúng.
+  const khoaKy = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!khoaKy) {
+    return { ok: false, message: 'Máy chủ ⛔ chưa cấu hình khoá kho lưu trữ.' };
+  }
+  const kho = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL as string, khoaKy, {
+    auth: { persistSession: false },
+  });
+
+  const { data, error } = await kho.storage
     .from('evidences')
     .createSignedUrl(storagePath, HAN_SIGNED_URL_GIAY);
 

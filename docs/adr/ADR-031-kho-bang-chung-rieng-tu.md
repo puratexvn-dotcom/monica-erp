@@ -2,13 +2,14 @@
 
 | | |
 |---|---|
-| **Trạng thái** | 🟠 **ĐƯỢC BOARD DUYỆT TRIỂN KHAI** *(Directive 08/08/2026)*. Migration `057` **⛔ CHƯA chạy**. |
+| **Trạng thái** | ✅ **ĐÃ THI HÀNH** — `057` chạy 08/08/2026, tự kiểm 6/6; hành vi đo bằng `kiem-bang-chung.mjs` **13/13**. Board duyệt *(Directive 08/08/2026)*. |
 | **Ngày** | 08/08/2026 |
 | **Người soạn** | Chief Solution Architect |
 | **Nguồn nghiệp vụ** | Board Directive *EVIDENCE SECURITY IMPLEMENTATION* 08/08/2026 |
 | **Đảo quyết định** | `013_storage_evidences.sql` — bucket công khai |
 | **Migration thi hành** | `057_evidence_private_bucket.sql` |
 | **Phản biện độc lập** | ⛔ **CHƯA có** — `ADR-011 §2.2` áp dụng |
+| **Bằng chứng thi hành** | `scripts/kiem-bang-chung.mjs` — **13 đạt · 0 hỏng** |
 
 ---
 
@@ -40,6 +41,35 @@ Người dùng → layUrlBangChung()
              ├─ ② đọc được bản ghi cha ⛔   →  hỏi RLS bằng PHIÊN CỦA HỌ
              └─ ③ createSignedUrl(300s)
 ```
+
+### 🔴 SỬA MỘT KHẲNG ĐỊNH SAI CỦA CHÍNH ADR NÀY — đo sau khi `057` chạy
+
+Bản đầu của ADR này và của `057` đều ghi: *"`createSignedUrl` chạy ở tầng
+Storage API và ⛔ không cần policy `SELECT`."* **SAI.** Đo thật:
+
+```
+createSignedUrl('po/…') bằng phiên md001   →   "Object not found"
+```
+
+`createSignedUrl` **vẫn chịu RLS của vai gọi**. ⛔ Không policy `SELECT` nào ⇒
+`authenticated` ⛔ không **thấy** đối tượng ⇒ ⛔ không ký được. Toàn bộ nút
+*"Mở tài liệu"* đứng im — và **⛔ không một bài kiểm lược đồ nào bắt được**,
+vì lược đồ đúng y như thiết kế. Chỉ phép đo hành vi mới thấy.
+
+**Hai đường, và vì sao chọn ⓑ:**
+
+| | |
+|---|---|
+| ⓐ Thêm policy `SELECT` cho `authenticated` | 🔴 **BÁC.** Lúc đó **bất kỳ ai đã đăng nhập** đọc thẳng được mọi tệp qua Storage API ⇒ vứt bỏ đúng cổng quyền nghiệp vụ mà `layUrlBangChung` tồn tại để dựng. Kín hơn công khai một chút, nhưng vẫn ⛔ không hỏi *"người này có quyền với ĐƠN HÀNG đó ⛔"* |
+| ⓑ **Ký bằng khoá nâng quyền, SAU KHI ①② đã cho qua** | ✅ chọn |
+
+🔑 Ranh giới là toàn bộ thiết kế: **phán quyết chạy dưới quyền NGƯỜI GỌI; hành
+động chạy dưới quyền NÂNG CẤP.** Đảo thứ tự ⇒ mở toang. Vì thế hai phép kiểm
+**cố ý** dùng phiên người gọi, và khoá nâng quyền **chỉ** chạm đúng dòng ký.
+
+⚠️ Đây là **cùng một họ sai lầm** với `22P02` ở `056` *(giả định `id` là UUID)*:
+tôi phát biểu về hành vi hạ tầng mà ⛔ **không đo**. Cả hai lần, thứ bắt được
+đều là **phép đo hành vi**, ⛔ không phải phép đọc mã.
 
 ### ⚠️ Vì sao ② hỏi RLS thay vì tự phán quyết
 
