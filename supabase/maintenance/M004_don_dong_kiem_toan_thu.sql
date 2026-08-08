@@ -1,5 +1,9 @@
 -- ============================================================================
--- M003 · DỌN DÒNG SỔ KIỂM TOÁN DO BÀI KIỂM SINH RA
+-- M004 · DỌN DÒNG SỔ KIỂM TOÁN DO BÀI KIỂM SINH RA
+--
+-- ⚠️ **ĐÁNH SỐ LẠI 08/08/2026.** Tệp này ban đầu mang số `M003` — **trùng** với
+--    `M003_don_du_lieu_thu_luong_md.sql` đã có từ 07/08/2026. Hai tệp cùng số
+--    trong một thư mục là cách chắc chắn để người sau chạy nhầm tệp.
 --
 -- 📐 `K-1`: *"Ghi một dòng vào sổ cái để kiểm trigger ⇒ ⛔ không xoá ra được…
 --    **Phải viết một Maintenance Script để dọn.**"*
@@ -77,10 +81,10 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN v_loi := SQLSTATE; END;
 
   IF v_loi IS NULL THEN
-    RAISE EXCEPTION '⛔ TỰ KIỂM M003: hàng rào ⛔ KHÔNG gắn lại được — sổ đang HỞ. '
+    RAISE EXCEPTION '⛔ TỰ KIỂM M004: hàng rào ⛔ KHÔNG gắn lại được — sổ đang HỞ. '
                     'ĐỪNG rời màn hình cho tới khi ENABLE TRIGGER chạy xong.';
   END IF;
-  RAISE NOTICE '✅ M003: đã dọn và hàng rào ĐÃ đứng lại (dòng tự kiểm % ở lại).', v_id;
+  RAISE NOTICE '✅ M004: đã dọn và hàng rào ĐÃ đứng lại (dòng tự kiểm % ở lại).', v_id;
 END $$;
 
 COMMIT;

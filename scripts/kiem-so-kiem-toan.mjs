@@ -14,9 +14,19 @@
 // ⚠️ Đây đúng quy tắc `K-3`: mỗi phép cấm phải có một phép CHO đối chứng, và
 //    mỗi phép đo phải **phân biệt được** trạng thái đúng với trạng thái sai.
 //
+// ─── ⚠️ BÀI NÀY ĐO **TẦNG `REVOKE`**, ⛔ KHÔNG ĐO TẦNG TRIGGER ─────────
+// Mã lỗi nhận về là `42501: permission denied` — tức PostgreSQL chặn ở **phép
+// kiểm quyền**, và trigger ⛔ **không bao giờ có cơ hội nổ** với một vai đã bị
+// thu hồi quyền.
+//
+// 🔑 Trigger chỉ nổ khi vai gọi **CÓ** quyền — tức **chủ sở hữu bảng**. Và
+// `TRUNCATE` thì PostgREST **⛔ không có động từ** để phát.
+// ⇒ Hai thứ đó đo ở `supabase/audits/A003_so_kiem_toan_bat_bien.sql`, chạy
+//   bằng SQL Editor. **Bài Node này một mình ⛔ KHÔNG chứng minh đủ.**
+//
 // ⚠️ **`K-1` — bài này CỐ Ý để lại rác.** Dòng ghi vào sổ để thử ⛔ không xoá
 //    ra được, và đó **chính là điều nó chứng minh**. Dọn bằng
-//    `supabase/maintenance/M003_purge_uat_audit.sql`.
+//    `supabase/maintenance/M004_don_dong_kiem_toan_thu.sql`.
 //
 // ─── CHẠY ────────────────────────────────────────────────────────────────
 //   node scripts/kiem-so-kiem-toan.mjs
@@ -78,6 +88,7 @@ if (idThu) {
   const { error } = await admin.from('activity_log').update({ action: 'DELETE' }).eq('id', idThu);
   ok('🔴 1.2 service_role ⛔ KHÔNG SỬA được sổ kiểm toán', !!error,
     error ? `${error.code} — ${error.message.slice(0, 90)}` : '⛔ KHÔNG bị chặn — LỖ HỔNG CÒN NGUYÊN');
+  if (error) console.log(`          ↳ tầng chặn: ${error.code === '42501' ? 'REVOKE (quyền bảng)' : `TRIGGER (${error.code})`}`);
 
   const { error: e2 } = await admin.from('activity_log').delete().eq('id', idThu);
   ok('🔴 1.3 service_role ⛔ KHÔNG XOÁ được sổ kiểm toán', !!e2,
@@ -128,6 +139,7 @@ console.log(`\n═════════════════════�
 console.log(`SỔ KIỂM TOÁN BẤT BIẾN: ${dat} đạt · ${hong.length} hỏng`);
 if (hong.length) { console.log('\nHỏng:'); hong.forEach((h) => console.log(`  ⛔ ${h}`)); }
 console.log('⚠️ K-1: bài này CỐ Ý để lại dòng thử trong sổ — đó là điều nó chứng minh.');
-console.log('   Dọn bằng supabase/maintenance/M003_purge_uat_audit.sql (chủ sở hữu bảng).');
+console.log('   Dọn bằng supabase/maintenance/M004_don_dong_kiem_toan_thu.sql (chủ sở hữu bảng).');
+console.log('🔴 BÀI NÀY ⛔ KHÔNG đo được TRIGGER lẫn TRUNCATE — xem audits/A003 (SQL Editor).');
 console.log(`════════════════════════════════════════════════════════════`);
 process.exit(hong.length ? 1 : 0);

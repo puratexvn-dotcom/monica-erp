@@ -337,7 +337,7 @@ console.log('\n⑦ AUDIT · VERSION — đơn hàng');
   // 🔑 `K-1` đã nói trước điều này: *"Bài kiểm thất bại **chính vì** thứ nó
   // kiểm đang chạy đúng."* Dòng kiểm toán của dữ liệu UAT **ở lại**, và đó là
   // **đúng ngữ nghĩa** của sổ chỉ-ghi-thêm: nó ghi rằng *"đã từng có một dòng
-  // ở đây"*. Dọn khi cần bằng `supabase/maintenance/M003_purge_uat_audit.sql`.
+  // ở đây"*. Dọn khi cần bằng `supabase/maintenance/M004_don_dong_kiem_toan_thu.sql`.
   for (const id of rac.orders) {
     await admin.from('order_milestones').delete().eq('order_id', id);
     await admin.from('orders').delete().eq('id', id);

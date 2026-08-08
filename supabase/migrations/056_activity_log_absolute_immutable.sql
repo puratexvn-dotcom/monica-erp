@@ -222,7 +222,7 @@ BEGIN
 
   -- ⚠️ Dòng thử **Ở LẠI VĨNH VIỄN**. Đó chính là `K-1`: *"Bài kiểm thất bại
   --    CHÍNH VÌ thứ nó kiểm đang chạy đúng."* Dọn nó cần `M003`.
-  RAISE NOTICE '✅ TỰ KIỂM 056: 6/6 ĐẠT. ⚠️ Dòng thử id=% Ở LẠI — xem maintenance/M003.', v_id;
+  RAISE NOTICE '✅ TỰ KIỂM 056: 6/6 ĐẠT. ⚠️ Dòng thử id=% Ở LẠI — xem maintenance/M004.', v_id;
 END $$;
 
 COMMIT;

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Trạng thái** | 🔴 **ĐỀ XUẤT — CHỜ BOARD.** Migration `056` **⛔ CHƯA chạy**. |
+| **Trạng thái** | 🔴 **ĐỀ XUẤT — CHỜ BOARD.** ⚠️ Migration `056` **ĐÃ CHẠY** 08/08/2026 *(Board chỉ thị)*, nhưng ADR **⛔ CHƯA được Board phê duyệt chính thức**. |
 | **Ngày** | 08/08/2026 |
 | **Người soạn** | Chief Solution Architect |
 | **Nguồn nghiệp vụ** | Board Directive *FAST SECURITY FIX* 08/08/2026 |
@@ -12,18 +12,34 @@
 
 ---
 
-## 0. ĐO ĐƯỢC TRƯỚC KHI VIẾT — ⛔ không suy đoán
+## 0. ĐO ĐƯỢC — TRƯỚC VÀ SAU, ⛔ không suy đoán
 
-Chạy bằng khoá `service_role` thật trên CSDL đang chạy, 08/08/2026:
+**TRƯỚC `056`** — khoá `service_role` thật, 08/08/2026:
 
 ```
-service_role INSERT ....... ĐƯỢC
-service_role UPDATE ....... 🔴 ĐƯỢC
-service_role DELETE ....... 🔴 ĐƯỢC
-dòng thử còn lại .......... 0
+INSERT ĐƯỢC · UPDATE 🔴 ĐƯỢC · DELETE 🔴 ĐƯỢC · ⛔ không trigger nào
 ```
 
-⛔ **Không có trigger nào** trên `activity_log`.
+**SAU `056`** — `scripts/kiem-so-kiem-toan.mjs`, **9 đạt · 0 hỏng**:
+
+```
+service_role INSERT ....... ĐƯỢC       ⭐ sổ vẫn ghi được
+service_role UPDATE ....... BỊ CHẶN    42501
+service_role DELETE ....... BỊ CHẶN    42501
+dòng thử ................... CÒN NGUYÊN
+```
+
+### ⚠️ Mã `42501` nói một điều quan trọng
+
+`42501: permission denied` là **tầng `REVOKE`** chặn — PostgreSQL kiểm quyền
+**TRƯỚC**, nên **trigger ⛔ không hề nổ**.
+
+🔑 ⇒ Bài kiểm Node **⛔ KHÔNG chứng minh được trigger hoạt động**, và cũng ⛔
+không phát nổi `TRUNCATE` *(PostgREST ⛔ không có động từ đó)*. Hai thứ ấy phải
+đo bằng **chủ sở hữu bảng** qua SQL Editor:
+[`supabase/audits/A003_so_kiem_toan_bat_bien.sql`](../../supabase/audits/A003_so_kiem_toan_bat_bien.sql).
+
+⚠️ Nói *"đã chặn xong"* khi mới đo được một trong hai tầng là **báo PASS sớm**.
 
 ---
 
@@ -133,7 +149,7 @@ Hai bài UAT hiện **xoá dòng `activity_log`** trong khối `finally`:
 ⇒ Sau `056`, lệnh xoá đó **⛔ không chạy được nữa**. Bản vá kèm theo:
 
 - Hai bài kiểm **thôi xoá** sổ kiểm toán và **nói rõ** vì sao trong log.
-- `supabase/maintenance/M003_purge_uat_audit.sql` — dọn khi cần, chạy bằng
+- `supabase/maintenance/M004_don_dong_kiem_toan_thu.sql` — dọn khi cần, chạy bằng
   **chủ sở hữu** qua SQL Editor, có `DISABLE/ENABLE TRIGGER` tường minh.
 
 ⚠️ Dòng kiểm toán của dữ liệu UAT vì vậy **tích lại**. Đó là **đúng ngữ nghĩa**
