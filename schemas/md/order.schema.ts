@@ -11,6 +11,7 @@ import {
   positiveInt,
   nonNegativeInt,
   positiveDecimal,
+  nonNegativeDecimal,
   storagePath,
   ORDER_TYPES,
   INCOTERMS,
@@ -95,7 +96,18 @@ export const poFormSchema = z
     // giao hoặc nghỉ việc. Gộp hai câu hỏi vào một cột là mất một câu.
     md_owner_id: optionalUuid('Merchandiser phụ trách'),
 
+    // 🔴 **SỐ PO CỦA KHÁCH — migration `055`.**
+    // Khác `po_number` (mã nội bộ nhà máy). Toàn bộ bộ chứng từ xuất khẩu và
+    // **L/C** tham chiếu số NÀY; thiếu nó thì tới lúc lập chứng từ, MD phải đi
+    // lục email tìm lại, và ngân hàng từ chối bộ chứng từ ⛔ không khớp.
+    customer_po_no: optionalText('Số PO của khách', 100),
+
     total_quantity: positiveInt('Số lượng'),
+    // 🔴 **DUNG SAI ±% — chuẩn ngành, và L/C ghi rõ.**
+    // ⛔ Không có nó thì giao 4.950/5.000 bị đọc là **giao thiếu**, trong khi
+    // hợp đồng cho phép. `0` = giao đúng tuyệt đối · `undefined` = ⛔ chưa thoả
+    // thuận — cùng luật ba trạng thái với `credit_limit`.
+    qty_tolerance_percent: nonNegativeDecimal('Dung sai số lượng', 2, 10).optional(),
     order_type: z.enum(ORDER_TYPES).default('FOB'),
     incoterm: z.enum(INCOTERMS).optional().or(z.literal('')),
     currency: z.enum(CURRENCIES).default('USD'),
@@ -109,7 +121,18 @@ export const poFormSchema = z
     // thời gian vận chuyển ra cảng và làm thủ tục.
     ex_factory_date: optionalDate('Ngày xuất xưởng'),
 
-    factory_name: optionalText('Xưởng sản xuất'),
+    // 🔴 **CẢNG ĐI · CẢNG ĐẾN — migration `055`.**
+    // 🔑 `Incoterm` mà ⛔ không có cảng là một điều khoản **⛔ chưa hoàn
+    // chỉnh**: `FOB` nghĩa là *"giao lên tàu tại cảng X"*, thiếu X thì ⛔ không
+    // xác định được điểm chuyển rủi ro lẫn ai trả cước tới đâu.
+    port_of_loading: optionalText('Cảng đi', 100),
+    port_of_destination: optionalText('Cảng đến', 100),
+
+    // 🔴 **NGÀY NPL PHẢI VỀ KHO.** Mốc **sớm nhất** có thể làm trễ cả đơn —
+    // chuyền ⛔ không cắt được khi vải chưa về.
+    material_eta: optionalDate('Ngày NPL về kho'),
+
+    factory_name: optionalText('Nơi sản xuất'),
     subcontractor_id: optionalUuid('Xưởng gia công ngoài'),
     ship_mode: z.enum(SHIP_MODES).optional().or(z.literal('')),
 
@@ -126,6 +149,19 @@ export const poFormSchema = z
   .refine((v) => !v.ex_factory_date || v.ex_factory_date <= v.delivery_date, {
     message: 'Ngày xuất xưởng phải trước hoặc bằng ngày giao hàng',
     path: ['ex_factory_date'],
+  })
+  // 🔴 **THỨ TỰ BA MỐC LÀ LUẬT SẢN XUẤT, ⛔ không phải sở thích nhập liệu.**
+  //     NPL về kho  ⇒  xuất xưởng  ⇒  giao khách
+  // 🔑 Chuyền ⛔ không cắt được khi vải chưa về, nên một đơn khai NPL về SAU
+  // ngày xuất xưởng là đơn **⛔ không thể chạy** — bắt ngay lúc lập rẻ hơn
+  // nhiều so với phát hiện lúc chuyền đứng chờ vải.
+  .refine((v) => !v.material_eta || !v.ex_factory_date || v.material_eta <= v.ex_factory_date, {
+    message: 'Nguyên phụ liệu phải về kho trước ngày xuất xưởng',
+    path: ['material_eta'],
+  })
+  .refine((v) => !v.material_eta || v.material_eta <= v.delivery_date, {
+    message: 'Nguyên phụ liệu phải về kho trước ngày giao hàng',
+    path: ['material_eta'],
   });
 export type PoFormValues = z.infer<typeof poFormSchema>;
 

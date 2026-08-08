@@ -365,6 +365,10 @@ export interface OChonKhachHang {
   payment_term: string | null;
   currency: string | null;
   incoterm: string | null;
+  /** 🔴 Thị trường đích *(cột do `054` thêm)* — form PO đọc để gợi ý **cảng
+   *  đến**. Thị trường quyết định tiêu chuẩn kiểm và bộ chứng từ xuất khẩu, nên
+   *  nó thuộc về hồ sơ khách và PO chỉ **đọc**, ⛔ không chép lại. */
+  market: string | null;
 }
 
 export async function listCustomerOptions(): Promise<OChonKhachHang[]> {
@@ -374,7 +378,7 @@ export async function listCustomerOptions(): Promise<OChonKhachHang[]> {
     'ô chọn khách hàng',
     () => g.supabase
       .from('customers')
-      .select('id, customer_code, name, buyer_group, brand, payment_term, currency, incoterm')
+      .select('id, customer_code, name, buyer_group, brand, payment_term, currency, incoterm, market')
       // ⚠️ CHỈ khách **đang giao dịch**: khách đã lưu trữ *(`is_active = false`)*
       // ⛔ không được hiện ở ô chọn lập đơn mới — đó là toàn bộ ý nghĩa của việc
       // lưu trữ. Họ vẫn nguyên trong danh sách và trong mọi đơn cũ.

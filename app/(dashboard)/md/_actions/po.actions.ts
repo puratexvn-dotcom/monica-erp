@@ -124,6 +124,19 @@ export async function createPo(input: unknown): Promise<ActionResult<{ id: strin
       factory_name: nz(v.factory_name),
       subcontractor_id: nz(v.subcontractor_id),
       ship_mode: nz(v.ship_mode),
+      // 🔴 **SÁU CỘT NGHIỆP VỤ MAY — migration `055`.**
+      // ⚠️ `notes` là cột **VỪA SINH RA để vá một lỗ mất dữ liệu**: biểu mẫu
+      // có ô Ghi chú từ lâu, lược đồ Zod có trường, nhưng `orders` ⛔ KHÔNG có
+      // cột ⇒ câu người dùng gõ bị **vứt im lặng** và hệ thống vẫn báo thành
+      // công. Xem `055 §①`.
+      customer_po_no: nz(v.customer_po_no),
+      port_of_loading: nz(v.port_of_loading),
+      port_of_destination: nz(v.port_of_destination),
+      material_eta: nz(v.material_eta),
+      // `?? null` chứ ⛔ KHÔNG `?? 0`: `0` = giao đúng tuyệt đối, `null` = ⛔
+      // chưa thoả thuận. Cùng luật ba trạng thái với `credit_limit`.
+      qty_tolerance_percent: v.qty_tolerance_percent ?? null,
+      notes: nz(v.notes),
       status: v.status,
       evidence_path: nz(v.evidence_path),
       created_by: g.userId,

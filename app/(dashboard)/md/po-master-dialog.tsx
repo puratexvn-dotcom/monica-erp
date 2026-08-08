@@ -130,6 +130,15 @@ function ODoc({ label, gia_tri, nguon, daChon }: {
  *  sửa được ở PO360. */
 const XEM_TRUOC = { kiemHang: 7, xuatHang: 0 } as const;
 
+/** Cảng xuất khẩu chính của Việt Nam — **GỢI Ý, ⛔ không phải danh mục bắt
+ *  buộc**. Đơn đi cảng lạ vẫn gõ tự do được; danh sách chỉ để bớt lệch chính
+ *  tả, vì `Hai Phong` và `Haiphong` trên hai chứng từ là hai cảng khác nhau
+ *  dưới mắt một phần mềm. */
+const CANG_VN = [
+  'Hai Phong', 'Ho Chi Minh (Cat Lai)', 'Cai Mep', 'Da Nang', 'Quy Nhon',
+  'Nghi Son', 'Noi Bai (Air)', 'Tan Son Nhat (Air)',
+] as const;
+
 const RONG: OChonDonHang = { nguoiPhuTrach: [], xuongNgoai: [], chietTinh: [] };
 
 export default function PoMasterDialog({
@@ -152,11 +161,12 @@ export default function PoMasterDialog({
   // 🔑 Khai `Partial<Input>` cho giá trị mặc định, rồi ép đúng MỘT chỗ này —
   // ⛔ không rải `as` khắp nơi, và ⛔ không nới lược đồ.
   const DEFAULTS = useMemo(() => ({
-    po_number: '', style_id: '', customer_id: khachMacDinh ?? '', season_id: '', costing_id: '',
-    md_owner_id: '',
-    total_quantity: undefined, order_type: 'FOB', incoterm: '', currency: 'USD',
-    unit_price: undefined,
-    order_date: vnToday(), delivery_date: '', ex_factory_date: '',
+    po_number: '', customer_po_no: '', style_id: '', customer_id: khachMacDinh ?? '',
+    season_id: '', costing_id: '', md_owner_id: '',
+    total_quantity: undefined, qty_tolerance_percent: undefined,
+    order_type: 'FOB', incoterm: '', currency: 'USD', unit_price: undefined,
+    order_date: vnToday(), delivery_date: '', ex_factory_date: '', material_eta: '',
+    port_of_loading: '', port_of_destination: '',
     factory_name: '', subcontractor_id: '', ship_mode: '',
     // 🔴 *"⛔ Không cho mặc định 'Đã duyệt' khi tạo mới."* — tầng ②/③.
     status: 'DRAFT', notes: '', evidence_path: '',
@@ -195,6 +205,7 @@ export default function PoMasterDialog({
   const ngayGiao = watch('delivery_date');
   const soLuong = watch('total_quantity');
   const donGia = watch('unit_price');
+  const dungSai = watch('qty_tolerance_percent');
   const chietTinhId = watch('costing_id');
 
   // 🔴 Buyer · Brand · Payment Term — **ĐỌC** từ hồ sơ khách, ⛔ KHÔNG lưu lại.
@@ -230,6 +241,21 @@ export default function PoMasterDialog({
     if (c.quoted_price !== null) setValue('unit_price', c.quoted_price, { shouldDirty: true });
     if (c.currency) setValue('currency', c.currency as Input['currency'], { shouldDirty: true });
   }, [chon.chietTinh, setValue]);
+
+  // 🔑 **Dung sai là một con số TRỪU TƯỢNG cho tới khi thấy nó thành số áo.**
+  // `±3%` ⛔ không nói gì; *"giao 4.850 – 5.150"* thì MD đọc phát hiểu ngay, và
+  // đó chính là con số họ sẽ phải cãi với khách lúc giao thiếu.
+  const khoangGiao = useMemo(() => {
+    const q = Number(soLuong); const t = Number(dungSai);
+    if (!Number.isFinite(q) || q <= 0) return 'nhập số lượng để xem khoảng giao được phép';
+    if (dungSai === undefined || dungSai === null || String(dungSai) === '') {
+      return 'chưa thoả thuận dung sai — mặc định phải giao đúng số lượng';
+    }
+    if (!Number.isFinite(t) || t === 0) return `Phải giao đúng ${q.toLocaleString('vi-VN')} sp`;
+    const min = Math.floor(q * (1 - t / 100));
+    const max = Math.ceil(q * (1 + t / 100));
+    return `Được giao ${min.toLocaleString('vi-VN')} – ${max.toLocaleString('vi-VN')} sp`;
+  }, [soLuong, dungSai]);
 
   const tongTien = useMemo(() => {
     const q = Number(soLuong); const p = Number(donGia);
@@ -275,9 +301,20 @@ export default function PoMasterDialog({
         {/* ═══ Ⓐ ORDER IDENTITY ═══════════════════════════════════════════ */}
         <NhomGap sac="blue" ten="Ⓐ Nhận diện đơn hàng" icon={Fingerprint} mo={mo.a} onMo={bat('a')}
           phu={khach ? `${khach.customer_code} — ${khach.name}` : undefined}>
-          <Field label="Mã PO" hint="tự chuyển in hoa">
+          <Field label="Mã PO nội bộ" hint="tự chuyển in hoa">
             <input className={inputCls} placeholder="PO-2026-001" {...register('po_number')} />
             <Err>{formState.errors.po_number?.message}</Err>
+          </Field>
+
+          {/* 🔴 **SỐ PO CỦA KHÁCH — ô ⛔ CHƯA TỪNG CÓ, và nó là ô đắt nhất
+              trong nhóm này.** Nhà máy có mã nội bộ; khách có số của họ. Toàn
+              bộ **Commercial Invoice · Packing List · B/L · L/C** tham chiếu
+              số của KHÁCH.
+              ⇒ Thiếu nó thì tới lúc lập chứng từ, MD phải lục email tìm lại,
+              và ngân hàng **từ chối** bộ chứng từ ⛔ không khớp số trên L/C. */}
+          <Field label="Số PO của khách" hint="số ghi trên chứng từ xuất khẩu và L/C">
+            <input className={inputCls} placeholder="4500123456" {...register('customer_po_no')} />
+            <Err>{formState.errors.customer_po_no?.message}</Err>
           </Field>
 
           {/* 🔴 Ô CHỌN, ⛔ KHÔNG phải ô gõ tay. Đây là ô sửa lỗi lớn nhất của
@@ -341,14 +378,6 @@ export default function PoMasterDialog({
             <Err>{formState.errors.style_id?.message}</Err>
           </Field>
 
-          <Field label="Số lượng (pcs)">
-            <input
-              className={inputCls} type="number" min={1} step={1} inputMode="numeric"
-              {...register('total_quantity', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
-            />
-            <Err>{formState.errors.total_quantity?.message}</Err>
-          </Field>
-
           {/* 🔴 Board hỏi *"Product name"* và *"Category"*. Chúng ở đây — dưới
               dạng **ĐỌC từ mã hàng**, ⛔ không phải ô gõ. Gõ tay ở đây là dựng
               tên sản phẩm thứ hai khác tên trong hồ sơ mã hàng, rồi báo cáo
@@ -360,7 +389,34 @@ export default function PoMasterDialog({
 
           {/* ⚠️ Bảng MÀU × SIZE, BOM, NPL, QA CỐ Ý ⛔ KHÔNG có ở đây — chúng
               nằm ở PO360, nơi có đủ chỗ cho một bảng. */}
-        </NhomGap>
+
+          {/* ⚠️ **Số lượng và dung sai ĐỨNG CẠNH NHAU, có chủ ý.**
+              Dòng tóm tắt *"được giao 4.850 – 5.150 sp"* đọc từ **cả hai** ô;
+              xếp chúng hai hàng khác nhau là bắt mắt nhảy qua lại để hiểu
+              đúng một câu. */}
+          <Field label="Số lượng (pcs)">
+            <input
+              className={inputCls} type="number" min={1} step={1} inputMode="numeric"
+              {...register('total_quantity', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
+            />
+            <Err>{formState.errors.total_quantity?.message}</Err>
+          </Field>
+
+          {/* 🔴 **DUNG SAI ±% — con số quyết định đơn có bị phạt hay không.**
+              Chuẩn ngành `±3%` / `±5%`, và **L/C ghi rõ**. ⛔ Không có nó thì
+              giao 4.950/5.000 bị đọc là **giao thiếu** trong khi hợp đồng cho
+              phép — tranh chấp này ⛔ không giải được bằng trí nhớ của MD. */}
+          <Field label="Dung sai số lượng (±%)" hint="để trống = chưa thoả thuận · 0 = giao đúng tuyệt đối">
+            <input
+              className={inputCls} type="number" min={0} max={10} step={0.5} inputMode="decimal"
+              placeholder="3"
+              {...register('qty_tolerance_percent', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
+            />
+            <Err>{formState.errors.qty_tolerance_percent?.message}</Err>
+            <span className={chuPhu}>{khoangGiao}</span>
+          </Field>
+
+</NhomGap>
 
         {/* ═══ Ⓒ COMMERCIAL ══════════════════════════════════════════════ */}
         <NhomGap sac="violet" ten="Ⓒ Thương mại" icon={Banknote} mo={mo.c} onMo={bat('c')}
@@ -432,24 +488,52 @@ export default function PoMasterDialog({
             </select>
             <Err>{formState.errors.incoterm?.message}</Err>
           </Field>
+
+          {/* 🔴 **CẢNG ĐI · CẢNG ĐẾN — đặt NGAY DƯỚI Incoterm, có chủ ý.**
+              🔑 `Incoterm` mà ⛔ không có cảng là điều khoản **⛔ chưa hoàn
+              chỉnh**: `FOB` nghĩa là *"giao lên tàu tại cảng X"*. Thiếu X thì
+              ⛔ không xác định được **điểm chuyển rủi ro** lẫn **ai trả cước
+              tới đâu** — `FOB Hải Phòng` và `FOB Hồ Chí Minh` chênh nhau hàng
+              nghìn đô cước nội địa trên một container. */}
+          <Field label="Cảng đi (Port of loading)">
+            <input className={inputCls} list="goi-y-cang-di" placeholder="Hai Phong"
+              {...register('port_of_loading')} />
+            <datalist id="goi-y-cang-di">
+              {CANG_VN.map((c) => <option key={c} value={c} />)}
+            </datalist>
+            <Err>{formState.errors.port_of_loading?.message}</Err>
+          </Field>
+
+          <Field label="Cảng đến (Port of destination)">
+            <input className={inputCls} placeholder="Hamburg" {...register('port_of_destination')} />
+            <Err>{formState.errors.port_of_destination?.message}</Err>
+            <span className={chuPhu}>
+              {khach?.market ? `thị trường của khách: ${khach.market}` : 'theo hợp đồng với khách'}
+            </span>
+          </Field>
         </NhomGap>
 
         {/* ═══ Ⓓ PRODUCTION ══════════════════════════════════════════════ */}
         <NhomGap sac="amber" ten="Ⓓ Sản xuất & tiến độ" icon={Factory} mo={mo.d} onMo={bat('d')}
           phu={ngayGiao ? `giao ${ngayGiao}` : 'chưa có ngày giao'}>
-          <Field label="Xưởng sản xuất (nội bộ)">
+          <Field label="Nơi sản xuất" hint="xưởng hoặc chuyền nhận đơn này">
             <input className={inputCls} placeholder="Xưởng 1 — Chuyền A" {...register('factory_name')} />
             <Err>{formState.errors.factory_name?.message}</Err>
           </Field>
 
-          {/* 🔴 **XƯỞNG GIA CÔNG NGOÀI — ô chọn, ⛔ không phải ô gõ.**
-              Cột `subcontractor_id` đã có trong `orders` và `createPo` đã biết
-              ghi nó, nhưng **⛔ chưa từng có ô nào để chọn** ⇒ mọi đơn giao
-              ngoài đều mất dấu nhà thầu. Ràng buộc phân quyền theo Assignment
-              *(Playbook Điều XXX)* dựa trên chính khoá này. */}
-          <Field label="Xưởng gia công ngoài (Subcon)">
+          {/* 🔴 **NHÃN NÀY TỪNG SAI BẢN CHẤT DỮ LIỆU — sửa 08/08/2026.**
+              Bản trước gọi nó *"Xưởng gia công ngoài (Subcon)"*, ngụ ý **nơi
+              MAY** đơn hàng. Đo bảng `subcontractors` trên CSDL thật: chỉ có
+              `service_type` **`GIAT`** và **`IN_THEU`** — tức nhà cung cấp
+              **DỊCH VỤ** *(giặt · in · thêu)*, ⛔ **không** phải xưởng may.
+              `partner.service.ts` đã ghi đúng điều này từ trước.
+
+              🔑 Một ô chọn mang nhãn sai còn tệ hơn một ô ⛔ chưa có: MD chọn
+              *"Xưởng In Lưới Tân Bình"* để khai nơi may, và từ đó mọi báo cáo
+              năng lực chuyền đọc ra một xưởng in đang may 5.000 áo. */}
+          <Field label="Dịch vụ thuê ngoài" hint="giặt · in · thêu — ⛔ không phải nơi may">
             <select className={inputCls} {...register('subcontractor_id')}>
-              <option value="">— Làm tại xưởng nhà —</option>
+              <option value="">— Không thuê ngoài —</option>
               {chon.xuongNgoai.map((x) => (
                 <option key={x.id} value={x.id}>
                   {x.vendor_code} — {x.vendor_name}{x.service_type ? ` · ${x.service_type}` : ''}
@@ -459,9 +543,18 @@ export default function PoMasterDialog({
             <Err>{formState.errors.subcontractor_id?.message}</Err>
           </Field>
 
-          <Field label="Ngày đặt hàng">
+          <Field label="Ngày đặt hàng" hint="ngày chốt đơn với khách">
             <input className={inputCls} type="date" {...register('order_date')} />
             <Err>{formState.errors.order_date?.message}</Err>
+          </Field>
+
+          {/* 🔴 **NGÀY NPL PHẢI VỀ KHO — mốc SỚM NHẤT có thể làm trễ cả đơn.**
+              Chuyền ⛔ không cắt được khi vải chưa về. Lược đồ ép đúng thứ tự
+              sản xuất: **NPL về ⇒ xuất xưởng ⇒ giao khách**, và bắt sai ngay
+              lúc lập rẻ hơn nhiều so với lúc chuyền đứng chờ vải. */}
+          <Field label="Ngày NPL về kho" hint="mốc cam kết ngược lại với bộ phận vật tư">
+            <input className={inputCls} type="date" {...register('material_eta')} />
+            <Err>{formState.errors.material_eta?.message}</Err>
           </Field>
 
           <Field label="Ngày giao hàng" hint="mốc cam kết với khách">
@@ -530,10 +623,19 @@ export default function PoMasterDialog({
             </span>
           </Field>
 
-          <Field label="Ghi chú">
-            <input className={inputCls} {...register('notes')} />
-            <Err>{formState.errors.notes?.message}</Err>
-          </Field>
+          {/* 🔴 **Ô NÀY TỪNG VỨT DỮ LIỆU IM LẶNG.** Biểu mẫu có ô, lược đồ
+              Zod có trường, nhưng `orders` **⛔ KHÔNG CÓ CỘT `notes`** ⇒
+              `createPo` ⛔ không hề ghi nó. Người dùng gõ *"khách yêu cầu in
+              nhãn size riêng"*, bấm Lưu, hệ thống báo **thành công**, và câu
+              đó **biến mất ⛔ không dấu vết**.
+              🔑 Loại lỗi tệ nhất trong nhóm mất dữ liệu: nó **trông như đã
+              lưu**. Migration `055` thêm cột và vá đúng chỗ đó. */}
+          <div className="sm:col-span-2">
+            <Field label="Yêu cầu đặc biệt của khách" hint="in nhãn riêng · cách gấp · quy cách đóng thùng…">
+              <textarea className={`${inputCls} min-h-[60px] resize-y`} {...register('notes')} />
+              <Err>{formState.errors.notes?.message}</Err>
+            </Field>
+          </div>
 
           <div className="sm:col-span-2">
             <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.journey.nen} ${SAC_NHOM.journey.chu} ${TYPE.caption}`}>
