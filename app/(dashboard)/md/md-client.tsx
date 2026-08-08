@@ -347,13 +347,30 @@ export default function MdClient({
     if (paletteOpen && customers === null) void listCustomersClient().then(setCustomers);
   }, [paletteOpen, customers]);
 
-  // 🔴 Thêm `po`: nút *"+ Tạo PO"* mở thẳng từ màn hình mặc định, ⛔ không đi
-  // qua tab nào — ⛔ không nạp ở đây thì ô chọn khách của Order Master rỗng.
+  // 🔴 **LỖI ĐO ĐƯỢC 08/08/2026 — CANH SAI BIẾN, và nó chặn đúng đường tạo
+  // PO chính.**
+  //
+  // Chú thích cũ ở đây ghi đúng ý định: *"nút `+ Tạo PO` mở thẳng từ màn hình
+  // mặc định, ⛔ không đi qua tab nào"*. Nhưng điều kiện lại canh **`tab`**,
+  // trong khi nút Action Center đặt **`dialog`** — hai biến khác nhau.
+  //
+  // 🔴 Hậu quả đo được bằng ảnh chụp: mở PO từ Action Center ⇒ ô chọn khách
+  // **RỖNG** ⇒ biểu mẫu hiện *"Chưa có khách hàng nào đang giao dịch"* và nút
+  // **Lưu bị khoá**. Tức **⛔ KHÔNG tạo được PO từ lối vào chính** — trong khi
+  // vào qua tab `po` thì bình thường.
+  //
+  // 🔑 Bài học: một chú thích mô tả đúng ý định **⛔ không chứng minh mã làm
+  // đúng ý định đó**. Khối chú thích ở đây đã đứng cạnh dòng sai suốt thời
+  // gian dài, và chính nó làm người đọc *(kể cả tôi)* tin là đã xử lý xong.
+  //
+  // ⚠️ `dialog === 'po'` xử lý lối Action Center; ba `tab` giữ nguyên cho lối
+  // đi qua tab. Hai lối vào, cùng một danh sách.
   useEffect(() => {
-    if ((tab === 'rfq' || tab === 'costing' || tab === 'po') && customerOptions.length === 0) {
+    const canDs = tab === 'rfq' || tab === 'costing' || tab === 'po' || dialog === 'po';
+    if (canDs && customerOptions.length === 0) {
       void listCustomerOptionsClient().then(setCustomerOptions);
     }
-  }, [tab, customerOptions.length]);
+  }, [tab, dialog, customerOptions.length]);
 
   // Mùa vụ — chỉ Order Master cần ⇒ nạp khi hộp thoại PO mở.
   useEffect(() => {

@@ -5,17 +5,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import {
-  Loader2, PackagePlus, Fingerprint, Shirt, Banknote, Factory, GitBranch, Lock,
+  Loader2, PackagePlus, Fingerprint, Shirt, Banknote, Factory, GitBranch, Lock, Plus,
 } from 'lucide-react';
 import type { z } from 'zod';
 
 import {
   Modal, Field, NhomGap, oChiDoc, hangNutDayHopThoai,
-  inputCls, btnGhost, btnPrimary, SAC_NHOM,
+  inputCls, btnGhost, btnPrimary, SAC_NHOM, SAC_O,
 } from '@/components/ui';
 import { TYPE, FONT_WEIGHT } from '@/lib/design/typography';
 import { createPo } from './_actions/po.actions';
-import { listPoFormOptionsClient } from './_actions/md4.client';
+import { saveDocument } from './_actions/collaboration.actions';
+import { listStylesClient } from './_actions/md360.client';
+import PoDinhKem, { type TepDinhKem } from './po-dinh-kem';
+import StyleFormDialog from '@/components/md/style/style-form-dialog';
+import CustomerFormDialog from '@/components/md/crm/customer-form-dialog';
+import { listPoFormOptionsClient, listCustomerOptionsClient } from './_actions/md4.client';
 import type { OChonKhachHang, OChonDonHang } from './_services/commercial.service';
 import {
   poFormSchema, vnToday,
@@ -180,6 +185,24 @@ export default function PoMasterDialog({
 
   // Ba danh sách nạp **khi mở**, ⛔ không nạp sẵn cho mọi lượt vào `/md`.
   const [chon, setChon] = useState<OChonDonHang>(RONG);
+  const [tep, setTep] = useState<TepDinhKem[]>([]);
+
+  // 🔴 **HỘP THOẠI CON — Board 08/08/2026:** *"nếu trong quá trình tạo PO mà
+  // chưa có mã hàng thì phải có nút thêm mã hàng mới hoặc khách hàng mới."*
+  //
+  // 🔑 **Hộp thoại PO GIỮ NGUYÊN, ⛔ không đóng lại.** `react-hook-form` giữ
+  // state trong component; đóng PO để mở Mã hàng là **xoá sạch mọi ô đã điền**
+  // — và MD sẽ phải gõ lại từ đầu chỉ vì thiếu một mã hàng.
+  // ⇒ Hộp thoại con dựng **ĐÈ LÊN**, PO vẫn nằm dưới nguyên vẹn.
+  const [phu, setPhu] = useState<null | 'style' | 'customer'>(null);
+
+  // Danh sách bổ sung tại chỗ. ⚠️ `customers`/`styles` tới từ **props của
+  // trang**, mà trang ⛔ không nạp lại khi hộp thoại con lưu xong. Nạp lại
+  // đúng hai danh sách này là rẻ và giữ cho ô chọn nói đúng sự thật ngay.
+  const [themKhach, setThemKhach] = useState<OChonKhachHang[]>([]);
+  const [themStyle, setThemStyle] = useState<StyleRow[]>([]);
+  const dsKhach = useMemo(() => [...customers, ...themKhach], [customers, themKhach]);
+  const dsStyle = useMemo(() => [...styles, ...themStyle], [styles, themStyle]);
 
   // 🔑 Ba nhóm đầu mở sẵn — đủ để lưu một đơn hợp lệ. Board: *"⛔ Không tạo
   // popup dài."* Mở hết 20 ô là quay lại đúng cái đang sửa; gấp hết thì người
@@ -190,6 +213,7 @@ export default function PoMasterDialog({
   useEffect(() => {
     if (!open) return;
     reset(DEFAULTS);
+    setTep([]);
     setMo({ a: true, b: true, c: true, d: false, e: false });
     let huy = false;
     // ⚠️ `huy` chặn ghi state sau khi hộp thoại đã đóng — mở/đóng nhanh hai lần
@@ -209,9 +233,9 @@ export default function PoMasterDialog({
   const chietTinhId = watch('costing_id');
 
   // 🔴 Buyer · Brand · Payment Term — **ĐỌC** từ hồ sơ khách, ⛔ KHÔNG lưu lại.
-  const khach = useMemo(() => customers.find((c) => c.id === khachId) ?? null, [customers, khachId]);
+  const khach = useMemo(() => dsKhach.find((c) => c.id === khachId) ?? null, [dsKhach, khachId]);
   // 🔴 Product name · Category — **ĐỌC** từ mã hàng.
-  const style = useMemo(() => styles.find((s) => s.id === styleId) ?? null, [styles, styleId]);
+  const style = useMemo(() => dsStyle.find((s) => s.id === styleId) ?? null, [dsStyle, styleId]);
 
   // Chọn khách ⇒ áp mặc định thương mại CỦA KHÁCH ĐÓ. ⚠️ Chỉ áp cho ô người
   // dùng ⛔ CHƯA đụng tới — ghi đè lựa chọn họ vừa gõ là thô lỗ và dễ ra giá sai.
@@ -273,25 +297,56 @@ export default function PoMasterDialog({
       toast.error('Không tạo được đơn hàng', { description: res.message });
       return;
     }
+    // 🔴 **GHI TÀI LIỆU SAU KHI PO CÓ `id`.** Lúc điền biểu mẫu, PO ⛔ chưa
+    // tồn tại nên ⛔ không có gì để gắn tài liệu vào — tệp đã nằm sẵn trong
+    // kho lưu trữ, ở đây chỉ còn việc **đăng ký** chúng cho đúng đơn.
+    //
+    // ⚠️ Lỗi ở bước này **⛔ KHÔNG được làm hỏng việc tạo PO** — đơn đã tạo
+    // xong và ⛔ không rút lại được. Báo cho người dùng biết tệp nào chưa gắn
+    // được, để họ bổ sung ở PO 360°; nuốt lỗi đi mới là điều ⛔ không chấp nhận.
+    if (res.data?.id && tep.length) {
+      const hong: string[] = [];
+      for (const t of tep) {
+        const rd = await saveDocument({
+          entity_type: 'ORDER', entity_id: res.data.id, doc_type: t.docType,
+          title: t.title, storage_path: t.path, file_size: t.size,
+          mime_type: t.mime, version: 1,
+        });
+        if (!rd.ok) hong.push(t.title);
+      }
+      if (hong.length) {
+        toast.error(`${hong.length} tệp chưa gắn được vào đơn`, {
+          description: `${hong.join(' · ')} — mở PO 360° để đính kèm lại.`,
+        });
+      }
+    }
+
     toast.success('Đã tạo đơn hàng', { description: res.message });
     reset(DEFAULTS);
+    setTep([]);
     onClose();
     // 🔴 *"⛔ Không quay Dashboard. Đi thẳng PO360."*
     if (res.data?.id) await onCreated(res.data.id, values.po_number);
   });
 
   const chuPhu = `text-slate-500 ${TYPE.caption}`;
+  // ⚠️ Nút **rất nhẹ**, cố ý: nó là lối thoát hiểm cho một trường hợp ⛔ không
+  // thường xuyên. Làm nó nổi ngang ô chọn sẽ mời người dùng tạo mã hàng mới
+  // thay vì tìm mã đã có — đúng cách sinh ra danh mục trùng lặp.
+  const nutThemNhanh =
+    `mt-1 inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 ${SAC_O.sky.chu} `
+    + `${TYPE.caption} ${FONT_WEIGHT.semibold} transition hover:underline`;
   const trangThai = watch('status');
 
   return (
     <Modal open={open} title="Tạo đơn hàng (Order Master)" onClose={onClose} wide>
       <form onSubmit={onSubmit} noValidate className="space-y-2.5">
-        {customers.length === 0 && (
+        {dsKhach.length === 0 && (
           <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.today.nen} ${SAC_NHOM.today.chu} ${TYPE.caption}`}>
             Chưa có khách hàng nào đang giao dịch. Thêm khách hàng trước — đơn hàng phải gắn với một khách.
           </p>
         )}
-        {styles.length === 0 && (
+        {dsStyle.length === 0 && (
           <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.today.nen} ${SAC_NHOM.today.chu} ${TYPE.caption}`}>
             Chưa có mã hàng nào. Mã hàng mang định mức NPL và SAM — thiếu nó thì không sinh được
             yêu cầu vật tư lẫn lệnh sản xuất.
@@ -323,11 +378,17 @@ export default function PoMasterDialog({
           <Field label="Khách hàng">
             <select className={inputCls} {...register('customer_id')}>
               <option value="">— Chọn khách hàng —</option>
-              {customers.map((c) => (
+              {dsKhach.map((c) => (
                 <option key={c.id} value={c.id}>{c.customer_code} — {c.name}</option>
               ))}
             </select>
             <Err>{formState.errors.customer_id?.message}</Err>
+            {/* 🔴 Board: *"nếu ⛔ chưa có… phải có nút thêm khách hàng mới."*
+                ⚠️ Nút này ⛔ **KHÔNG** đóng biểu mẫu PO — xem chú thích ở
+                `phu`. Mọi ô đã điền nằm nguyên dưới hộp thoại con. */}
+            <button type="button" onClick={() => setPhu('customer')} className={nutThemNhanh}>
+              <Plus className="h-3 w-3" aria-hidden="true" /> Khách hàng mới
+            </button>
           </Field>
 
           <ODoc label="Buyer (tập đoàn / nhóm mua)" gia_tri={khach?.buyer_group ?? null}
@@ -371,11 +432,14 @@ export default function PoMasterDialog({
           <Field label="Mã hàng (Style)" hint="mang định mức NPL và SAM">
             <select className={inputCls} {...register('style_id')}>
               <option value="">— Chọn mã hàng —</option>
-              {styles.map((s) => (
+              {dsStyle.map((s) => (
                 <option key={s.id} value={s.id}>{s.style_no} — {s.style_name}</option>
               ))}
             </select>
             <Err>{formState.errors.style_id?.message}</Err>
+            <button type="button" onClick={() => setPhu('style')} className={nutThemNhanh}>
+              <Plus className="h-3 w-3" aria-hidden="true" /> Mã hàng mới
+            </button>
           </Field>
 
           {/* 🔴 Board hỏi *"Product name"* và *"Category"*. Chúng ở đây — dưới
@@ -531,7 +595,7 @@ export default function PoMasterDialog({
               🔑 Một ô chọn mang nhãn sai còn tệ hơn một ô ⛔ chưa có: MD chọn
               *"Xưởng In Lưới Tân Bình"* để khai nơi may, và từ đó mọi báo cáo
               năng lực chuyền đọc ra một xưởng in đang may 5.000 áo. */}
-          <Field label="Dịch vụ thuê ngoài" hint="giặt · in · thêu — ⛔ không phải nơi may">
+          <Field label="Dịch vụ thuê ngoài" hint="giặt · in · thêu — không phải nơi may">
             <select className={inputCls} {...register('subcontractor_id')}>
               <option value="">— Không thuê ngoài —</option>
               {chon.xuongNgoai.map((x) => (
@@ -637,6 +701,11 @@ export default function PoMasterDialog({
             </Field>
           </div>
 
+          {/* 🔴 Board 08/08/2026: *"phải **thêm được hình ảnh và tài liệu** của
+              PO đó."* Tệp tải lên NGAY khi chọn; bản ghi `md_documents` ghi SAU
+              khi PO có `id` — xem chú thích đầu `po-dinh-kem.tsx`. */}
+          <PoDinhKem ds={tep} onChange={setTep} />
+
           <div className="sm:col-span-2">
             <p className={`rounded-lg px-3 py-2 ${SAC_NHOM.journey.nen} ${SAC_NHOM.journey.chu} ${TYPE.caption}`}>
               <strong>Nháp</strong> → <strong>Chờ duyệt</strong> → <strong>Đã duyệt</strong> →{' '}
@@ -657,7 +726,7 @@ export default function PoMasterDialog({
           <button
             type="submit"
             className={btnPrimary}
-            disabled={formState.isSubmitting || customers.length === 0 || styles.length === 0}
+            disabled={formState.isSubmitting || dsKhach.length === 0 || dsStyle.length === 0}
           >
             {formState.isSubmitting
               ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Đang lưu...</>
@@ -665,6 +734,39 @@ export default function PoMasterDialog({
           </button>
         </div>
       </form>
+
+      {/* ═══ 🔴 HỘP THOẠI CON — dựng ĐÈ LÊN, PO nằm nguyên bên dưới ═══════
+          ⚠️ Chúng nằm **TRONG** `<Modal>` của PO một cách có chủ ý: cả hai đều
+          `fixed inset-0 z-50`, nên cái dựng sau đè lên cái trước. Đặt ra ngoài
+          thì `PoMasterDialog` phải bị tháo khỏi cây — và tháo là **mất sạch
+          state của `react-hook-form`**, tức mất mọi ô MD vừa điền. */}
+      <StyleFormDialog
+        open={phu === 'style'}
+        onClose={() => setPhu(null)}
+        onCreated={async () => {
+          // Nạp lại danh mục mã hàng và **tự chọn mã vừa tạo**: người dùng bấm
+          // *"Mã hàng mới"* vì họ cần đúng mã đó cho đơn này — bắt họ mở ô chọn
+          // tìm lại là thêm một bước ⛔ không có lý do nào.
+          const r = await listStylesClient();
+          const moiNhat = r.rows.filter((x) => !dsStyle.some((y) => y.id === x.id));
+          if (moiNhat.length) {
+            setThemStyle((v) => [...v, ...moiNhat]);
+            setValue('style_id', moiNhat[0].id, { shouldDirty: true, shouldValidate: true });
+          }
+        }}
+      />
+      <CustomerFormDialog
+        open={phu === 'customer'}
+        onClose={() => setPhu(null)}
+        onCreated={async () => {
+          const r = await listCustomerOptionsClient();
+          const moiNhat = r.filter((x) => !dsKhach.some((y) => y.id === x.id));
+          if (moiNhat.length) {
+            setThemKhach((v) => [...v, ...moiNhat]);
+            setValue('customer_id', moiNhat[0].id, { shouldDirty: true, shouldValidate: true });
+          }
+        }}
+      />
     </Modal>
   );
 }

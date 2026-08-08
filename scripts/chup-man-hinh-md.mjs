@@ -180,14 +180,17 @@ async function chup(ten, rong, cao, { toanTrang = !process.env.ANH_KHUNG } = {})
   await new Promise((s) => setTimeout(s, 5000));
 
   // Bấm một phần tử trước khi chụp — dùng để chụp Search / dropdown ĐANG MỞ.
-  if (process.env.ANH_BAM) {
+  // 🔑 `ANH_BAM` nhận **chuỗi bấm** ngăn bằng `>>`. Cần thiết vì nhiều thứ chỉ
+  // hiện ra SAU một cú bấm trước đó — nhóm gấp trong hộp thoại là ví dụ: nút
+  // *"Quy trình"* ⛔ không tồn tại cho tới khi hộp thoại PO mở.
+  for (const dkMot of (process.env.ANH_BAM ? process.env.ANH_BAM.split('>>') : [])) {
     // 🔑 `ANH_BAM` nhận **hai dạng**: bộ chọn CSS, hoặc `text=…` để tìm theo
     // chữ hiện trên nút. Dạng thứ hai cần thiết vì thẻ hành động ⛔ không có
     // `id` lẫn `aria-label` riêng — neo vào lớp Tailwind thì bài chụp sẽ hỏng
     // ngay lần đổi bố cục kế tiếp, mà **chữ trên nút thì ổn định**.
     const bam = await chay(
       `(() => {
-        const dk = ${JSON.stringify(process.env.ANH_BAM)};
+        const dk = ${JSON.stringify(dkMot.trim())};
         let e = null;
         if (dk.startsWith('text=')) {
           const tu = dk.slice(5).toLowerCase();
@@ -199,7 +202,7 @@ async function chup(ten, rong, cao, { toanTrang = !process.env.ANH_KHUNG } = {})
         return 'OK';
       })()`,
     );
-    if (bam !== 'OK') console.log(`   ⚠️ ANH_BAM: ${bam} — ${process.env.ANH_BAM}`);
+    if (bam !== 'OK') console.log(`   ⚠️ ANH_BAM: ${bam} — ${dkMot.trim()}`);
     if (process.env.ANH_GO) {
       // Gõ vào ô đang lấy nét bằng sự kiện React hợp lệ.
       await chay(`(() => {
