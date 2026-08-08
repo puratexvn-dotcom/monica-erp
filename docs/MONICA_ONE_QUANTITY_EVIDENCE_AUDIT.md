@@ -55,6 +55,31 @@ của khách — ai có URL đều mở được, **⛔ không cần đăng nh�
 ⇒ **Mở rộng bằng chứng ra 27 bảng nữa TRƯỚC KHI vá chỗ này là nhân lỗ hổng lên
 27 lần.** Đây là **điều kiện tiên quyết**, ⛔ không phải việc làm song song.
 
+✅ **ĐÃ CHỨNG MINH BẰNG HÀNH VI 08/08/2026** — tải một tệp bằng phiên `md001`
+rồi gọi URL bằng `fetch` trần *(⛔ không cookie, ⛔ không `apikey`)*:
+**`HTTP 200`**. Kế hoạch xử lý:
+[`MONICA_ONE_EVIDENCE_SECURITY_PLAN.md`](MONICA_ONE_EVIDENCE_SECURITY_PLAN.md).
+
+🔑 **Và đo được một điều đổi hẳn mức khẩn:** kho hiện có **0 tệp**, CSDL có **0
+tham chiếu**. Vá lúc này tốn **một migration**; vá khi có 5.000 tệp tốn thêm
+một cuộc di trú và một khoảng hệ thống chạy nửa chừng.
+
+### 1.3 🔴 P0-b · **PDF ⛔ KHÔNG tải lên được** — khuyết tật ĐANG CHẠY
+
+Phát hiện khi đo kho lưu trữ:
+
+```
+PDF  → BỊ TỪ CHỐI: mime type application/pdf is not supported
+PNG  → ĐƯỢC
+```
+
+`upload-action.ts` **có** `application/pdf` trong allowlist ứng dụng, nhưng
+`allowed_mime_types` của **bucket** ⛔ chưa bao giờ cập nhật theo. Hai allowlist,
+chỉ một cái được sửa.
+
+🔴 **Khuyết tật của chính tôi, đã đẩy lên nhánh chạy thật.** Khối *"đính kèm
+hình ảnh & tài liệu"* của form PO mời người dùng chọn PDF, và Supabase từ chối.
+
 ### 1.2 P1 · Người tải lên **tự xoá được** bằng chứng, ⛔ không vết
 
 ```sql
